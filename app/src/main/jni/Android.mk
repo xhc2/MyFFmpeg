@@ -26,8 +26,6 @@ LOCAL_MODULE := avutil
 LOCAL_SRC_FILES := libavutil.so
 include $(PREBUILT_SHARED_LIBRARY)
 
-
-
 include $(CLEAR_VARS)
 LOCAL_MODULE := swresample
 LOCAL_SRC_FILES := libswresample.so
