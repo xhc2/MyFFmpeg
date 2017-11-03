@@ -26,4 +26,8 @@ public class FFmpegUtils {
     public static native String stringJni();
 
 
+    public static native void decode(String filePath , String outputStr);
+
+
+
 }

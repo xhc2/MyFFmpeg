@@ -23,6 +23,14 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNativ
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringJni
   (JNIEnv *, jclass);
 
+/*
+ * Class:     module_video_jnc_myffmpeg_FFmpegUtils
+ * Method:    decode
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
+  (JNIEnv *, jclass, jstring, jstring);
+
 #ifdef __cplusplus
 }
 #endif
