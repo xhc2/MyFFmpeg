@@ -12,7 +12,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    //屏蔽gradle的jni生成过程，让android.mk生效
+    //屏蔽gradle的jni生成过程，在cmd中运行ndk-build ，然后再生成so文件。android.mk生效
     sourceSets {
         main {
             jni.srcDirs = []

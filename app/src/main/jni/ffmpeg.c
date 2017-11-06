@@ -1,5 +1,4 @@
-//
-//
+
 
 #include <module_video_jnc_myffmpeg_FFmpegUtils.h>
 #include <string.h>
