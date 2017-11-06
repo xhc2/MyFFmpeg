@@ -13,21 +13,16 @@ public class FFmpegUtils {
         System.loadLibrary("avdevice");
         System.loadLibrary("swresample");
         System.loadLibrary("swscale");
-//        System.loadLibrary("postproc-53");
         System.loadLibrary("avfilter");
         System.loadLibrary("ffmpeg");
-//        System.loadLibrary("hello-jni");
     }
 
 
     public static native String stringNative();
 
-
     public static native String stringJni();
 
-
-    public static native void decode(String filePath , String outputStr);
-
+    public static native int decode(String filePath , String outputStr);
 
 
 }

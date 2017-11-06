@@ -28,7 +28,7 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringJni
  * Method:    decode
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
   (JNIEnv *, jclass, jstring, jstring);
 
 #ifdef __cplusplus
