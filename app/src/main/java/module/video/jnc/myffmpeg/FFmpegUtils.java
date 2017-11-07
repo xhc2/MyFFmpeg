@@ -24,5 +24,6 @@ public class FFmpegUtils {
 
     public static native int decode(String filePath , String outputStr);
 
+    public static native int stream(String inputUrl , String ouputUrl);
 
 }

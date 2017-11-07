@@ -331,8 +331,26 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     (*env)->ReleaseStringUTFChars(env, output_jstr, output_str);
     return 0;
 }
-  
-  
+
+/*
+* Class:     module_video_jnc_myffmpeg_FFmpegUtils
+* Method:    stream
+* Signature: (Ljava/lang/String;Ljava/lang/String;)I
+*/
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
+        (JNIEnv *env, jclass clazz, jstring input_url, jstring output_url){
+
+
+    char *input_str , *output_str;
+    input_str = (*env)->GetStringUTFChars(env, input_url, NULL);
+    output_str = (*env)->GetStringUTFChars(env, output_url, NULL);
+
+    LOGE(" STREAM input_url %s , output_url %s " , input_str , output_str);
+
+    (*env)->ReleaseStringUTFChars(env, input_url, input_str);
+    (*env)->ReleaseStringUTFChars(env, output_url, output_str);
+    return 0;
+}
   
   
   

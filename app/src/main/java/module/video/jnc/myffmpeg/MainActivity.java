@@ -1,5 +1,6 @@
 package module.video.jnc.myffmpeg;
 
+import android.content.Intent;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,11 +20,18 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView)findViewById(R.id.tv);
         textView.setText(FFmpegUtils.stringJni());
 
-        findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.decode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FFmpegUtils.decode(rootFile+"/b.mp4" , rootFile+"/decode.yuv");
+                startActivity(new Intent(MainActivity.this,  DecodeMP4Activity.class));
             }
         });
+        findViewById(R.id.stream).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  StreamActivity.class));
+            }
+        });
+
     }
 }
