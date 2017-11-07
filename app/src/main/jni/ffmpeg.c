@@ -197,6 +197,9 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     LOGE("%s[Codec     ]%s\n", info, pCodecCtx->codec->name);
     LOGE("%s[Resolution]%dx%d\n", info, pCodecCtx->width, pCodecCtx->height);
 
+    /**
+     * 读写方式打开文件，不是追加
+     */
     fp_yuv = fopen(output_str, "wb+");
 
     if (fp_yuv == NULL) {
