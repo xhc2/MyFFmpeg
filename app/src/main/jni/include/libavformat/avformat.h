@@ -1986,7 +1986,7 @@ void av_register_output_format(AVOutputFormat *format);
 
 /**
  * Do global initialization of network components. This is optional,
- * but recommended, since it avoids the overhead of implicitly
+ * but recommended, since it avoids the overhead（天花板） of implicitly（含蓄）
  * doing the setup for each session.
  *
  * Calling this function will become mandatory if using network

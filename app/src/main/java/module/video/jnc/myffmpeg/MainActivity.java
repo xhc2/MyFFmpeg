@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FFmpegUtils.decode(rootFile+"/a.mp4" , rootFile+"/decode.yuv");
+                FFmpegUtils.decode(rootFile+"/b.mp4" , rootFile+"/decode.yuv");
             }
         });
     }
