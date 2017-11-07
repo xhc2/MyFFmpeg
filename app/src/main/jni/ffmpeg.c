@@ -92,7 +92,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     input_str = (*env)->GetStringUTFChars(env, input_jstr, NULL);
     output_str = (*env)->GetStringUTFChars(env, output_jstr, NULL);
     //FFmpeg av_log() callback
-    //av_log_set_callback(custom_log);
+    av_log_set_callback(custom_log);
     LOGE("input %s , output %s ", input_str, output_str);
     /**
      * 初始化，avformat，然后还初始化混合器，分流器。
@@ -171,13 +171,11 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
      */
     out_buffer = (unsigned char *) av_malloc(
             av_image_get_buffer_size(AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1));
-
     /**
      * 我也不知道要干嘛，好像是转格式之前设置的一些。
      */
     av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer,
                          AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1);
-
     /**
      * 为解码前申请空间
      */
@@ -282,7 +280,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
             break;
         }
 
-
         sws_scale(img_convert_ctx, (const uint8_t *const *) pFrame->data, pFrame->linesize, 0,
                   pCodecCtx->height,
                   pFrameYUV->data, pFrameYUV->linesize);
@@ -313,7 +310,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     time_finish = clock();
     time_duration = (double) (time_finish - time_start);
 
-
     LOGE("%s[Time      ]%fms\n", info, time_duration);
     LOGE("%s[Count     ]%d\n", info, frame_cnt);
 
@@ -325,7 +321,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     av_frame_free(&pFrame);
     avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
-
 
     (*env)->ReleaseStringUTFChars(env, input_jstr, input_str);
     (*env)->ReleaseStringUTFChars(env, output_jstr, output_str);
@@ -339,7 +334,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
 */
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
         (JNIEnv *env, jclass clazz, jstring input_url, jstring output_url){
-
 
     char *input_str , *output_str;
     input_str = (*env)->GetStringUTFChars(env, input_url, NULL);
