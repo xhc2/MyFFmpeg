@@ -1,11 +1,18 @@
 package module.video.jnc.myffmpeg;
 
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
-public class StreamActivity extends AppCompatActivity {
+import java.io.File;
 
+/**
+ * 推流器
+ */
+
+public class StreamActivity extends AppCompatActivity {
+    private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "Jnc/material/");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -14,9 +21,11 @@ public class StreamActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //开始推流
-                FFmpegUtils.stream(" input url " , " output url ");
+                FFmpegUtils.stream(rootFile+"/test.flv" , "rtmp://192.168.2.120/live/test");
             }
         });
-
     }
+
+
+
 }
