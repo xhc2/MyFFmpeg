@@ -12,14 +12,17 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
-    private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "Jnc/material/");
+    private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = (TextView)findViewById(R.id.tv);
         textView.setText(FFmpegUtils.stringJni());
-
+        if(!rootFile.exists()){
+            //创建文件夹
+            rootFile.mkdirs();
+        }
         findViewById(R.id.decode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -32,6 +35,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this,  StreamActivity.class));
             }
         });
-
+        findViewById(R.id.bt_encode).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  EncodeActivity.class));
+            }
+        });
     }
 }

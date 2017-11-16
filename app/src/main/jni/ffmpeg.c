@@ -49,6 +49,7 @@ void custom_log(void *ptr, int level, const char *fmt, va_list vl) {
  * Class:     module_video_jnc_myffmpeg_FFmpegUtils
  * Method:    decode
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ * 解码
  */
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
         (JNIEnv *env, jclass clazz, jstring input_jstr, jstring output_jstr) {
@@ -69,9 +70,11 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
      * 每个AVCodecContext中对应一个avcodec，包含该视频/音频对应的解码器。每种解码器都对应一个avcodec结构。
      */
     AVCodecContext *pCodecCtx;
+    //存储编解码器的结构体
     AVCodec *pCodec;
     //解码后的数据AVFrame
     AVFrame *pFrame, *pFrameYUV;
+
     uint8_t *out_buffer;
     //解码前的数据
     AVPacket *packet;
@@ -90,6 +93,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     char info[1000] = {0};
 
     input_str = (*env)->GetStringUTFChars(env, input_jstr, NULL);
+
     output_str = (*env)->GetStringUTFChars(env, output_jstr, NULL);
     //FFmpeg av_log() callback
     av_log_set_callback(custom_log);
@@ -109,7 +113,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     pFormatCtx = avformat_alloc_context();
 
     /**
-     * 打开输入流，注意使用avformat_close_input关闭，注意传入的是pFormatCtx的地址（需要用二级指针来保存），
+     * 打开输入流，注意使用avformat_close_input关闭，
+     * 注意传入的是pFormatCtx的地址(pFormatCtx本身也是一个指针变量)（需要用二级指针来保存），
      */
     if (avformat_open_input(&pFormatCtx, input_str, NULL, NULL) != 0) {
         LOGE("Couldn't open input stream.\n");
@@ -152,6 +157,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
         LOGE("Couldn't find Codec.\n");
         return -1;
     }
+
    if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
         LOGE("Couldn't open codec.\n");
         return -1;
@@ -307,14 +313,13 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
         LOGE("Frame Index: %5d. Type :%s ", frame_cnt, pictype_str);
         frame_cnt++;
     }
+
     time_finish = clock();
     time_duration = (double) (time_finish - time_start);
 
     LOGE("%s[Time      ]%fms\n", info, time_duration);
     LOGE("%s[Count     ]%d\n", info, frame_cnt);
-
     sws_freeContext(img_convert_ctx);
-
     fclose(fp_yuv);
 
     av_frame_free(&pFrameYUV);
@@ -331,6 +336,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
 * Class:     module_video_jnc_myffmpeg_FFmpegUtils
 * Method:    stream
 * Signature: (Ljava/lang/String;Ljava/lang/String;)I
+* 推流
 */
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
         (JNIEnv *env, jclass clazz, jstring input_jstr, jstring output_jstr){
@@ -349,6 +355,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
     char *input_str = NULL;
     char *output_str = NULL;
     char info[1000]={0};
+
     input_str = (*env)->GetStringUTFChars(env,input_jstr, NULL);
     output_str = (*env)->GetStringUTFChars(env,output_jstr, NULL);
 
@@ -360,7 +367,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
     av_register_all();
     //网络初始化，要推流必须初始化
     avformat_network_init();
-
     //打开输入文件，从sdcard上读取视频
     if ((ret = avformat_open_input(&ifmt_ctx, input_str, 0, 0)) < 0) {
         LOGE( "Could not open input file.");
@@ -372,8 +378,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
         goto end;
     }
 
-    int videoindex=-1;
-
+    int videoindex = -1;
     /**
      * ifmt_ctx->nb_streams
      * 一个AVFormatContext可能有很多个stream，（视频，音频，字幕等。）
@@ -501,8 +506,113 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
     }
     return 0;
 }
-  
-  
+
+/*
+* Class:     module_video_jnc_myffmpeg_FFmpegUtils
+* Method:    encode
+* Signature: (Ljava/lang/String;)I
+* 将yuv格式的数据转码成flv
+*/
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
+        (JNIEnv *env, jclass clazz, jstring jstr_inputPath , jstring jstr_outPath){
+
+    char *input_str  , *output_str;
+
+    input_str = (*env)->GetStringUTFChars(env,jstr_inputPath, NULL);
+    output_str = (*env)->GetStringUTFChars(env,jstr_outPath, NULL);
+    LOGE(" input_str %s ,output str %s " , input_str , output_str);
+    AVFormatContext *pFormatCtx;
+    int i , videoIndex = -1;
+
+    AVCodecContext *pCodeCtx;
+    AVCodec *pCodec;
+    AVFrame *pFrameMP4 , *pFrameFLV;
+    uint8_t *out_buffer;
+    AVPacket *packet;
+    int ret ,got_pic;
+
+    /**
+     * 后面转换可能会用到
+     */
+    struct SwsContext *img_convert_ctx;
+    /**
+     * 解码前的文件
+     */
+    FILE iFile;
+
+    clock_t time_start ,time_finish;
+    double time_duration = 0.0;
+    char info[1000] = {0};
+
+    av_log_set_callback(custom_log);
+    av_register_all();
+    avformat_network_init();
+    pFormatCtx = avformat_alloc_context();
+
+
+
+
+    if(avformat_open_input(&pFormatCtx , input_str , NULL , NULL ) != 0){
+        LOGE(" can't open input stream ");
+        return -1;
+    }
+    LOGE(" open input stream success ");
+
+    if(avformat_find_stream_info(pFormatCtx , NULL) < 0){
+        LOGE(" couldn't find stream information . \n");
+        return -1;
+    }
+    LOGE(" find stream info success ");
+
+    for(i = 0 ; i < pFormatCtx-> nb_streams ; i++){
+        if(pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO){
+            LOGE(" find video index success");
+            videoIndex = i;
+            break;
+        }
+    }
+    if(videoIndex == -1){
+        LOGE(" find video index faild");
+        return -1;
+    }
+
+    //这个接口好像已经des。。。后面再来处理warning
+    pCodeCtx = pFormatCtx->streams[videoIndex]->codec;
+
+    LOGE(" PCODE CODE ID %d " , pCodeCtx->codec_id);
+
+    pCodec = avcodec_find_decoder(pCodeCtx->codec_id);
+
+    if(pCodec == NULL){
+        LOGE(" couldn't decoder find codec ");
+        return -1;
+    }
+
+    LOGE("  find decoder success ");
+
+    if(avcodec_open2(pCodeCtx , pCodec , NULL) < 0){
+        LOGE(" open decoder faild ");
+        return -1;
+    }
+    LOGE(" open decoder success ");
+
+    //保存帧分配空间
+    pFrameMP4 = av_frame_alloc();
+    pFrameFLV = av_frame_alloc();
+    LOGE(" pCodeCtx->width %d , pCodeCtx->height %d " ,pCodeCtx->width ,  pCodeCtx->height );
+    out_buffer = (unsigned char *) av_malloc(av_image_get_buffer_size(AV_PIX_FMT_VDPAU_H264 , pCodeCtx->width , pCodeCtx->height , 1));
+
+    if(out_buffer == NULL){
+        LOGE(" open out_buffer faild ");
+        return -1;
+    }
+
+    LOGE(" open out_buffer success ");
+
+    (*env)->ReleaseStringUTFChars(env, jstr_inputPath, input_str);
+    (*env)->ReleaseStringUTFChars(env, jstr_outPath, output_str);
+    return 0;
+}
   
   
   

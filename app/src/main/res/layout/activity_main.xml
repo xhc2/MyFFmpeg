@@ -14,6 +14,12 @@
         android:id="@+id/decode"/>
 
     <Button
+        android:text="编码"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/bt_encode"/>
+
+    <Button
         android:text="推流"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

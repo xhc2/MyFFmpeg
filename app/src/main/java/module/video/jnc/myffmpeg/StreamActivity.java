@@ -12,7 +12,7 @@ import java.io.File;
  */
 
 public class StreamActivity extends AppCompatActivity {
-    private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "Jnc/material/");
+    private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
