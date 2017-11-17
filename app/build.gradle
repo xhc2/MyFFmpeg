@@ -21,7 +21,6 @@ android {
         // Encapsulates your CMake build configurations.
         ndkBuild {
 
-            // Provides a relative path to your CMake build script.
             path "src\\main\\jni\\Android.mk"
         }
     }

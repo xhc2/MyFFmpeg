@@ -7,7 +7,9 @@
 #include "My_LOG.h"
 #include "libavformat/avformat.h"  
 #include "libswscale/swscale.h"  
-#include <stdio.h>  
+#include <stdio.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/time.h>
 #include "libavutil/log.h"  
 
 
@@ -610,6 +612,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     LOGE(" open out_buffer success ");
 
     ret =  avformat_alloc_output_context2(pFormatCtx , NULL , "flv" , "mp4convert.flv");
+
     if(ret < 0){
         LOGE(" avformat_alloc_output_context2 faild ");
         return -1;
