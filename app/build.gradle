@@ -10,20 +10,40 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
 
-    //屏蔽gradle的jni生成过程，在cmd中运行ndk-build ，然后再生成so文件。android.mk生效
-    sourceSets {
-        main {
-            jni.srcDirs = []
-            jniLibs.srcDir 'src/main/libs'
+
+        ndk{
+            abiFilters   'armeabi'
         }
     }
+    externalNativeBuild {
+
+        // Encapsulates your CMake build configurations.
+        ndkBuild {
+
+            // Provides a relative path to your CMake build script.
+            path "src\\main\\jni\\Android.mk"
+        }
+    }
+    //屏蔽gradle的jni生成过程，在cmd中运行ndk-build ，然后再生成so文件。android.mk生效
+//    sourceSets {
+//        main {
+//            jni.srcDirs = []
+//            jniLibs.srcDir 'src/main/libs'
+//        }
+//    }
+// Encapsulates your external native build configurations.
+
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
         }
     }
 }

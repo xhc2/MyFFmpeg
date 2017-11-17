@@ -511,23 +511,28 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
 * Class:     module_video_jnc_myffmpeg_FFmpegUtils
 * Method:    encode
 * Signature: (Ljava/lang/String;)I
-* 将yuv格式的数据转码成flv
+* 将MP4格式的数据转码成flv（编码格式也改变下h264，改变成随便一个格式。）
+ * 转码是先h264 -》 yuv -》 其他格式
 */
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
         (JNIEnv *env, jclass clazz, jstring jstr_inputPath , jstring jstr_outPath){
 
-    char *input_str  , *output_str;
-
+    char *input_str  ;
+    char *output_str ;
+    char real_output[100] = {0};
     input_str = (*env)->GetStringUTFChars(env,jstr_inputPath, NULL);
     output_str = (*env)->GetStringUTFChars(env,jstr_outPath, NULL);
-    LOGE(" input_str %s ,output str %s " , input_str , output_str);
+    strcat(real_output , output_str);
+    strcat(real_output , "/deocede_yuv.yuv");
+    LOGE(" input_str %s ,output str %s " , input_str , real_output);
     AVFormatContext *pFormatCtx;
     int i , videoIndex = -1;
 
     AVCodecContext *pCodeCtx;
     AVCodec *pCodec;
-    AVFrame *pFrameMP4 , *pFrameFLV;
+    AVFrame *pFrameMP4 , *pFrameYUV;
     uint8_t *out_buffer;
+    uint8_t *flv_output_buffer;
     AVPacket *packet;
     int ret ,got_pic;
 
@@ -535,10 +540,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
      * 后面转换可能会用到
      */
     struct SwsContext *img_convert_ctx;
-    /**
-     * 解码前的文件
-     */
-    FILE iFile;
 
     clock_t time_start ,time_finish;
     double time_duration = 0.0;
@@ -548,9 +549,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     av_register_all();
     avformat_network_init();
     pFormatCtx = avformat_alloc_context();
-
-
-
 
     if(avformat_open_input(&pFormatCtx , input_str , NULL , NULL ) != 0){
         LOGE(" can't open input stream ");
@@ -571,6 +569,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
             break;
         }
     }
+
     if(videoIndex == -1){
         LOGE(" find video index faild");
         return -1;
@@ -598,16 +597,81 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     //保存帧分配空间
     pFrameMP4 = av_frame_alloc();
-    pFrameFLV = av_frame_alloc();
+    pFrameYUV = av_frame_alloc();
     LOGE(" pCodeCtx->width %d , pCodeCtx->height %d " ,pCodeCtx->width ,  pCodeCtx->height );
-    out_buffer = (unsigned char *) av_malloc(av_image_get_buffer_size(AV_PIX_FMT_VDPAU_H264 , pCodeCtx->width , pCodeCtx->height , 1));
+    out_buffer = (unsigned char *) av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P , pCodeCtx->width , pCodeCtx->height , 1));
+
+
 
     if(out_buffer == NULL){
         LOGE(" open out_buffer faild ");
         return -1;
     }
-
     LOGE(" open out_buffer success ");
+
+    ret =  avformat_alloc_output_context2(pFormatCtx , NULL , "flv" , "mp4convert.flv");
+    if(ret < 0){
+        LOGE(" avformat_alloc_output_context2 faild ");
+        return -1;
+    }
+    LOGE(" avformat_alloc_output_context2 success  ");
+
+    /**
+     * 对 pFrameYUV 的初始化
+     */
+    av_image_fill_arrays(pFrameYUV->data , pFrameYUV->linesize , out_buffer , AV_PIX_FMT_YUV420P , pCodeCtx->width , pCodeCtx->height , 1);
+
+    LOGE(" pFrameYUV->linesize = %d , w * h = %d" , pFrameYUV->linesize , (pCodeCtx->width * pCodeCtx->height));
+
+    packet = (AVPacket *) av_malloc(sizeof(AVPacket));
+    /**
+     * 分配空间
+     */
+    img_convert_ctx = sws_getContext(pCodeCtx->width , pCodeCtx->height , pCodeCtx->pix_fmt
+            , pCodeCtx->width , pCodeCtx->height ,AV_PIX_FMT_YUV420P ,SWS_BICUBIC , NULL , NULL , NULL );
+
+    LOGE(" pformatctx %s " , pFormatCtx->iformat->name);
+    LOGE(" codec %s " , pCodeCtx->codec->name);
+    //追加字符，保证第一个参数空间够大。
+    FILE *out_yuv = fopen(real_output , "wb+");
+
+    if(out_yuv == NULL){
+        LOGE(" OPEN OUTPUT FILE FAILD ");
+        return -1 ;
+    }
+    LOGE(" OPEN OUTPUT FILE SUCCESS ");
+
+    int frame_cnt = 0 ;
+    time_start = clock();
+    int y_size = 0;
+
+    while(av_read_frame(pFormatCtx , packet) >= 0){
+
+        if(packet->stream_index == videoIndex){
+            ret = avcodec_decode_video2(pCodeCtx , pFrameMP4 , &got_pic , packet);
+            if(ret < 0 ){
+                LOGE("DECODE ERROR ");
+                return -1;
+            }
+
+            if(got_pic){
+                LOGE("get pic %d " , frame_cnt);
+                /**
+                 * 格式转换
+                 */
+                sws_scale(img_convert_ctx , (const uint8_t *const *) pFrameMP4->data , pFrameMP4->linesize ,
+                          0 , pCodeCtx->height , pFrameYUV->data , pFrameYUV->linesize);
+                y_size = pCodeCtx->width * pCodeCtx->height;
+                fwrite(pFrameYUV->data[0] , 1 , y_size , out_yuv);
+                fwrite(pFrameYUV->data[1] , 1 , y_size / 4, out_yuv);
+                fwrite(pFrameYUV->data[2] , 1 , y_size / 4, out_yuv);
+                frame_cnt++;
+            }
+        }
+
+        //记得释放，然后重新装载
+        av_free_packet(packet);
+    }
 
     (*env)->ReleaseStringUTFChars(env, jstr_inputPath, input_str);
     (*env)->ReleaseStringUTFChars(env, jstr_outPath, output_str);
