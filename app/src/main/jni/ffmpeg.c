@@ -75,7 +75,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     //存储编解码器的结构体
     AVCodec *pCodec;
     //解码后的数据AVFrame
-    AVFrame *pFrame, *pFrameYUV;
+    AVFrame *pFrame/*, *pFrameYUV*/;
 
     uint8_t *out_buffer;
     //解码前的数据
@@ -171,18 +171,17 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     /**
      * 将MP4中帧格式转换成yuv，这个pFrameYUV就是用来存储pFrameYUV格式的
      */
-    pFrameYUV = av_frame_alloc();
+//    pFrameYUV = av_frame_alloc();
 
     /**
      * 分配空间
      */
-    out_buffer = (unsigned char *) av_malloc(
-            av_image_get_buffer_size(AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1));
+    out_buffer = (unsigned char *) av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1));
     /**
      * 我也不知道要干嘛，好像是转格式之前设置的一些。
      */
-    av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer,
-                         AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1);
+//    av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer,
+//                         AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1);
     /**
      * 为解码前申请空间
      */
@@ -233,20 +232,14 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
              * 如果拿到图像帧
              */
             if (got_picture) {
-                /**
-                 * 格式转换，pFrame-> pFrameYuv
-                 */
-                sws_scale(img_convert_ctx, (const uint8_t *const *) pFrame->data, pFrame->linesize,
-                          0, pCodecCtx->height,
-                          pFrameYUV->data, pFrameYUV->linesize);
 
                 /**
                  * 按yuv420方式写入文件中。
                  */
                 y_size = pCodecCtx->width * pCodecCtx->height;
-                fwrite(pFrameYUV->data[0], 1, y_size, fp_yuv);    //Y
-                fwrite(pFrameYUV->data[1], 1, y_size / 4, fp_yuv);  //U
-                fwrite(pFrameYUV->data[2], 1, y_size / 4, fp_yuv);  //V
+                fwrite(pFrame->data[0], 1, y_size, fp_yuv);    //Y
+                fwrite(pFrame->data[1], 1, y_size / 4, fp_yuv);  //U
+                fwrite(pFrame->data[2], 1, y_size / 4, fp_yuv);  //V
                 //Output info
                 char pictype_str[10] = {0};
                 switch (pFrame->pict_type) {
@@ -286,13 +279,13 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
             break;
         }
 
-        sws_scale(img_convert_ctx, (const uint8_t *const *) pFrame->data, pFrame->linesize, 0,
-                  pCodecCtx->height,
-                  pFrameYUV->data, pFrameYUV->linesize);
+//        sws_scale(img_convert_ctx, (const uint8_t *const *) pFrame->data, pFrame->linesize, 0,
+//                  pCodecCtx->height,
+//                  pFrameYUV->data, pFrameYUV->linesize);
         int y_size = pCodecCtx->width * pCodecCtx->height;
-        fwrite(pFrameYUV->data[0], 1, y_size, fp_yuv);    //Y
-        fwrite(pFrameYUV->data[1], 1, y_size / 4, fp_yuv);  //U
-        fwrite(pFrameYUV->data[2], 1, y_size / 4, fp_yuv);  //V
+        fwrite(pFrame->data[0], 1, y_size, fp_yuv);    //Y
+        fwrite(pFrame->data[1], 1, y_size / 4, fp_yuv);  //U
+        fwrite(pFrame->data[2], 1, y_size / 4, fp_yuv);  //V
         //Output info
         char pictype_str[10] = {0};
         switch (pFrame->pict_type) {
@@ -322,8 +315,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     sws_freeContext(img_convert_ctx);
     fclose(fp_yuv);
 
-    av_frame_free(&pFrameYUV);
     av_frame_free(&pFrame);
+//    av_frame_free(&pFrame);
     avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
 
@@ -533,10 +526,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     int i, videoIndex = -1;
     AVCodecContext *pCodeCtx;
     AVCodec *pCodec;
-    AVCodec *pEncode;
     AVFrame *pFrameMP4, *pFrameYUV;
     uint8_t *out_buffer;
-    uint8_t *flv_output_buffer;
     AVPacket *packet;
     int ret, got_pic;
     /**
@@ -546,7 +537,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     clock_t time_start, time_finish;
     double time_duration = 0.0;
-    char info[1000] = {0};
 
     av_log_set_callback(custom_log);
     av_register_all();
@@ -568,7 +558,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     for (i = 0; i < pFormatCtx->nb_streams; i++) {
         if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-            LOGE(" find video index success");
             videoIndex = i;
             break;
         }
@@ -591,13 +580,10 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
         return -1;
     }
 
-    LOGE("  find decoder success ");
-
     if (avcodec_open2(pCodeCtx, pCodec, NULL) < 0) {
         LOGE(" open decoder faild ");
         return -1;
     }
-    LOGE(" open decoder success ");
 
     //保存帧分配空间
     pFrameMP4 = av_frame_alloc();
@@ -641,94 +627,166 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
         return -1;
     }
 
-//    char flv_output[100] = {0};
-//
-//    strcat(flv_output , output_str);
-//    strcat(flv_output , "/mp4convert.flv");
-//
-//    ret = avformat_alloc_output_context2(&pFormatCtx, NULL, "flv", flv_output);
-//
-//    if (ret < 0) {
-//        LOGE(" avformat_alloc_output_context2 faild ");
-//        return -1;
-//    }
-//
-//    ret = avio_open(&pFormatCtx->pb, flv_output, AVIO_FLAG_WRITE);
-//
-//
-//    if (ret < 0) {
-//        LOGE("Could not open output URL '%s'", output_str);
-//        return -1;
-//    }
-//
-//    AVStream* video_st;
+    char flv_output[100] = {0};
+    strcat(flv_output , output_str);
+    strcat(flv_output , "/mp4convert.flv");
+    AVFormatContext *pOFC ;
+    AVOutputFormat *oft ;
+    oft = av_guess_format(NULL , flv_output , NULL);
+    pOFC = avformat_alloc_context();
+
+    if(pOFC == NULL){
+        LOGE(" POFG FAILD ");
+        return -1;
+    }
+
+    if(oft == NULL){
+        LOGE(" guess fmt faild ");
+        return -1;
+    }
+    LOGE(" FORMAT NAME %s ",oft->name);
+    pOFC->oformat = oft;
+
+    ret = avio_open(&pOFC->pb , flv_output ,AVIO_FLAG_READ_WRITE );
+
+    if(ret < 0){
+        LOGE("AVIO OPEN FAILD ");
+        return -1;
+    }
+
+    AVStream* video_st;
+
+    video_st = avformat_new_stream(pOFC , 0);
+
+    if(video_st == NULL){
+        LOGE(" avformat_new_stream NULL ");
+        return -1;
+    }
+    if(video_st->codec == NULL){
+        LOGE(" video_st->codec NULL ");
+        return -1;
+    }
+
+    video_st->codec->codec_id = pOFC->oformat->video_codec;//oft->video_codec;
+    video_st->codec->codec_type=AVMEDIA_TYPE_VIDEO;
+    video_st->codec->pix_fmt=AV_PIX_FMT_YUV420P;
+    video_st->codec->width = pCodeCtx->width;
+    video_st->codec->height = pCodeCtx->height;
+    video_st->codec->bit_rate = 400000;
+    video_st->codec->gop_size = 250;
+    video_st->codec->time_base.num = 1;
+    video_st->codec->time_base.den = 25;
+    video_st->codec->qmin = 10;
+    video_st->codec->qmax = 51;
+//    video_st->codec->max_b_frames = 3;
+    LOGE(" PCODEC ID %d ", video_st->codec->codec_id);
+
+    if(video_st->codec->codec_id == AV_CODEC_ID_NONE){
+        LOGE(" AV_CODEC_ID_NONE ");
+        return -1;
+    }
+
+    AVCodec *pCEncode = avcodec_find_encoder(video_st->codec->codec_id);
+
+    if(pCEncode == NULL){
+        LOGE(" find  Encode faild ");
+        return -1 ;
+    }
+    LOGE(" ENCODE NAME %s ",pCEncode->name);
+
+    ret = avcodec_open2( video_st->codec,  pCEncode , NULL);
+
+    if(ret < 0){
+        LOGE(" open encode faild ");
+        return -1;
+    }
+
+    AVFrame *pFrameFLV ;
+
+    pFrameFLV = av_frame_alloc();
+    if(pFrameFLV ==  NULL){
+        LOGE(" pFrameFLV ALLOC FAILD ");
+        return -1;
+    }
+
+    int picture_size = avpicture_get_size(pCodeCtx->pix_fmt , pCodeCtx->width , pCodeCtx->height);
+
+    LOGE(" picture size %d " , picture_size);
+
+    uint8_t *picture_buff = (uint8_t *)av_malloc(picture_size);
+    if(picture_buff == NULL){
+        LOGE(" picture_buff MALLOC FAILD  ");
+        return -1;
+    }
+
+    /**
+     * 对 pFrameFLV 的初始化
+     */
+    av_image_fill_arrays(pFrameFLV->data, pFrameFLV->linesize, picture_buff, AV_PIX_FMT_YUV420P,
+                         pCodeCtx->width, pCodeCtx->height, 1);
+
+    avformat_write_header(pOFC , NULL);
+
+    AVPacket *avPacket = (AVPacket *) av_malloc(sizeof(AVPacket) );;
+
+    ret = av_new_packet(avPacket , 500);
+
+    if(ret < 0){
+        LOGE(" avPacket ALLOC FAILD  ");
+        return -1 ;
+    }
 
 
-//    video_st = avformat_new_stream(pFormatCtx , 0);
-//
-//    if(video_st == NULL){
-//        LOGE(" open video st faild");
-//        return -1;
-//    }
-//    LOGE(" PENCODE ID %d " , pFormatCtx->video_codec->id);
-//    pEncode = avcodec_find_encoder(pFormatCtx->video_codec->id);
-//
-//    if(pEncode == NULL){
-//        LOGE(" find encode faild");
-//        return -1;
-//    }
-
-//    ret = avcodec_open2(pCodeCtx , pEncode , NULL);
-
-//    if(ret < 0){
-//        LOGE(" open encode faild ");
-//        return -1;
-//    }
-
-//    ret = avformat_write_header(pFormatCtx , NULL);
-
-//    LOGE(" avformat_write_header return %d  " , ret);
-
-//    if(ret != 0 && ret != 1){
-//        LOGE(" avformat_write_header falid " , ret);
-//        return -1;
-//    }
-
-//    LOGE(" avformat_write_header success " , ret);
+    int y_size = pCodeCtx->width * pCodeCtx->height;
 
     int frame_cnt = 0;
     time_start = clock();
-    int y_size = 0;
 
+    //从MP4文件中读取一帧,保存在packet中
     while (av_read_frame(pFormatCtx, packet) >= 0) {
 
+        LOGE(" read a frame !");
         if (packet->stream_index == videoIndex) {
+            //将h264解码成yuv，
             ret = avcodec_decode_video2(pCodeCtx, pFrameMP4, &got_pic, packet);
+            LOGE(" DEOCDE ret %d , gotpic %d " , ret , got_pic);
             if (ret < 0) {
                 LOGE("DECODE ERROR ");
                 return -1;
             }
+            if(got_pic < 0){
+                LOGE(" got pic faild ");
+                return -1;
+            }
+            //然后将yuv编码成flv
+            ret = avcodec_encode_video2(video_st->codec , avPacket , pFrameMP4 , &got_pic);
 
-            if (got_pic) {
-                LOGE("get pic %d ", frame_cnt);
-                /**
-                 * 格式转换
-                 */
-                sws_scale(img_convert_ctx, (const uint8_t *const *) pFrameMP4->data,
-                          pFrameMP4->linesize,
-                          0, pCodeCtx->height, pFrameYUV->data, pFrameYUV->linesize);
-                y_size = pCodeCtx->width * pCodeCtx->height;
-                fwrite(pFrameYUV->data[0], 1, y_size, out_yuv);
-                fwrite(pFrameYUV->data[1], 1, y_size / 4, out_yuv);
-                fwrite(pFrameYUV->data[2], 1, y_size / 4, out_yuv);
-                frame_cnt++;
+            LOGE(" encode ret %d , gotpic %d " , ret , got_pic);
+            if(ret < 0){
+                LOGE(" avcodec_encode_video2 faild ");
+                return -1;
+            }
+            if(got_pic == 1){
+                LOGE(" SUCCESS TO ENCODE FRAME ");
+
+                ret = av_write_frame(pOFC , avPacket);
+                if(ret < 0){
+                    LOGE(" WRITE FRAME FAILD ");
+                    return -1;
+                }
+
+                av_free_packet(avPacket);
+
             }
         }
 
         //记得释放，然后重新装载
         av_free_packet(packet);
     }
+    //Write file trailer
+    av_write_trailer(pOFC);
 
+    LOGE(" END .....");
     (*env)->ReleaseStringUTFChars(env, jstr_inputPath, input_str);
     (*env)->ReleaseStringUTFChars(env, jstr_outPath, output_str);
     return 0;
