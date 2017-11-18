@@ -526,7 +526,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     int i, videoIndex = -1;
     AVCodecContext *pCodeCtx;
     AVCodec *pCodec;
-    AVFrame *pFrameMP4, *pFrameYUV;
+    AVFrame *pFrameMP4/*, *pFrameYUV*/;
     uint8_t *out_buffer;
     AVPacket *packet;
     int ret, got_pic;
@@ -587,7 +587,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     //保存帧分配空间
     pFrameMP4 = av_frame_alloc();
-    pFrameYUV = av_frame_alloc();
+//    pFrameYUV = av_frame_alloc();
     LOGE(" pCodeCtx->width %d , pCodeCtx->height %d ", pCodeCtx->width, pCodeCtx->height);
     out_buffer = (unsigned char *) av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, pCodeCtx->width, pCodeCtx->height, 1));
 
@@ -600,14 +600,14 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
 
 
-    /**
-     * 对 pFrameYUV 的初始化
-     */
-    av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer, AV_PIX_FMT_YUV420P,
-                         pCodeCtx->width, pCodeCtx->height, 1);
+//    /**
+//     * 对 pFrameYUV 的初始化
+//     */
+//    av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer, AV_PIX_FMT_YUV420P,
+//                         pCodeCtx->width, pCodeCtx->height, 1);
 
-    LOGE(" pFrameYUV->linesize = %d , w * h = %d", pFrameYUV->linesize,
-         (pCodeCtx->width * pCodeCtx->height));
+//    LOGE(" pFrameYUV->linesize = %d , w * h = %d", pFrameYUV->linesize,
+//         (pCodeCtx->width * pCodeCtx->height));
 
     packet = (AVPacket *) av_malloc(sizeof(AVPacket));
     /**
@@ -704,6 +704,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     AVFrame *pFrameFLV ;
 
     pFrameFLV = av_frame_alloc();
+
     if(pFrameFLV ==  NULL){
         LOGE(" pFrameFLV ALLOC FAILD ");
         return -1;
@@ -714,10 +715,13 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     LOGE(" picture size %d " , picture_size);
 
     uint8_t *picture_buff = (uint8_t *)av_malloc(picture_size);
+
     if(picture_buff == NULL){
         LOGE(" picture_buff MALLOC FAILD  ");
         return -1;
     }
+
+    LOGE(" PIX_FMT %d , width %d , height %d" , pCodeCtx->pix_fmt, pCodeCtx->width , pCodeCtx->height);
 
     /**
      * 对 pFrameFLV 的初始化
@@ -727,7 +731,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     avformat_write_header(pOFC , NULL);
 
-    AVPacket *avPacket = (AVPacket *) av_malloc(sizeof(AVPacket) );;
+    AVPacket *avPacket = (AVPacket *) av_malloc(sizeof(AVPacket) );
 
     ret = av_new_packet(avPacket , 500);
 
@@ -747,7 +751,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
         LOGE(" read a frame !");
         if (packet->stream_index == videoIndex) {
-            //将h264解码成yuv，
+            //将h264解码成yuv，pFrameMP4已经是yuv数据了。后面再来改变量名。
             ret = avcodec_decode_video2(pCodeCtx, pFrameMP4, &got_pic, packet);
             LOGE(" DEOCDE ret %d , gotpic %d " , ret , got_pic);
             if (ret < 0) {
@@ -758,8 +762,13 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
                 LOGE(" got pic faild ");
                 return -1;
             }
-            //然后将yuv编码成flv
-            ret = avcodec_encode_video2(video_st->codec , avPacket , pFrameMP4 , &got_pic);
+            pFrameFLV->data[0] = pFrameMP4->data[0];
+            pFrameFLV->data[1] = pFrameMP4->data[1];
+            pFrameFLV->data[2] = pFrameMP4->data[2];
+
+
+            //然后将yuv编码成flv, pFrameMP4 bug avfragme is not set ， avframe.width or height is not set
+            ret = avcodec_encode_video2(video_st->codec , avPacket , pFrameFLV , &got_pic);
 
             LOGE(" encode ret %d , gotpic %d " , ret , got_pic);
             if(ret < 0){
