@@ -232,7 +232,10 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
              * 如果拿到图像帧
              */
             if (got_picture) {
-
+                int lenY = malloc_usable_size(pFrame->data[0]);
+                int lenU = malloc_usable_size(pFrame->data[1]);
+                int lenV = malloc_usable_size(pFrame->data[2]);
+                LOGE("解码 %d , %d , %d y_size=%d " , lenY ,  lenU ,  lenV , y_size);
                 /**
                  * 按yuv420方式写入文件中。
                  */
@@ -587,7 +590,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     //保存帧分配空间
     pFrameMP4 = av_frame_alloc();
-//    pFrameYUV = av_frame_alloc();
     LOGE(" pCodeCtx->width %d , pCodeCtx->height %d ", pCodeCtx->width, pCodeCtx->height);
     out_buffer = (unsigned char *) av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, pCodeCtx->width, pCodeCtx->height, 1));
 
@@ -600,14 +602,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
 
 
-//    /**
-//     * 对 pFrameYUV 的初始化
-//     */
-//    av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer, AV_PIX_FMT_YUV420P,
-//                         pCodeCtx->width, pCodeCtx->height, 1);
-
-//    LOGE(" pFrameYUV->linesize = %d , w * h = %d", pFrameYUV->linesize,
-//         (pCodeCtx->width * pCodeCtx->height));
 
     packet = (AVPacket *) av_malloc(sizeof(AVPacket));
     /**
@@ -619,7 +613,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     LOGE(" pformatctx %s ", pFormatCtx->iformat->name);
     LOGE(" codec %s ", pCodeCtx->codec->name);
-    //追加字符，保证第一个参数空间够大。
     FILE *out_yuv = fopen(real_output, "wb+");
 
     if (out_yuv == NULL) {
@@ -735,7 +728,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     ret = av_new_packet(avPacket , 500);
 
-    av_init_packet(avPacket);
+//    av_init_packet(avPacket);
 
     if(ret < 0){
         LOGE(" avPacket ALLOC FAILD  ");
@@ -750,6 +743,15 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     pFrameFLV->format = pCodeCtx->pix_fmt;
     pFrameFLV->width  = pCodeCtx->width;
     pFrameFLV->height = pCodeCtx->height;
+
+//    char test_path[100] ={0};
+//    strcat(test_path , output_str);
+//    strcat(test_path , "/test_encode.yuv");
+//    FILE *ftest = fopen(test_path , "wb+");
+//    if(ftest == NULL    ){
+//        LOGE("open test file faild ");
+//        return -1;
+//    }
     //从MP4文件中读取一帧,保存在packet中
     while (av_read_frame(pFormatCtx, packet) >= 0) {
 
@@ -769,9 +771,14 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
             pFrameFLV->data[0] = pFrameMP4->data[0];
             pFrameFLV->data[1] = pFrameMP4->data[1];
             pFrameFLV->data[2] = pFrameMP4->data[2];
-            LOGE("XHC MP4 PTS %d , flv pts %d ", pFrameFLV->pts , pFrameMP4->pts );
-            LOGE(" 0 = %d , 1 = %d , 2 = %d  " , sizeof(*pFrameFLV->data[0]) , sizeof( *pFrameFLV->data[1]) , sizeof(*pFrameFLV->data[2]));
             pFrameFLV->pts = pFrameMP4->pts;
+
+//            fwrite(pFrameFLV->data[0] ,1 ,y_size,  ftest);
+//            fwrite(pFrameFLV->data[1], 1, y_size / 4, ftest);  //U
+//            fwrite(pFrameFLV->data[2], 1, y_size / 4, ftest);  //V
+
+            LOGE(" CODE W %d , H %d , Frame w %d ,h %d " ,video_st->codec->width,video_st->codec->height ,
+                 pFrameFLV->width , pFrameFLV->height);
 
             //然后将yuv编码成flv,
             ret = avcodec_encode_video2(video_st->codec , avPacket , pFrameFLV , &got_pic);
@@ -785,20 +792,19 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
             if(got_pic == 1){
                 LOGE(" SUCCESS TO ENCODE FRAME ");
-
                 ret = av_write_frame(pOFC , avPacket);
                 if(ret < 0){
                     LOGE(" WRITE FRAME FAILD ");
                     return -1;
                 }
                 av_free_packet(avPacket);
-
             }
         }
 
         //记得释放，然后重新装载
         av_free_packet(packet);
-    }
+}
+//    fclose(ftest);
     //Write file trailer
     av_write_trailer(pOFC);
 
