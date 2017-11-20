@@ -85,13 +85,13 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     /**
      * 这个格式对应的是图像拉伸，像素格式的转换
      */
-    struct SwsContext *img_convert_ctx;
+//    struct SwsContext *img_convert_ctx;
     FILE *fp_yuv;
     int frame_cnt;
     clock_t time_start, time_finish;
     double time_duration = 0.0;
-    char *input_str = NULL;
-    char *output_str = NULL;
+    const char *input_str = NULL;
+    const char *output_str = NULL;
     char info[1000] = {0};
 
     input_str = (*env)->GetStringUTFChars(env, input_jstr, NULL);
@@ -190,9 +190,9 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     /**
      * 转格式
      */
-    img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
-                                     pCodecCtx->width, pCodecCtx->height, AV_PIX_FMT_YUV420P,
-                                     SWS_BICUBIC, NULL, NULL, NULL);
+//    img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
+//                                     pCodecCtx->width, pCodecCtx->height, AV_PIX_FMT_YUV420P,
+//                                     SWS_BICUBIC, NULL, NULL, NULL);
 
 
     LOGE("[Input     ]%s\n", input_str);
@@ -312,7 +312,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
 
     LOGE("%s[Time      ]%fms\n", info, time_duration);
     LOGE("%s[Count     ]%d\n", info, frame_cnt);
-    sws_freeContext(img_convert_ctx);
+//    sws_freeContext(img_convert_ctx);
     fclose(fp_yuv);
 
     av_frame_free(&pFrame);
@@ -735,6 +735,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     ret = av_new_packet(avPacket , 500);
 
+    av_init_packet(avPacket);
+
     if(ret < 0){
         LOGE(" avPacket ALLOC FAILD  ");
         return -1 ;
@@ -745,7 +747,9 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     int frame_cnt = 0;
     time_start = clock();
-
+    pFrameFLV->format = pCodeCtx->pix_fmt;
+    pFrameFLV->width  = pCodeCtx->width;
+    pFrameFLV->height = pCodeCtx->height;
     //从MP4文件中读取一帧,保存在packet中
     while (av_read_frame(pFormatCtx, packet) >= 0) {
 
@@ -765,16 +769,20 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
             pFrameFLV->data[0] = pFrameMP4->data[0];
             pFrameFLV->data[1] = pFrameMP4->data[1];
             pFrameFLV->data[2] = pFrameMP4->data[2];
+            LOGE("XHC MP4 PTS %d , flv pts %d ", pFrameFLV->pts , pFrameMP4->pts );
+            LOGE(" 0 = %d , 1 = %d , 2 = %d  " , sizeof(*pFrameFLV->data[0]) , sizeof( *pFrameFLV->data[1]) , sizeof(*pFrameFLV->data[2]));
+            pFrameFLV->pts = pFrameMP4->pts;
 
-
-            //然后将yuv编码成flv, pFrameMP4 bug avfragme is not set ， avframe.width or height is not set
+            //然后将yuv编码成flv,
             ret = avcodec_encode_video2(video_st->codec , avPacket , pFrameFLV , &got_pic);
 
             LOGE(" encode ret %d , gotpic %d " , ret , got_pic);
+
             if(ret < 0){
                 LOGE(" avcodec_encode_video2 faild ");
                 return -1;
             }
+
             if(got_pic == 1){
                 LOGE(" SUCCESS TO ENCODE FRAME ");
 
@@ -783,7 +791,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
                     LOGE(" WRITE FRAME FAILD ");
                     return -1;
                 }
-
                 av_free_packet(avPacket);
 
             }
