@@ -9,6 +9,11 @@ import android.widget.TextView;
 
 import java.io.File;
 
+/**
+ * 参考：
+ * http://ffmpeg.org/doxygen/3.2/index.html
+ * http://blog.csdn.net/leixiaohua1020/article/details/25430425
+ */
 public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
