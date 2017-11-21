@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
     private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +45,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(MainActivity.this,  EncodeActivity.class));
+            }
+        });
+
+        findViewById(R.id.encode_yuv).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  EncodeYuvActivity.class));
             }
         });
     }

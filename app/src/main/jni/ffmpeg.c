@@ -744,14 +744,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     pFrameFLV->width  = pCodeCtx->width;
     pFrameFLV->height = pCodeCtx->height;
 
-//    char test_path[100] ={0};
-//    strcat(test_path , output_str);
-//    strcat(test_path , "/test_encode.yuv");
-//    FILE *ftest = fopen(test_path , "wb+");
-//    if(ftest == NULL    ){
-//        LOGE("open test file faild ");
-//        return -1;
-//    }
     //从MP4文件中读取一帧,保存在packet中
     while (av_read_frame(pFormatCtx, packet) >= 0) {
 
@@ -813,7 +805,131 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     (*env)->ReleaseStringUTFChars(env, jstr_outPath, output_str);
     return 0;
 }
-  
+
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
+        (JNIEnv * env, jclass clazz , jstring jstr_input, jstring jstr_output){
+    av_register_all();
+    const char *input_str = (*env)->GetStringUTFChars(env, jstr_input, NULL);
+    const char *output_str = (*env)->GetStringUTFChars(env, jstr_output, NULL);
+    int width = 480 , height = 272;
+    int ret = 0;
+    LOGE(" input path %s , output path %s " ,input_str ,  output_str);
+    FILE *iFile = fopen(input_str , "r");
+    if(iFile == NULL){
+        LOGE(" OPEN INPUT FILE FAILD! ");
+        return -1;
+    }
+
+
+    AVFormatContext *pOFC ;
+    AVOutputFormat *oft ;
+    oft = av_guess_format(NULL , output_str , NULL);
+    pOFC = avformat_alloc_context();
+
+    if(pOFC == NULL){
+        LOGE(" POFG FAILD ");
+        return -1;
+    }
+    if(oft == NULL){
+        LOGE(" guess fmt faild ");
+        return -1;
+    }
+    LOGE(" FORMAT NAME %s ",oft->name);
+    pOFC->oformat = oft;
+    ret = avio_open(&pOFC->pb , output_str ,AVIO_FLAG_READ_WRITE );
+    if(ret < 0){
+        LOGE(" avio_open faild! ");
+        return -1;
+    }
+    AVStream* video_st;
+
+    video_st = avformat_new_stream(pOFC, 0);
+
+    if (video_st==NULL){
+        LOGE(" video_st FAILD !");
+        return -1;
+    }
+    int framecnt = 0;
+    video_st->codec->codec_id = pOFC->oformat->video_codec;
+    video_st->codec->codec_type=AVMEDIA_TYPE_VIDEO;
+    video_st->codec->pix_fmt=AV_PIX_FMT_YUV420P;
+    video_st->codec->width = width;
+    video_st->codec->height = height;
+    video_st->codec->bit_rate = 400000;
+    video_st->codec->gop_size = 250;
+    video_st->codec->time_base.num = 1;
+    video_st->codec->time_base.den = 25;
+    video_st->codec->qmin = 10;
+    video_st->codec->qmax = 51;
+
+    AVCodec *pCodec = avcodec_find_encoder(video_st->codec->codec_id);
+    if(pCodec == NULL){
+        LOGE("  pCodec null ");
+        return -1;
+    }
+
+    if (avcodec_open2(video_st->codec, pCodec,NULL) < 0){
+        printf("Failed to open encoder! \n");
+        return -1;
+    }
+
+    AVFrame *pFrame = av_frame_alloc();
+    int pic_size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width, video_st->codec->height);
+    LOGE(" pic_size %d " , pic_size);
+    uint8_t *picture_buf = (uint8_t *)av_malloc(pic_size);
+    avpicture_fill((AVPicture *)pFrame, picture_buf, video_st->codec->pix_fmt, video_st->codec->width, video_st->codec->height);
+    //Write File Header
+    avformat_write_header(pOFC,NULL);
+    AVPacket pkt ;//;= (AVPacket *) av_malloc(sizeof(AVPacket) );
+
+    av_new_packet(&pkt,pic_size);
+
+    int y_size = video_st->codec->width * video_st->codec->height;
+    int i = 0 ;
+    while(fread(picture_buf , 1 , y_size * 3 / 2 ,iFile)){
+        pFrame->data[0] = picture_buf;              // Y
+        pFrame->data[1] = picture_buf+ y_size;      // U
+        pFrame->data[2] = picture_buf+ y_size*5/4;  // V
+        //PTS
+        //pFrame->pts=i;
+        pFrame->pts=i*(video_st->time_base.den)/((video_st->time_base.num)*25);
+
+        int got_picture=0;
+        //Encode
+        int ret = avcodec_encode_video2(video_st->codec, &pkt,pFrame, &got_picture);
+        if(ret < 0){
+            LOGE(" FAILD ENCODE ");
+            return -1;
+        }
+
+        if(got_picture == 1){
+            LOGE(" ENCODE success %d" , framecnt );
+            framecnt ++;
+            pkt.stream_index = video_st->index;
+            ret = av_write_frame(pOFC, &pkt);
+            av_free_packet(&pkt);
+
+        }
+        ++i;
+    }
+    av_write_trailer(pOFC);
+    LOGE(" end... ");
+
+    //Clean
+    if (video_st){
+        avcodec_close(video_st->codec);
+        av_free(pFrame);
+        av_free(picture_buf);
+    }
+    avio_close(pOFC->pb);
+    avformat_free_context(pOFC);
+
+    fclose(iFile);
+    (*env)->ReleaseStringUTFChars(env, jstr_input, input_str);
+    (*env)->ReleaseStringUTFChars(env, jstr_output, output_str);
+
+}
   
   
   

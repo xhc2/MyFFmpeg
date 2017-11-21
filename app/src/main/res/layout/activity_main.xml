@@ -24,7 +24,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/stream"/>
-
+    <Button
+        android:text="编码yuv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/encode_yuv"/>
     <TextView
         android:id="@+id/tv"
         android:layout_width="wrap_content"

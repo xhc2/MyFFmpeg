@@ -28,4 +28,6 @@ public class FFmpegUtils {
 
     public static native int stream(String inputUrl , String ouputUrl);
 
+    public static native int encodeYuv(String inputUrl , String outputPath);
+
 }
