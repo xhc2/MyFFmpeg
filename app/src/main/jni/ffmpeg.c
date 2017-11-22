@@ -719,9 +719,11 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
     /**
      * 对 pFrameFLV 的初始化
      */
-    av_image_fill_arrays(pFrameFLV->data, pFrameFLV->linesize, picture_buff, AV_PIX_FMT_YUV420P,
-                         pCodeCtx->width, pCodeCtx->height, 1);
 
+//    av_image_fill_arrays(pFrameFLV->data, pFrameFLV->linesize, picture_buff, AV_PIX_FMT_YUV420P,
+//                         pCodeCtx->width, pCodeCtx->height, 1);
+
+    avpicture_fill((AVPicture *)pFrameFLV, picture_buff, video_st->codec->pix_fmt, video_st->codec->width, video_st->codec->height);
     avformat_write_header(pOFC , NULL);
 
     AVPacket *avPacket = (AVPacket *) av_malloc(sizeof(AVPacket) );
@@ -734,7 +736,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
         LOGE(" avPacket ALLOC FAILD  ");
         return -1 ;
     }
-
 
     int y_size = pCodeCtx->width * pCodeCtx->height;
 
@@ -879,11 +880,12 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
     LOGE(" pic_size %d " , pic_size);
     uint8_t *picture_buf = (uint8_t *)av_malloc(pic_size);
     avpicture_fill((AVPicture *)pFrame, picture_buf, video_st->codec->pix_fmt, video_st->codec->width, video_st->codec->height);
+
     //Write File Header
     avformat_write_header(pOFC,NULL);
-    AVPacket pkt ;//;= (AVPacket *) av_malloc(sizeof(AVPacket) );
+    AVPacket *pkt = (AVPacket *) av_malloc(sizeof(AVPacket) );
 
-    av_new_packet(&pkt,pic_size);
+    av_new_packet(pkt,pic_size);
 
     int y_size = video_st->codec->width * video_st->codec->height;
     int i = 0 ;
@@ -897,7 +899,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
 
         int got_picture=0;
         //Encode
-        int ret = avcodec_encode_video2(video_st->codec, &pkt,pFrame, &got_picture);
+        int ret = avcodec_encode_video2(video_st->codec, pkt,pFrame, &got_picture);
         if(ret < 0){
             LOGE(" FAILD ENCODE ");
             return -1;
@@ -906,9 +908,9 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
         if(got_picture == 1){
             LOGE(" ENCODE success %d" , framecnt );
             framecnt ++;
-            pkt.stream_index = video_st->index;
-            ret = av_write_frame(pOFC, &pkt);
-            av_free_packet(&pkt);
+            pkt->stream_index = video_st->index;
+            ret = av_write_frame(pOFC, pkt);
+            av_free_packet(pkt);
 
         }
         ++i;
