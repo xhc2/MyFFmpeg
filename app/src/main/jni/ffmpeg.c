@@ -2,12 +2,12 @@
 
 #include <module_video_jnc_myffmpeg_FFmpegUtils.h>
 #include <string.h>
-#include <time.h>
-#include "libavcodec/avcodec.h"
 #include "My_LOG.h"
+#include <time.h>
+#include <stdio.h>
+#include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
-#include <stdio.h>
 #include <libavutil/imgutils.h>
 #include <libavutil/time.h>
 #include "libavutil/log.h"

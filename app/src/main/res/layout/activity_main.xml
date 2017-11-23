@@ -29,6 +29,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/encode_yuv"/>
+    <Button
+        android:text="sdl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/bt_sdl"/>
     <TextView
         android:id="@+id/tv"
         android:layout_width="wrap_content"

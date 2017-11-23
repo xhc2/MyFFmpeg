@@ -24,7 +24,8 @@
         <activity android:name=".DecodeMP4Activity" />
         <activity android:name=".StreamActivity" />
         <activity android:name=".EncodeActivity" />
-        <activity android:name=".EncodeYuvActivity"></activity>
+        <activity android:name=".EncodeYuvActivity" />
+        <activity android:name=".SDLActivity"></activity>
     </application>
 
 </manifest>
