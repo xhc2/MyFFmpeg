@@ -16,14 +16,13 @@ android {
             abiFilters 'armeabi'
         }
     }
-    externalNativeBuild {
-
-        // Encapsulates your CMake build configurations.
-        ndkBuild {
-
-            path "src\\main\\jni\\Android.mk"
-        }
-    }
+//    externalNativeBuild {
+//
+//        // Encapsulates your CMake build configurations.
+//        ndkBuild {
+//            path "src\\main\\jni\\Android.mk"
+//        }
+//    }
     //屏蔽gradle的jni生成过程，在cmd中运行ndk-build ，然后再生成so文件。android.mk生效
 //    sourceSets {
 //        main {
@@ -49,6 +48,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:design:26.1.0'
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })

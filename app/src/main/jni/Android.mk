@@ -106,8 +106,6 @@ LOCAL_EXPORT_LDLIBS := -Wl,--undefined=Java_org_libsdl_app_SDLActivity_nativeIni
 include $(BUILD_STATIC_LIBRARY)
 
 
-
-
 #libSDL2main=======================================
 # Lei Xiaohua
 include $(CLEAR_VARS)
@@ -115,7 +113,8 @@ LOCAL_MODULE := SDL2main
 SDL_PATH := ./
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(SDL_PATH)/include
 # Add your application source files here...
-LOCAL_SRC_FILES :=  $(SDL_PATH)/mysdl.c
+LOCAL_SRC_FILES :=  $(SDL_PATH)/src/main/android/SDL_android_main.c \
+ $(SDL_PATH)/mysdl.c
 LOCAL_SHARED_LIBRARIES := SDL2
 LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -llog
 include $(BUILD_SHARED_LIBRARY)

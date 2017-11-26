@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="module.video.jnc.myffmpeg.AddFilterActivity">
+
+    <Button
+        android:id="@+id/bt_add_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="添加图片水印"
+        />
+
+</android.support.design.widget.CoordinatorLayout>

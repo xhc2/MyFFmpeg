@@ -9,26 +9,31 @@
 
     <application
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:hardwareAccelerated="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".DecodeMP4Activity" />
         <activity android:name=".StreamActivity" />
         <activity android:name=".EncodeActivity" />
         <activity android:name=".EncodeYuvActivity" />
-        <activity android:name=".MySDLActivity"/>
-        <activity android:name=".SDLActivity"
-            android:configChanges="keyboardHidden|orientation"/>
+        <activity android:name=".MySDLActivity" />
+        <activity
+            android:name=".SDLActivity"
+            android:configChanges="keyboardHidden|orientation" />
+        <activity
+            android:name=".AddFilterActivity"
+            android:label="@string/title_activity_add_filter"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

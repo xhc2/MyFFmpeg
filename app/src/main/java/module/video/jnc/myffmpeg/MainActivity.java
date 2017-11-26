@@ -63,5 +63,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this,  SDLActivity.class));
             }
         });
+        findViewById(R.id.bt_filter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  AddFilterActivity.class));
+            }
+        });
     }
 }

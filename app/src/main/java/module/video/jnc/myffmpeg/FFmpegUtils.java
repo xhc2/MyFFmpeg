@@ -30,4 +30,5 @@ public class FFmpegUtils {
 
     public static native int encodeYuv(String inputUrl , String outputPath);
 
+    public static native int addfilter(String inputStr , String outputPath);
 }

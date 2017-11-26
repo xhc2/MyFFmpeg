@@ -6,8 +6,8 @@
 
 #ifdef __ANDROID__
 
-#include <jni.h>
-#include <android/log.h>
+
+
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO , "(^_^)", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR , "(^_^)", __VA_ARGS__)
 #else
@@ -18,7 +18,11 @@
 #include "SDL.h"
 #include "SDL_log.h"
 #include "SDL_main.h"
-
+#include <jni.h>
+#include <android/log.h>
+#include <src/SDL_internal.h>
+#include <SDL_quit.h>
+#include <src/dynapi/SDL_dynapi_procs.h>
 int main(int argc, char *argv[]) {
 	struct SDL_Window *window = NULL;
 	struct SDL_Renderer *render = NULL;
