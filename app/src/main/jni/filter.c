@@ -18,7 +18,7 @@
 #include "myfiler.h"
 
 
-int main2(char *inputStr , char *outputStr)
+int main2(const char *inputStr ,const char *outputStr)
 {
     int ret;
     AVFrame *frame_in;
@@ -48,7 +48,7 @@ int main2(char *inputStr , char *outputStr)
     }
 
     //const char *filter_descr = "lutyuv='u=128:v=128'";
-//    const char *filter_descr = "boxblur";
+    //const char *filter_descr = "boxblur";
 //    const char *filter_descr = "hflip";
     //const char *filter_descr = "hue='h=60:s=-3'";
     const char *filter_descr = "crop=2/3*in_w:2/3*in_h";
@@ -138,7 +138,6 @@ int main2(char *inputStr , char *outputStr)
         //input Y,U,V
         frame_in->data[0]=frame_buffer_in;
         frame_in->data[1]=frame_buffer_in+in_width*in_height;
-
         frame_in->data[2]=frame_buffer_in+in_width*in_height*5/4;
 
         if (av_buffersrc_add_frame(buffersrc_ctx, frame_in) < 0) {
@@ -180,7 +179,7 @@ int main2(char *inputStr , char *outputStr)
     return 0;
 }
 
-int mp4filter(char *input_str , char *output_str){
+int mp4filter(const char *input_str ,const char *output_str){
 
 //    const char *filter_descr = "movie=/storage/emulated/0/FFmpeg/filter.PNG[wm];[in][wm]overlay=5:5[out]";
 //    const char *filter_descr = "scale=78:24,transpose=cclock";
@@ -348,7 +347,7 @@ int mp4filter(char *input_str , char *output_str){
     /*数据拷贝*/
     snprintf(args, sizeof(args),
              "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
-             pCodecCtx->width,pCodecCtx->height,AV_PIX_FMT_YUV420P,
+             pCodecCtx->width , pCodecCtx->height , AV_PIX_FMT_YUV420P,
              1, 25,1,1);
 
     ret = avfilter_graph_create_filter(&buffersrc_ctx , buffersrc , "in" , args , NULL , filter_graph);
@@ -356,10 +355,11 @@ int mp4filter(char *input_str , char *output_str){
         LOGE("create in filter faild");
         return -1 ;
     }
+
     buffersink_params = av_buffersink_params_alloc();
     buffersink_params->pixel_fmts = pix_fmts;
     ret = avfilter_graph_create_filter(&buffersink_ctx , buffersink , "out",  NULL ,buffersink_params , filter_graph);
-
+    av_free(buffersink_params);
     if(ret < 0){
         LOGE("create out filter faild");
         return -1 ;

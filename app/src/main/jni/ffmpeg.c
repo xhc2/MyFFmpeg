@@ -38,8 +38,6 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringJni
     return (*env)->NewStringUTF(env, info);
 }
 
-
-
 /*
  * Class:     module_video_jnc_myffmpeg_FFmpegUtils
  * Method:    decode
@@ -48,7 +46,6 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringJni
  */
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
         (JNIEnv *env, jclass clazz, jstring input_jstr, jstring output_jstr) {
-
 
     const char *input_str = NULL;
     const char *output_str = NULL;
@@ -128,7 +125,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_addfilter
     const char *input_str = (*env)->GetStringUTFChars(env, inputStr, NULL);
     const char *output_str = (*env)->GetStringUTFChars(env, outputStr, NULL);
     LOGE(" input str %s , outputstr %s" ,input_str ,  output_str);
-    main2(input_str , output_str);
+    mp4filter(input_str , output_str);
     (*env)->ReleaseStringUTFChars(env, inputStr, input_str);
     (*env)->ReleaseStringUTFChars(env, outputStr, output_str);
     return 0;
