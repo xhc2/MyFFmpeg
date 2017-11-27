@@ -52,7 +52,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
     input_str = (*env)->GetStringUTFChars(env, input_jstr, NULL);
     output_str = (*env)->GetStringUTFChars(env, output_jstr, NULL);
 
-    decode(input_str , output_str);
+    decode(input_str, output_str);
 
     (*env)->ReleaseStringUTFChars(env, input_jstr, input_str);
     (*env)->ReleaseStringUTFChars(env, output_jstr, output_str);
@@ -72,7 +72,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
 
     input_str = (*env)->GetStringUTFChars(env, input_jstr, NULL);
     output_str = (*env)->GetStringUTFChars(env, output_jstr, NULL);
-    stream(input_str , output_str);
+    stream(input_str, output_str);
     (*env)->ReleaseStringUTFChars(env, input_jstr, input_str);
     (*env)->ReleaseStringUTFChars(env, output_jstr, output_str);
     return 0;
@@ -90,7 +90,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
     const char *input_str = (*env)->GetStringUTFChars(env, jstr_inputPath, NULL);
     const char *output_str = (*env)->GetStringUTFChars(env, jstr_outPath, NULL);
-    encode_h264(input_str , output_str);
+    encode_h264(input_str, output_str);
     (*env)->ReleaseStringUTFChars(env, jstr_inputPath, input_str);
     (*env)->ReleaseStringUTFChars(env, jstr_outPath, output_str);
     return 0;
@@ -98,11 +98,11 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
 
 
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
-        (JNIEnv * env, jclass clazz , jstring jstr_input, jstring jstr_output){
+        (JNIEnv *env, jclass clazz, jstring jstr_input, jstring jstr_output) {
     av_register_all();
     const char *input_str = (*env)->GetStringUTFChars(env, jstr_input, NULL);
     const char *output_str = (*env)->GetStringUTFChars(env, jstr_output, NULL);
-    encodeYuv(input_str , output_str);
+    encodeYuv(input_str, output_str);
     (*env)->ReleaseStringUTFChars(env, jstr_input, input_str);
     (*env)->ReleaseStringUTFChars(env, jstr_output, output_str);
 
@@ -119,13 +119,13 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
  * http://ffmpeg.org/doxygen/3.2/filtering_video_8c-example.html#a48
 */
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_addfilter
-        (JNIEnv *env, jclass clazz , jstring inputStr, jstring outputStr){
+        (JNIEnv *env, jclass clazz, jstring inputStr, jstring outputStr) {
 
 
     const char *input_str = (*env)->GetStringUTFChars(env, inputStr, NULL);
     const char *output_str = (*env)->GetStringUTFChars(env, outputStr, NULL);
-    LOGE(" input str %s , outputstr %s" ,input_str ,  output_str);
-    mp4filter(input_str , output_str);
+    LOGE(" input str %s , outputstr %s", input_str, output_str);
+    mp4filter(input_str, output_str);
     (*env)->ReleaseStringUTFChars(env, inputStr, input_str);
     (*env)->ReleaseStringUTFChars(env, outputStr, output_str);
     return 0;
