@@ -17,6 +17,8 @@
 #include <libavutil/opt.h>
 #include "mystream.h"
 
+
+
 int stream(const char *input_str ,const char *output_str){
     AVOutputFormat *ofmt = NULL;
     /**

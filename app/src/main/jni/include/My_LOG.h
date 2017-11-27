@@ -15,17 +15,6 @@
 #ifndef MYANDROIDRTMP_MYLOG_H
 #define MYANDROIDRTMP_MYLOG_H
 
-
-
-//Output FFmpeg's av_log()
-void custom_log(void *ptr, int level, const char *fmt, va_list vl) {
-    FILE *fp = fopen("/storage/emulated/0/av_log.txt", "a+");
-    if (fp) {
-        vfprintf(fp, fmt, vl);
-        fflush(fp);
-        fclose(fp);
-    }
-}
-
+void custom_log(void *ptr, int level, const char *fmt, va_list vl);
 
 #endif //MYANDROIDRTMP_MYLOG_H
