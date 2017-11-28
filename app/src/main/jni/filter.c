@@ -17,7 +17,7 @@
 #include <libavutil/opt.h>
 #include "myfiler.h"
 
-
+//https://ffmpeg.org/ffmpeg-filters.html
 int main2(const char *inputStr ,const char *outputStr)
 {
     int ret;
@@ -37,8 +37,8 @@ int main2(const char *inputStr ,const char *outputStr)
         LOGE("Error open input file.\n");
         return -1;
     }
-    int in_width=640;
-    int in_height=360;
+    int in_width=470;
+    int in_height=272;
 
     //Output YUV
     FILE *fp_out=fopen(outputStr,"wb+");
@@ -48,13 +48,14 @@ int main2(const char *inputStr ,const char *outputStr)
     }
 
     //const char *filter_descr = "lutyuv='u=128:v=128'";
-    //const char *filter_descr = "boxblur";
+//    const char *filter_descr = "boxblur";
 //    const char *filter_descr = "hflip";
     //const char *filter_descr = "hue='h=60:s=-3'";
-    const char *filter_descr = "crop=2/3*in_w:2/3*in_h";
+//    const char *filter_descr = "crop=2/3*in_w:2/3*in_h";
 //    const char *filter_descr = "drawbox=x=100:y=100:w=100:h=100:color=white@0.5";
-//    const char *filter_descr = "drawtext=fontfile=arial.ttf:fontcolor=green:fontsize=30:text='xhc'";
+//    const char *filter_descr = "drawtext=fontcolor=green:fontsize=30:text='xhc'";
 //    const char *filter_descr = "movie=/storage/emulated/0/FFmpeg/filter.PNG[wm];[in][wm]overlay=5:5[out]";
+//    const char *filter_descr = "scale=78:24,transpose=cclock";
     av_log_set_callback(custom_log);
     avfilter_register_all();
 
