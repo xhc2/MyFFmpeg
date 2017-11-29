@@ -47,6 +47,15 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stream
  */
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode
         (JNIEnv *, jclass, jstring ,jstring);
+
+
+
+
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_transcodeing
+        (JNIEnv *env, jclass clazz, jstring inputStr, jstring outputStr);
+
+
 #ifdef __cplusplus
 }
 #endif

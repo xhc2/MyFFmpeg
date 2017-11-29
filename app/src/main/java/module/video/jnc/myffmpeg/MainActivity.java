@@ -70,5 +70,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this,  AddFilterActivity.class));
             }
         });
+        findViewById(R.id.bt_transcoding).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FFmpegUtils.transcodeing(rootFile+"/test.mp4" , rootFile+"/trancoding.avi");
+            }
+        });
     }
 }

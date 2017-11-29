@@ -39,7 +39,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/bt_filter"/>
-
+    <Button
+        android:text="转码"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/bt_transcoding"/>
     <TextView
         android:id="@+id/tv"
         android:layout_width="wrap_content"
