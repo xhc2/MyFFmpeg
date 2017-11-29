@@ -39,6 +39,7 @@ int open_input_file(const char *filename)
     }
     video_stream_index = ret;
     dec_ctx = fmt_ctx->streams[video_stream_index]->codec;
+    LOGE(" CODE NAME  %s" ,dec_ctx->codec_name);
     //解码
     av_opt_set_int(dec_ctx, "refcounted_frames", 1, 0);
     /* init the video decoder */
@@ -70,6 +71,7 @@ int init_filters(const char *filters_descr)
              dec_ctx->width, dec_ctx->height, dec_ctx->pix_fmt,
              time_base.num, time_base.den,
              dec_ctx->sample_aspect_ratio.num, dec_ctx->sample_aspect_ratio.den);
+
     ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
                                        args, NULL, filter_graph);
     if (ret < 0) {
@@ -200,13 +202,14 @@ int filter_video(const char* input_path , const char* output_path){
         LOGE("init_filters faild ");
         return -1;
     }
+    int framecnt = 0;
     /* read all packets */
     while (1) {
         if ((ret = av_read_frame(fmt_ctx, &packet)) < 0)
             break;
 
         if (packet.stream_index == video_stream_index) {
-            LOGE("read a frame !");
+//            LOGE("read a frame !");
             got_frame = 0;
             ret = avcodec_decode_video2(dec_ctx, frame, &got_frame, &packet);
             if (ret < 0) {
@@ -214,6 +217,7 @@ int filter_video(const char* input_path , const char* output_path){
                 break;
             }
             if (got_frame) {
+                framecnt ++;
                 frame->pts = av_frame_get_best_effort_timestamp(frame);
                 /* push the decoded frame into the filtergraph */
                 if (av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF) < 0) {
@@ -246,6 +250,6 @@ int filter_video(const char* input_path , const char* output_path){
         LOGE("Error occurred: %s\n", av_err2str(ret));
 
     }
-    LOGE(" end ...");
+    LOGE(" end ...%d " , framecnt);
     return ret;
 }

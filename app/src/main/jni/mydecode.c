@@ -551,6 +551,7 @@ int decode(const char *input_str, const char *output_str) {
      */
 //    av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer,
 //                         AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1);
+
     /**
      * 为解码前申请空间
      */
