@@ -39,7 +39,7 @@ int open_input_file(const char *filename)
     }
     video_stream_index = ret;
     dec_ctx = fmt_ctx->streams[video_stream_index]->codec;
-    LOGE(" CODE NAME  %s" ,dec_ctx->codec_name);
+    LOGE(" CODE NAME  %s" ,dec->name);
     //解码
     av_opt_set_int(dec_ctx, "refcounted_frames", 1, 0);
     /* init the video decoder */
@@ -47,6 +47,7 @@ int open_input_file(const char *filename)
         LOGE(  "Cannot open video decoder\n");
         return ret;
     }
+
     return 0;
 }
 
@@ -157,12 +158,10 @@ void display_frame(const AVFrame *frame, AVRational time_base  ,FILE *output)
     fwrite(frame->data[0], 1, y_size, output);
 //    fwrite(frame->data[1], 1, y_size / 4, output);
 //    fwrite(frame->data[2], 1, y_size / 4, output);
-
 //    LOGE(" OUTPUT FRAME ! w = %d ,h = %d " ,frame->width  , frame->height );
 //    for (y = 0; y < frame->height; y++) {
 //        p = p0;
 //        for (x = 0; x < frame->width; x++)
-//
 //        putchar(" .-+#"[*(p++) / 52]);
 //        putchar('\n');
 //        p0 += frame->linesize[0];
