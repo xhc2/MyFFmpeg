@@ -17,7 +17,7 @@ public class AddFilterActivity extends Activity {
         findViewById(R.id.bt_add_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FFmpegUtils.addfilter(Constant.rootFile.getAbsolutePath()+"/test.mp4" , Constant.rootFile.getAbsolutePath()+"/filter.yuv");
+                FFmpegUtils.addfilter(Constant.rootFile.getAbsolutePath()+"/test.mp4" , Constant.rootFile.getAbsolutePath()+"/filter_encode.mp4");
             }
         });
     }

@@ -232,9 +232,6 @@ int mp4filter(const char *input_str ,const char *output_str){
      */
     pFormatCtx = avformat_alloc_context();
 
-
-
-
     /**
      * 打开输入流，注意使用avformat_close_input关闭，
      * 注意传入的是pFormatCtx的地址(pFormatCtx本身也是一个指针变量)（需要用二级指针来保存），

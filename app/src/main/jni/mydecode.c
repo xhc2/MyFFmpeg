@@ -310,14 +310,11 @@ int encode_h264(char *input_str, char *output_str) {
 int encodeYuv(char *input_str, char *output_str) {
     int width = 480, height = 272;
     int ret = 0;
-    LOGE(" input path %s , output path %s ", input_str, output_str);
     FILE *iFile = fopen(input_str, "r");
     if (iFile == NULL) {
         LOGE(" OPEN INPUT FILE FAILD! ");
         return -1;
     }
-
-
     AVFormatContext *pOFC;
     AVOutputFormat *oft;
     oft = av_guess_format(NULL, output_str, NULL);
@@ -360,6 +357,7 @@ int encodeYuv(char *input_str, char *output_str) {
     video_st->codec->qmax = 51;
 
     AVCodec *pCodec = avcodec_find_encoder(video_st->codec->codec_id);
+
     if (pCodec == NULL) {
         LOGE("  pCodec null ");
         return -1;
@@ -371,6 +369,7 @@ int encodeYuv(char *input_str, char *output_str) {
     }
 
     AVFrame *pFrame = av_frame_alloc();
+
     int pic_size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width,
                                       video_st->codec->height);
     LOGE(" pic_size %d ", pic_size);

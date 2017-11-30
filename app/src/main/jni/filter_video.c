@@ -8,6 +8,9 @@
 #include <My_LOG.h>
 #include <unistd.h>
 
+/*
+ * 将MP4解码成yuv然后打上水印，然后再编码成h264的mp4格式。
+ */
 const char *filter_descr = "drawbox=x=100:y=100:w=100:h=100:color=white@0.5";
 
 AVFormatContext *fmt_ctx;
@@ -18,7 +21,12 @@ AVFilterGraph *filter_graph;
 int video_stream_index = -1;
 int64_t last_pts = AV_NOPTS_VALUE;
 
-
+//将yuv打包成mp4格式输出到sdcard上
+AVPacket *pkt;
+//AVFrame *pFrame;
+AVFormatContext *pOFC;
+AVOutputFormat *oft;
+AVStream *video_st;
 int open_input_file(const char *filename)
 {
     int ret;
@@ -39,7 +47,8 @@ int open_input_file(const char *filename)
     }
     video_stream_index = ret;
     dec_ctx = fmt_ctx->streams[video_stream_index]->codec;
-    LOGE(" CODE NAME  %s" ,dec->name);
+
+    LOGE(" CODE NAME  %s , PIX %d " ,dec->name , dec_ctx->pix_fmt);
     //解码
     av_opt_set_int(dec_ctx, "refcounted_frames", 1, 0);
     /* init the video decoder */
@@ -60,7 +69,7 @@ int init_filters(const char *filters_descr)
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs  = avfilter_inout_alloc();
     AVRational time_base = fmt_ctx->streams[video_stream_index]->time_base;
-    enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_GRAY8, AV_PIX_FMT_NONE };
+    enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE };
     filter_graph = avfilter_graph_alloc();
     if (!outputs || !inputs || !filter_graph) {
         ret = AVERROR(ENOMEM);
@@ -116,6 +125,7 @@ int init_filters(const char *filters_descr)
     inputs->filter_ctx = buffersink_ctx;
     inputs->pad_idx    = 0;
     inputs->next       = NULL;
+
     if ((ret = avfilter_graph_parse_ptr(filter_graph, filters_descr,
                                         &inputs, &outputs, NULL)) < 0)
         goto end;
@@ -133,13 +143,6 @@ void display_frame(const AVFrame *frame, AVRational time_base  ,FILE *output)
     uint8_t *p0, *p;
     int64_t delay;
 
-
-//    oFile = fopen(output , "wb+");
-//    if(oFile == NULL){
-//        LOGE(" open output file faild !");
-//        return ;
-//    }
-
     if (frame->pts != AV_NOPTS_VALUE) {
         if (last_pts != AV_NOPTS_VALUE) {
             /* sleep roughly the right amount of time;
@@ -151,25 +154,100 @@ void display_frame(const AVFrame *frame, AVRational time_base  ,FILE *output)
         }
         last_pts = frame->pts;
     }
-    /* Trivial ASCII grayscale display. */
-    p0 = frame->data[0];
-    puts("\033c");
     int y_size = frame->width * frame->height;
-    fwrite(frame->data[0], 1, y_size, output);
+    encode_frame(frame , pkt , video_st);
+
+
+
+//    fwrite(frame->data[0], 1, y_size, output);
 //    fwrite(frame->data[1], 1, y_size / 4, output);
 //    fwrite(frame->data[2], 1, y_size / 4, output);
-//    LOGE(" OUTPUT FRAME ! w = %d ,h = %d " ,frame->width  , frame->height );
-//    for (y = 0; y < frame->height; y++) {
-//        p = p0;
-//        for (x = 0; x < frame->width; x++)
-//        putchar(" .-+#"[*(p++) / 52]);
-//        putchar('\n');
-//        p0 += frame->linesize[0];
-//    }
-//    fflush(stdout);
 }
 
 
+
+int init_output(const char* output_path , int width , int height){
+    int ret = 0;
+
+    oft = av_guess_format(NULL, output_path, NULL);
+    pOFC = avformat_alloc_context();
+
+    if (pOFC == NULL) {
+        LOGE(" POFG FAILD ");
+        return -1;
+    }
+    if (oft == NULL) {
+        LOGE(" guess fmt faild ");
+        return -1;
+    }
+    pOFC->oformat = oft;
+
+    ret = avio_open(&pOFC->pb, output_path, AVIO_FLAG_READ_WRITE);
+
+
+
+    video_st = avformat_new_stream(pOFC, 0);
+
+    if (video_st == NULL) {
+        LOGE(" video_st FAILD !");
+        return -1;
+    }
+
+    video_st->codec->codec_id = pOFC->oformat->video_codec;
+    video_st->codec->codec_type = AVMEDIA_TYPE_VIDEO;
+    video_st->codec->pix_fmt = AV_PIX_FMT_YUV420P;
+    video_st->codec->width = width;
+    video_st->codec->height = height;
+    video_st->codec->bit_rate = 400000;
+    video_st->codec->gop_size = 250;
+    video_st->codec->time_base.num = 1;
+    video_st->codec->time_base.den = 25;
+    video_st->codec->qmin = 10;
+    video_st->codec->qmax = 51;
+    AVCodec *pCodec = avcodec_find_encoder(video_st->codec->codec_id);
+
+    if (pCodec == NULL) {
+        LOGE("  pCodec null ");
+        return -1;
+    }
+
+    if (avcodec_open2(video_st->codec, pCodec, NULL) < 0) {
+        printf("Failed to open encoder! \n");
+        return -1;
+    }
+
+//    pFrame = av_frame_alloc();
+
+    int pic_size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width,
+                                      video_st->codec->height);
+    LOGE(" pic_size %d ", pic_size);
+//    uint8_t *picture_buf = (uint8_t *) av_malloc(pic_size);
+//    avpicture_fill((AVPicture *) pFrame, picture_buf, video_st->codec->pix_fmt,
+//                   video_st->codec->width, video_st->codec->height);
+
+    //Write File Header
+    avformat_write_header(pOFC, NULL);
+    pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
+    av_new_packet(pkt, pic_size);
+
+
+    return ret;
+}
+
+int encode_frame(AVFrame *frame , AVPacket *pkt ,  AVStream *stream){
+    int got_picture = 0 ;
+    int ret = avcodec_encode_video2(stream->codec, pkt, frame, &got_picture);
+    if (ret < 0) {
+        LOGE(" FAILD ENCODE ");
+        return -1;
+    }
+    if (got_picture == 1) {
+        LOGE(" ENCODE success %d");
+        pkt->stream_index = stream->index;
+        ret = av_write_frame(pOFC, pkt);
+        av_free_packet(pkt);
+    }
+}
 
 //给video打水印
 int filter_video(const char* input_path , const char* output_path){
@@ -197,10 +275,16 @@ int filter_video(const char* input_path , const char* output_path){
         LOGE("open input file faild ");
         return -1;
     }
+
     if((ret = init_filters(filter_descr)) < 0){
         LOGE("init_filters faild ");
         return -1;
     }
+    if((ret = init_output(output_path ,dec_ctx->width , dec_ctx->height))){
+        LOGE("init_output faild ");
+        return -1;
+    }
+
     int framecnt = 0;
     /* read all packets */
     while (1) {
@@ -208,7 +292,7 @@ int filter_video(const char* input_path , const char* output_path){
             break;
 
         if (packet.stream_index == video_stream_index) {
-//            LOGE("read a frame !");
+            LOGE("read a frame !");
             got_frame = 0;
             ret = avcodec_decode_video2(dec_ctx, frame, &got_frame, &packet);
             if (ret < 0) {
@@ -238,6 +322,9 @@ int filter_video(const char* input_path , const char* output_path){
         }
         av_packet_unref(&packet);
     }
+
+    av_write_trailer(pOFC);
+
     end:
     avfilter_graph_free(&filter_graph);
     avcodec_close(dec_ctx);
@@ -245,6 +332,13 @@ int filter_video(const char* input_path , const char* output_path){
     av_frame_free(&frame);
     av_frame_free(&filt_frame);
     fclose(oFile);
+
+    //Clean
+    if (video_st) {
+        avcodec_close(video_st->codec);
+    }
+    avio_close(pOFC->pb);
+    avformat_free_context(pOFC);
     if (ret < 0 && ret != AVERROR_EOF) {
         LOGE("Error occurred: %s\n", av_err2str(ret));
 
