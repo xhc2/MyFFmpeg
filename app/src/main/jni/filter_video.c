@@ -20,21 +20,27 @@ AVFilterContext *buffersrc_ctx;
 AVFilterGraph *filter_graph;
 int video_stream_index = -1;
 int64_t last_pts = AV_NOPTS_VALUE;
-
 //将yuv打包成mp4格式输出到sdcard上
 AVPacket *pkt;
-//AVFrame *pFrame;
 AVFormatContext *pOFC;
 AVOutputFormat *oft;
 AVStream *video_st;
+
 int open_input_file(const char *filename)
 {
     int ret;
     AVCodec *dec;
+
+    /**
+     * 打开输入流，然后读取文件头部，但是codec并没有打开
+     */
     if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)) < 0) {
         LOGE( "Cannot open input file\n");
         return ret;
     }
+    /*
+     * 读取信息
+     */
     if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0) {
         LOGE(  "Cannot find stream information\n");
         return ret;
@@ -45,13 +51,18 @@ int open_input_file(const char *filename)
         LOGE( "Cannot find a video stream in the input file\n");
         return ret;
     }
+
     video_stream_index = ret;
+
     dec_ctx = fmt_ctx->streams[video_stream_index]->codec;
 
     LOGE(" CODE NAME  %s , PIX %d " ,dec->name , dec_ctx->pix_fmt);
-    //解码
+    //好像是和下文AV_BUFFERSRC_FLAG_KEEP_REF的配合使用。
     av_opt_set_int(dec_ctx, "refcounted_frames", 1, 0);
     /* init the video decoder */
+    /**
+     * 打开解码器
+     */
     if ((ret = avcodec_open2(dec_ctx, dec, NULL)) < 0) {
         LOGE(  "Cannot open video decoder\n");
         return ret;
@@ -68,13 +79,18 @@ int init_filters(const char *filters_descr)
     AVFilter *buffersink = avfilter_get_by_name("buffersink");
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs  = avfilter_inout_alloc();
+
     AVRational time_base = fmt_ctx->streams[video_stream_index]->time_base;
+
     enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE };
+
     filter_graph = avfilter_graph_alloc();
+
     if (!outputs || !inputs || !filter_graph) {
         ret = AVERROR(ENOMEM);
         goto end;
     }
+
     /* buffer video source: the decoded frames from the decoder will be inserted here. */
     snprintf(args, sizeof(args),
              "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
@@ -82,6 +98,9 @@ int init_filters(const char *filters_descr)
              time_base.num, time_base.den,
              dec_ctx->sample_aspect_ratio.num, dec_ctx->sample_aspect_ratio.den);
 
+    /**
+     * 创建并且添加一个filter进入filter_graph中
+     */
     ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
                                        args, NULL, filter_graph);
     if (ret < 0) {
@@ -97,6 +116,7 @@ int init_filters(const char *filters_descr)
     }
     ret = av_opt_set_int_list(buffersink_ctx, "pix_fmts", pix_fmts,
                               AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN);
+
     if (ret < 0) {
         LOGE( "Cannot set output pixel format\n");
         goto end;
@@ -126,9 +146,15 @@ int init_filters(const char *filters_descr)
     inputs->pad_idx    = 0;
     inputs->next       = NULL;
 
+    /**
+     * 将打水印的部分的描述加入进去
+     */
     if ((ret = avfilter_graph_parse_ptr(filter_graph, filters_descr,
                                         &inputs, &outputs, NULL)) < 0)
         goto end;
+    /*
+     * 检查下filter是否可用
+     * */
     if ((ret = avfilter_graph_config(filter_graph, NULL)) < 0)
         goto end;
     end:
@@ -169,7 +195,13 @@ void display_frame(const AVFrame *frame, AVRational time_base  ,FILE *output)
 int init_output(const char* output_path , int width , int height){
     int ret = 0;
 
+    /**
+     * 根据文件名猜测生成对应的AVOutputFormat
+     */
     oft = av_guess_format(NULL, output_path, NULL);
+    /**
+     * AVFormatContext生成
+     */
     pOFC = avformat_alloc_context();
 
     if (pOFC == NULL) {
@@ -180,12 +212,19 @@ int init_output(const char* output_path , int width , int height){
         LOGE(" guess fmt faild ");
         return -1;
     }
+
     pOFC->oformat = oft;
 
+    /**
+     * 创建一个AVIOContext，并且访问对应路劲的资源
+     */
     ret = avio_open(&pOFC->pb, output_path, AVIO_FLAG_READ_WRITE);
 
 
 
+    /**
+     * 为文件中创建一个流，具体是什么流要用下文的参数来使用
+     */
     video_st = avformat_new_stream(pOFC, 0);
 
     if (video_st == NULL) {
@@ -204,32 +243,30 @@ int init_output(const char* output_path , int width , int height){
     video_st->codec->time_base.den = 25;
     video_st->codec->qmin = 10;
     video_st->codec->qmax = 51;
+
     AVCodec *pCodec = avcodec_find_encoder(video_st->codec->codec_id);
 
     if (pCodec == NULL) {
         LOGE("  pCodec null ");
         return -1;
     }
-
+    /**
+     * 打开编码器
+     */
     if (avcodec_open2(video_st->codec, pCodec, NULL) < 0) {
         printf("Failed to open encoder! \n");
         return -1;
     }
 
-//    pFrame = av_frame_alloc();
 
     int pic_size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width,
                                       video_st->codec->height);
     LOGE(" pic_size %d ", pic_size);
-//    uint8_t *picture_buf = (uint8_t *) av_malloc(pic_size);
-//    avpicture_fill((AVPicture *) pFrame, picture_buf, video_st->codec->pix_fmt,
-//                   video_st->codec->width, video_st->codec->height);
 
     //Write File Header
     avformat_write_header(pOFC, NULL);
     pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt, pic_size);
-
 
     return ret;
 }
