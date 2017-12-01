@@ -44,6 +44,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/bt_transcoding"/>
+
+    <Button
+        android:text="swscale"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/bt_swscale"/>
     <TextView
         android:id="@+id/tv"
         android:layout_width="wrap_content"

@@ -17,6 +17,8 @@
 #include <mydecode.h>
 #include <mystream.h>
 #include <filter_video.h>
+#include <swscale.h>
+
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative
         (JNIEnv *env, jclass clazz) {
 
@@ -130,7 +132,16 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_addfilter
     return 0;
 }
 
-  
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_swscale
+        (JNIEnv *env, jclass clazz, jstring inputStr, jstring outputStr) {
+    const char *input_str = (*env)->GetStringUTFChars(env, inputStr, NULL);
+    const char *output_str = (*env)->GetStringUTFChars(env, outputStr, NULL);
+    LOGE("addfilter input str %s , outputstr %s", input_str, output_str);
+    swscale( input_str, output_str);
+    (*env)->ReleaseStringUTFChars(env, inputStr, input_str);
+    (*env)->ReleaseStringUTFChars(env, outputStr, output_str);
+    return 0;
+}
   
   
   

@@ -76,5 +76,12 @@ public class MainActivity extends AppCompatActivity {
                 FFmpegUtils.transcodeing(rootFile+"/test.mp4" , rootFile+"/trancoding.avi");
             }
         });
+        findViewById(R.id.bt_swscale).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FFmpegUtils.swscale(rootFile+"/test.yuv" , rootFile+"/swscale.rgb");
+            }
+        });
+
     }
 }

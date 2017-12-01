@@ -34,6 +34,6 @@ public class FFmpegUtils {
 
     public static native int addfilter(String inputStr , String outputPath);
 
-
+    public static native int swscale(String inputUrl , String outputPath);
 
 }
