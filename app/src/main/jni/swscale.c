@@ -32,7 +32,7 @@ int swscale(const char *input_path, const char *output_path) {
 
     enum AVPixelFormat src_pixfmt = AV_PIX_FMT_YUV420P;
     int src_bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(src_pixfmt));
-
+    LOGE(" SRC _ BPP %d " , src_bpp); //12
     const uint8_t *src_data[4];
     int src_linesize[4];
 
@@ -54,29 +54,26 @@ int swscale(const char *input_path, const char *output_path) {
     ret = av_image_alloc(dst_data, dst_linesize, dst_w, dst_h, dst_pixfmt, 1);
 
     //Init Method 1
-//    img_convert_ctx =sws_alloc_context();
-    //Show AVOption
+    img_convert_ctx = sws_alloc_context();
 //    av_opt_show2(img_convert_ctx,stdout,AV_OPT_FLAG_VIDEO_PARAM,0);
-    //Set Value
-//    av_opt_set_int(img_convert_ctx,"sws_flags",SWS_BICUBIC|SWS_PRINT_INFO,0);
-//    av_opt_set_int(img_convert_ctx,"srcw",width,0);
-//    av_opt_set_int(img_convert_ctx,"srch",height,0);
-//    av_opt_set_int(img_convert_ctx,"src_format",src_pixfmt,0);
-//    //'0' for MPEG (Y:0-235);'1' for JPEG (Y:0-255)
-//    av_opt_set_int(img_convert_ctx,"src_range",1,0);
-//    av_opt_set_int(img_convert_ctx,"dstw",dst_w,0);
-//    av_opt_set_int(img_convert_ctx,"dsth",dst_h,0);
-//    av_opt_set_int(img_convert_ctx,"dst_format",dst_pixfmt,0);
-//    av_opt_set_int(img_convert_ctx,"dst_range",1,0);
-//    sws_init_context(img_convert_ctx,NULL,NULL);
+    av_opt_set_int(img_convert_ctx,"sws_flags",SWS_BICUBIC|SWS_PRINT_INFO,0);
+    av_opt_set_int(img_convert_ctx,"srcw",width,0);
+    av_opt_set_int(img_convert_ctx,"srch",height,0);
+    av_opt_set_int(img_convert_ctx,"src_format",src_pixfmt,0);
+    //'0' for MPEG (Y:0-235);'1' for JPEG (Y:0-255)
+    av_opt_set_int(img_convert_ctx,"src_range",1,0);
+    av_opt_set_int(img_convert_ctx,"dstw",dst_w,0);
+    av_opt_set_int(img_convert_ctx,"dsth",dst_h,0);
+    av_opt_set_int(img_convert_ctx,"dst_format",dst_pixfmt,0);
+    av_opt_set_int(img_convert_ctx,"dst_range",1,0);
+    sws_init_context(img_convert_ctx,NULL,NULL);
 
-    img_convert_ctx = sws_getContext(width, height, src_pixfmt, dst_w, dst_h, dst_pixfmt, SWS_BICUBIC|SWS_PRINT_INFO, NULL,
-                                     NULL, 0);
+//    img_convert_ctx = sws_getContext(width, height, src_pixfmt, dst_w, dst_h, dst_pixfmt, SWS_BICUBIC|SWS_PRINT_INFO, NULL,
+//                                     NULL, 0);
 
     while (1) {
         LOGE("read a frame !");
-        if (fread(temp_buffer, 1, width * height * src_bpp / 8, iFile) !=
-            width * height * src_bpp / 8) {
+        if (fread(temp_buffer, 1, width * height * src_bpp / 8, iFile) != width * height * src_bpp / 8) {
             break;
         }
         switch (src_pixfmt) {
@@ -116,9 +113,9 @@ int swscale(const char *input_path, const char *output_path) {
             }
         }
 
-
+        LOGE(" LINE SIZE %d " ,dst_linesize );
         sws_scale(img_convert_ctx, src_data, src_linesize, 0, height, dst_data, dst_linesize);
-        LOGE("Finish process frame %5d\n", frame_idx);
+//        LOGE("Finish process frame %5d\n", frame_idx);
         frame_idx++;
 
         switch (dst_pixfmt) {
