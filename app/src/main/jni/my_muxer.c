@@ -189,6 +189,7 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
  * @param input_v_path 输入的视频路劲
  * @param output_a_path 输入的音频路径
  * @return
+ * http://blog.csdn.net/leixiaohua1020/article/details/39802913
  */
 int muxer(const char* output_path , const char *input_v_path , const char *input_a_path){
 
