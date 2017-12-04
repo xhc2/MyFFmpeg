@@ -36,7 +36,8 @@ public class FFmpegUtils {
 
     public static native int swscale(String inputUrl , String outputPath);
 
-    public static native int muxer(String inputUrl , String outputVPath , String outputAPath);
+    public static native int muxer(String output , String inputVPath , String inputAPath);
+
     public static native int demuxer(String inputUrl , String outputVPath , String outputAPath);
 
 }

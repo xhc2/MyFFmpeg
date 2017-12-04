@@ -121,6 +121,7 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
      */
     AVBitStreamFilterContext* h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
     enum AVRounding AVROUNDING = AV_ROUND_NEAR_INF , AV_ROUND_PASS_MINMAX ;
+
     while(1){
 
         AVOutputFormat *ofmt_ctx;
@@ -176,8 +177,22 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
     avformat_free_context(ofmt_ctx_a);
     avformat_free_context(ofmt_ctx_v);
 
-
     LOGE("------END-----");
     return  ret;
 
+}
+
+
+/**
+ * 混合器
+ * @param output_path 输出的mp4路劲
+ * @param input_v_path 输入的视频路劲
+ * @param output_a_path 输入的音频路径
+ * @return
+ */
+int muxer(const char* output_path , const char *input_v_path , const char *input_a_path){
+
+
+
+    return 0;
 }
