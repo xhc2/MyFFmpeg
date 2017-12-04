@@ -40,7 +40,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
-LOCAL_SRC_FILES := ffmpeg.c my_stream.c mydecode.c filter.c my_log.c filter_video.c swscale.c
+LOCAL_SRC_FILES := ffmpeg.c my_stream.c mydecode.c filter.c my_log.c filter_video.c swscale.c my_muxer.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_LDLIBS := -llog -lz
 LOCAL_SHARED_LIBRARIES := avcodec avdevice avfilter avformat avutil swresample swscale
@@ -104,7 +104,6 @@ LOCAL_LDLIBS :=
 LOCAL_EXPORT_LDLIBS := -Wl,--undefined=Java_org_libsdl_app_SDLActivity_nativeInit -ldl -lGLESv1_CM -lGLESv2 -llog -landroid
 
 include $(BUILD_STATIC_LIBRARY)
-
 
 #libSDL2main=======================================
 # Lei Xiaohua

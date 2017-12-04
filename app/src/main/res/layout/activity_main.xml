@@ -50,6 +50,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/bt_swscale"/>
+
+    <Button
+        android:text="视音频分离复用"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/bt_muxer"/>
     <TextView
         android:id="@+id/tv"
         android:layout_width="wrap_content"

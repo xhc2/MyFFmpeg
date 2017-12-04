@@ -82,6 +82,12 @@ public class MainActivity extends AppCompatActivity {
                 FFmpegUtils.swscale(rootFile+"/test.yuv" , rootFile+"/swscale.rgb");
             }
         });
+        findViewById(R.id.bt_muxer).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  MuxerActivity.class));
+            }
+        });
 
     }
 }

@@ -18,7 +18,7 @@
 #include <mystream.h>
 #include <filter_video.h>
 #include <swscale.h>
-
+#include <my_muxer.h>
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative
         (JNIEnv *env, jclass clazz) {
 
@@ -142,10 +142,31 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_swscale
     (*env)->ReleaseStringUTFChars(env, outputStr, output_str);
     return 0;
 }
-  
-  
-  
-  
-  
-  
-  
+
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_muxer
+        (JNIEnv *env, jclass clazz, jstring inputStr, jstring outputVStr, jstring outputAStr) {
+    const char *input_str = (*env)->GetStringUTFChars(env, inputStr, NULL);
+    const char *output_v_str = (*env)->GetStringUTFChars(env, outputVStr, NULL);
+    const char *output_a_str = (*env)->GetStringUTFChars(env, outputAStr, NULL);
+    LOGE("muxer input str %s , outputvstr %s , outputastr %s", input_str, output_v_str , output_a_str);
+//    muxer( input_str, output_v_str  , output_a_str);
+    (*env)->ReleaseStringUTFChars(env, inputStr, input_str);
+    (*env)->ReleaseStringUTFChars(env, outputVStr, output_v_str);
+    (*env)->ReleaseStringUTFChars(env, outputAStr, output_a_str);
+    return 0;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_demuxer
+        (JNIEnv *env, jclass clazz, jstring inputStr, jstring outputVStr, jstring outputAStr) {
+    const char *input_str = (*env)->GetStringUTFChars(env, inputStr, NULL);
+    const char *output_v_str = (*env)->GetStringUTFChars(env, outputVStr, NULL);
+    const char *output_a_str = (*env)->GetStringUTFChars(env, outputAStr, NULL);
+    LOGE("demuxer input_str %s ,  outputvstr %s , outputastr %s", input_str, output_v_str , output_a_str);
+    demuxer( input_str, output_v_str  , output_a_str);
+    (*env)->ReleaseStringUTFChars(env, inputStr, input_str);
+    (*env)->ReleaseStringUTFChars(env, outputVStr, output_v_str);
+    (*env)->ReleaseStringUTFChars(env, outputAStr, output_a_str);
+    return 0;
+}
+

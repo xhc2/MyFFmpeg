@@ -60,7 +60,7 @@ int swscale(const char *input_path, const char *output_path) {
     //Init Method 1
     img_convert_ctx = sws_alloc_context();
 //    av_opt_show2(img_convert_ctx,stdout,AV_OPT_FLAG_VIDEO_PARAM,0);
-    av_opt_set_int(img_convert_ctx,"sws_flags",SWS_BICUBIC/*|SWS_PRINT_INFO*/,0);
+    av_opt_set_int(img_convert_ctx,"sws_flags",SWS_BICUBIC|SWS_PRINT_INFO,0);
     av_opt_set_int(img_convert_ctx,"srcw",width,0);
     av_opt_set_int(img_convert_ctx,"srch",height,0);
     av_opt_set_int(img_convert_ctx,"src_format",src_pixfmt,0);

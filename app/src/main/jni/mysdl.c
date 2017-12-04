@@ -9,6 +9,7 @@
 #include <android/log.h>
 #include <src/SDL_internal.h>
 #include <SDL_quit.h>
+#include <SDL.h>
 
 //int main(int argc, char *argv[]) {
 //
