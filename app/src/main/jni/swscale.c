@@ -14,7 +14,9 @@ int swscale(const char *input_path, const char *output_path) {
     int width = 480;
     int height = 272;
     const int dst_w = 1280, dst_h = 720;
+
     av_log_set_callback(custom_log);
+
     enum AVPixelFormat dst_pixfmt = AV_PIX_FMT_RGB24;
     int dst_bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(dst_pixfmt));
 
@@ -33,7 +35,9 @@ int swscale(const char *input_path, const char *output_path) {
     enum AVPixelFormat src_pixfmt = AV_PIX_FMT_YUV420P;
     int src_bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(src_pixfmt));
     LOGE(" SRC _ BPP %d " , src_bpp); //12
+
     const uint8_t *src_data[4];
+
     int src_linesize[4];
 
     uint8_t *dst_data[4];
@@ -56,7 +60,7 @@ int swscale(const char *input_path, const char *output_path) {
     //Init Method 1
     img_convert_ctx = sws_alloc_context();
 //    av_opt_show2(img_convert_ctx,stdout,AV_OPT_FLAG_VIDEO_PARAM,0);
-    av_opt_set_int(img_convert_ctx,"sws_flags",SWS_BICUBIC|SWS_PRINT_INFO,0);
+    av_opt_set_int(img_convert_ctx,"sws_flags",SWS_BICUBIC/*|SWS_PRINT_INFO*/,0);
     av_opt_set_int(img_convert_ctx,"srcw",width,0);
     av_opt_set_int(img_convert_ctx,"srch",height,0);
     av_opt_set_int(img_convert_ctx,"src_format",src_pixfmt,0);
