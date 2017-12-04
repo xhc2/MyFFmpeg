@@ -16,6 +16,14 @@ import java.io.File;
  * http://www.iqiyi.com/paopao/u/2044178079/
  * http://blog.csdn.net/gobitan/article/details/24771311
  * https://www.gitbook.com/book/xdsnet/other-doc-cn-ffmpeg/details 中文文档
+ *
+ * 1.将视频和音频分离，再复用。（比如a视频的画面，b的声音）
+ * 2.推流：rtmp
+ * 3.水印：时间戳，图片
+ * 4.转码mp4转avi等
+ * 5.裁剪，yuv转rgb等，改变分辨率
+ * 6.通过摄像头录入画面，打水印，或者推流，或者加入其它音频的声音，或者将声音改变，音调变高等。
+ * 7.通过sdl播放，opengl（不知道怎么使用）
  */
 public class MainActivity extends AppCompatActivity {
 
