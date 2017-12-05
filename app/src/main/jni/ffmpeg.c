@@ -150,7 +150,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_muxer
     const char *output_v_str = (*env)->GetStringUTFChars(env, outputVStr, NULL);
     const char *output_a_str = (*env)->GetStringUTFChars(env, outputAStr, NULL);
     LOGE("muxer input str %s , outputvstr %s , outputastr %s", input_str, output_v_str , output_a_str);
-//    muxer( input_str, output_v_str  , output_a_str);
+    muxer( input_str, output_v_str  , output_a_str);
     (*env)->ReleaseStringUTFChars(env, inputStr, input_str);
     (*env)->ReleaseStringUTFChars(env, outputVStr, output_v_str);
     (*env)->ReleaseStringUTFChars(env, outputAStr, output_a_str);

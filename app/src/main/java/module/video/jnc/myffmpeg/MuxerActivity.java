@@ -17,8 +17,8 @@ public class MuxerActivity extends AppCompatActivity {
         findViewById(R.id.muxer).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FFmpegUtils.muxer(Constant.rootFile.getAbsolutePath()+"/sintel.ts" ,Constant.rootFile.getAbsolutePath()+"/sintel_demuxer.h264"
-                        , Constant.rootFile.getAbsolutePath()+"/sintel_demuxer.aac"  );
+                FFmpegUtils.muxer(Constant.rootFile.getAbsolutePath()+"/sintel_muxer.ts" ,Constant.rootFile.getAbsolutePath()+"/sintel_demuxer.h264"
+                        , Constant.rootFile.getAbsolutePath()+"/input.mp4"  );
             }
         });
         findViewById(R.id.demuxer).setOnClickListener(new View.OnClickListener() {
