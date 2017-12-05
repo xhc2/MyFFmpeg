@@ -426,14 +426,12 @@ int encodeYuv(char *input_str, char *output_str) {
 }
 
 int decode(const char *input_str, const char *output_str) {
-
     /**
      * AVFormatContext主要存储视音频封装格式中包含的信息，
      * AVInputFormat存储输入视音频封装格式，
      * 每种视音频封装格式都对应一个AVInputFormat结构
      * */
     AVFormatContext *pFormatCtx;
-
 
     int i, videoindex;
 

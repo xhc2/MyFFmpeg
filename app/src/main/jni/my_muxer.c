@@ -11,36 +11,43 @@
  * @param out_v_path ，输出的视频路劲
  * @param out_a_path ，输出的音频路劲
  * @return
+ * http://blog.csdn.net/leixiaohua1020/article/details/39802819
  */
 int demuxer(const char* input_path , const char *out_v_path , const char *out_a_path){
+
     AVOutputFormat *ofmt_a = NULL , *ofmt_v = NULL;
+
     AVFormatContext *ifmt_ctx = NULL , *ofmt_ctx_a = NULL , *ofmt_ctx_v = NULL;
+
     AVPacket pkt;
     int ret = 0;
     int videoindex = -1, audioindex = -1;
     int frame_index = 0 ;
     av_register_all();
-
     av_log_set_callback(custom_log);
 
+    //打开输入的文件
     ret = avformat_open_input(&ifmt_ctx  ,input_path , 0 , 0);
     if(ret < 0){
         LOGE("CANT OPEN INPUT !");
         return -1;
     }
+    //找到输入流
     ret = avformat_find_stream_info(ifmt_ctx , 0);
     if(ret < 0){
         LOGE("avformat_find_stream_info faild !");
         return -1;
     }
+    //打开输出文件 用来保存视频裸流（e.g h264）
     avformat_alloc_output_context2(&ofmt_ctx_v , NULL , NULL , out_v_path);
     if(ofmt_ctx_v == NULL){
         LOGE("avformat_alloc_output_context2 V faild !");
         return -1;
     }
     ofmt_v =ofmt_ctx_v->oformat;
-
+    //打开输出文件，用来保存音频裸流（e.g aac）
     avformat_alloc_output_context2(&ofmt_ctx_a , NULL , NULL , out_a_path);
+
     if(ofmt_ctx_a == NULL){
         LOGE("avformat_alloc_output_context2 a faild !");
         return -1;
@@ -54,9 +61,9 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
         if(ifmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO){
             LOGE("VIDEO TYPE ");
             videoindex = i;
+            //增加一个视屏流到ofmt_ctx_v ， 并且添加一个编解码器
             outStream = avformat_new_stream(ofmt_ctx_v ,ifmt_ctx->streams[i]->codec->codec);
             ofmt_ctx = ofmt_ctx_v;
-
         }
         else if(ifmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO){
             LOGE("AUDIO TYPE ");
@@ -82,8 +89,12 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
         }
         outStream->codec->codec_tag = 0;
 
-        //这个不太明白什么意思
+        /**
+         * AVFMT_GLOBALHEADER   Format wants global header.这种格式需要总体header
+         * 对应的flag，每一位应该有对应的意思，如果&上不为0说明需要这个global header
+         */
         if(ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER){
+            //CODEC_FLAG_GLOBAL_HEADER-> Place global headers in extradata instead of every keyframe.
             outStream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
         }
     }
@@ -92,6 +103,10 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
 //    av_dump_format(ofmt_ctx_v , 0 , out_v_path , 1);
 //    av_dump_format(ofmt_ctx_a , 0 , out_a_path , 1);
 
+    /**
+     * AVFMT_NOFILE
+     *  Demuxer will use avio_open, no opened file should be provided by the caller.
+     */
     if(!(ofmt_v->flags & AVFMT_NOFILE)){
         if(avio_open(&ofmt_ctx_v->pb , out_v_path , AVIO_FLAG_WRITE) < 0){
             LOGE(" AVIO OPEN VIDEO FAILD ");
@@ -120,27 +135,33 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
      * mp4，flv,mkv中的h264 ， 需要用到h264_mp4toannexb的bitstreamfilter
      */
     AVBitStreamFilterContext* h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
-    enum AVRounding AVROUNDING = AV_ROUND_NEAR_INF , AV_ROUND_PASS_MINMAX ;
+
+    enum AVRounding AVROUNDING = AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX ;
 
     while(1){
 
         AVOutputFormat *ofmt_ctx;
         AVStream *inStream , *outStream;
+        AVFormatContext *afc ;
+        //从文件中读取一帧
         if(av_read_frame(ifmt_ctx , &pkt) < 0){
             LOGE(" READ FRAME < 0 ");
             break;
         }
         inStream = ifmt_ctx->streams[pkt.stream_index];
+        //是视频帧
         if(pkt.stream_index == videoindex){
             outStream = ofmt_ctx_v->streams[0];
-            ofmt_ctx = ofmt_ctx_v;
+            ofmt_ctx = ofmt_ctx_v->oformat;
+            afc = ofmt_ctx_v;
             av_bitstream_filter_filter(h264bsfc, inStream->codec, NULL, &pkt.data, &pkt.size, pkt.data, pkt.size, 0);
             LOGE(" video ...");
         }
-
+        //是音频帧
         else if(pkt.stream_index == audioindex){
             outStream = ofmt_ctx_a->streams[0];
             ofmt_ctx = ofmt_ctx_a->oformat;
+            afc = ofmt_ctx_a;
             LOGE(" audio ...");
         }
         else{
@@ -149,13 +170,20 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
         }
 
         //Convert PTS/DTS
+        //pts 显示时间戳，dts，解码时间戳
+        //http://blog.csdn.net/fssssssss/article/details/44624847
+        //outStream->time_base 时间基，一个时间单位
+        // av_rescale_q_rnd = `a * bq / cq`.
         pkt.pts = av_rescale_q_rnd(pkt.pts, inStream->time_base, outStream->time_base, AVROUNDING);
         pkt.dts = av_rescale_q_rnd(pkt.dts, inStream->time_base, outStream->time_base, AVROUNDING);
         pkt.duration = av_rescale_q(pkt.duration, inStream->time_base, outStream->time_base);
         pkt.pos = -1;
         pkt.stream_index=0;
 
-        if(av_interleaved_write_frame(ofmt_ctx, &pkt) < 0){
+        /**
+         * 交叉的写入媒体文件中
+         */
+        if(av_interleaved_write_frame(afc, &pkt) < 0){
             LOGE(" WRATE FAILD ");
             break;
         }
@@ -243,7 +271,6 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
                 LOGE("open output stream faild !");
                 return -1;
             }
-
             videoindex_out = out_stream->index;
 
             if(avcodec_copy_context(out_stream->codec , in_stream->codec) < 0){
