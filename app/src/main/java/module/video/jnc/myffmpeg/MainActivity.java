@@ -16,6 +16,7 @@ import java.io.File;
  * http://www.iqiyi.com/paopao/u/2044178079/
  * http://blog.csdn.net/gobitan/article/details/24771311
  * https://www.gitbook.com/book/xdsnet/other-doc-cn-ffmpeg/details 中文文档
+ * http://blog.51cto.com/ticktick/category17.html
  *
  * 1.将视频和音频分离，再复用。（比如a视频的画面，b的声音）
  * 2.推流：rtmp

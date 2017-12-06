@@ -69,9 +69,9 @@ JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_SDLUtils_initSDLTest
 
     LOGE(" SDL TEST START");
 
-//    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) == -1) {
-//        LOGE("SDL_Init failed %s", SDL_GetError());
-//    }
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) == -1) {
+        LOGE("SDL_Init failed %s", SDL_GetError());
+    }
 
     LOGE(" SDL TEST START SUCCESS ");
 }

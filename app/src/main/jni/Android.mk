@@ -36,7 +36,7 @@ LOCAL_MODULE := swscale
 LOCAL_SRC_FILES := libswscale.so
 include $(PREBUILT_SHARED_LIBRARY)
 
-# Program
+# Program FFmpeg
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
@@ -50,7 +50,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := SDL2
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include/
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
 LOCAL_SRC_FILES := \
 	$(subst $(LOCAL_PATH)/,, \
@@ -94,16 +94,16 @@ include $(BUILD_SHARED_LIBRARY)
 #
 ###########################
 
-LOCAL_MODULE := SDL2_static
+#LOCAL_MODULE := SDL2_static
 
-LOCAL_MODULE_FILENAME := libSDL2
+#LOCAL_MODULE_FILENAME := libSDL2
 
-LOCAL_SRC_FILES += $(LOCAL_PATH)/src/main/android/SDL_android_main.c
+#LOCAL_SRC_FILES += $(LOCAL_PATH)/src/main/android/SDL_android_main.c
 
-LOCAL_LDLIBS :=
-LOCAL_EXPORT_LDLIBS := -Wl,--undefined=Java_org_libsdl_app_SDLActivity_nativeInit -ldl -lGLESv1_CM -lGLESv2 -llog -landroid
+#LOCAL_LDLIBS :=
+#LOCAL_EXPORT_LDLIBS := -Wl,--undefined=Java_org_libsdl_app_SDLActivity_nativeInit -ldl -lGLESv1_CM -lGLESv2 -llog -landroid
 
-include $(BUILD_STATIC_LIBRARY)
+#include $(BUILD_STATIC_LIBRARY)
 
 #libSDL2main=======================================
 # Lei Xiaohua
