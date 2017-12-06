@@ -118,6 +118,7 @@ int stream(const char *input_str ,const char *output_str){
         AVStream *in_stream, *out_stream;
         //Get an AVPacket
         ret = av_read_frame(ifmt_ctx, &pkt);
+        LOGE(" READING FRAME ...");
         if (ret < 0)
             break;
         //FIX：No PTS (Example: Raw H.264)
@@ -159,6 +160,9 @@ int stream(const char *input_str ,const char *output_str){
             frame_index++;
         }
         //ret = av_write_frame(ofmt_ctx, &pkt);
+        /**
+         * 交叉写入
+         */
         ret = av_interleaved_write_frame(ofmt_ctx, &pkt);
 
         if (ret < 0) {
@@ -168,7 +172,7 @@ int stream(const char *input_str ,const char *output_str){
         av_free_packet(&pkt);
 
     }
-
+    LOGE("STREAM END...");
     //Write file trailer
     av_write_trailer(ofmt_ctx);
     end:

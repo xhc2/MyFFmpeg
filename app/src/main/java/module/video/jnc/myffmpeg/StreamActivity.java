@@ -21,7 +21,7 @@ public class StreamActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //开始推流
-                FFmpegUtils.stream(rootFile+"/test.flv" , "rtmp://192.168.2.120/live/test");
+                FFmpegUtils.stream(rootFile+"/test.flv" , "rtmp://192.168.2.123/live/test");
             }
         });
     }
