@@ -422,7 +422,17 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         av_bitstream_filter_filter(h264bsfc, in_stream->codec, NULL, &pkt.data, &pkt.size, pkt.data, pkt.size, 0);
         av_bitstream_filter_filter(aacbsfc, out_stream->codec, NULL, &pkt.data, &pkt.size, pkt.data, pkt.size, 0);
         //Convert PTS/DTS
-        // equivalent to `a * bq / cq`.
+        // equivalent to `a * bq / cq`.,time_base 间的转换
+        /**
+         * 从一种容器中demux出来的源AVStream的frame，存入另一个容器中某个目的AVStream。
+            此时的时间刻度应该从源AVStream的time，转换成目的AVStream timebase下的时间。
+            -----------------------
+            其实，问题的关键还是要理解，不同的场景下取到的数据帧的time是相对哪个时间体系的。
+            demux出来的帧的time：是相对于源AVStream的timebase
+            编码器出来的帧的time：是相对于源AVCodecContext的timebase
+            mux存入文件等容器的time：是相对于目的AVStream的timebase
+            这里的time指pts。
+         */
         pkt.pts = av_rescale_q_rnd(pkt.pts, in_stream->time_base, out_stream->time_base, avrounding);
         pkt.dts = av_rescale_q_rnd(pkt.dts, in_stream->time_base, out_stream->time_base, avrounding);
         pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
