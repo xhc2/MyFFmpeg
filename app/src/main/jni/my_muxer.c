@@ -230,18 +230,26 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
     int frame_index = 0;
     int64_t  cur_pts_v = 0 , cur_pts_a = 0;
     av_register_all();
+    /**
+     * 打开视频输入文件
+     */
     ret = avformat_open_input(&ifmt_ctx_v ,input_v_path , 0 , 0  );
     if(ret < 0 ){
         LOGE("open input video faild");
         return -1;
     }
-
+    /**
+     * 打开音频输入文件
+     */
     ret = avformat_open_input(&ifmt_ctx_a ,input_a_path , 0 , 0  );
     if(ret < 0 ){
         LOGE("open input audio faild");
         return -1;
     }
 
+    /**
+     * 找到流
+     */
     ret = avformat_find_stream_info(ifmt_ctx_v , 0 );
     if(ret < 0 ){
         LOGE("find video stream info faild");
@@ -253,6 +261,9 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         return -1;
     }
 
+    /**
+     * 为输出分配一个AVFormatContext
+     */
     ret = avformat_alloc_output_context2(&ofmt_ctx , NULL , NULL , output_path);
     if(ret < 0){
         LOGE(" OPEN OUTPUT FAILD ");
@@ -261,7 +272,7 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
 
     ofmt = ofmt_ctx->oformat;
     enum AVRounding avrounding = (enum AVRounding)(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
-    //找到视频轨道
+    //找到视频轨道，并且将编解码复制给输出流，
     for(int i = 0 ; i < ifmt_ctx_v->nb_streams ; ++ i){
         if(ifmt_ctx_v->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO){
             videoindex_v = i;
@@ -285,6 +296,9 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         }
     }
 
+    /**
+     * 打开音频流，并且添加一个流，然后copy一个编解码到输出的音频流中。
+     */
     for(int i = 0 ;i < ifmt_ctx_a->nb_streams ; ++i){
         if(ifmt_ctx_a->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO){
             audioindex_a = i;
@@ -309,6 +323,9 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         }
     }
 
+    /**
+     * AVFMT_NOFILE需要一个没有打开的File
+     */
     if(!(ofmt->flags & AVFMT_NOFILE)){
         if(avio_open(&ofmt_ctx->pb , output_path , AVIO_FLAG_WRITE) < 0){
             LOGE("OPEN OUTPUT FILE FAILD !");
@@ -327,7 +344,11 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         AVFormatContext *ifmt_ctx;
         int stream_index = 0;
         AVStream *in_stream , *out_stream;
-        if(av_compare_ts(cur_pts_v,ifmt_ctx_v->streams[videoindex_v]->time_base,cur_pts_a,ifmt_ctx_a->streams[audioindex_a]->time_base) <= 0){
+        //比较，是先写视频帧还是写音频帧，不然会出现音视频不同步的现象
+        if(av_compare_ts(cur_pts_v,
+                         ifmt_ctx_v->streams[videoindex_v]->time_base,
+                         cur_pts_a,
+                         ifmt_ctx_a->streams[audioindex_a]->time_base) <= 0){
             LOGE("  write video  ");
             ifmt_ctx = ifmt_ctx_v;
             stream_index = videoindex_out;
@@ -337,17 +358,26 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
                     in_stream = ifmt_ctx->streams[pkt.stream_index];
                     out_stream = ofmt_ctx->streams[stream_index];
                     if(pkt.stream_index == videoindex_v){
+                        //AV_NOPTS_VALUE ，没有定义pts，dts
                         if(pkt.pts == AV_NOPTS_VALUE){
+
+                            /**
+                             * AVStream->time_base单位为秒。
+                             * AVCodecContext->time_base单位同样为秒，不过精度没有AVStream->time_base高，大小为1/framerate。
+                             */
                             AVRational time_base1 = in_stream->time_base;
-                            //Duration between 2 frames (us)
+                            //Duration between 2 frames (us) ， av_q2d-》就是将AVRational中的分子分母相除得一个小数
                             int64_t calc_duration=(double)AV_TIME_BASE/av_q2d(in_stream->r_frame_rate);
-                            //Parameters
+                            //Parameters pts是显示时间 ， 当前已经有的总时间除以时间基，就是ffmpeg中的时间单位
                             pkt.pts=(double)(frame_index*calc_duration)/(double)(av_q2d(time_base1)*AV_TIME_BASE);
+                            //dts 解码时间
                             pkt.dts=pkt.pts;
+                            //间隔时间，需要除以时间基
                             pkt.duration=(double)calc_duration/(double)(av_q2d(time_base1)*AV_TIME_BASE);
                             frame_index++;
                         }
                         cur_pts_v=pkt.pts;
+                        LOGE("pts %d " ,cur_pts_v );
                         break;
                     }
                 }while(av_read_frame(ifmt_ctx , &pkt) >= 0);
@@ -392,7 +422,7 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         av_bitstream_filter_filter(h264bsfc, in_stream->codec, NULL, &pkt.data, &pkt.size, pkt.data, pkt.size, 0);
         av_bitstream_filter_filter(aacbsfc, out_stream->codec, NULL, &pkt.data, &pkt.size, pkt.data, pkt.size, 0);
         //Convert PTS/DTS
-
+        // equivalent to `a * bq / cq`.
         pkt.pts = av_rescale_q_rnd(pkt.pts, in_stream->time_base, out_stream->time_base, avrounding);
         pkt.dts = av_rescale_q_rnd(pkt.dts, in_stream->time_base, out_stream->time_base, avrounding);
         pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
