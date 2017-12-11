@@ -31,9 +31,11 @@ public class ShaderHelper {
     public static int compileVertextShader(String shaderCode){
         return compileShader(GL_VERTEX_SHADER , shaderCode);
     }
+
     public static int compileFragmentShader(String shaderCode){
         return compileShader(GL_FRAGMENT_SHADER , shaderCode);
     }
+
     private static int compileShader(int type , String shaderCode){
         final int shaderObjuectId = glCreateShader(type);
         if(shaderObjuectId == 0){
@@ -83,7 +85,7 @@ public class ShaderHelper {
         glValidateProgram(programObjectId);
         final int[] validateStatus = new int[1];
         glGetProgramiv(programObjectId , GL_VALIDATE_STATUS , validateStatus , 0);
-        Log.e("xhc" , " validateing programe : \n"+validateStatus[0]+" log "+glGetProgramInfoLog(programObjectId));
+        Log.e("xhc" , " validateing programe : \n"+validateStatus[0]+" log : "+glGetProgramInfoLog(programObjectId));
 
         return validateStatus[0] != 0;
     }
