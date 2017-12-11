@@ -1,3 +1,4 @@
+//attribute 就是通过外界将颜色放进opengl着色器中的方式
 attribute vec4 a_Position ;
 attribute vec4 a_Color ;
 varying vec4 v_Color;

@@ -55,7 +55,7 @@ public class MyRender implements GLSurfaceView.Renderer{
             0f ,     0f,   1f , 1f , 1f ,
             -0.5f,-0.5f, 0.7f,0.7f,0.7f,
             0.5f ,-0.5f, 0.7f,0.7f,0.7f,
-            0.5f , 0.5f, 0.7f,0.7f,0.7f,
+            0.5f , 0.5f, 0.7f,1f,0.7f,
             -0.5f,0.5f,  0.7f,0.7f,0.7f,
             -0.5f,-0.5f, 0.7f,0.7f,0.7f,
             -0.5f ,  0f ,  1f,  0f,  0f,
@@ -109,9 +109,11 @@ public class MyRender implements GLSurfaceView.Renderer{
         aPositionLocation = glGetAttribLocation(program , A_POSITION);
         Log.e("xhc" , " aPositionLocation "+aPositionLocation);
         vertexData.position(0);
-        //aPositionLocation 属性的位置，
-        // POSITION_COMPONENT_COUNT数据的计数两个，x，y。
-//        GL_FLOAT数据的类型
+        /**
+         * aPositionLocation 属性的位置，
+         * POSITION_COMPONENT_COUNT数据的计数两个，x，y。
+         *  GL_FLOAT数据的类型
+         */
         glVertexAttribPointer(aPositionLocation , POSITION_COMPONENT_COUNT , GL_FLOAT , false , STRIDE , vertexData);
         glEnableVertexAttribArray(aPositionLocation);
 
