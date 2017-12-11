@@ -35,7 +35,8 @@
             android:label="@string/title_activity_add_filter"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".SwscaleActivity" />
-        <activity android:name=".MuxerActivity"></activity>
+        <activity android:name=".MuxerActivity" />
+        <activity android:name=".opengl.OpenglActivity"></activity>
     </application>
 
 </manifest>

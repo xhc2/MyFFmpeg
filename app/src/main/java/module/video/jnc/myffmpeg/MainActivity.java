@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import java.io.File;
 
+import module.video.jnc.myffmpeg.opengl.OpenglActivity;
+
 /**
  * 参考：
  * http://ffmpeg.org/doxygen/3.2/index.html
@@ -95,6 +97,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(MainActivity.this,  MuxerActivity.class));
+            }
+        });
+
+        findViewById(R.id.bt_opengl).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  OpenglActivity.class));
             }
         });
     }
