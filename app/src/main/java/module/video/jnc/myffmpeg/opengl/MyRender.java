@@ -1,6 +1,7 @@
 package module.video.jnc.myffmpeg.opengl;
 
 import android.content.Context;
+import android.graphics.ColorSpace;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
@@ -55,24 +56,44 @@ public class MyRender implements GLSurfaceView.Renderer{
     private int uMatrixLocation ;
 
     private final float[] projectionMatrix = new float[16];
-
+    private final float[] modelMatrix = new float[16];
 
     private static final int BYTES_PER_FLOAT = 4;
     private final FloatBuffer vertexData;
-    float[] tableVerticesWithTriangles = {
-            0f ,     0f,   1f , 1f , 1f ,
-            -0.5f,-0.5f, 0.7f,0.7f,0.7f,
-            0.5f ,-0.5f, 0.7f,0.7f,0.7f,
-            0.5f , 0.5f, 0.7f,1f,0.7f,
-            -0.5f,0.5f,  0.7f,0.7f,0.7f,
-            -0.5f,-0.5f, 0.7f,0.7f,0.7f,
-            -0.5f ,  0f ,  1f,  0f,  0f,
-             0.5f ,  0f ,  1f,  0f,  0f,
-               0f , -0.25f ,0f, 0f,  1f,
-               0f ,  0.25f ,1f, 0f,  0f};
+    /**
+     * opengl会自动把w分量用来做透视除法
+     */
+//    private static final int POSITION_COMPONENT_COUNT = 4;
+//    float[] tableVerticesWithTriangles = {
+//            //x , y , z , w , r , g , b
+//            0f ,     0f,   0f , 1.5f , 1f , 1f , 1f ,
+//            -0.5f,-0.5f,0f , 1f ,  0.7f,0.7f,0.7f,
+//            0.5f ,-0.5f,0f , 1f , 0.7f,0.7f,0.7f,
+//            0.5f , 0.5f, 0f , 2f ,0.7f,1f,0.7f,
+//            -0.5f,0.5f, 0f , 2f , 0.7f,0.7f,0.7f,
+//            -0.5f,-0.5f,0f , 1f , 0.7f,0.7f,0.7f,
+//
+//            -0.5f ,  0f , 0f , 1.5f , 1f,  0f,  0f,
+//             0.5f ,  0f ,  0f , 1.5f ,1f,  0f,  0f,
+//               0f , -0.25f ,0f , 1.25f ,0f, 0f,  1f,
+//               0f ,  0.25f ,0f , 1.75f ,1f, 0f,  0f};
 
     private static final int POSITION_COMPONENT_COUNT = 2;
     private static final int COLOR_COMPONENT_COUNT = 3;
+    float[] tableVerticesWithTriangles = {
+            //x , y ,  r , g , b
+            0f ,     0f,    1f , 1f , 1f ,
+            -0.5f,-0.5f,   0.7f,0.7f,0.7f,
+            0.5f ,-0.5f,  0.7f,0.7f,0.7f,
+            0.5f , 0.5f,  0.7f,1f,0.7f,
+            -0.5f,0.5f,   0.7f,0.7f,0.7f,
+            -0.5f,-0.5f,  0.7f,0.7f,0.7f,
+
+            -0.5f ,  0f ,   1f,  0f,  0f,
+            0.5f ,  0f ,   1f,  0f,  0f,
+            0f , -0.25f , 0f, 0f,  1f,
+            0f ,  0.25f , 1f, 0f,  0f};
+
     //数组中因为不全是顶点的坐标，还有颜色等，要告诉opengl中间有多少颜色等。
     private static final int STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
 
@@ -136,8 +157,9 @@ public class MyRender implements GLSurfaceView.Renderer{
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
         glViewport(0 , 0 , width , height);
-        final float aspectRation = width > height ? (float) width / (float) height : (float)height / (float)width;
-
+        //这会用45度的视野创建一个透视投影，这个视椎体从z值-1的位置开始，到z值为-10的位置结束
+        MatrixHelper.perspectiveM(projectionMatrix , 45 , (float)width / (float) height , 1f , 10f);
+//        final float aspectRation = width > height ? (float) width / (float) height : (float)height / (float)width;
         /**
          * float[] m, int mOffset, float left, float right, float bottom, float top, float near, float far
          * m:目标数组
@@ -151,19 +173,30 @@ public class MyRender implements GLSurfaceView.Renderer{
          * 这个函数就是生成一个正交矩阵，就是将以前在屏幕上的坐标范围（-1，1）改变下e.g（-1.78,1.78）。
          * 如果按上述方式改变下就是相对就更“聚拢”了。
          */
-        Log.e("xhc" , "aspectRation "+aspectRation);
-        if(width > height){
-            Matrix.orthoM(projectionMatrix , 0 ,  -aspectRation , aspectRation ,-1f, 1f , -1f , 1f);
-//            Matrix.orthoM(projectionMatrix , 0 ,  -3f , 3f ,-1f, 1f , -1f , 1f);
-        }
-        else{
-            Matrix.orthoM(projectionMatrix , 0 , -1f, 1f , -aspectRation , aspectRation , -1f , 1f);
-        }
+//        Log.e("xhc" , "aspectRation "+aspectRation);
+//        if(width > height){
+//            Matrix.orthoM(projectionMatrix , 0 ,  -aspectRation , aspectRation ,-1f, 1f , -1f , 1f);
+////            Matrix.orthoM(projectionMatrix , 0 ,  -3f , 3f ,-1f, 1f , -1f , 1f);
+//        }
+//        else{
+//            Matrix.orthoM(projectionMatrix , 0 , -1f, 1f , -aspectRation , aspectRation , -1f , 1f);
+//        }
+        Matrix.setIdentityM(modelMatrix , 0);
+        //利用模型矩阵移动物体，沿z轴负方向平移-2
+        Matrix.translateM(modelMatrix , 0 , 0f , 0f , -2.5f);
+        //旋转
+        Matrix.rotateM(modelMatrix , 0 , 60f , 1f , 0f , 0f);
+
+        //投影矩阵乘以模型矩阵。
+        final float[] temp = new float[16];
+        Matrix.multiplyMM(temp,0 ,projectionMatrix , 0 , modelMatrix , 0);
+        System.arraycopy(temp,0,projectionMatrix , 0 , temp.length);
     }
 
     @Override
     public void onDrawFrame(GL10 gl10) {
         glClear(GL_COLOR_BUFFER_BIT);
+
         //正交投影
         glUniformMatrix4fv(uMatrixLocation , 1 , false , projectionMatrix , 0);
 
