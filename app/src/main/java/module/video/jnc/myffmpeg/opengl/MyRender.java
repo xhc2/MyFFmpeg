@@ -158,7 +158,7 @@ public class MyRender implements GLSurfaceView.Renderer{
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
         glViewport(0 , 0 , width , height);
         //这会用45度的视野创建一个透视投影，这个视椎体从z值-1的位置开始，到z值为-10的位置结束
-        MatrixHelper.perspectiveM(projectionMatrix , 45 , (float)width / (float) height , 1f , 10f);
+
 //        final float aspectRation = width > height ? (float) width / (float) height : (float)height / (float)width;
         /**
          * float[] m, int mOffset, float left, float right, float bottom, float top, float near, float far
@@ -181,11 +181,13 @@ public class MyRender implements GLSurfaceView.Renderer{
 //        else{
 //            Matrix.orthoM(projectionMatrix , 0 , -1f, 1f , -aspectRation , aspectRation , -1f , 1f);
 //        }
+
+        MatrixHelper.perspectiveM(projectionMatrix , 45 , (float)width / (float) height , 1f , 10f);
         Matrix.setIdentityM(modelMatrix , 0);
         //利用模型矩阵移动物体，沿z轴负方向平移-2
-        Matrix.translateM(modelMatrix , 0 , 0f , 0f , -2.5f);
+        Matrix.translateM(modelMatrix , 0 , 0f , 0f , -3f);
         //旋转
-        Matrix.rotateM(modelMatrix , 0 , 60f , 1f , 0f , 0f);
+        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
 
         //投影矩阵乘以模型矩阵。
         final float[] temp = new float[16];
