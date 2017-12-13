@@ -100,11 +100,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        findViewById(R.id.bt_opengl_texure).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  OpenGlTureActivity.class));
+            }
+        });
         findViewById(R.id.bt_opengl).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(MainActivity.this,  OpenglActivity.class));
             }
         });
+
+
     }
 }

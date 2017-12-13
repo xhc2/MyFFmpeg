@@ -72,27 +72,26 @@ public class MyRender implements GLSurfaceView.Renderer{
 //            0.5f , 0.5f, 0f , 2f ,0.7f,1f,0.7f,
 //            -0.5f,0.5f, 0f , 2f , 0.7f,0.7f,0.7f,
 //            -0.5f,-0.5f,0f , 1f , 0.7f,0.7f,0.7f,
-//
 //            -0.5f ,  0f , 0f , 1.5f , 1f,  0f,  0f,
 //             0.5f ,  0f ,  0f , 1.5f ,1f,  0f,  0f,
 //               0f , -0.25f ,0f , 1.25f ,0f, 0f,  1f,
 //               0f ,  0.25f ,0f , 1.75f ,1f, 0f,  0f};
 
-    private static final int POSITION_COMPONENT_COUNT = 2;
+    private static final int POSITION_COMPONENT_COUNT = 3;
     private static final int COLOR_COMPONENT_COUNT = 3;
     float[] tableVerticesWithTriangles = {
             //x , y ,  r , g , b
-            0f ,     0f,    1f , 1f , 1f ,
-            -0.5f,-0.5f,   0.7f,0.7f,0.7f,
-            0.5f ,-0.5f,  0.7f,0.7f,0.7f,
-            0.5f , 0.5f,  0.7f,1f,0.7f,
-            -0.5f,0.5f,   0.7f,0.7f,0.7f,
-            -0.5f,-0.5f,  0.7f,0.7f,0.7f,
+            0f ,     0f,  1.5f,  1f , 1f , 1f ,
+            -0.5f,-0.5f,   1f,0.7f,0.7f,0.7f,
+            0.5f ,-0.5f, 1f, 0.7f,0.7f,0.7f,
+            0.5f , 0.5f,  2f ,0.7f,0.7f,0.7f,
+            -0.5f,0.5f,   2f , 0.7f,0.7f,0.7f,
+            -0.5f,-0.5f,  1f , 0.7f,0.7f,0.7f,
 
-            -0.5f ,  0f ,   1f,  0f,  0f,
-            0.5f ,  0f ,   1f,  0f,  0f,
-            0f , -0.25f , 0f, 0f,  1f,
-            0f ,  0.25f , 1f, 0f,  0f};
+            -0.5f ,  0f ,  1.5f ,  1f,  0f,  0f,
+            0.5f ,  0f ,  1.5f ,  1f,  0f,  0f,
+            0f , -0.25f ,1.25f ,  0f, 0f,  1f,
+            0f ,  0.25f ,1.75f ,  1f, 0f,  0f};
 
     //数组中因为不全是顶点的坐标，还有颜色等，要告诉opengl中间有多少颜色等。
     private static final int STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
@@ -125,7 +124,6 @@ public class MyRender implements GLSurfaceView.Renderer{
             //链接到程序
             program = ShaderHelper.linkProgram(vertexShader  ,fragmentShader );
         }
-
 
         //验证程序是否可用
         ShaderHelper.validatePrograme(program);
@@ -185,9 +183,9 @@ public class MyRender implements GLSurfaceView.Renderer{
         MatrixHelper.perspectiveM(projectionMatrix , 45 , (float)width / (float) height , 1f , 10f);
         Matrix.setIdentityM(modelMatrix , 0);
         //利用模型矩阵移动物体，沿z轴负方向平移-2
-        Matrix.translateM(modelMatrix , 0 , 0f , 0f , -3f);
+        Matrix.translateM(modelMatrix , 0 , 0f , 0f , -2.5f);
         //旋转
-        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
+//        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
 
         //投影矩阵乘以模型矩阵。
         final float[] temp = new float[16];

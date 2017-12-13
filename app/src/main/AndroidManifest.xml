@@ -36,7 +36,8 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".SwscaleActivity" />
         <activity android:name=".MuxerActivity" />
-        <activity android:name=".opengl.OpenglActivity"></activity>
+        <activity android:name=".opengl.OpenglActivity" />
+        <activity android:name=".OpenGlTureActivity"></activity>
     </application>
 
 </manifest>
