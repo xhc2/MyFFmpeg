@@ -58,7 +58,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         textureShaderProgram = new TextureShaderProgram(context);
         colorShaderProgram = new ColorShaderProgram(context);
 
-        textture = TextureHelper.loadTexture(context , R.mipmap.a);
+        textture = TextureHelper.loadTexture(context , R.mipmap.air_hockey_surface);
 
     }
 
@@ -66,7 +66,6 @@ public class NewMyRender implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
         glViewport(0, 0, width, height);
         //这会用45度的视野创建一个透视投影，这个视椎体从z值-1的位置开始，到z值为-10的位置结束
-
 //        final float aspectRation = width > height ? (float) width / (float) height : (float)height / (float)width;
         /**
          * float[] m, int mOffset, float left, float right, float bottom, float top, float near, float far
@@ -81,6 +80,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
          * 这个函数就是生成一个正交矩阵，就是将以前在屏幕上的坐标范围（-1，1）改变下e.g（-1.78,1.78）。
          * 如果按上述方式改变下就是相对就更“聚拢”了。
          */
+
 //        Log.e("xhc" , "aspectRation "+aspectRation);
 //        if(width > height){
 //            Matrix.orthoM(projectionMatrix , 0 ,  -aspectRation , aspectRation ,-1f, 1f , -1f , 1f);
@@ -96,7 +96,6 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         Matrix.translateM(modelMatrix, 0, 0f, 0f, -2.5f);
         //旋转
 //        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
-
         //投影矩阵乘以模型矩阵。
         final float[] temp = new float[16];
         Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0);
