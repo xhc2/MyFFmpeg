@@ -57,7 +57,6 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         mallet = new Mallet();
         textureShaderProgram = new TextureShaderProgram(context);
         colorShaderProgram = new ColorShaderProgram(context);
-
         textture = TextureHelper.loadTexture(context , R.mipmap.air_hockey_surface);
 
     }
@@ -95,7 +94,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         //利用模型矩阵移动物体，沿z轴负方向平移-2
         Matrix.translateM(modelMatrix, 0, 0f, 0f, -2.5f);
         //旋转
-//        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
+        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
         //投影矩阵乘以模型矩阵。
         final float[] temp = new float[16];
         Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0);

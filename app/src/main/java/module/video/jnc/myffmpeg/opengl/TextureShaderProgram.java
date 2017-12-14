@@ -18,12 +18,15 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
  */
 
 public class TextureShaderProgram extends ShaderProgram{
+
     private final int uMatrixLocaktion;
     private final int uTextureUnitLocation;
     private final int aPositionLocation;
     private final int aTextureCoordinatesLocation;
+
     public TextureShaderProgram(Context context) {
         super(context, R.raw.texture_vertext_shader, R.raw.texture_fragment_shader);
+        //找到各个属性的位置
         uMatrixLocaktion = glGetUniformLocation(program , U_MATRIX);
         uTextureUnitLocation = glGetUniformLocation(program , U_TEXTURE_UNIT);
         aPositionLocation = glGetAttribLocation(program , A_POSITION);
@@ -31,6 +34,7 @@ public class TextureShaderProgram extends ShaderProgram{
     }
 
     public void setUniforms(float[] matrix , int textureId){
+        //正交投影
         glUniformMatrix4fv(uMatrixLocaktion , 1 , false , matrix , 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D , textureId);
@@ -44,8 +48,5 @@ public class TextureShaderProgram extends ShaderProgram{
     public int getTextureCoordinatesAttributeLocation(){
         return aTextureCoordinatesLocation ;
     }
-
-
-
 
 }
