@@ -45,6 +45,12 @@ public class NewMyRender implements GLSurfaceView.Renderer {
     private ColorShaderProgram colorShaderProgram;
     private int textture;
 
+    private final float[] viewMatrix = new float[16];
+    private final float[] viewProjectionMatrix = new float[16];
+    private final float[] modelViewProjectionMatrix = new float[16];
+
+    private Puck puck;
+
     public NewMyRender(Context context) {
         this.context = context;
     }
@@ -54,7 +60,8 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         Log.e("xhc", " render surface create ");
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         table = new Table();
-        mallet = new Mallet();
+        mallet = new Mallet(0.08f , 0.15f , 32);
+        puck = new Puck(0.06f , 0.02f , 32);
         textureShaderProgram = new TextureShaderProgram(context);
         colorShaderProgram = new ColorShaderProgram(context);
         textture = TextureHelper.loadTexture(context , R.mipmap.air_hockey_surface);
@@ -90,30 +97,65 @@ public class NewMyRender implements GLSurfaceView.Renderer {
 //        }
 
         MatrixHelper.perspectiveM(projectionMatrix, 45, (float) width / (float) height, 1f, 10f);
-        Matrix.setIdentityM(modelMatrix, 0);
-        //利用模型矩阵移动物体，沿z轴负方向平移-2
-        Matrix.translateM(modelMatrix, 0, 0f, 0f, -2.5f);
-        //旋转
-        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
-        //投影矩阵乘以模型矩阵。
-        final float[] temp = new float[16];
-        Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0);
-        System.arraycopy(temp, 0, projectionMatrix, 0, temp.length);
+        Matrix.setLookAtM(viewMatrix , 0 , 0f , 1.2f , 2.2f , 0f , 0f , 0f , 0f , 1f , 0f );
+
+//        Matrix.setIdentityM(modelMatrix, 0);
+//        //利用模型矩阵移动物体，沿z轴负方向平移-2
+//        Matrix.translateM(modelMatrix, 0, 0f, 0f, -2.5f);
+//        //旋转
+//        Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
+//        //投影矩阵乘以模型矩阵。
+//        final float[] temp = new float[16];
+//        Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0);
+//        System.arraycopy(temp, 0, projectionMatrix, 0, temp.length);
     }
 
     @Override
     public void onDrawFrame(GL10 gl10) {
         glClear(GL_COLOR_BUFFER_BIT);
 
+        Matrix.multiplyMM(viewProjectionMatrix , 0 , projectionMatrix , 0 , viewMatrix , 0);
+        positionTableInScene();
         textureShaderProgram.useProgram();
-        textureShaderProgram.setUniforms(projectionMatrix , textture);
+        textureShaderProgram.setUniforms(modelViewProjectionMatrix , textture);
         table.bindData(textureShaderProgram);
         table.draw();
 
+        positionObjectInScene(0f , mallet.height / 2f , -0.4f);
         colorShaderProgram.useProgram();
-        colorShaderProgram.setUniforms(projectionMatrix);
+        colorShaderProgram.setUniforms(modelViewProjectionMatrix , 1f , 0f , 0f);
         mallet.bindData(colorShaderProgram);
         mallet.draw();
+
+        positionObjectInScene(0f , mallet.height / 2f , 0.4f);
+        colorShaderProgram.setUniforms(modelViewProjectionMatrix , 0f , 0f , 1f);
+        mallet.draw();
+
+        positionObjectInScene(0f , puck.height / 2f , 0f);
+        colorShaderProgram.setUniforms(modelViewProjectionMatrix , 0.8f , 0.8f , 1f);
+        puck.bindData(colorShaderProgram);
+        puck.draw();
+//        textureShaderProgram.useProgram();
+//        textureShaderProgram.setUniforms(projectionMatrix , textture);
+//        table.bindData(textureShaderProgram);
+//        table.draw();
+//
+//        colorShaderProgram.useProgram();
+//        colorShaderProgram.setUniforms(projectionMatrix);
+//        mallet.bindData(colorShaderProgram);
+//        mallet.draw();
+    }
+
+    private void positionTableInScene(){
+        Matrix.setIdentityM(modelMatrix , 0);
+        Matrix.rotateM(modelMatrix , 0 , -90f , 1f , 0f , 0f);
+        Matrix.multiplyMM(modelViewProjectionMatrix , 0  , viewProjectionMatrix , 0 , modelMatrix , 0);
+    }
+
+    private void positionObjectInScene(float x , float y , float z){
+        Matrix.setIdentityM(modelMatrix , 0);
+        Matrix.translateM(modelMatrix , 0 , x , y , z);
+        Matrix.multiplyMM(modelViewProjectionMatrix , 0 , viewProjectionMatrix , 0 , modelMatrix , 0);
     }
 
 }

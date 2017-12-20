@@ -4,6 +4,9 @@ package module.video.jnc.myffmpeg.opengl;
  * Created by xhc on 2017/12/14.
  */
 
+/**
+ * 一些简单的和图形数据
+ */
 public class Geometry {
 
     public static class Point{

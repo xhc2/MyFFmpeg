@@ -17,6 +17,9 @@ public class ShaderProgram {
     protected static final String A_COLOR = "a_Color";
     protected static final String A_TEXTURE_COORDINATES = "a_TextureCoordinates";
 
+    protected static final String U_COLOR = "u_Color";
+
+
     protected final int program ;
     protected ShaderProgram(Context context , int vertexShaderResourceId , int fragmentShaderResourceId){
         program = ShaderHelper.buildProgram(TextResourceReader.readTextFileFromResource(context , vertexShaderResourceId) ,

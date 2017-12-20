@@ -26,6 +26,4 @@ public class StreamActivity extends AppCompatActivity {
         });
     }
 
-
-
 }

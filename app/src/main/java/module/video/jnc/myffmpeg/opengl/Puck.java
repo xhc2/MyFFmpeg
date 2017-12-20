@@ -20,8 +20,18 @@ public class Puck {
         this.height = height;
         vertexArray = new VertextArray(generatedData.vertexData);
         drawList = generatedData.drawList;
-
-
     }
+
+    public void bindData(ColorShaderProgram colorShaderProgram){
+        vertexArray.setVertexAttribPointer(0 , colorShaderProgram.getPositionAttributeLocation() , POSITION_COMPONENT_COUNT , 0);
+    }
+
+    public void draw(){
+        for(ObjectBuilder.DrawCommand drawCommand : drawList){
+            drawCommand.draw();
+        }
+    }
+
+
 
 }

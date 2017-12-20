@@ -114,6 +114,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        NetWorkSpeedUtils u = new NetWorkSpeedUtils(this);
+        u.startShowNetSpeed();
 
     }
 }

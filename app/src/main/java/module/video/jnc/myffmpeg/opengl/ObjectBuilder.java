@@ -42,16 +42,19 @@ public class ObjectBuilder {
         ObjectBuilder builder = new ObjectBuilder(size);
         Geometry.Circle puckTop = new Geometry.Circle(puck.center.translateY(puck.height / 2f) , puck.radius);
         builder.appendCircle(puckTop , numPoints);
-                builder.appendOpenCylinder(puck , numPoints);
+        builder.appendOpenCylinder(puck , numPoints);
         return builder.build();
 
     }
 
+
+    //根据基础几何图形，圆形等。生成锤子等
     public static GeneratedData createMallet(Geometry.Point center , float radius , float height , int numPoints){
         int size = sizeOfCircleInvertices(numPoints) *2 + sizeOfOpenCylinderInVertices(numPoints) * 2;
         ObjectBuilder builder = new ObjectBuilder(size);
         float baseHeight = height * 0.25f;
         Geometry.Circle baseCircle = new Geometry.Circle(center.translateY(-baseHeight) , radius);
+
         Geometry.Cylinder baseCylinder = new Geometry.Cylinder(baseCircle.center.translateY(-baseHeight / 2f) , radius , baseHeight);
         builder.appendCircle(baseCircle, numPoints);
         builder.appendOpenCylinder(baseCylinder, numPoints);
@@ -66,6 +69,7 @@ public class ObjectBuilder {
         return builder.build();
     }
 
+    //生成对应的点
     private void appendOpenCylinder(Geometry.Cylinder cylinder , int numPoints){
         final int startVertex = offset / FLOATS_PER_VERTEX ;
         final int numVertices = sizeOfOpenCylinderInVertices(numPoints);
@@ -94,6 +98,7 @@ public class ObjectBuilder {
         });
     }
 
+    //生成对应的点
     private void appendCircle(Geometry.Circle circle , int numPoints){
          final int startVertex = offset / FLOATS_PER_VERTEX ;
          final int numVertices = sizeOfOpenCylinderInVertices(numPoints);
@@ -127,7 +132,7 @@ public class ObjectBuilder {
             this.drawList = drawList;
         }
     }
-    public static interface DrawCommand{
+    public  interface DrawCommand{
         void draw();
     }
 
