@@ -55,6 +55,9 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         this.context = context;
     }
 
+    private boolean malletPressed = false;
+    private Geometry.Point blueMalletPosition;
+
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         Log.e("xhc", " render surface create ");
@@ -65,8 +68,43 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         textureShaderProgram = new TextureShaderProgram(context);
         colorShaderProgram = new ColorShaderProgram(context);
         textture = TextureHelper.loadTexture(context , R.mipmap.air_hockey_surface);
+        blueMalletPosition = new Geometry.Point(0f , mallet.height / 2f , 0.4f);
 
     }
+
+    private final float[] invertedViewProjectionMatrix = new float[16];
+
+    public void handleTouchPress(float normalizedX , float normalizedY){
+        Ray ray = convertNormalized2DPointToRay(normalizedX , normalizedY);
+        Sphere malletBoundingSphere = new Sphere(
+                new Geometry.Point(blueMalletPosition.x , blueMalletPosition.y , blueMalletPosition.z) ,mallet.height / 2f );
+        malletPressed = Geometry.intersects(malletBoundingSphere , ray);
+    }
+
+    private Ray convertNormalized2DPointToRay(float normalizedX , float normalizedY){
+        final float[] nearPointNdc = {normalizedX , normalizedY , -1 , 1};
+        final float[] farPointNdc = {normalizedX  , normalizedY , 1 ,1 };
+
+        final float[] nearPointWorld = new float[4];
+        final float[] farPointWorld = new float[4];
+
+        Matrix.multiplyMV(nearPointWorld , 0 , invertedViewProjectionMatrix , 0 , nearPointNdc , 0);
+        Matrix.multiplyMV(farPointWorld , 0 , invertedViewProjectionMatrix , 0 , farPointNdc , 0);
+
+        divideByW(nearPointWorld);
+        divideByW(farPointWorld);
+
+        Geometry.Point nearPointRay = new Geometry.Point(nearPointWorld[0] , nearPointWorld[1] , nearPointWorld[2]);
+        return new Ray
+    }
+
+
+    private void divideByW(float[] vector){
+        vector[0] /= vector[3];
+        vector[1] /= vector[3];
+        vector[2] /= vector[3];
+    }
+
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
@@ -108,6 +146,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
 //        final float[] temp = new float[16];
 //        Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0);
 //        System.arraycopy(temp, 0, projectionMatrix, 0, temp.length);
+
     }
 
     @Override
@@ -135,15 +174,16 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         colorShaderProgram.setUniforms(modelViewProjectionMatrix , 0.8f , 0.8f , 1f);
         puck.bindData(colorShaderProgram);
         puck.draw();
+
 //        textureShaderProgram.useProgram();
 //        textureShaderProgram.setUniforms(projectionMatrix , textture);
 //        table.bindData(textureShaderProgram);
 //        table.draw();
-//
 //        colorShaderProgram.useProgram();
 //        colorShaderProgram.setUniforms(projectionMatrix);
 //        mallet.bindData(colorShaderProgram);
 //        mallet.draw();
+
     }
 
     private void positionTableInScene(){
