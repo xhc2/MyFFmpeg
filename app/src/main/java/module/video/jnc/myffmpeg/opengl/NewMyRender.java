@@ -56,6 +56,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
     }
 
     private boolean malletPressed = false;
+
     private Geometry.Point blueMalletPosition;
 
     @Override
@@ -75,13 +76,13 @@ public class NewMyRender implements GLSurfaceView.Renderer {
     private final float[] invertedViewProjectionMatrix = new float[16];
 
     public void handleTouchPress(float normalizedX , float normalizedY){
-        Ray ray = convertNormalized2DPointToRay(normalizedX , normalizedY);
-        Sphere malletBoundingSphere = new Sphere(
-                new Geometry.Point(blueMalletPosition.x , blueMalletPosition.y , blueMalletPosition.z) ,mallet.height / 2f );
-        malletPressed = Geometry.intersects(malletBoundingSphere , ray);
+//        Ray ray = convertNormalized2DPointToRay(normalizedX , normalizedY);
+//        Sphere malletBoundingSphere = new Sphere(
+//                new Geometry.Point(blueMalletPosition.x , blueMalletPosition.y , blueMalletPosition.z) ,mallet.height / 2f );
+//        malletPressed = Geometry.intersects(malletBoundingSphere , ray);
     }
 
-    private Ray convertNormalized2DPointToRay(float normalizedX , float normalizedY){
+    private void convertNormalized2DPointToRay(float normalizedX , float normalizedY){
         final float[] nearPointNdc = {normalizedX , normalizedY , -1 , 1};
         final float[] farPointNdc = {normalizedX  , normalizedY , 1 ,1 };
 
@@ -95,7 +96,9 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         divideByW(farPointWorld);
 
         Geometry.Point nearPointRay = new Geometry.Point(nearPointWorld[0] , nearPointWorld[1] , nearPointWorld[2]);
-        return new Ray
+//        return new Ray
+//        return null;
+
     }
 
 

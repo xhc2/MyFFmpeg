@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import java.io.File;
 
+import module.video.jnc.myffmpeg.EGLCamera.EGLCameraActivity;
 import module.video.jnc.myffmpeg.opengl.OpenglActivity;
 
 /**
@@ -114,8 +115,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        NetWorkSpeedUtils u = new NetWorkSpeedUtils(this);
-        u.startShowNetSpeed();
+        findViewById(R.id.eglcamera).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this , EGLCameraActivity.class));
+            }
+        });
+
+//        NetWorkSpeedUtils u = new NetWorkSpeedUtils(this);
+//        u.startShowNetSpeed();
 
     }
 }
