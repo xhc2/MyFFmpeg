@@ -33,6 +33,7 @@ public class ColorShaderProgram extends ShaderProgram{
 
     public void setUniforms(float[] matrix , float r , float g , float b){
         glUniformMatrix4fv(uMatrixLocation , 1 , false, matrix , 0);
+        //更新着色器代码中的color
         glUniform4f(uColorLocation , r, g , b , 1f );
     }
 

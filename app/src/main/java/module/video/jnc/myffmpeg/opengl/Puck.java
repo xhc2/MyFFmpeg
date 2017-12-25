@@ -14,8 +14,10 @@ public class Puck {
     private final List<ObjectBuilder.DrawCommand> drawList;
 
     public Puck(float radius , float height , int numPointsAroundPuck){
+        //获取图形的点
         ObjectBuilder.GeneratedData generatedData = ObjectBuilder.createPuck(
                 new Geometry.Cylinder(new Geometry.Point(0f , 0f , 0f ) , radius ,height) , numPointsAroundPuck);
+
         this.radius = radius;
         this.height = height;
         vertexArray = new VertextArray(generatedData.vertexData);

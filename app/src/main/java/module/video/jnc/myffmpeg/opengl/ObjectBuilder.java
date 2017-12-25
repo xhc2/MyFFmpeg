@@ -12,6 +12,7 @@ import static android.opengl.GLES20.glDrawArrays;
 
 /**
  * Created by xhc on 2017/12/14.
+ * 生成集合图形的点坐标
  */
 
 public class ObjectBuilder {
@@ -50,7 +51,7 @@ public class ObjectBuilder {
 
     //根据基础几何图形，圆形等。生成锤子等
     public static GeneratedData createMallet(Geometry.Point center , float radius , float height , int numPoints){
-        int size = sizeOfCircleInvertices(numPoints) *2 + sizeOfOpenCylinderInVertices(numPoints) * 2;
+        int size = sizeOfCircleInvertices(numPoints) * 2 + sizeOfOpenCylinderInVertices(numPoints) * 2;
         ObjectBuilder builder = new ObjectBuilder(size);
         float baseHeight = height * 0.25f;
         Geometry.Circle baseCircle = new Geometry.Circle(center.translateY(-baseHeight) , radius);

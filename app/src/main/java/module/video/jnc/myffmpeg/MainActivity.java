@@ -102,6 +102,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        /**
+         * opengl绘制大致流程
+         * 1.创建顶点着色器程序
+         * 2.创建片段着色器程序
+         * 3.创建新的着色器对象-》将程序上传到此对象中-》编译-》取出状态-》将顶点，片段程序连接进opengl程序中
+         * -》新建opengl程序对象-》将两个着色器附着在opengl程序中-》然后链接连续就可以了。link
+         *
+         */
         findViewById(R.id.bt_opengl_texure).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -121,9 +129,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this , EGLCameraActivity.class));
             }
         });
-
-//        NetWorkSpeedUtils u = new NetWorkSpeedUtils(this);
-//        u.startShowNetSpeed();
 
     }
 }
