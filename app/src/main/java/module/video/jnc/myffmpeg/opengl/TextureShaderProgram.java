@@ -15,6 +15,7 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 
 /**
  * Created by xhc on 2017/12/13.
+ * 纹理渲染程序
  */
 
 public class TextureShaderProgram extends ShaderProgram{

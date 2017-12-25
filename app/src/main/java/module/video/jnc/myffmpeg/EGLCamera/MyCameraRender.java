@@ -12,6 +12,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Created by xhc on 2017/12/22.
+ * 参考链接http://blog.csdn.net/yanzi1225627/article/details/33339965#reply
  */
 
 public class MyCameraRender implements GLSurfaceView.Renderer  {

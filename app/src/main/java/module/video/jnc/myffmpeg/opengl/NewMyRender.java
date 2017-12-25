@@ -68,9 +68,9 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         puck = new Puck(0.06f , 0.02f , 32);
         textureShaderProgram = new TextureShaderProgram(context);
         colorShaderProgram = new ColorShaderProgram(context);
+
         textture = TextureHelper.loadTexture(context , R.mipmap.air_hockey_surface);
         blueMalletPosition = new Geometry.Point(0f , mallet.height / 2f , 0.4f);
-
     }
 
     private final float[] invertedViewProjectionMatrix = new float[16];
@@ -82,31 +82,31 @@ public class NewMyRender implements GLSurfaceView.Renderer {
 //        malletPressed = Geometry.intersects(malletBoundingSphere , ray);
     }
 
-    private void convertNormalized2DPointToRay(float normalizedX , float normalizedY){
-        final float[] nearPointNdc = {normalizedX , normalizedY , -1 , 1};
-        final float[] farPointNdc = {normalizedX  , normalizedY , 1 ,1 };
-
-        final float[] nearPointWorld = new float[4];
-        final float[] farPointWorld = new float[4];
-
-        Matrix.multiplyMV(nearPointWorld , 0 , invertedViewProjectionMatrix , 0 , nearPointNdc , 0);
-        Matrix.multiplyMV(farPointWorld , 0 , invertedViewProjectionMatrix , 0 , farPointNdc , 0);
-
-        divideByW(nearPointWorld);
-        divideByW(farPointWorld);
-
-        Geometry.Point nearPointRay = new Geometry.Point(nearPointWorld[0] , nearPointWorld[1] , nearPointWorld[2]);
-//        return new Ray
+//    private void convertNormalized2DPointToRay(float normalizedX , float normalizedY){
+//        final float[] nearPointNdc = {normalizedX , normalizedY , -1 , 1};
+//        final float[] farPointNdc = {normalizedX  , normalizedY , 1 ,1 };
+//
+//        final float[] nearPointWorld = new float[4];
+//        final float[] farPointWorld = new float[4];
+//
+//        Matrix.multiplyMV(nearPointWorld , 0 , invertedViewProjectionMatrix , 0 , nearPointNdc , 0);
+//        Matrix.multiplyMV(farPointWorld , 0 , invertedViewProjectionMatrix , 0 , farPointNdc , 0);
+//
+//        divideByW(nearPointWorld);
+//        divideByW(farPointWorld);
+//
+//        Geometry.Point nearPointRay = new Geometry.Point(nearPointWorld[0] , nearPointWorld[1] , nearPointWorld[2]);
+//       return new Ray
 //        return null;
+//
+//    }
 
-    }
 
-
-    private void divideByW(float[] vector){
-        vector[0] /= vector[3];
-        vector[1] /= vector[3];
-        vector[2] /= vector[3];
-    }
+//    private void divideByW(float[] vector){
+//        vector[0] /= vector[3];
+//        vector[1] /= vector[3];
+//        vector[2] /= vector[3];
+//    }
 
 
     @Override
@@ -138,7 +138,8 @@ public class NewMyRender implements GLSurfaceView.Renderer {
 //        }
 
         MatrixHelper.perspectiveM(projectionMatrix, 45, (float) width / (float) height, 1f, 10f);
-        Matrix.setLookAtM(viewMatrix , 0 , 0f , 1.2f , 2.2f , 0f , 0f , 0f , 0f , 1f , 0f );
+        Matrix.setLookAtM(viewMatrix , 0 , 0f , 1.2f , 2.2f ,
+                0f , 0f , 0f , 0f , 1f , 0f );
 
 //        Matrix.setIdentityM(modelMatrix, 0);
 //        //利用模型矩阵移动物体，沿z轴负方向平移-2
@@ -157,6 +158,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         glClear(GL_COLOR_BUFFER_BIT);
 
         Matrix.multiplyMM(viewProjectionMatrix , 0 , projectionMatrix , 0 , viewMatrix , 0);
+
         positionTableInScene();
         textureShaderProgram.useProgram();
         textureShaderProgram.setUniforms(modelViewProjectionMatrix , textture);
@@ -197,7 +199,9 @@ public class NewMyRender implements GLSurfaceView.Renderer {
 
     private void positionObjectInScene(float x , float y , float z){
         Matrix.setIdentityM(modelMatrix , 0);
+        //位移矩阵
         Matrix.translateM(modelMatrix , 0 , x , y , z);
+        //
         Matrix.multiplyMM(modelViewProjectionMatrix , 0 , viewProjectionMatrix , 0 , modelMatrix , 0);
     }
 

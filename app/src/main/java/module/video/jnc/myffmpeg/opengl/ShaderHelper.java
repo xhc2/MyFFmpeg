@@ -93,8 +93,11 @@ public class ShaderHelper {
     public static int buildProgram(String vertexShaderSource, String fragmentShaderSource){
 
         int program ;
+        //编译顶点着色器
         int vertexShader = compileVertextShader(vertexShaderSource);
+        //编译片段着色器
         int fragmentShader = compileFragmentShader(fragmentShaderSource);
+        //将两个着色器程序链接起来生成一个program
         program = linkProgram(vertexShader , fragmentShader);
         //验证程序是否可用
         validatePrograme(program);
