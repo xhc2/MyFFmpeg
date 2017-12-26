@@ -21,11 +21,11 @@ import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
 public class EGLCameraActivity extends Activity{
 
-
+    MyCameraView myCameraView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyCameraView myCameraView = new MyCameraView(this);
+        myCameraView = new MyCameraView(this);
         setContentView(myCameraView);
     }
 
@@ -33,6 +33,12 @@ public class EGLCameraActivity extends Activity{
     @Override
     protected void onPause() {
         super.onPause();
+        myCameraView.onPause();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myCameraView.onResume();
+    }
 }

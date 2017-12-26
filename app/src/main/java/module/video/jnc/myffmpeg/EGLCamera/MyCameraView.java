@@ -19,6 +19,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.opengl.MatrixHelper;
 import module.video.jnc.myffmpeg.opengl.ShaderHelper;
 import module.video.jnc.myffmpeg.opengl.TextResourceReader;
 
@@ -58,6 +59,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
         private float[] mCameraMatrix  = new float[16];
         private float[] mMVPMatrix     = new float[16];
         private float[] mTempMatrix    = new float[16];
+        private final float[] modelMatrix = new float[16];
 
         private float[] mPosCoordinate = {-1, -1, -1, 1, 1, -1, 1, 1};
         private float[] mTexCoordinate = {0, 1, 1, 1, 0, 0, 1, 0};
@@ -119,8 +121,11 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             GLES20.glViewport(0, 0, width, height);
             float ratio = (float)width/height;
             //正交投影
-            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
+            MatrixHelper.perspectiveM(mProjectMatrix, 45, (float) width / (float) height, 1f, 10f);
+//            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
             Matrix.setLookAtM(mCameraMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
+//            Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
+//            Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0);
             Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mCameraMatrix, 0);
 
         }
@@ -138,6 +143,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             int[] texture = new int[1];
             GLES20.glGenTextures(1, texture, 0);
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture[0]);
+
             GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MIN_FILTER,GL10.GL_LINEAR);
             GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
             GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
