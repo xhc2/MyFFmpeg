@@ -19,6 +19,7 @@ public class Mallet {
     private final List<ObjectBuilder.DrawCommand> drawList;
 
     public Mallet(float radius , float height , int numPointsAroundMallet){
+        //获取图形的点
         ObjectBuilder.GeneratedData generatedData = ObjectBuilder.createMallet(new Geometry.Point(0f , 0f , 0f ) ,
                 radius , height , numPointsAroundMallet);
 

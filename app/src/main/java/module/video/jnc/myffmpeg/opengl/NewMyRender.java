@@ -37,7 +37,9 @@ import static android.opengl.GLES20.glViewport;
 public class NewMyRender implements GLSurfaceView.Renderer {
 
     private Context context;
+    //投影矩阵，三维
     private final float[] projectionMatrix = new float[16];
+    //变换矩阵，位移，旋转等。
     private final float[] modelMatrix = new float[16];
     private Table table ;
     private Mallet mallet;
@@ -45,7 +47,9 @@ public class NewMyRender implements GLSurfaceView.Renderer {
     private ColorShaderProgram colorShaderProgram;
     private int textture;
 
+    //视图矩阵
     private final float[] viewMatrix = new float[16];
+    //用于保存相乘的一些结果
     private final float[] viewProjectionMatrix = new float[16];
     private final float[] modelViewProjectionMatrix = new float[16];
 
@@ -137,7 +141,9 @@ public class NewMyRender implements GLSurfaceView.Renderer {
 //            Matrix.orthoM(projectionMatrix , 0 , -1f, 1f , -aspectRation , aspectRation , -1f , 1f);
 //        }
 
+        //作用三维投影矩阵
         MatrixHelper.perspectiveM(projectionMatrix, 45, (float) width / (float) height, 1f, 10f);
+        //设置视口，并且建立投影矩阵
         Matrix.setLookAtM(viewMatrix , 0 , 0f , 1.2f , 2.2f ,
                 0f , 0f , 0f , 0f , 1f , 0f );
 
@@ -157,6 +163,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl10) {
         glClear(GL_COLOR_BUFFER_BIT);
 
+        //会把投影矩阵和视图矩阵相乘，并放入viewProjectionMatrix
         Matrix.multiplyMM(viewProjectionMatrix , 0 , projectionMatrix , 0 , viewMatrix , 0);
 
         positionTableInScene();
@@ -201,7 +208,7 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         Matrix.setIdentityM(modelMatrix , 0);
         //位移矩阵
         Matrix.translateM(modelMatrix , 0 , x , y , z);
-        //
+        //将viewProjectionMatrix 和modelMatrix相乘并将结果放入modelViewProjectionMatrix
         Matrix.multiplyMM(modelViewProjectionMatrix , 0 , viewProjectionMatrix , 0 , modelMatrix , 0);
     }
 

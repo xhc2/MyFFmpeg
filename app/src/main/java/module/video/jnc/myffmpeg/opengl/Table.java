@@ -18,6 +18,7 @@ public class Table {
     //跨度，告诉opengly一组需要多少个点
     private static final int STRIDE = (POSITION_COMPONENT_COUNT + TEXTURE_COORDINATES_COMPONNET_COUNT) * Constant.BYTES_PER_FLOAT;
 
+    //数据缓冲
     private final VertextArray vertextArray;
 
     private static final float[] VERTEX_DATA = {

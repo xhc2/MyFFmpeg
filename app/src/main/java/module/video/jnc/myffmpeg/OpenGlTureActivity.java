@@ -40,34 +40,34 @@ public class OpenGlTureActivity extends AppCompatActivity {
 
 
 
-    private void setOnTouchEvent(){
-        glSurfaceView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent != null){
-                    final float normalizedX = (motionEvent.getX() / (float) view.getWidth()) * 2 - 1;
-                    final float normalizedY = -((motionEvent.getY() / (float) view.getHeight()) * 2 - 1);
-                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
-                        glSurfaceView.queueEvent(new Runnable() {
-                            @Override
-                            public void run() {
-                                handleTouchPress(normalizedX ,normalizedY );
-                            }
-                        });
-                    }else if(motionEvent.getAction() == MotionEvent.ACTION_MOVE){
-                        glSurfaceView.queueEvent(new Runnable() {
-                            @Override
-                            public void run() {
-                                handleTouchDrag(normalizedX , normalizedY);
-                            }
-                        });
-                    }
-                    return true;
-                }
-                return false;
-            }
-        });
-    }
+//    private void setOnTouchEvent(){
+//        glSurfaceView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent motionEvent) {
+//                if(motionEvent != null){
+//                    final float normalizedX = (motionEvent.getX() / (float) view.getWidth()) * 2 - 1;
+//                    final float normalizedY = -((motionEvent.getY() / (float) view.getHeight()) * 2 - 1);
+//                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
+//                        glSurfaceView.queueEvent(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                handleTouchPress(normalizedX ,normalizedY );
+//                            }
+//                        });
+//                    }else if(motionEvent.getAction() == MotionEvent.ACTION_MOVE){
+//                        glSurfaceView.queueEvent(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                handleTouchDrag(normalizedX , normalizedY);
+//                            }
+//                        });
+//                    }
+//                    return true;
+//                }
+//                return false;
+//            }
+//        });
+//    }
 
 
     public void handleTouchPress(float normalizedX , float normalizedY){
