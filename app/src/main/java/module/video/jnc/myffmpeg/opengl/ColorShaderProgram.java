@@ -32,8 +32,10 @@ public class ColorShaderProgram extends ShaderProgram{
     }
 
     public void setUniforms(float[] matrix , float r , float g , float b){
+
         glUniformMatrix4fv(uMatrixLocation , 1 , false, matrix , 0);
         glUniform4f(uColorLocation , r, g , b , 1f );
+
     }
 
     public int getPositionAttributeLocation(){

@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         findViewById(R.id.bt_opengl_texure).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -121,9 +120,5 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this , EGLCameraActivity.class));
             }
         });
-
-//        NetWorkSpeedUtils u = new NetWorkSpeedUtils(this);
-//        u.startShowNetSpeed();
-
     }
 }

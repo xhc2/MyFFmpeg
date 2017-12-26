@@ -40,7 +40,8 @@
         <activity android:name=".MuxerActivity" />
         <activity android:name=".opengl.OpenglActivity" />
         <activity android:name=".OpenGlTureActivity" />
-        <activity android:name=".EGLCamera.EGLCameraActivity"></activity>
+
+        <activity android:name=".EGLCamera.EGLCameraActivity"/>
     </application>
 
 </manifest>

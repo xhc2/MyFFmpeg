@@ -1,4 +1,4 @@
-#version 120
+#extension GL_OES_EGL_image_external : require
 precision mediump float ;
 varying vec2 textureCoordinate;
 uniform samplerExternalOES s_texture;
