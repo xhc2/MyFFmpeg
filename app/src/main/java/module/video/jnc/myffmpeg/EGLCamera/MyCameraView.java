@@ -57,7 +57,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
         private int aTexHandle;
         private int mMVPMatrixHandle;
 
-//        private float[] mProjectMatrix = new float[16];
+        private float[] mProjectMatrix = new float[16];
 //        private float[] mCameraMatrix  = new float[16];
 //        private float[] mMVPMatrix     = new float[16];
 //        private float[] mTempMatrix    = new float[16];
@@ -96,6 +96,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
             uPosHandle = GLES20.glGetAttribLocation (mProgram, "vPosition");
             aTexHandle  = GLES20.glGetAttribLocation (mProgram, "inputTextureCoordinate");
+            mMVPMatrixHandle  = GLES20.glGetUniformLocation (mProgram, "u_Matrix");
 
             mPosBuffer = createFloatBuffer(mPosCoordinate);
             mTexBuffer = createFloatBuffer(mTexCoordinate);
@@ -105,7 +106,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
             GLES20.glEnableVertexAttribArray(uPosHandle);
             GLES20.glEnableVertexAttribArray(aTexHandle);
-
+            GLES20.glEnableVertexAttribArray(mMVPMatrixHandle);
         }
 
         private FloatBuffer createFloatBuffer(float[] buffer){
@@ -122,7 +123,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             GLES20.glViewport(0, 0, width, height);
             float ratio = (float)width/height;
             //正交投影
-//            MatrixHelper.perspectiveM(mProjectMatrix, 45, (float) width / (float) height, 1f, 10f);
+            MatrixHelper.perspectiveM(mProjectMatrix, 45, (float) width / (float) height, 1f, 10f);
 //            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
 //            Matrix.setLookAtM(mCameraMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
 //            Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
@@ -135,7 +136,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
         public void onDrawFrame(GL10 gl10) {
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
             mCameraTexture.updateTexImage();
-//            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mProjectMatrix, 0);
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mPosCoordinate.length / 2);
         }
 
