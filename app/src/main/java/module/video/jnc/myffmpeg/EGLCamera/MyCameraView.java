@@ -25,6 +25,8 @@ import module.video.jnc.myffmpeg.opengl.TextResourceReader;
 
 /**
  * Created by xhc on 2017/12/26.
+ * 在相机预览界面需要做
+ * 1.裁剪，旋转、水印、滤镜，
  */
 
 public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFrameAvailableListener {
@@ -55,10 +57,10 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
         private int aTexHandle;
         private int mMVPMatrixHandle;
 
-        private float[] mProjectMatrix = new float[16];
-        private float[] mCameraMatrix  = new float[16];
-        private float[] mMVPMatrix     = new float[16];
-        private float[] mTempMatrix    = new float[16];
+//        private float[] mProjectMatrix = new float[16];
+//        private float[] mCameraMatrix  = new float[16];
+//        private float[] mMVPMatrix     = new float[16];
+//        private float[] mTempMatrix    = new float[16];
         private final float[] modelMatrix = new float[16];
 
         private float[] mPosCoordinate = {-1, -1, -1, 1, 1, -1, 1, 1};
@@ -70,10 +72,11 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
         MyRender(Context context){
             this.context = context;
 
-            Matrix.setIdentityM(mProjectMatrix, 0);
-            Matrix.setIdentityM(mCameraMatrix, 0);
-            Matrix.setIdentityM(mMVPMatrix, 0);
-            Matrix.setIdentityM(mTempMatrix, 0);
+            //单位矩阵乘以任何矩阵都是得到以前的矩阵
+//            Matrix.setIdentityM(mProjectMatrix, 0);
+//            Matrix.setIdentityM(mCameraMatrix, 0);
+//            Matrix.setIdentityM(mMVPMatrix, 0);
+//            Matrix.setIdentityM(mTempMatrix, 0);
 
             mCameraManeger = new CameraManeger();
         }
@@ -93,8 +96,6 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
             uPosHandle = GLES20.glGetAttribLocation (mProgram, "vPosition");
             aTexHandle  = GLES20.glGetAttribLocation (mProgram, "inputTextureCoordinate");
-
-            Log.e("xhc" , " uPosHandle "+uPosHandle+" aTexHandle "+aTexHandle);
 
             mPosBuffer = createFloatBuffer(mPosCoordinate);
             mTexBuffer = createFloatBuffer(mTexCoordinate);
@@ -121,12 +122,12 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             GLES20.glViewport(0, 0, width, height);
             float ratio = (float)width/height;
             //正交投影
-            MatrixHelper.perspectiveM(mProjectMatrix, 45, (float) width / (float) height, 1f, 10f);
+//            MatrixHelper.perspectiveM(mProjectMatrix, 45, (float) width / (float) height, 1f, 10f);
 //            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
-            Matrix.setLookAtM(mCameraMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
+//            Matrix.setLookAtM(mCameraMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
 //            Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
 //            Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0);
-            Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mCameraMatrix, 0);
+//            Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mCameraMatrix, 0);
 
         }
 
