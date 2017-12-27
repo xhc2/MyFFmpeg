@@ -151,6 +151,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
 
         private void createAndBindVideoTexture() {
+
             int[] texture = new int[1];
             GLES20.glGenTextures(1, texture, 0);
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture[0]);
@@ -163,5 +164,6 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             mCameraTexture = new SurfaceTexture(texture[0]);
             mCameraTexture.setOnFrameAvailableListener(MyCameraView.this);
         }
+
     }
 }
