@@ -1,5 +1,7 @@
 package module.video.jnc.myffmpeg.opengl;
 
+import android.util.Log;
+
 /**
  * Created by xhc on 2017/12/12.
  */
@@ -8,7 +10,9 @@ public class MatrixHelper {
 
     public static void perspectiveM(float[] m , float yFovInDegrees , float aspect , float n , float f ){
         final float angleInRadians = (float)(yFovInDegrees * Math.PI / 180.0);
+        //计算焦距
         final float a = (float)(1.0 / Math.tan(angleInRadians / 2.0));
+        Log.e("xhc" , " 焦距 -> "+a);
         m[0] = a / aspect;
         m[1] = 0f;
         m[2] = 0f;
@@ -28,7 +32,6 @@ public class MatrixHelper {
         m[13] = 0f;
         m[14] = -((2f * f * n) / (f - n));
         m[15] = 0f;
-
 
     }
 }
