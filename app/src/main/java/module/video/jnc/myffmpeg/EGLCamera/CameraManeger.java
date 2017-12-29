@@ -23,7 +23,7 @@ public class CameraManeger {
             mCamera = Camera.open(CAMERA_FACING_FRONT);
             Camera.Parameters params = mCamera.getParameters();
 //            params.setPreviewSize(1080 , 1920);
-            params.setPreviewSize(1920, 1080 );
+            params.setPreviewSize(1280, 720 );
             List<Camera.Size> list = params.getSupportedPreviewSizes();
             for(Camera.Size s:list){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);

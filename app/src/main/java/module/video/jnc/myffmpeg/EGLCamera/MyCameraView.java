@@ -138,6 +138,13 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             final float[] temp = new float[16];
             Matrix.multiplyMM(temp, 0, mProjectMatrix, 0, modelMatrix, 0);
             System.arraycopy(temp, 0, mProjectMatrix, 0, temp.length);
+
+//            float ratio = (float)width / height;
+//            //正交投影
+//            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
+//            Matrix.setLookAtM(mCameraMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
+//            Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mCameraMatrix, 0);
+
         }
 
         @Override
@@ -163,6 +170,7 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
             mCameraTexture = new SurfaceTexture(texture[0]);
             mCameraTexture.setOnFrameAvailableListener(MyCameraView.this);
+
         }
 
     }
