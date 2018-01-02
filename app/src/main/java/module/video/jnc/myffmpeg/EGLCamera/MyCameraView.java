@@ -7,9 +7,6 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.util.AttributeSet;
-import android.opengl.GLES20;
-import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -62,8 +59,9 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
         private float[] viewProjectionMatrix     = new float[16];
 //        private float[] mTempMatrix    = new float[16];
         private final float[] modelMatrix = new float[16];
-
-        private float[] mPosCoordinate = {-1, -1, -1, 1, 1, -1, 1, 1};
+        //使用num来控制脸的胖瘦，就是纹理坐标和opengl的坐标的对应。在《oepngl es应用开发实践指南android》第七章有关于纹理的讲述
+        private final float num = 0.7f;
+        private float[] mPosCoordinate = {-num, -1, -num, 1, num, -1, num, 1};
         private float[] mTexCoordinate = {0, 1, 1, 1, 0, 0, 1, 0};
 
         private FloatBuffer mPosBuffer;
@@ -75,12 +73,12 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             //单位矩阵乘以任何矩阵都是得到以前的矩阵
 //            Matrix.setIdentityM(mProjectMatrix, 0);
 //            Matrix.setIdentityM(mCameraMatrix, 0);
-            Matrix.setIdentityM(viewProjectionMatrix, 0);
-            Matrix.setIdentityM(viewMatrix, 0);
-            Matrix.setIdentityM(modelMatrix, 0);
+
 
             mCameraManeger = new CameraManeger();
         }
+
+
 
         @Override
         public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
@@ -125,31 +123,37 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
         @Override
         public void onSurfaceChanged(GL10 gl10, int width, int height) {
             GLES20.glViewport(0, 0, width, height);
+            Matrix.setIdentityM(viewProjectionMatrix, 0);
+            Matrix.setIdentityM(viewMatrix, 0);
+            Matrix.setIdentityM(modelMatrix, 0);
             float ratio = (float)width/height;
             /**
              * 正交投影,这个视椎体从z值-1位置开始，到-10的位置结束
              * 比如一个90度的视野，焦距是1/tan(90/2) 也就是1
              * 所以把眼睛的位置放在焦点上，然后看着视频的正中心，就是刚好铺满整个手机屏幕
              */
-//            MatrixHelper.perspectiveM(mProjectMatrix, 90, ratio, 1f, 10f);
+            MatrixHelper.perspectiveM(mProjectMatrix, 90, ratio, 1f, 10f);
 //            3和7代表远近视点与眼睛的距离，非坐标点
-////            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,3,7);
+//            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,3,7);
 
-//            Matrix.setLookAtM(viewMatrix, 0, 0, 0, -1f,
-//                    0f, 0f, -2f,
-//                    0f, 1.0f, 0.0f);
-//            Matrix.rotateM(modelMatrix , 0 , -20f , 0f , 0f , 0f);
-//            Matrix.translateM(modelMatrix , 0 , 0f , 0f , -2.5f);
-//            final float[] temp = new float[16];
-//            Matrix.multiplyMM(temp, 0, mProjectMatrix, 0, modelMatrix, 0);
-//            System.arraycopy(temp, 0, mProjectMatrix, 0, temp.length);
+            Matrix.setLookAtM(viewMatrix, 0, 0, 0, -1.5f,
+                    0f, 0f, -2.5f,
+                    0f, 1.0f, 0.0f);
+
+//            Matrix.rotateM(modelMatrix , 0 , -60f , 1f , 0f , 0f);
+
+            Matrix.translateM(modelMatrix , 0 , 0f , 0f , -2.5f);
+            final float[] temp = new float[16];
+            Matrix.multiplyMM(temp, 0, mProjectMatrix, 0, modelMatrix, 0);
+
+            System.arraycopy(temp, 0, mProjectMatrix, 0, temp.length);
         }
 
         @Override
         public void onDrawFrame(GL10 gl10) {
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-//            Matrix.multiplyMM(viewProjectionMatrix, 0, mProjectMatrix, 0, viewMatrix, 0);
-//            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, viewProjectionMatrix, 0);
+            Matrix.multiplyMM(viewProjectionMatrix, 0, mProjectMatrix, 0, viewMatrix, 0);
+            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, viewProjectionMatrix, 0);
             mCameraTexture.updateTexImage();
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mPosCoordinate.length / 2);
         }
