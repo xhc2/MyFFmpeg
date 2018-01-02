@@ -24,6 +24,7 @@ import module.video.jnc.myffmpeg.opengl.TextResourceReader;
  * Created by xhc on 2017/12/26.
  * 在相机预览界面需要做
  * 1.裁剪，旋转、水印、滤镜，
+ * http://blog.csdn.net/oshunz/article/details/50537631滤镜
  */
 
 public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFrameAvailableListener {
