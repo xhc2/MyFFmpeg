@@ -119,6 +119,9 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             return fb;
         }
 
+        /**
+         * 在进行三维空间的投影的时候，会导致变形，要么拉长，要么变胖。不知道怎么回事先放着
+         */
         @Override
         public void onSurfaceChanged(GL10 gl10, int width, int height) {
             GLES20.glViewport(0, 0, width, height);
@@ -128,30 +131,25 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
              * 比如一个90度的视野，焦距是1/tan(90/2) 也就是1
              * 所以把眼睛的位置放在焦点上，然后看着视频的正中心，就是刚好铺满整个手机屏幕
              */
-            MatrixHelper.perspectiveM(mProjectMatrix, 90, ratio, 1f, 10f);
-//            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
-            Matrix.setLookAtM(viewMatrix, 0, 0, 0, -1.5f,
-                    0f, 0f, -2.5f,
-                    0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
+//            MatrixHelper.perspectiveM(mProjectMatrix, 90, ratio, 1f, 10f);
+//            3和7代表远近视点与眼睛的距离，非坐标点
+////            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,3,7);
+
+//            Matrix.setLookAtM(viewMatrix, 0, 0, 0, -1f,
+//                    0f, 0f, -2f,
+//                    0f, 1.0f, 0.0f);
 //            Matrix.rotateM(modelMatrix , 0 , -20f , 0f , 0f , 0f);
-            Matrix.translateM(modelMatrix , 0 , 0f , 0f , -2.5f);
-            final float[] temp = new float[16];
-            Matrix.multiplyMM(temp, 0, mProjectMatrix, 0, modelMatrix, 0);
-            System.arraycopy(temp, 0, mProjectMatrix, 0, temp.length);
-
-//            float ratio = (float)width / height;
-//            //正交投影
-//            Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
-//            Matrix.setLookAtM(mCameraMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
-//            Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mCameraMatrix, 0);
-
+//            Matrix.translateM(modelMatrix , 0 , 0f , 0f , -2.5f);
+//            final float[] temp = new float[16];
+//            Matrix.multiplyMM(temp, 0, mProjectMatrix, 0, modelMatrix, 0);
+//            System.arraycopy(temp, 0, mProjectMatrix, 0, temp.length);
         }
 
         @Override
         public void onDrawFrame(GL10 gl10) {
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-            Matrix.multiplyMM(viewProjectionMatrix, 0, mProjectMatrix, 0, viewMatrix, 0);
-            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, viewProjectionMatrix, 0);
+//            Matrix.multiplyMM(viewProjectionMatrix, 0, mProjectMatrix, 0, viewMatrix, 0);
+//            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, viewProjectionMatrix, 0);
             mCameraTexture.updateTexImage();
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mPosCoordinate.length / 2);
         }
