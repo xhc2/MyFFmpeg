@@ -1,11 +1,14 @@
 package module.video.jnc.myffmpeg.EGLCamera;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Shader;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
 import java.nio.ByteBuffer;
@@ -74,8 +77,6 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             //单位矩阵乘以任何矩阵都是得到以前的矩阵
 //            Matrix.setIdentityM(mProjectMatrix, 0);
 //            Matrix.setIdentityM(mCameraMatrix, 0);
-
-
             mCameraManeger = new CameraManeger();
         }
 
@@ -173,6 +174,23 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
             mCameraTexture = new SurfaceTexture(texture[0]);
             mCameraTexture.setOnFrameAvailableListener(MyCameraView.this);
+
+        }
+
+
+        //加载图片作为纹理
+        private void createAndBindWaterTexture(){
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(),R.mipmap.air_hockey_surface);
+            int[] texture = new int[1];
+            GLES20.glGenTextures(1, texture, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture[0]);
+            // Set filtering
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+            // Load the bitmap into the bound texture.
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
 
         }
 
