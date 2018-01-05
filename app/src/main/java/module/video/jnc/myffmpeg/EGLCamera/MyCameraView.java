@@ -41,7 +41,6 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
     }
 
 
-
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         requestRender();

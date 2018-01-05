@@ -17,13 +17,14 @@ import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 public class CameraManeger {
 
     private Camera mCamera;
-
+    public final static  int width = 640;
+    public final static int height = 480;
     public void OpenCamera(SurfaceTexture surfaceTexture) {
         try {
             mCamera = Camera.open(CAMERA_FACING_FRONT);
             Camera.Parameters params = mCamera.getParameters();
 //            params.setPreviewSize(1920 , 1080);
-            params.setPreviewSize(640, 480 );
+            params.setPreviewSize(width, height );
             List<Camera.Size> list = params.getSupportedPreviewSizes();
             for(Camera.Size s:list){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);
@@ -37,4 +38,12 @@ public class CameraManeger {
         }
     }
 
+    public Camera OpenCamera(){
+        mCamera = Camera.open(CAMERA_FACING_FRONT);
+        mCamera.setDisplayOrientation(90);
+        Camera.Parameters params = mCamera.getParameters();
+        params.setPreviewSize(width, height );
+        mCamera.setParameters(params);
+        return mCamera;
+    }
 }

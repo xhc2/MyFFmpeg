@@ -120,5 +120,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this , EGLCameraActivity.class));
             }
         });
+        findViewById(R.id.ffmpeg_camera).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this , MyRecordActivity.class));
+            }
+        });
     }
 }

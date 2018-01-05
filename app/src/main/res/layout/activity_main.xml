@@ -92,6 +92,12 @@
                 android:layout_height="wrap_content"
                 android:text="eglcamera" />
 
+            <Button
+                android:id="@+id/ffmpeg_camera"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ffmpeg_camera" />
+
             <TextView
                 android:id="@+id/tv"
                 android:layout_width="wrap_content"
