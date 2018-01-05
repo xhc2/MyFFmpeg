@@ -40,4 +40,9 @@ public class FFmpegUtils {
 
     public static native int demuxer(String inputUrl , String outputVPath , String outputAPath);
 
+    public static native void myInit(String outputPath);
+
+    public static native void closeMyFFmpeg();
+
+    public static native void encodeCamera();
 }

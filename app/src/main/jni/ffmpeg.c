@@ -19,6 +19,9 @@
 #include <filter_video.h>
 #include <swscale.h>
 #include <my_muxer.h>
+#include <my_ffmpeg.h>
+
+
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative
         (JNIEnv *env, jclass clazz) {
 
@@ -170,3 +173,14 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_demuxer
     return 0;
 }
 
+JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_myInit(JNIEnv *env, jclass clazz , jstring outputVStr){
+    const char *output_v_str = (*env)->GetStringUTFChars(env, outputVStr, NULL);
+    init(output_v_str);
+    (*env)->ReleaseStringUTFChars(env, outputVStr, output_v_str);
+}
+JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyFFmpeg(JNIEnv *env, jclass clazz){
+    close();
+}
+JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeCamera(JNIEnv *env, jclass clazz){
+    encodeCamera();
+}
