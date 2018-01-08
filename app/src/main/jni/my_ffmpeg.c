@@ -15,6 +15,10 @@
 #include <libavutil/opt.h>
 #include <libavutil/mathematics.h>
 
+
+/**
+ * 将相机的yuv数据放进来编码成MP4（h264格式）
+ */
 const char *outPath;
 int width , height;
 AVFormatContext *pOFC;
@@ -28,6 +32,7 @@ uint8_t *picture_buf;
 AVPacket *pkt;
 int y_size;
 jbyte *y , *u , *v;
+
 int init(const char *ouputPath , int w , int h){
     av_register_all();
     av_log_set_callback(custom_log);
@@ -95,9 +100,9 @@ int init(const char *ouputPath , int w , int h){
     pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt, pic_size);
     y_size = video_st->codec->width * video_st->codec->height;
-    y = malloc(y_size);
-    u = malloc(y_size / 4);
-    v = malloc(y_size / 4);
+//    y = malloc(y_size);
+//    u = malloc(y_size / 4);
+//    v = malloc(y_size / 4);
     LOGE(" INIT SUCCESS ...");
     return ret;
 }
@@ -108,8 +113,8 @@ int encodeCamera(jbyte *navtiveYuv){
     if(navtiveYuv == NULL){
         return -1;
     }
-    memcpy(y ,navtiveYuv , y_size );
-    memcpy(u ,navtiveYuv , y_size );
+//    memcpy(y ,navtiveYuv , y_size );
+//    memcpy(u ,navtiveYuv , y_size );
 
     pFrame->data[0] = navtiveYuv;
     pFrame->data[1] = navtiveYuv + y_size;
