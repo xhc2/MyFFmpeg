@@ -35,7 +35,6 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNativ
  * Method:    stringJni
  * Signature: ()Ljava/lang/String;
  */
-
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringJni
         (JNIEnv *env, jclass clazz) {
     char info[10000] = {0};
@@ -173,14 +172,28 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_demuxer
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_myInit(JNIEnv *env, jclass clazz , jstring outputVStr){
+//初始化
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_myInit(JNIEnv *env, jclass clazz , jstring outputVStr , int width , int height){
+    int result = 0;
     const char *output_v_str = (*env)->GetStringUTFChars(env, outputVStr, NULL);
-    init(output_v_str);
+    result = init(output_v_str , width , height);
+//    LOGE(" RESULT %s " ,output_v_str );
     (*env)->ReleaseStringUTFChars(env, outputVStr, output_v_str);
+    return result;
 }
-JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyFFmpeg(JNIEnv *env, jclass clazz){
-    close();
+
+
+//关闭
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyFFmpeg(JNIEnv *env, jclass clazz){
+    return close();
 }
-JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeCamera(JNIEnv *env, jclass clazz){
-    encodeCamera();
+
+//将camera的数据的编码
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeCamera(JNIEnv *env, jclass clazz ,jbyteArray yuvArray){
+    //第三个参数确定返回的是指向的副本还是固定对象
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , yuvArray , JNI_FALSE);
+    encodeCamera(navtiveYuv);
+    //JNI_ABORT 释放原生数组但不用将内容复制回来
+    (*env)->ReleaseByteArrayElements(env , yuvArray , navtiveYuv , JNI_ABORT);
+    return 0;
 }

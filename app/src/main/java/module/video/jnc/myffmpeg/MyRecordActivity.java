@@ -25,12 +25,17 @@ public class MyRecordActivity extends AppCompatActivity {
         camera.setPreviewCallback(new Camera.PreviewCallback(){
             @Override
             public void onPreviewFrame(byte[] bytes, Camera camera) {
-//                Log.e("xhc" , " byte.length "+bytes.length +" width "
-//                        +CameraManeger.width+" height "+CameraManeger.height +" result "+CameraManeger.width * CameraManeger.height);
+                FFmpegUtils.encodeCamera(bytes);
             }
         });
 
-        FFmpegUtils.myInit(Constant.rootFile.getAbsolutePath()+"/my_camera.mp4");
+        FFmpegUtils.myInit(Constant.rootFile.getAbsolutePath()+"/my_camera.MP4" , CameraManeger.width  , CameraManeger.height);
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         FFmpegUtils.closeMyFFmpeg();
 
     }

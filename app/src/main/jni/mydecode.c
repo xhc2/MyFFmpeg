@@ -100,8 +100,8 @@ int encode_h264(char *input_str, char *output_str) {
         LOGE(" open out_buffer faild ");
         return -1;
     }
-    LOGE(" open out_buffer success ");
 
+    LOGE(" open out_buffer success ");
 
     packet = (AVPacket *) av_malloc(sizeof(AVPacket));
     /**
@@ -384,7 +384,7 @@ int encodeYuv(char *input_str, char *output_str) {
     av_new_packet(pkt, pic_size);
 
     int y_size = video_st->codec->width * video_st->codec->height;
-    int i = 0;
+    int i = 0 ;
     while (fread(picture_buf, 1, y_size * 3 / 2, iFile)) {
         pFrame->data[0] = picture_buf;              // Y
         pFrame->data[1] = picture_buf + y_size;      // U

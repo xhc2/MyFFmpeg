@@ -1,5 +1,6 @@
 package module.video.jnc.myffmpeg.EGLCamera;
 
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.util.Log;
@@ -29,8 +30,10 @@ public class CameraManeger {
             for(Camera.Size s:list){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);
             }
+            params.setPreviewFormat(ImageFormat.YV12);
             mCamera.setParameters(params);
             mCamera.setPreviewTexture(surfaceTexture);
+
             mCamera.startPreview();
         } catch (IOException e) {
             Log.e("xhc" ," camera exception "+e.getMessage());
@@ -46,4 +49,12 @@ public class CameraManeger {
         mCamera.setParameters(params);
         return mCamera;
     }
+
+    public void closeCamera(){
+        if(mCamera != null){
+            mCamera.stopPreview();
+            mCamera.release();
+        }
+    }
+
 }

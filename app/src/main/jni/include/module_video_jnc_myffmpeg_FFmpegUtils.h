@@ -56,9 +56,9 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_transcodeing
         (JNIEnv *env, jclass clazz, jstring inputStr, jstring outputStr);
 
 
-JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_myInit(JNIEnv *, jclass ,jstring outputVStr);
-JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyFFmpeg(JNIEnv * , jclass  );
-JNIEXPORT void JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeCamera(JNIEnv *env, jclass clazz);
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_myInit(JNIEnv *, jclass ,jstring outputVStr , int width , int height);
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyFFmpeg(JNIEnv * , jclass  );
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeCamera(JNIEnv *env, jclass clazz  , jbyteArray yuvArray);
 #ifdef __cplusplus
 }
 #endif
