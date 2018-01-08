@@ -148,20 +148,14 @@ int close(){
     LOGE(" CLOSE ...");
     av_write_trailer(pOFC);
 
-    LOGE(" av_write_trailer ...");
     //Clean
     if (video_st) {
         avcodec_close(video_st->codec);
-        LOGE(" avcodec_close ...");
         av_free(pFrame);
-        LOGE(" av_free pFrame...");
         av_free(picture_buf);
-        LOGE(" av_free picture_buf...");
     }
     avio_close(pOFC->pb);
-    LOGE(" avio_close picture_buf...");
     avformat_free_context(pOFC);
-    LOGE(" avformat_free_context...");
 
     if(y != NULL){
         free(y);
@@ -172,6 +166,5 @@ int close(){
     if(v != NULL){
         free(v);
     }
-
     return 0;
 }
