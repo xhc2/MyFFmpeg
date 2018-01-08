@@ -110,6 +110,7 @@ int init(const char *ouputPath , int w , int h){
 
 
 int encodeCamera(jbyte *navtiveYuv){
+    LOGE(" ENCODE..");
     if(navtiveYuv == NULL){
         return -1;
     }

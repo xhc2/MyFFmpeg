@@ -13,12 +13,13 @@ public class MyRecordActivity extends AppCompatActivity {
 
     private SurfaceView surfaceView;
     private FrameLayout fl ;
+    CameraManeger cm;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_record);
         fl = findViewById(R.id.container);
-        CameraManeger cm = new CameraManeger();
+        cm = new CameraManeger();
         Camera camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this , camera);
         fl.addView(cp);
@@ -36,6 +37,7 @@ public class MyRecordActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        cm.closeCamera();
         FFmpegUtils.closeMyFFmpeg();
 
     }
