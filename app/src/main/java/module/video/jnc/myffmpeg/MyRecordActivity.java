@@ -23,10 +23,9 @@ public class MyRecordActivity extends AppCompatActivity {
         Camera camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this , camera);
         fl.addView(cp);
-        camera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback(){
+        camera.setPreviewCallback(new Camera.PreviewCallback(){
             @Override
             public void onPreviewFrame(byte[] bytes, Camera camera) {
-
                 Log.e("xhc" , " onPreviewFrame ");
                 FFmpegUtils.encodeCamera(bytes);
             }

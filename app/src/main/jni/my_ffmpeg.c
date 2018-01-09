@@ -15,7 +15,6 @@
 #include <libavutil/opt.h>
 #include <libavutil/mathematics.h>
 
-
 /**
  * 将相机的yuv数据放进来编码成MP4（h264格式）
  */
@@ -31,7 +30,6 @@ int pic_size;
 uint8_t *picture_buf;
 AVPacket *pkt;
 int y_size;
-jbyte *y , *u , *v;
 
 int init(const char *ouputPath , int w , int h){
     av_register_all();
@@ -64,9 +62,10 @@ int init(const char *ouputPath , int w , int h){
         LOGE(" video_st FAILD !");
         return -1;
     }
+
     video_st->codec->codec_id = pOFC->oformat->video_codec;
     video_st->codec->codec_type = AVMEDIA_TYPE_VIDEO;
-    video_st->codec->pix_fmt = AV_PIX_FMT_YUV420P;
+    video_st->codec->pix_fmt = /*AV_PIX_FMT_NV21;*/AV_PIX_FMT_YUV420P;
     video_st->codec->width = width;
     video_st->codec->height = height;
     video_st->codec->bit_rate = 400000;
@@ -89,20 +88,21 @@ int init(const char *ouputPath , int w , int h){
     }
 
     pFrame = av_frame_alloc();
+
     pic_size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width,
                                       video_st->codec->height);
 
     LOGE(" pic_size %d ", pic_size);
+
     picture_buf = (uint8_t *) av_malloc(pic_size);
+
     avpicture_fill((AVPicture *) pFrame, picture_buf, video_st->codec->pix_fmt,
                    video_st->codec->width, video_st->codec->height);
+
     avformat_write_header(pOFC, NULL);
     pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt, pic_size);
     y_size = video_st->codec->width * video_st->codec->height;
-//    y = malloc(y_size);
-//    u = malloc(y_size / 4);
-//    v = malloc(y_size / 4);
     LOGE(" INIT SUCCESS ...");
     return ret;
 }
@@ -114,19 +114,18 @@ int encodeCamera(jbyte *navtiveYuv){
     if(navtiveYuv == NULL){
         return -1;
     }
-//    memcpy(y ,navtiveYuv , y_size );
-//    memcpy(u ,navtiveYuv , y_size );
 
+    //注意反调下，vu分量。不然有红绿相对调的情况出现。
     pFrame->data[0] = navtiveYuv;
-    pFrame->data[1] = navtiveYuv + y_size;
-    pFrame->data[2] = navtiveYuv + y_size * 5 / 4;
-
+    pFrame->data[1] = navtiveYuv + y_size * 5 / 4;
+    pFrame->data[2] = navtiveYuv + y_size;
 
     pFrame->pts = framecnt * (video_st->time_base.den) / ((video_st->time_base.num) * 25);
 
     int got_picture = 0;
 
     int ret = avcodec_encode_video2(video_st->codec, pkt, pFrame, &got_picture);
+
     if (ret < 0) {
         LOGE(" FAILD ENCODE ");
         return -1;
@@ -157,14 +156,5 @@ int close(){
     avio_close(pOFC->pb);
     avformat_free_context(pOFC);
 
-    if(y != NULL){
-        free(y);
-    }
-    if(u != NULL){
-        free(u);
-    }
-    if(v != NULL){
-        free(v);
-    }
     return 0;
 }

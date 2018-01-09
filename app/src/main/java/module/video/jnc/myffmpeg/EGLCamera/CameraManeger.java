@@ -30,7 +30,7 @@ public class CameraManeger {
             for(Camera.Size s:list){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);
             }
-            params.setPreviewFormat(ImageFormat.YV12);
+
             mCamera.setParameters(params);
             mCamera.setPreviewTexture(surfaceTexture);
 
@@ -42,10 +42,11 @@ public class CameraManeger {
     }
 
     public Camera OpenCamera(){
-        mCamera = Camera.open(CAMERA_FACING_FRONT);
+        mCamera = Camera.open(CAMERA_FACING_BACK);
         mCamera.setDisplayOrientation(90);
         Camera.Parameters params = mCamera.getParameters();
         params.setPreviewSize(width, height );
+        params.setPreviewFormat(ImageFormat.YV12);
         mCamera.setParameters(params);
         return mCamera;
     }
