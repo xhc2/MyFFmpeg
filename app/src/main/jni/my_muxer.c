@@ -221,6 +221,9 @@ int demuxer(const char* input_path , const char *out_v_path , const char *out_a_
  */
 int muxer(const char* output_path , const char *input_v_path , const char *input_a_path){
 
+    /**
+     * 用于输出的结构体
+     */
     AVOutputFormat *ofmt = NULL;
     AVFormatContext *ifmt_ctx_v = NULL , *ifmt_ctx_a = NULL , *ofmt_ctx = NULL;
     AVPacket pkt ;
@@ -338,6 +341,7 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         return -1;
     }
     AVBitStreamFilterContext* h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
+
     AVBitStreamFilterContext* aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
 
     while(1){
