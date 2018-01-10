@@ -30,10 +30,14 @@ int pic_size;
 uint8_t *picture_buf;
 AVPacket *pkt;
 int y_size;
+FILE *oFile;
+
 
 int init(const char *ouputPath , int w , int h){
     av_register_all();
     av_log_set_callback(custom_log);
+    char *outYuv = "/storage/emulated/0/FFmpeg/my_camera.yuv";
+    oFile = fopen( outYuv , "wb+");
     int ret = 0;
     outPath = ouputPath;
     LOGE(" INIT ...%s width = %d , height = %d" , outPath  , w , h );
@@ -69,10 +73,12 @@ int init(const char *ouputPath , int w , int h){
     video_st->codec->width = width;
     video_st->codec->height = height;
     video_st->codec->bit_rate = 400000;
-    video_st->codec->gop_size = 250;
+    //设置图像组的大小，表示两个i帧之间的间隔
+    video_st->codec->gop_size = 100;
     video_st->codec->time_base.num = 1;
     video_st->codec->time_base.den = 25;
-    video_st->codec->qmin = 10;
+    //最小视频量化标度，设定最小质量。
+    video_st->codec->qmin = 30;
     video_st->codec->qmax = 51;
 
     pCodec = avcodec_find_encoder(video_st->codec->codec_id);
@@ -114,11 +120,11 @@ int encodeCamera(jbyte *navtiveYuv){
     if(navtiveYuv == NULL){
         return -1;
     }
-
+    fwrite(navtiveYuv , 1 , y_size * 3 / 2 , oFile);
     //注意反调下，vu分量。不然有红绿相对调的情况出现。
-    pFrame->data[0] = navtiveYuv;
-    pFrame->data[1] = navtiveYuv + y_size * 5 / 4;
-    pFrame->data[2] = navtiveYuv + y_size;
+    pFrame->data[0] = (uint8_t *)navtiveYuv;
+    pFrame->data[1] =(uint8_t *) navtiveYuv + y_size * 5 / 4;
+    pFrame->data[2] = (uint8_t *) navtiveYuv + y_size;
 
     pFrame->pts = framecnt * (video_st->time_base.den) / ((video_st->time_base.num) * 25);
 
@@ -155,6 +161,6 @@ int close(){
     }
     avio_close(pOFC->pb);
     avformat_free_context(pOFC);
-
+    fclose(oFile);
     return 0;
 }

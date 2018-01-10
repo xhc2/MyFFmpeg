@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.FrameLayout;
 
 import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
@@ -20,26 +21,31 @@ public class MyRecordActivity extends AppCompatActivity {
         FFmpegUtils.myInit(Constant.rootFile.getAbsolutePath()+"/my_camera.MP4" , CameraManeger.width  , CameraManeger.height);
         fl = findViewById(R.id.container);
         cm = new CameraManeger();
-        Camera camera = cm.OpenCamera();
+        final Camera camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this , camera);
         fl.addView(cp);
-        camera.setPreviewCallback(new Camera.PreviewCallback(){
+
+        findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onPreviewFrame(byte[] bytes, Camera camera) {
-                Log.e("xhc" , " onPreviewFrame ");
-                FFmpegUtils.encodeCamera(bytes);
+            public void onClick(View view) {
+                camera.setPreviewCallback(new Camera.PreviewCallback(){
+                    @Override
+                    public void onPreviewFrame(byte[] bytes, Camera camera) {
+                        Log.e("xhc" , " onPreviewFrame ");
+                        FFmpegUtils.encodeCamera(bytes);
+                        findViewById(R.id.bt_start).setEnabled(false);
+                    }
+                });
             }
         });
-
-
-
     }
+
+
 
     @Override
     protected void onStop() {
         super.onStop();
         cm.closeCamera();
         FFmpegUtils.closeMyFFmpeg();
-
     }
 }

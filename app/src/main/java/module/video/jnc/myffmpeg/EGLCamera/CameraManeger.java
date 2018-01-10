@@ -27,7 +27,7 @@ public class CameraManeger {
 //            params.setPreviewSize(1920 , 1080);
             params.setPreviewSize(width, height );
             List<Camera.Size> list = params.getSupportedPreviewSizes();
-            for(Camera.Size s:list){
+            for(Camera.Size s : list){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);
             }
 
@@ -35,6 +35,9 @@ public class CameraManeger {
             mCamera.setPreviewTexture(surfaceTexture);
 
             mCamera.startPreview();
+
+
+
         } catch (IOException e) {
             Log.e("xhc" ," camera exception "+e.getMessage());
             e.printStackTrace();
@@ -42,11 +45,22 @@ public class CameraManeger {
     }
 
     public Camera OpenCamera(){
-        mCamera = Camera.open(CAMERA_FACING_BACK);
+        mCamera = Camera.open(CAMERA_FACING_FRONT);
         mCamera.setDisplayOrientation(90);
         Camera.Parameters params = mCamera.getParameters();
         params.setPreviewSize(width, height );
-        params.setPreviewFormat(ImageFormat.YV12);
+        List<Camera.Size> list = params.getSupportedPreviewSizes();
+        for(Camera.Size s : list){
+            Log.e("xhc" , "width "+s.width+" height "+s.height);
+        }
+        List<Integer> lis2t = params.getSupportedPreviewFormats();
+        for(Integer i : lis2t){
+            Log.e("xhc" , "  for mat "+i+" == ? "+(i == ImageFormat.YV12));
+        }
+        /**
+         * 我的锤子手机好像没有设置成功，好像是nv12的格式
+         */
+//        params.setPreviewFormat(ImageFormat.YV12);
         mCamera.setParameters(params);
         return mCamera;
     }
