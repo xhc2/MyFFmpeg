@@ -69,7 +69,7 @@ int init(const char *ouputPath , int w , int h){
 
     video_st->codec->codec_id = pOFC->oformat->video_codec;
     video_st->codec->codec_type = AVMEDIA_TYPE_VIDEO;
-    video_st->codec->pix_fmt = /*AV_PIX_FMT_NV21;*/AV_PIX_FMT_YUV420P;
+    video_st->codec->pix_fmt = AV_PIX_FMT_NV21;/*AV_PIX_FMT_YUV420P*/;
     video_st->codec->width = width;
     video_st->codec->height = height;
     video_st->codec->bit_rate = 400000;
@@ -98,12 +98,19 @@ int init(const char *ouputPath , int w , int h){
     pic_size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width,
                                       video_st->codec->height);
 
+    pFrame->format = video_st->codec->pix_fmt;
+    pFrame->width  = video_st->codec->width;
+    pFrame->height = video_st->codec->height;
     LOGE(" pic_size %d ", pic_size);
 
     picture_buf = (uint8_t *) av_malloc(pic_size);
 
     avpicture_fill((AVPicture *) pFrame, picture_buf, video_st->codec->pix_fmt,
                    video_st->codec->width, video_st->codec->height);
+
+    pFrame->format = video_st->codec->pix_fmt;
+    pFrame->width  = video_st->codec->width;
+    pFrame->height = video_st->codec->height;
 
     avformat_write_header(pOFC, NULL);
     pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
@@ -122,9 +129,13 @@ int encodeCamera(jbyte *navtiveYuv){
     }
     fwrite(navtiveYuv , 1 , y_size * 3 / 2 , oFile);
     //注意反调下，vu分量。不然有红绿相对调的情况出现。
+    /**
+     * http://ffmpeg.org/doxygen/3.2/decoding_encoding_8c-example.html#a59
+     * 关于pFrame->data[0]的使用，不是很明白
+     */
     pFrame->data[0] = (uint8_t *)navtiveYuv;
-    pFrame->data[1] =(uint8_t *) navtiveYuv + y_size * 5 / 4;
-    pFrame->data[2] = (uint8_t *) navtiveYuv + y_size;
+//    pFrame->data[1] =(uint8_t *) navtiveYuv + y_size * 5 / 4;
+//    pFrame->data[1] = (uint8_t *) navtiveYuv + y_size;
 
     pFrame->pts = framecnt * (video_st->time_base.den) / ((video_st->time_base.num) * 25);
 
