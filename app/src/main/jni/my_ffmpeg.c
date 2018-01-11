@@ -192,10 +192,16 @@ void nv21ToYv12(jbyte *navtiveYuv){
         memset(result ,0 , sizeof(jbyte) *  length);
         memcpy(result , navtiveYuv , y_size);
         int uCount = (length - y_size) / 2;
-        for(int i = y_size ; i < length ; i += 2){
-            result[i + uCount] = navtiveYuv[i + 1]; //u
+        LOGE(" ucount %d  , length %d " ,uCount , length);
+        for(int i = y_size , uPosition = (y_size+uCount) ;i < length ; i+= 2 , uPosition++){
+            result[uPosition] =  navtiveYuv[i + 1]; //u
             result[i] = navtiveYuv[i]; //v
         }
+//        for(int i = y_size ; i < length ; i += 2){
+//            LOGE(" i = %d , length = %d  (i+count)= %d" , i , length , (i + uCount));
+//            result[i + uCount] = navtiveYuv[i + 1]; //u
+//            result[i] = navtiveYuv[i]; //v
+//        }
         memcpy(navtiveYuv, result  , length);
         free(result);
     }
