@@ -31,13 +31,15 @@ uint8_t *picture_buf;
 AVPacket *pkt;
 int y_size;
 FILE *oFile;
-
+FILE *aFile;
 
 int init(const char *ouputPath , int w , int h){
     av_register_all();
     av_log_set_callback(custom_log);
     char *outYuv = "/storage/emulated/0/FFmpeg/my_camera.yuv";
+    char *outPcm = "/storage/emulated/0/FFmpeg/my_audio.pcm";
     oFile = fopen( outYuv , "wb+");
+    aFile = fopen( outPcm , "wb+");
     int ret = 0;
     outPath = ouputPath;
     LOGE(" INIT ...%s width = %d , height = %d" , outPath  , w , h );
@@ -172,6 +174,7 @@ int close(){
     LOGE(" CLOSE ...");
     av_write_trailer(pOFC);
     fclose(oFile);
+    fclose(aFile);
     //Clean
     if (video_st) {
         avcodec_close(video_st->codec);
@@ -182,6 +185,11 @@ int close(){
     avformat_free_context(pOFC);
 
     return 0;
+}
+
+void encodePcm(jbyte *nativePcm , int size){
+
+    fwrite(nativePcm , 1 , size , aFile);
 }
 
 //此函数在锤子手机m1上测试成功
@@ -202,3 +210,5 @@ void nv21ToYv12(jbyte *navtiveYuv){
         free(result);
     }
 }
+
+

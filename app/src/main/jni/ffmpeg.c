@@ -213,6 +213,24 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_nv21ToYv12(JNI
 
 
 
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodePcm(JNIEnv *env, jclass clazz , jbyteArray pcmArray , jint size){
+
+    jboolean copy = JNI_FALSE;
+
+    jbyte *navtivePcm = (*env)->GetByteArrayElements(env , pcmArray , &copy);
+
+    encodePcm(navtivePcm , size);
+
+    (*env)->ReleaseByteArrayElements(env , pcmArray , navtivePcm , 0);
+
+}
+
+
+
+
+
+
 /**
  *GetByteArrayElements 中的第三个参数 和 ReleaseByteArrayElements 第三个参数可以配合使用。
  * JNI_FALSE 指向副本
@@ -244,4 +262,3 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_testArray(JNIE
     LOGE(" jni %d", navtiveYuv[1] );
     LOGE(" jni %d", navtiveYuv[2] );
 }
-

@@ -44,6 +44,7 @@ public class FFmpegUtils {
 
     public static native int nv21ToYv12(byte[] bytes);
 
+    public static native int encodePcm(byte[] bytes , int size);
 
     public static native int testArray(byte[] bytes);
 
