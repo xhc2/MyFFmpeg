@@ -55,11 +55,12 @@ public class CameraManeger {
         }
         List<Integer> lis2t = params.getSupportedPreviewFormats();
         for(Integer i : lis2t){
-            Log.e("xhc" , "  for mat "+i+" == ? "+(i == ImageFormat.NV21));
+            Log.e("xhc" , "  for mat "+i+" == ? "+(i == ImageFormat.YV12));
         }
         /**
          * 我的锤子手机好像没有设置成功，好像是nv12的格式
          * 锤子手机设置的yv12，最后拿出的yuv数据经过解析出来是nv12才是正确的图像
+         * 所以尽量兼容还是写nv21，然后再自己手动转成yv12格式。然后交给ffmpeg编码（目前发现ffmpeg不支持AV_PIX_FMT_NV21等。只有自己手动转）
          */
         params.setPreviewFormat(ImageFormat.NV21);
         mCamera.setParameters(params);

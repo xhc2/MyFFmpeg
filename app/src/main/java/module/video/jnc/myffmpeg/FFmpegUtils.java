@@ -42,6 +42,11 @@ public class FFmpegUtils {
 
     public static native int myInit(String outputPath , int width , int height);
 
+    public static native int nv21ToYv12(byte[] bytes);
+
+
+    public static native int testArray(byte[] bytes);
+
     public static native void closeMyFFmpeg();
 
     public static native void encodeCamera(byte[] bytes);

@@ -197,3 +197,49 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeCamera(J
     (*env)->ReleaseByteArrayElements(env , yuvArray , navtiveYuv , JNI_ABORT);
     return 0;
 }
+
+//将nv21的格式的数据转成yv12，就是将package格式的转成平面格式的，好让ffmpeg编码
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_nv21ToYv12(JNIEnv *env, jclass clazz , jbyteArray yuvArray){
+
+    jboolean flag = JNI_FALSE;
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , yuvArray , &flag);
+    nv21ToYv12(navtiveYuv);
+    //0的意思是将内容复制过来，并释放原生数组
+    (*env)->ReleaseByteArrayElements(env , yuvArray , navtiveYuv , 0);
+
+}
+
+
+
+/**
+ *GetByteArrayElements 中的第三个参数 和 ReleaseByteArrayElements 第三个参数可以配合使用。
+ * JNI_FALSE 指向副本
+ * JNI_TRUE 指向java的原始堆的固定对象
+ *
+ * ReleaseByteArrayElements
+ * JNI_ABORT 释放原生数组但不用将内容复制过来
+ * 0 将内容复制回来并释放数组
+ * JNI_COMMIT 将内容复制过来，但是不释放原生数组
+ *
+ *
+ * 当JNI_ABORT时不管JNI_FALSE ， JNI_TRUE原始的数组都不会改变。
+ * 当JNI_ABORT或者0时原生数组好像都并没有释放，但是看内存也没有内存溢出。
+ *
+ */
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_testArray(JNIEnv *env, jclass clazz , jbyteArray yuvArray){
+
+    jboolean copy = JNI_FALSE;
+
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , yuvArray , &copy);
+
+    navtiveYuv[0] = 1;
+    navtiveYuv[1] = 1;
+    navtiveYuv[2] = 1;
+    //0的意思是将内容复制过来，并释放原生数组
+    (*env)->ReleaseByteArrayElements(env , yuvArray , navtiveYuv , 0);
+
+    LOGE(" jni %d", navtiveYuv[0] );
+    LOGE(" jni %d", navtiveYuv[1] );
+    LOGE(" jni %d", navtiveYuv[2] );
+}
+

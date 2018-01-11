@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -126,5 +127,22 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this , MyRecordActivity.class));
             }
         });
+//        new Thread(new MyRunable()).start();
+
     }
+    byte[] b ={1 , 2 , 3};
+    class MyRunable implements Runnable{
+        @Override
+        public void run() {
+            //测试数组的几个参数，在c文件查看吧。
+            for(int j = 0 ; j < 1000000000 ; ++ j){
+                FFmpegUtils.testArray(b);
+                for(int i = 0 ;i < 3 ; ++i){
+                    Log.e("xhc_jni" , b[i]+" ? ");
+                }
+            }
+
+        }
+    }
+
 }

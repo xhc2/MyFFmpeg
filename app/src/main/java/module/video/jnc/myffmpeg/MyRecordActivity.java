@@ -31,7 +31,7 @@ public class MyRecordActivity extends AppCompatActivity {
                 camera.setPreviewCallback(new Camera.PreviewCallback(){
                     @Override
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
-                        Log.e("xhc" , " onPreviewFrame ");
+                        FFmpegUtils.nv21ToYv12(bytes);
                         FFmpegUtils.encodeCamera(bytes);
                         findViewById(R.id.bt_start).setEnabled(false);
                     }
