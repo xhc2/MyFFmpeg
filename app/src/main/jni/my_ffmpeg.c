@@ -184,6 +184,7 @@ int close(){
     return 0;
 }
 
+//此函数在锤子手机m1上测试成功
 void nv21ToYv12(jbyte *navtiveYuv){
 
     if(navtiveYuv){
