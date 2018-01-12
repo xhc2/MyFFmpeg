@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = (TextView)findViewById(R.id.tv);
-        textView.setText(FFmpegUtils.stringJni());
+//        textView.setText(FFmpegUtils.stringJni());
         if(!rootFile.exists()){
             //创建文件夹
             rootFile.mkdirs();

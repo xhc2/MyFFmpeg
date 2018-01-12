@@ -133,8 +133,8 @@ int encodeCamera(jbyte *navtiveYuv){
         return -1;
     }
     LOGE(" ENCODE..");
-    fwrite(navtiveYuv , 1 , (width * height) * 3 / 2 , oFile);
-    return 1;
+//    fwrite(navtiveYuv , 1 , (width * height) * 3 / 2 , oFile);
+//    return 1;
     //注意反调下，vu分量。不然有红绿相对调的情况出现。
     /**
      * http://ffmpeg.org/doxygen/3.2/decoding_encoding_8c-example.html#a59
@@ -144,9 +144,8 @@ int encodeCamera(jbyte *navtiveYuv){
      */
 
     pFrame->data[0] = (uint8_t *)navtiveYuv;
-    pFrame->data[1] =(uint8_t *) navtiveYuv + y_size * 5 / 4;
-    pFrame->data[2] = (uint8_t *) navtiveYuv + y_size;
-
+    pFrame->data[1] = (uint8_t *) navtiveYuv + y_size;
+    pFrame->data[2] =(uint8_t *) navtiveYuv + y_size * 5 / 4;
     pFrame->pts = framecnt * (video_st->time_base.den) / ((video_st->time_base.num) * 25);
 
     int got_picture = 0;

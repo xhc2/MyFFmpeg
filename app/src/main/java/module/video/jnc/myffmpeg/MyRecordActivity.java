@@ -21,6 +21,7 @@ public class MyRecordActivity extends AppCompatActivity {
     private AudioRecord ar ;
     private int size;
     private boolean recordFlag = false;
+    Camera camera;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,9 +29,10 @@ public class MyRecordActivity extends AppCompatActivity {
         FFmpegUtils.myInit(Constant.rootFile.getAbsolutePath()+"/my_camera.MP4" , CameraManeger.width  , CameraManeger.height);
         fl = findViewById(R.id.container);
         cm = new CameraManeger();
-        size = AudioRecord.getMinBufferSize(11025 , AudioFormat. CHANNEL_IN_MONO  , AudioFormat.ENCODING_PCM_16BIT );
-        ar = new AudioRecord(MediaRecorder.AudioSource.DEFAULT , 11025 , AudioFormat.CHANNEL_IN_MONO ,AudioFormat.ENCODING_PCM_16BIT , size );
-        final Camera camera = cm.OpenCamera();
+        size = AudioRecord.getMinBufferSize(44100 , AudioFormat. CHANNEL_IN_MONO  , AudioFormat.ENCODING_PCM_8BIT );
+        Log.e("xhc" , " min size "+size );
+        ar = new AudioRecord(MediaRecorder.AudioSource.MIC , 44100 , AudioFormat.CHANNEL_IN_MONO ,AudioFormat.ENCODING_PCM_8BIT , size );
+        camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this , camera);
         fl.addView(cp);
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
@@ -39,18 +41,29 @@ public class MyRecordActivity extends AppCompatActivity {
                 camera.setPreviewCallback(new Camera.PreviewCallback(){
                     @Override
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
-                        recordFlag = true;
+
                         FFmpegUtils.nv21ToYv12(bytes);
                         FFmpegUtils.encodeCamera(bytes);
-                        ar.startRecording();
-                        new RecordThread().start();
+                        startReocrdAudio();
                         findViewById(R.id.bt_start).setEnabled(false);
                     }
                 });
             }
         });
+    }
 
+    private void startReocrdAudio(){
+        ar.startRecording();
+        new RecordThread().start();
+        recordFlag = true;
+    }
 
+    private void releaseAudioRecord(){
+        if(ar != null){
+            ar.stop();
+            ar.release();
+            ar = null;
+        }
     }
 
 
@@ -62,26 +75,19 @@ public class MyRecordActivity extends AppCompatActivity {
             byte[] buffer = new byte[size];
             while(recordFlag){
                 Log.e("xhc" , " audiorecord ...");
-                ar.read(buffer , 0 , size);
-                FFmpegUtils.encodePcm(buffer , size);
+                ar.read(buffer , 0 , buffer.length);
+                FFmpegUtils.encodePcm(buffer , buffer.length);
             }
-
-
         }
     }
 
-    private void releaseAudioRecord(){
-        if(ar != null){
-            ar.stop();
-            ar.release();
-            ar = null;
-        }
-    }
+
 
     @Override
     protected void onStop() {
         super.onStop();
         recordFlag = false;
+        camera.setPreviewCallback(null);
         cm.closeCamera();
         FFmpegUtils.closeMyFFmpeg();
         releaseAudioRecord();

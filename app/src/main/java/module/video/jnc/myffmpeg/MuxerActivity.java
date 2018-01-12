@@ -21,11 +21,12 @@ public class MuxerActivity extends AppCompatActivity {
                         , Constant.rootFile.getAbsolutePath()+"/sintel_demuxer.aac"  );
             }
         });
+
         findViewById(R.id.demuxer).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 FFmpegUtils.demuxer(Constant.rootFile.getAbsolutePath()+"/sintel.ts" ,Constant.rootFile.getAbsolutePath()+"/sintel_demuxer.h264"
-                        , Constant.rootFile.getAbsolutePath()+"/sintel_demuxer.aac"  );
+                        , Constant.rootFile.getAbsolutePath()+"/sintel_demuxer.pcm"  );
             }
         });
     }
