@@ -56,9 +56,9 @@ int init(const char *ouputPath , int w , int h){
  * @return
  */
 int initAudio(){
+    int ret = 0;
 
-
-
+    return ret ;
 }
 
 /**
