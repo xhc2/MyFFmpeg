@@ -20,7 +20,11 @@
  */
 const char *outPath;
 int width , height;
+
 AVFormatContext *pOFC;
+/**
+ * 用于输出的结构体
+ */
 AVOutputFormat *oft;
 AVStream *video_st;
 int framecnt = 0;
@@ -40,6 +44,31 @@ int init(const char *ouputPath , int w , int h){
     char *outPcm = "/storage/emulated/0/FFmpeg/my_audio.pcm";
     oFile = fopen( outYuv , "wb+");
     aFile = fopen( outPcm , "wb+");
+    int ret = 0;
+    initVideo(ouputPath , w , h);
+    initAudio();
+    LOGE(" INIT SUCCESS ...");
+    return ret;
+}
+
+/**
+ * 初始化音频部分
+ * @return
+ */
+int initAudio(){
+
+
+
+}
+
+/**
+ * 初始化视频部分
+ * @param ouputPath
+ * @param w
+ * @param h
+ * @return
+ */
+int initVideo(const char *ouputPath , int w , int h){
     int ret = 0;
     outPath = ouputPath;
     LOGE(" INIT ...%s width = %d , height = %d" , outPath  , w , h );
@@ -98,7 +127,7 @@ int init(const char *ouputPath , int w , int h){
     pFrame = av_frame_alloc();
 
     pic_size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width,
-                                      video_st->codec->height);
+                                  video_st->codec->height);
 
     pFrame->format = video_st->codec->pix_fmt;
     pFrame->width  = video_st->codec->width;
@@ -121,10 +150,8 @@ int init(const char *ouputPath , int w , int h){
     pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt, pic_size);
     y_size = video_st->codec->width * video_st->codec->height;
-    LOGE(" INIT SUCCESS ...");
     return ret;
 }
-
 
 
 int encodeCamera(jbyte *navtiveYuv){
@@ -159,12 +186,10 @@ int encodeCamera(jbyte *navtiveYuv){
 
     if (got_picture == 1) {
         LOGE(" ENCODE success %d", framecnt);
-//        framecnt++;
         pkt->stream_index = video_st->index;
         ret = av_write_frame(pOFC, pkt);
         av_free_packet(pkt);
     }
-//    LOGE(" encodeCamera ...%d " , sizeof(navtiveYuv));
     framecnt++ ;
     return 0;
 }
@@ -186,6 +211,7 @@ int close(){
     return 0;
 }
 
+/**/
 void encodePcm(jbyte *nativePcm , int size){
 
     fwrite(nativePcm , 1 , size , aFile);

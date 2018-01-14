@@ -20,9 +20,9 @@ import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
 
 public class MyRecordActivity extends AppCompatActivity {
 
-    private FrameLayout fl ;
+    private FrameLayout fl;
     private CameraManeger cm;
-    private AudioRecord ar ;
+    private AudioRecord ar;
     private int size;
     private boolean recordFlag = false;
     Camera camera;
@@ -37,14 +37,14 @@ public class MyRecordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_record);
-        FFmpegUtils.myInit(Constant.rootFile.getAbsolutePath()+"/my_camera.MP4" , CameraManeger.width  , CameraManeger.height);
+        FFmpegUtils.myInit(Constant.rootFile.getAbsolutePath() + "/my_camera.MP4", CameraManeger.width, CameraManeger.height);
         fl = findViewById(R.id.container);
         cm = new CameraManeger();
-        size = AudioRecord.getMinBufferSize(frequency , channelConfiguration  , EncodingBitRate );
-        Log.e("xhc" , " min size "+size );
-        ar = new AudioRecord(MediaRecorder.AudioSource.MIC , frequency , channelConfiguration ,EncodingBitRate , size );
+        size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
+        Log.e("xhc", " min size " + size);
+        ar = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfiguration, EncodingBitRate, size);
         camera = cm.OpenCamera();
-        CameraPreview cp = new CameraPreview(this , camera);
+        CameraPreview cp = new CameraPreview(this, camera);
         fl.addView(cp);
 
 
@@ -52,7 +52,7 @@ public class MyRecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startReocrdAudio();
-                camera.setPreviewCallback(new Camera.PreviewCallback(){
+                camera.setPreviewCallback(new Camera.PreviewCallback() {
                     @Override
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
 
@@ -66,20 +66,19 @@ public class MyRecordActivity extends AppCompatActivity {
 
     }
 
-    private void startReocrdAudio(){
-        if(ar.getState() == AudioRecord.STATE_INITIALIZED){
-            Log.e("xhc" , "AudioRecord.STATE_INITIALIZED ");
-        }
-        else{
-            Log.e("xhc" , "AudioRecord.STATE_unINITIALIZED ");
+    private void startReocrdAudio() {
+        if (ar.getState() == AudioRecord.STATE_INITIALIZED) {
+            Log.e("xhc", "AudioRecord.STATE_INITIALIZED ");
+        } else {
+            Log.e("xhc", "AudioRecord.STATE_unINITIALIZED ");
         }
         ar.startRecording();
         new RecordThread().start();
         recordFlag = true;
     }
 
-    private void releaseAudioRecord(){
-        if(ar != null){
+    private void releaseAudioRecord() {
+        if (ar != null) {
             recordFlag = false;
             ar.stop();
             ar.release();
@@ -88,41 +87,21 @@ public class MyRecordActivity extends AppCompatActivity {
     }
 
 
-    class RecordThread extends Thread{
+    class RecordThread extends Thread {
 
         @Override
         public void run() {
             super.run();
             byte[] buffer = new byte[size];
 
-            FileOutputStream fos = null;
-            try{
-                File file = new File("sdcard/FFmpeg/my_audio2.pcm");
-                fos = new FileOutputStream(file , true);
-            }catch (Exception e){
-
-            }
-            int read = 0 ;
-            while(recordFlag){
-                read  = ar.read(buffer , 0 , buffer.length);
-                Log.e("xhc" , "read "+read );
-                if(AudioRecord.ERROR_INVALID_OPERATION != read){
-                    try{
-                        fos.write(buffer , 0 , read);
-                    }catch(Exception e){
-                        Log.e("xhc" , " excpeiont "+e.getMessage());
-                        e.printStackTrace();
-                    }
+            int read = 0;
+            while (recordFlag) {
+                read = ar.read(buffer, 0, buffer.length);
+                Log.e("xhc", "read " + read);
+                if (AudioRecord.ERROR_INVALID_OPERATION != read) {
+                    FFmpegUtils.encodePcm(buffer, buffer.length);
                 }
-//                FFmpegUtils.encodePcm(buffer , buffer.length);
             }
-            try{
-                fos.flush();
-                fos.close();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
         }
     }
 
