@@ -44,6 +44,8 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     ofmt = ofmt_ctx->oformat;
     initMuxerVideo();
     initMuxerAudio();
+
+
     LOGE("init_camera_muxer SUCCESS %s"  , ofmt->name);
     return ret;
 }
