@@ -112,8 +112,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
 
 }
 
-
-
 /*
 * Class:     module_video_jnc_myffmpeg_FFmpegUtils
 * Method:    addfilter

@@ -12,4 +12,7 @@ int encodeCamera_muxer(jbyte *nativeYuv);
 int encodeAudio_muxer(jbyte *nativePcm);
 
 int close_muxer();
+
+int initMuxerVideo();
+int initMuxerAudio();
 #endif //MYFFMPEG_MY_CAMERA_MUXER_H
