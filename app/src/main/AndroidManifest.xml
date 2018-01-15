@@ -42,7 +42,8 @@
         <activity android:name=".OpenGlTureActivity" />
         <activity android:name=".EGLCamera.EGLCameraActivity" />
         <activity android:name=".MyRecordActivity" />
-        <activity android:name=".TestActivity"></activity>
+        <activity android:name=".TestActivity" />
+        <activity android:name=".MyNewRecordActivity"></activity>
     </application>
 
 </manifest>

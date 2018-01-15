@@ -3,24 +3,19 @@ package module.video.jnc.myffmpeg;
 import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.AudioRouting;
 import android.media.MediaRecorder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-
 import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
-/*
-  只是将yuv数据压缩进去
+
+/**
+ * 将视频数据和声音数据同时加入进去
  */
-public class MyRecordActivity extends AppCompatActivity {
+public class MyNewRecordActivity extends AppCompatActivity {
 
     private FrameLayout fl;
     private CameraManeger cm;
@@ -39,7 +34,7 @@ public class MyRecordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_record);
-        FFmpegUtils.myInit(Constant.rootFile.getAbsolutePath() + "/my_camera.MP4", CameraManeger.width, CameraManeger.height);
+
         fl = findViewById(R.id.container);
         cm = new CameraManeger();
         size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
@@ -48,7 +43,7 @@ public class MyRecordActivity extends AppCompatActivity {
         camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this, camera);
         fl.addView(cp);
-
+        FFmpegUtils.initMyCameraMuxer(Constant.rootFile.getAbsolutePath() + "/my_new_camera.MP4", CameraManeger.width, CameraManeger.height , size);
 
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,8 +53,8 @@ public class MyRecordActivity extends AppCompatActivity {
                     @Override
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
 
-                        FFmpegUtils.nv21ToYv12(bytes);
-                        FFmpegUtils.encodeCamera(bytes);
+//                        FFmpegUtils.nv21ToYv12(bytes);
+                        FFmpegUtils.encodeMyMuxerCamera(bytes);
                         findViewById(R.id.bt_start).setEnabled(false);
                     }
                 });
@@ -101,7 +96,8 @@ public class MyRecordActivity extends AppCompatActivity {
                 read = ar.read(buffer, 0, buffer.length);
                 Log.e("xhc", "read " + read);
                 if (AudioRecord.ERROR_INVALID_OPERATION != read) {
-                    FFmpegUtils.encodePcm(buffer, buffer.length);
+//                    FFmpegUtils.encodePcm(buffer, buffer.length);
+                    FFmpegUtils.encodeMyMuxerAudio(buffer);
                 }
             }
         }
@@ -113,7 +109,7 @@ public class MyRecordActivity extends AppCompatActivity {
         recordFlag = false;
         camera.setPreviewCallback(null);
         cm.closeCamera();
-        FFmpegUtils.closeMyFFmpeg();
+        FFmpegUtils.closeMyMuxer();
         releaseAudioRecord();
     }
 }

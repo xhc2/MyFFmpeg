@@ -133,6 +133,12 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this , TestActivity.class));
             }
         });
+        findViewById(R.id.camera_ffmpeg).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this , MyNewRecordActivity.class));
+            }
+        });
 //        new Thread(new MyRunable()).start();
 
     }

@@ -16,6 +16,11 @@
 #include <libavutil/mathematics.h>
 
 /**
+ * AVFormatContext -> 往其中新增视频或者音频轨道
+ */
+
+
+/**
  * 将相机的yuv数据放进来编码成MP4（h264格式）
  */
 const char *outPath;

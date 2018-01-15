@@ -20,7 +20,7 @@
 #include <swscale.h>
 #include <my_muxer.h>
 #include <my_ffmpeg.h>
-
+#include <my_camera_muxer.h>
 
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative
         (JNIEnv *env, jclass clazz) {
@@ -226,6 +226,54 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodePcm(JNIE
 
 }
 
+
+//public static native int initMyCameraMuxer(String outputPath , int width , int height , int aSize);
+//
+//                     public static native int encodeMyMuxerCamera(byte[] bytes);
+//
+//                     public static native int encodeMyMuxerAudio(byte[] bytes);
+//
+//                     public static native int closeMyMuxer();
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_initMyCameraMuxer(JNIEnv *env, jclass clazz ,
+                                                                                    jstring joutputPath , jint width , jint height , jint aSize){
+    int ret = 0;
+    const char *output_path= (*env)->GetStringUTFChars(env, joutputPath, NULL);
+    ret = init_camera_muxer(output_path , width , height , aSize);
+//    LOGE(" RESULT %s " ,output_v_str );
+    (*env)->ReleaseStringUTFChars(env, joutputPath, output_path);
+
+    return ret;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeMyMuxerCamera(JNIEnv *env, jclass clazz ,jbyteArray yuvArray){
+
+    int ret = 0 ;
+    jboolean copy = JNI_FALSE;
+
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , yuvArray , &copy);
+    ret =  encodeCamera_muxer(navtiveYuv);
+    //0的意思是将内容复制过来，并释放原生数组
+    (*env)->ReleaseByteArrayElements(env , yuvArray , navtiveYuv , JNI_ABORT);
+
+    return ret;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeMyMuxerAudio(JNIEnv *env, jclass clazz ,jbyteArray pcmArray){
+    int ret = 0 ;
+    jboolean copy = JNI_FALSE;
+
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , pcmArray , &copy);
+    ret =  encodeAudio_muxer(navtiveYuv);
+    //0的意思是将内容复制过来，并释放原生数组
+    (*env)->ReleaseByteArrayElements(env , pcmArray , navtiveYuv , JNI_ABORT);
+    return ret;
+}
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyMuxer(JNIEnv *env, jclass clazz ,jbyteArray pcmArray){
+
+
+    return close_muxer();
+}
 
 
 
