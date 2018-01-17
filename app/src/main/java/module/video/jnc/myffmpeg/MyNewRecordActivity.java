@@ -13,7 +13,7 @@ import android.widget.FrameLayout;
 import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
 
 /**
- * 将视频数据和声音数据同时加入进去
+ * 将视频数据和声音数据同时加入进去写入MP4
  */
 public class MyNewRecordActivity extends AppCompatActivity {
 
@@ -60,7 +60,6 @@ public class MyNewRecordActivity extends AppCompatActivity {
                 });
             }
         });
-
     }
 
     private void startReocrdAudio() {
