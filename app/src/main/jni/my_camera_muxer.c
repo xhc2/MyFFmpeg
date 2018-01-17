@@ -44,9 +44,23 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     ofmt = ofmt_ctx->oformat;
     initMuxerVideo();
     initMuxerAudio();
-
-
+    /**
+   * AVFMT_NOFILE需要一个没有打开的File
+   */
+    if(!(ofmt->flags & AVFMT_NOFILE)){
+        if(avio_open(&ofmt_ctx->pb , outputPath , AVIO_FLAG_WRITE) < 0){
+            LOGE("OPEN OUTPUT FILE FAILD !");
+            return -1;
+        }
+    }
+    if(avformat_write_header(ofmt_ctx , NULL) < 0){
+        LOGE("write_header faild ");
+        return -1;
+    }
+    AVBitStreamFilterContext* h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
+    AVBitStreamFilterContext* aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
     LOGE("init_camera_muxer SUCCESS %s"  , ofmt->name);
+
     return ret;
 }
 
@@ -95,6 +109,7 @@ int initMuxerAudio(){
     audio_st->codec->channel_layout=AV_CH_LAYOUT_STEREO;
     audio_st->codec->channels = av_get_channel_layout_nb_channels(audio_st->codec->channel_layout);
     audio_st->codec->bit_rate = 64000;
+    audio_outindex = audio_st->index;
     LOGE("XHC AUDIO FORMAT NAME %s " ,audio_st->codec->codec_name );
     AVCodec *avCodec = avcodec_find_encoder(audio_st->codec->codec_id );
     if(avCodec == NULL){
@@ -102,6 +117,9 @@ int initMuxerAudio(){
         return -1;
     }
     LOGE(" AUDIO CODE SUCCESS %s" , avCodec->name);
+    if(ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER){
+        audio_st->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    }
     return ret ;
 }
 int encodeCamera_muxer(jbyte *nativeYuv){
