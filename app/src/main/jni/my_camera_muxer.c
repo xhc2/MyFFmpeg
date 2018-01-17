@@ -72,7 +72,7 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     return ret;
 }
 
-
+//
 int initMuxerVideo(){
     int ret = -1 ;
     video_stream = avformat_new_stream(ofmt_ctx , 0 );
@@ -118,10 +118,12 @@ int initMuxerVideo(){
     pkt_video = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt_video, pic_size);
     LOGE(" VIDEO STREAM INDEX %d " , video_stream->index);
+    LOGE(" FRAME RATE %f ，%d , %d " , av_q2d(video_stream->r_frame_rate) ,video_stream->r_frame_rate.den , video_stream->r_frame_rate.num);
     return ret ;
 }
 
 //http://ffmpeg.org/doxygen/3.2/structAVFrame.html#details
+//http://www.samirchen.com/ffmpeg-tutorial-5/ 参考pts博客
 int initMuxerAudio(){
     int ret = -1 ;
     audio_stream  = avformat_new_stream(ofmt_ctx , 0);
@@ -156,6 +158,7 @@ int initMuxerAudio(){
     pkt_audio = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt_audio, audio_size);
     LOGE(" audio STREAM INDEX %d " , audio_stream->index);
+
     return ret ;
 }
 
