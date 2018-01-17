@@ -117,7 +117,7 @@ int initMuxerVideo(){
 
     return ret ;
 }
-
+//http://ffmpeg.org/doxygen/3.2/structAVFrame.html#details
 int initMuxerAudio(){
     int ret = -1 ;
     audio_stream  = avformat_new_stream(ofmt_ctx , 0);
