@@ -340,8 +340,8 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         LOGE("write_header faild ");
         return -1;
     }
-    AVBitStreamFilterContext* h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
 
+    AVBitStreamFilterContext* h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
     AVBitStreamFilterContext* aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
 
     while(1){
@@ -364,7 +364,6 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
                     if(pkt.stream_index == videoindex_v){
                         //AV_NOPTS_VALUE ，没有定义pts，dts
                         if(pkt.pts == AV_NOPTS_VALUE){
-
                             /**
                              * AVStream->time_base单位为秒。
                              * AVCodecContext->time_base单位同样为秒，不过精度没有AVStream->time_base高，大小为1/framerate。

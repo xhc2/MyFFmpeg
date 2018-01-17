@@ -26,13 +26,15 @@ AVOutputFormat *ofmt = NULL;
 AVFormatContext *ofmt_ctx ;
 int video_outindex = -1 , audio_outindex = -1;
 //保存码流的pts
-int64_t video_frame_count = 0 , audio_frame_count = 0;
+int64_t cur_pts_v = 0 , cur_pts_a = 0;
+int frame_video_index , frame_audio_index;
 AVBitStreamFilterContext *h264bsfc;
 AVBitStreamFilterContext *aacbsfc ;
 AVFrame *videoFrame , *audioFrame;
 AVStream *video_stream;
 AVStream *audio_stream;
 int y_size = 0;
+AVPacket *pkt_video , *pkt_audio;
 
 int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     int ret = 0 ;
@@ -65,8 +67,6 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
     aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
     LOGE("init_camera_muxer SUCCESS %s"  , ofmt->name);
-
-
 
 
     return ret;
@@ -115,8 +115,12 @@ int initMuxerVideo(){
     avpicture_fill((AVPicture *) videoFrame, picture_buf, video_stream->codec->pix_fmt,
                    video_stream->codec->width, video_stream->codec->height);
 
+    pkt_video = (AVPacket *) av_malloc(sizeof(AVPacket));
+    av_new_packet(pkt_video, pic_size);
+    LOGE(" VIDEO STREAM INDEX %d " , video_stream->index);
     return ret ;
 }
+
 //http://ffmpeg.org/doxygen/3.2/structAVFrame.html#details
 int initMuxerAudio(){
     int ret = -1 ;
@@ -149,47 +153,65 @@ int initMuxerAudio(){
     audioFrame = av_frame_alloc();
     audioFrame->format = audio_stream->codec->sample_fmt;
 
+    pkt_audio = (AVPacket *) av_malloc(sizeof(AVPacket));
+    av_new_packet(pkt_audio, audio_size);
+    LOGE(" audio STREAM INDEX %d " , audio_stream->index);
     return ret ;
 }
 
-int encodeYuv(jbyte *nativeYuv){
+int encodeYuv_(jbyte *nativeYuv){
     videoFrame->data[0] = (uint8_t *)nativeYuv;
     videoFrame->data[1] = (uint8_t *) nativeYuv + y_size;
     videoFrame->data[2] =(uint8_t *) nativeYuv + y_size * 5 / 4;
-    videoFrame->pts = video_frame_count * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
-
-
-
+    videoFrame->pts = cur_pts_v * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
+    int got_picture = 0;
+    int ret = avcodec_encode_video2(video_stream->codec, pkt_video, videoFrame, &got_picture);
+    if(ret < 0){
+        LOGE(" ENCODE VIDEO FAILD");
+        return -1;
+    }
+    if (got_picture == 1) {
+        //这一段还不怎么明白,不理解pts如何计算。r_frame_rate是干嘛用的，然后AV_TIME_BASE有啥作用。
+        pkt_video->stream_index = video_stream->index;
+        AVRational time_base = video_stream->time_base;
+        int64_t calc_duration = (double)AV_TIME_BASE / av_q2d(video_stream->r_frame_rate);
+        pkt_video->pts = (double)(frame_video_index*calc_duration) / (double)(av_q2d(time_base)*AV_TIME_BASE);
+        //dts 解码时间
+        pkt_video->dts=pkt_video->pts;
+        //间隔时间，需要除以时间基
+        pkt_video->duration = (double) calc_duration / (double)(av_q2d(time_base) * AV_TIME_BASE);
+        frame_video_index ++;
+//        ret = av_write_frame(ofmt_ctx, pkt_video);
+//        av_free_packet(pkt_video);
+    }
     return 1;
 }
 
-int encodePcm(jbyte *nativePcm){
+int encodePcm_(jbyte *nativePcm){
 
     return 1;
 }
 
 int encode(jbyte *nativeYuv , jbyte *nativePcm){
-    if(av_compare_ts(video_frame_count ,video_stream->codec->time_base ,
-                     audio_frame_count , audio_stream->codec->time_base ) <= 0){
+    if(av_compare_ts(cur_pts_v ,video_stream->codec->time_base ,
+                     cur_pts_a , audio_stream->codec->time_base ) <= 0){
         if(nativeYuv != NULL){
             LOGE("write video ");
-            encodeYuv(nativeYuv);
+            encodeYuv_(nativeYuv);
         }
     }
     else {
         if(nativePcm != NULL){
             LOGE("write audio ");
-            encodePcm(nativePcm);
+            encodePcm_(nativePcm);
         }
     }
+    return 1;
 }
-
-
 
 int encodeCamera_muxer(jbyte *nativeYuv){
     int ret = 0 ;
 //    LOGE("encodeCamera_muxer");
-    video_frame_count ++;
     encode(nativeYuv , NULL);
     return ret;
 }
@@ -197,7 +219,6 @@ int encodeCamera_muxer(jbyte *nativeYuv){
 int encodeAudio_muxer(jbyte *nativePcm){
     int ret = 0 ;
     encode(NULL , nativePcm);
-    audio_frame_count++;
 //    LOGE("encodeAudio_muxer");
     return ret;
 }
