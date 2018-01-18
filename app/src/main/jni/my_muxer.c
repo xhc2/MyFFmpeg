@@ -369,18 +369,31 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
                              * AVCodecContext->time_base单位同样为秒，不过精度没有AVStream->time_base高，大小为1/framerate。
                              */
                             AVRational time_base1 = in_stream->time_base;
+
                             //Duration between 2 frames (us) ， av_q2d-》就是将AVRational中的分子分母相除得一个小数
-                            int64_t calc_duration=(double)AV_TIME_BASE/av_q2d(in_stream->r_frame_rate);
+
+                            int64_t calc_duration=(double)AV_TIME_BASE / av_q2d(in_stream->r_frame_rate);
+
+                            LOGE("VIUDEO FRAME RATE %f , num = %d , den = %d " , av_q2d(in_stream->r_frame_rate) ,
+                                 in_stream->r_frame_rate.num , in_stream->r_frame_rate.den);
+
+                            LOGE(" in_stream->time_base %f , num = %d , den = %d " , av_q2d(in_stream->time_base)
+                            ,in_stream->time_base.num , in_stream->time_base.den);
+
+                            LOGE("AV_TIME_BASE %lld ,calc_duration %lld" , AV_TIME_BASE  , calc_duration );
                             //Parameters pts是显示时间 ， 当前已经有的总时间除以时间基，就是ffmpeg中的时间单位
-                            pkt.pts=(double)(frame_index*calc_duration)/(double)(av_q2d(time_base1)*AV_TIME_BASE);
+
+                            pkt.pts=(double)(frame_index * calc_duration)/(double)(av_q2d(time_base1) * AV_TIME_BASE);
+
+                            LOGE(" VIDEO PKT.PTS %lld " , pkt.pts);
                             //dts 解码时间
                             pkt.dts=pkt.pts;
                             //间隔时间，需要除以时间基
-                            pkt.duration=(double)calc_duration/(double)(av_q2d(time_base1)*AV_TIME_BASE);
+                            pkt.duration=(double) calc_duration / (double)(av_q2d(time_base1)*AV_TIME_BASE);
                             frame_index++;
                         }
                         cur_pts_v=pkt.pts;
-                        LOGE("pts %d " ,cur_pts_v );
+//                        LOGE("pts %d " ,cur_pts_v );
                         break;
                     }
                 }while(av_read_frame(ifmt_ctx , &pkt) >= 0);
