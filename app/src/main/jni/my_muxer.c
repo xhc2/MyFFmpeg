@@ -409,7 +409,7 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         else{
             LOGE("  write audio  ");
             ifmt_ctx=ifmt_ctx_a;
-            stream_index=audioindex_out;
+            stream_index = audioindex_out;
             if(av_read_frame(ifmt_ctx, &pkt) >= 0){
                 do{
                     in_stream  = ifmt_ctx->streams[pkt.stream_index];

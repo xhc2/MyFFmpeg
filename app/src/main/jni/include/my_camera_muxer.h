@@ -3,6 +3,8 @@
 //
 
 #include <jni.h>
+#include <libavcodec/avcodec.h>
+
 #ifndef MYFFMPEG_MY_CAMERA_MUXER_H
 #define MYFFMPEG_MY_CAMERA_MUXER_H
 int init_camera_muxer(const char *outputPath , int width , int height , int aSize);
@@ -15,5 +17,6 @@ int initMuxerAudio();
 
 int encodePcm_(jbyte *nativePcm);
 int encodeYuv_(jbyte *nativeYuv);
+int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt);
 #endif //MYFFMPEG_MY_CAMERA_MUXER_H
 //Error:(18, 5) error: conflicting types for 'encodePcm'

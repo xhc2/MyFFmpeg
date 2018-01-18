@@ -124,6 +124,7 @@ int initMuxerVideo(){
 
 //http://ffmpeg.org/doxygen/3.2/structAVFrame.html#details
 //http://www.samirchen.com/ffmpeg-tutorial-5/ 参考pts博客
+//http://ffmpeg.org/doxygen/3.2/transcode__aac_8c_source.html#l00582 关于audio pts的处理
 int initMuxerAudio(){
     int ret = -1 ;
     audio_stream  = avformat_new_stream(ofmt_ctx , 0);
@@ -166,7 +167,8 @@ int encodeYuv_(jbyte *nativeYuv){
     videoFrame->data[0] = (uint8_t *)nativeYuv;
     videoFrame->data[1] = (uint8_t *) nativeYuv + y_size;
     videoFrame->data[2] =(uint8_t *) nativeYuv + y_size * 5 / 4;
-    videoFrame->pts = cur_pts_v * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
+    videoFrame->pts = frame_video_index * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
+    cur_pts_v = videoFrame->pts;
     int got_picture = 0;
     int ret = avcodec_encode_video2(video_stream->codec, pkt_video, videoFrame, &got_picture);
     if(ret < 0){
@@ -174,24 +176,58 @@ int encodeYuv_(jbyte *nativeYuv){
         return -1;
     }
     if (got_picture == 1) {
-        //这一段还不怎么明白,不理解pts如何计算。r_frame_rate是干嘛用的，然后AV_TIME_BASE有啥作用。
-        pkt_video->stream_index = video_stream->index;
-        AVRational time_base = video_stream->time_base;
-        int64_t calc_duration = (double)AV_TIME_BASE / av_q2d(video_stream->r_frame_rate);
-        pkt_video->pts = (double)(frame_video_index*calc_duration) / (double)(av_q2d(time_base)*AV_TIME_BASE);
-        //dts 解码时间
-        pkt_video->dts=pkt_video->pts;
-        //间隔时间，需要除以时间基
-        pkt_video->duration = (double) calc_duration / (double)(av_q2d(time_base) * AV_TIME_BASE);
+        interleaved_write(pkt_video , NULL);
         frame_video_index ++;
+        //这一段还不怎么明白,不理解pts如何计算。r_frame_rate是干嘛用的，然后AV_TIME_BASE有啥作用。
+//        pkt_video->stream_index = video_stream->index;
+//        AVRational time_base = video_stream->time_base;
+//        pFrame->pts = frame_video_index * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
+//        int64_t calc_duration = (double)AV_TIME_BASE / av_q2d(video_stream->r_frame_rate);
+//        pkt_video->pts = (double)(frame_video_index*calc_duration) / (double)(av_q2d(time_base)*AV_TIME_BASE);
+//        //dts 解码时间
+//        pkt_video->dts=pkt_video->pts;
+//        //间隔时间，需要除以时间 AVStream 的时间基
+//        pkt_video->duration = (double) calc_duration / (double)(av_q2d(time_base) * AV_TIME_BASE);
+
     }
     return 1;
 }
 
 int encodePcm_(jbyte *nativePcm){
-
+    audioFrame->data[0] = (uint8_t *)nativePcm;
+    audioFrame->pts = cur_pts_a * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
     return 1;
 }
+
+
+int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
+
+    if(yuvPkt != NULL){
+        if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
+            printf( "Error muxing packet\n");
+        }
+        av_free_packet(yuvPkt);
+        yuvPkt = NULL;
+    }
+    else if(pcmPkt != NULL){
+        if (av_interleaved_write_frame(ofmt_ctx, pcmPkt) < 0) {
+            printf( "Error muxing packet\n");
+        }
+        av_free_packet(pcmPkt);
+        pcmPkt = NULL;
+    }
+    else{
+        return -1;
+    }
+    if(pcmPkt != NULL){
+        av_free_packet(pcmPkt);
+    }
+    if(yuvPkt != NULL){
+        av_free_packet(yuvPkt);
+    }
+    return 1;
+}
+
 
 int encode(jbyte *nativeYuv , jbyte *nativePcm){
     if(av_compare_ts(cur_pts_v ,video_stream->codec->time_base ,
