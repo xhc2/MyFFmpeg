@@ -184,8 +184,6 @@ int encodeYuv_(jbyte *nativeYuv){
         //间隔时间，需要除以时间基
         pkt_video->duration = (double) calc_duration / (double)(av_q2d(time_base) * AV_TIME_BASE);
         frame_video_index ++;
-//        ret = av_write_frame(ofmt_ctx, pkt_video);
-//        av_free_packet(pkt_video);
     }
     return 1;
 }

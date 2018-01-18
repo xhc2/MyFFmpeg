@@ -372,6 +372,10 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
 
                             //Duration between 2 frames (us) ， av_q2d-》就是将AVRational中的分子分母相除得一个小数
 
+                            /**
+                             * 一秒内有多少帧，这个就是帧之间的间隔是多少秒
+                             * AV_TIME_BASE是时间基，1s * AV_TIME_BASE = 就是pts对应的us（微秒）的时间
+                             */
                             int64_t calc_duration=(double)AV_TIME_BASE / av_q2d(in_stream->r_frame_rate);
 
                             LOGE("VIUDEO FRAME RATE %f , num = %d , den = %d " , av_q2d(in_stream->r_frame_rate) ,

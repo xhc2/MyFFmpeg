@@ -140,21 +140,24 @@ int initVideo(const char *ouputPath , int w , int h){
     LOGE(" pic_size %d ", pic_size);
 
     picture_buf = (uint8_t *) av_malloc(pic_size);
-
     /**
      * Setup the data pointers and linesizes based on the specified image parameters and the provided array.
      */
     avpicture_fill((AVPicture *) pFrame, picture_buf, video_st->codec->pix_fmt,
                    video_st->codec->width, video_st->codec->height);
 
-    pFrame->format = video_st->codec->pix_fmt;
-    pFrame->width  = video_st->codec->width;
-    pFrame->height = video_st->codec->height;
 
+
+    //write header 之后就把采样率，time_base写入了
+    /**
+     * 比如采样率是12800，就是一秒钟采集12800次，比如一秒25帧，那么一帧占的时间跨度就是 12800 / 25
+     */
     avformat_write_header(pOFC, NULL);
+    LOGE(" video_st time_base %d " , video_st->time_base.den);
     pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt, pic_size);
     y_size = video_st->codec->width * video_st->codec->height;
+
     return ret;
 }
 
@@ -178,6 +181,8 @@ int encodeCamera(jbyte *navtiveYuv){
     pFrame->data[0] = (uint8_t *)navtiveYuv;
     pFrame->data[1] = (uint8_t *) navtiveYuv + y_size;
     pFrame->data[2] =(uint8_t *) navtiveYuv + y_size * 5 / 4;
+//    int64_t duration = AV_TIME_BASE / video_st->time_base.den;
+    LOGE(" video_st->time_base.den %d , video_st->time_base.num %d " ,video_st->time_base.den ,video_st->time_base.num );
     pFrame->pts = framecnt * (video_st->time_base.den) / ((video_st->time_base.num) * 25);
 
     int got_picture = 0;
@@ -194,8 +199,10 @@ int encodeCamera(jbyte *navtiveYuv){
         pkt->stream_index = video_st->index;
         ret = av_write_frame(pOFC, pkt);
         av_free_packet(pkt);
+
+        framecnt++ ;
     }
-    framecnt++ ;
+
     return 0;
 }
 
