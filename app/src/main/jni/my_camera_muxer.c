@@ -117,6 +117,7 @@ int initMuxerVideo(){
 
     videoFrame = av_frame_alloc();
     int pic_size = avpicture_get_size(video_stream->codec->pix_fmt , video_stream->codec->width , video_stream->codec->height);
+
     videoFrame->format = video_stream->codec->pix_fmt;
     videoFrame->width = video_stream->codec->width;
     videoFrame->height = video_stream->codec->height;
@@ -148,7 +149,7 @@ int initMuxerAudio(){
     audio_stream->codec->codec_id = ofmt_ctx->oformat->audio_codec;
     audio_stream->codec->codec_type = AVMEDIA_TYPE_AUDIO;
     //这个好像不支持
-    audio_stream->codec->sample_fmt = AV_SAMPLE_FMT_U8;
+    audio_stream->codec->sample_fmt = AV_SAMPLE_FMT_FLTP;
     audio_stream->codec->sample_rate= 44100;
     audio_stream->codec->channel_layout = AV_CH_LAYOUT_MONO;
     audio_stream->codec->channels = av_get_channel_layout_nb_channels(audio_stream->codec->channel_layout);
@@ -160,25 +161,27 @@ int initMuxerAudio(){
         LOGE(" AUDIO CODE FAILD ");
         return -1;
     }
-    LOGE(" AUDIO CODE NAME = %s " , avCodec->name);
     if (avcodec_open2(audio_stream->codec, avCodec, NULL) < 0) {
         LOGE("Failed to open audio encoder! \n");
         return -1;
     }
-    LOGE("XHC AUDIO FORMAT NAME = %s " ,audio_stream->codec->codec_name );
-    LOGE(" AUDIO CODE SUCCESS %s" , avCodec->name);
     if(ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER){
         audio_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
-    LOGE("AUDIO TIME BASE %f   , den %d , num %d\"" , av_q2d(audio_stream->codec->time_base )
-    , audio_stream->codec->time_base.den , audio_stream->codec->time_base.num);
 
     audioFrame = av_frame_alloc();
     audioFrame->format = audio_stream->codec->sample_fmt;
+    audioFrame->nb_samples = audio_stream->codec->frame_size;
+    audioFrame->channel_layout = audio_stream->codec->channel_layout;
+    /* the codec gives us the frame size, in samples,
+     * we calculate the size of the samples buffer in bytes */
+    int buffer_size = av_samples_get_buffer_size(NULL, audio_stream->codec->->channels, audio_stream->codec->->frame_size ,
+                                                 audio_stream->codec->->sample_fmt, 0);
+
 
     pkt_audio = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt_audio, audio_size);
-
+    LOGE(" AUDIO SAMPLE %d " , audioFrame->nb_samples);
     return ret ;
 }
 
@@ -215,6 +218,7 @@ int encodeYuv_(jbyte *nativeYuv){
 int encodePcm_(jbyte *nativePcm){
     audioFrame->data[0] = (uint8_t *)nativePcm;
     audioFrame->pts = frame_audio_index * audioFrame->nb_samples;//cur_pts_a * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
+    LOGE("AUDIO PTS %lld" , audioFrame->pts);
     int got_audio = -1;
     int ret = -1;
     ret = avcodec_encode_audio2(audio_stream->codec , pkt_audio , audioFrame , &got_audio);
@@ -234,7 +238,7 @@ int encodePcm_(jbyte *nativePcm){
 int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
 
     if(yuvPkt != NULL){
-        LOGE(" WRITE YUVPKT ");
+        LOGE(" WRITE YUV PKT ");
         if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
             LOGE( "Error muxing packet\n");
         }
@@ -242,7 +246,7 @@ int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
         yuvPkt = NULL;
     }
     else if(pcmPkt != NULL){
-        LOGE(" WRITE PCMPKT ");
+        LOGE(" WRITE PCM PKT ");
         if (av_interleaved_write_frame(ofmt_ctx, pcmPkt) < 0) {
             LOGE( "Error muxing packet\n");
         }
