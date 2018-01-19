@@ -43,6 +43,7 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     y_size = width * height ;
     audio_size = aSize;
     av_register_all();
+    av_log_set_callback(custom_log);
     ret = avformat_alloc_output_context2(&ofmt_ctx , NULL , NULL , outputPath);
     if(ret < 0){
         LOGE(" OPEN AVFormatContext FAILD ");
@@ -68,7 +69,10 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
     LOGE("init_camera_muxer SUCCESS %s"  , ofmt->name);
 
-
+//    LOGE(" audio STREAM INDEX %d " , audio_stream->index);
+//    LOGE(" AUDIOFRAME nb_sample %d " , audioFrame->nb_samples );
+//    LOGE(" NUM_PKT %d  " , (44100 / audioFrame->nb_samples));
+//    LOGE(" audio_timebase.den %d ,audio_timebase.num %d " , audio_stream->time_base.den , audio_stream->time_base.num);
     return ret;
 }
 
@@ -96,9 +100,18 @@ int initMuxerVideo(){
 
     video_outindex = video_stream->index;
     LOGE(" VIDEO_OUTINDEX %d " , video_outindex);
+
+    AVCodec *avCodec = avcodec_find_encoder(video_stream->codec->codec_id );
+
+    if (avcodec_open2(video_stream->codec, avCodec, NULL) < 0) {
+        LOGE("Failed to open video encoder! \n");
+        return -1;
+    }
+
     if(ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER ){
         video_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
+
     LOGE("VIDEO TIME BASE %f  , den %d , num %d" , av_q2d(video_stream->codec->time_base ) ,
          video_stream->codec->time_base.den , video_stream->codec->time_base.num);
 
@@ -140,12 +153,18 @@ int initMuxerAudio(){
     audio_stream->codec->channels = av_get_channel_layout_nb_channels(audio_stream->codec->channel_layout);
     audio_stream->codec->bit_rate = 64000;
     audio_outindex = audio_stream->index;
-    LOGE("XHC AUDIO FORMAT NAME %s " ,audio_stream->codec->codec_name );
+
     AVCodec *avCodec = avcodec_find_encoder(audio_stream->codec->codec_id );
     if(avCodec == NULL){
         LOGE(" AUDIO CODE FAILD ");
         return -1;
     }
+    LOGE(" AUDIO CODE NAME = %s " , avCodec->name);
+    if (avcodec_open2(audio_stream->codec, avCodec, NULL) < 0) {
+        LOGE("Failed to open audio encoder! \n");
+        return -1;
+    }
+    LOGE("XHC AUDIO FORMAT NAME = %s " ,audio_stream->codec->codec_name );
     LOGE(" AUDIO CODE SUCCESS %s" , avCodec->name);
     if(ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER){
         audio_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
@@ -158,7 +177,6 @@ int initMuxerAudio(){
 
     pkt_audio = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt_audio, audio_size);
-    LOGE(" audio STREAM INDEX %d " , audio_stream->index);
 
     return ret ;
 }
@@ -195,7 +213,19 @@ int encodeYuv_(jbyte *nativeYuv){
 
 int encodePcm_(jbyte *nativePcm){
     audioFrame->data[0] = (uint8_t *)nativePcm;
-    audioFrame->pts = cur_pts_a * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
+    audioFrame->pts = frame_audio_index * audioFrame->nb_samples;//cur_pts_a * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
+    int got_audio = -1;
+    int ret = -1;
+    ret = avcodec_encode_audio2(audio_stream->codec , pkt_audio , audioFrame , &got_audio);
+    if(ret < 0){
+        LOGE(" ENCODE AUDIO FAILD !");
+        return -1;
+    }
+    if(got_audio == 1){
+        interleaved_write(NULL , pkt_audio);
+        frame_audio_index++;
+    }
+
     return 1;
 }
 
@@ -203,15 +233,17 @@ int encodePcm_(jbyte *nativePcm){
 int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
 
     if(yuvPkt != NULL){
+        LOGE(" WRITE YUVPKT ");
         if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
-            printf( "Error muxing packet\n");
+            LOGE( "Error muxing packet\n");
         }
         av_free_packet(yuvPkt);
         yuvPkt = NULL;
     }
     else if(pcmPkt != NULL){
+        LOGE(" WRITE PCMPKT ");
         if (av_interleaved_write_frame(ofmt_ctx, pcmPkt) < 0) {
-            printf( "Error muxing packet\n");
+            LOGE( "Error muxing packet\n");
         }
         av_free_packet(pcmPkt);
         pcmPkt = NULL;
