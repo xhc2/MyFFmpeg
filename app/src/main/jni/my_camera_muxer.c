@@ -147,9 +147,10 @@ int initMuxerAudio(){
     }
     audio_stream->codec->codec_id = ofmt_ctx->oformat->audio_codec;
     audio_stream->codec->codec_type = AVMEDIA_TYPE_AUDIO;
-    audio_stream->codec->sample_fmt = AV_SAMPLE_FMT_S16;
+    //这个好像不支持
+    audio_stream->codec->sample_fmt = AV_SAMPLE_FMT_U8;
     audio_stream->codec->sample_rate= 44100;
-    audio_stream->codec->channel_layout=AV_CH_LAYOUT_STEREO;
+    audio_stream->codec->channel_layout = AV_CH_LAYOUT_MONO;
     audio_stream->codec->channels = av_get_channel_layout_nb_channels(audio_stream->codec->channel_layout);
     audio_stream->codec->bit_rate = 64000;
     audio_outindex = audio_stream->index;
