@@ -139,6 +139,8 @@ int initMuxerVideo(){
 //http://ffmpeg.org/doxygen/3.2/structAVFrame.html#details
 //http://www.samirchen.com/ffmpeg-tutorial-5/ 参考pts博客
 //http://ffmpeg.org/doxygen/3.2/transcode__aac_8c_source.html#l00582 关于audio pts的处理
+//http://blog.csdn.net/XIAIBIANCHENG/article/details/72810495 s16 转 AV_SAMPLE_FMT_FLTP
+
 int initMuxerAudio(){
     int ret = -1 ;
     audio_stream  = avformat_new_stream(ofmt_ctx , 0);
@@ -148,7 +150,7 @@ int initMuxerAudio(){
     }
     audio_stream->codec->codec_id = ofmt_ctx->oformat->audio_codec;
     audio_stream->codec->codec_type = AVMEDIA_TYPE_AUDIO;
-    //这个好像不支持
+    //android 是输入s16格式，需要自己转换下
     audio_stream->codec->sample_fmt = AV_SAMPLE_FMT_FLTP;
     audio_stream->codec->sample_rate= 44100;
     audio_stream->codec->channel_layout = AV_CH_LAYOUT_MONO;
@@ -175,8 +177,8 @@ int initMuxerAudio(){
     audioFrame->channel_layout = audio_stream->codec->channel_layout;
     /* the codec gives us the frame size, in samples,
      * we calculate the size of the samples buffer in bytes */
-    int buffer_size = av_samples_get_buffer_size(NULL, audio_stream->codec->->channels, audio_stream->codec->->frame_size ,
-                                                 audio_stream->codec->->sample_fmt, 0);
+    int buffer_size = av_samples_get_buffer_size(NULL, audio_stream->codec->channels, audio_stream->codec->frame_size ,
+                                                 audio_stream->codec->sample_fmt, 0);
 
 
     pkt_audio = (AVPacket *) av_malloc(sizeof(AVPacket));
