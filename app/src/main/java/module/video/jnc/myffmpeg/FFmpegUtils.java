@@ -60,6 +60,7 @@ public class FFmpegUtils {
 
     public static native int closeMyMuxer();
 
-
-
+    public static native int init_audio_(String outputPath , int aSise);
+    public static native int encode_audio_(byte[] bytes);
+    public static native int close_audio_();
 }

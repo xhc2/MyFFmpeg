@@ -15,8 +15,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-
             >
+            <Button
+                android:id="@+id/audio_record"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="audio_record" />
             <Button
                 android:id="@+id/camera_ffmpeg"
                 android:layout_width="match_parent"

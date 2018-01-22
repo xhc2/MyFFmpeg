@@ -43,7 +43,8 @@
         <activity android:name=".EGLCamera.EGLCameraActivity" />
         <activity android:name=".MyRecordActivity" />
         <activity android:name=".TestActivity" />
-        <activity android:name=".MyNewRecordActivity"></activity>
+        <activity android:name=".MyNewRecordActivity" />
+        <activity android:name=".AudioRecordActivity"></activity>
     </application>
 
 </manifest>

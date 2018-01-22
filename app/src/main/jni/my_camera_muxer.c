@@ -1,7 +1,3 @@
-//
-// Created by dugang on 2018/1/15.
-//
-
 #include "my_camera_muxer.h"
 #include "My_LOG.h"
 #include <string.h>

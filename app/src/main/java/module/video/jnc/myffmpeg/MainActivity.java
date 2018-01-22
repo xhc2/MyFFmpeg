@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
             //创建文件夹
             rootFile.mkdirs();
         }
+
         findViewById(R.id.decode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -139,6 +140,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this , MyNewRecordActivity.class));
             }
         });
+        findViewById(R.id.audio_record).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  AudioRecordActivity.class));
+            }
+        });
+
 //        new Thread(new MyRunable()).start();
 
     }

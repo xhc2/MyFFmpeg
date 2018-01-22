@@ -21,6 +21,7 @@
 #include <my_muxer.h>
 #include <my_ffmpeg.h>
 #include <my_camera_muxer.h>
+#include <my_audio_record.h>
 
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative
         (JNIEnv *env, jclass clazz) {
@@ -267,13 +268,40 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeMyMuxerA
     (*env)->ReleaseByteArrayElements(env , pcmArray , navtiveYuv , JNI_ABORT);
     return ret;
 }
-JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyMuxer(JNIEnv *env, jclass clazz ,jbyteArray pcmArray){
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyMuxer(JNIEnv *env, jclass clazz ){
 
 
     return close_muxer();
 }
 
 
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_init_audio_(JNIEnv *env, jclass clazz ,jstring joutputPath ,  jint aSize){
+    int ret = 0;
+    const char *output_path= (*env)->GetStringUTFChars(env, joutputPath, NULL);
+    ret = init_audio(output_path , aSize);
+    (*env)->ReleaseStringUTFChars(env, joutputPath, output_path);
+
+    return ret ;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_close_audio_(JNIEnv *env, jclass clazz  ){
+
+
+    return close_audio();
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode_audio_(JNIEnv *env, jclass clazz ,jbyteArray pcmArray){
+
+    int ret = 0 ;
+    jboolean copy = JNI_FALSE;
+
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , pcmArray , &copy);
+    ret =  encode_audio_(navtiveYuv);
+    //0的意思是将内容复制过来，并释放原生数组
+    (*env)->ReleaseByteArrayElements(env , pcmArray , navtiveYuv , JNI_ABORT);
+
+    return ret;
+}
 
 
 
