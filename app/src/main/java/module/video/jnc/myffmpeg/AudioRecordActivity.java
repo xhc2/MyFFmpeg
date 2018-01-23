@@ -32,7 +32,7 @@ public class AudioRecordActivity extends AppCompatActivity {
 
 //        size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
         ar = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfiguration, EncodingBitRate, size);
-        FFmpegUtils.init_audio_(Constant.rootFile.getAbsolutePath() + "/my_audio_.aac" , size);
+        FFmpegUtils.initAudioRecord(Constant.rootFile.getAbsolutePath() + "/my_record_audio_.aac" , size);
 
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,8 +75,7 @@ public class AudioRecordActivity extends AppCompatActivity {
                 read = ar.read(buffer, 0, buffer.length);
                 Log.e("xhc", "read " + read);
                 if (AudioRecord.ERROR_INVALID_OPERATION != read) {
-//                    FFmpegUtils.encodePcm(buffer, buffer.length);
-                    FFmpegUtils.encodeMyMuxerAudio(buffer);
+                    FFmpegUtils.encodeAudioRecord(buffer);
                 }
             }
         }
@@ -86,7 +85,7 @@ public class AudioRecordActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         recordFlag = false;
-        FFmpegUtils.close_audio_();
+        FFmpegUtils.closeAudioRecord();
         releaseAudioRecord();
     }
 }

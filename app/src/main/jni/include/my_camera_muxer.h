@@ -18,5 +18,6 @@ int initMuxerAudio();
 int encodePcm_(jbyte *nativePcm);
 int encodeYuv_(jbyte *nativeYuv);
 int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt);
+int init_muxer_Sws();
 #endif //MYFFMPEG_MY_CAMERA_MUXER_H
 //Error:(18, 5) error: conflicting types for 'encodePcm'

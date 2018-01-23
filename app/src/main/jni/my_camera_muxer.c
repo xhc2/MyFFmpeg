@@ -14,6 +14,7 @@
 #include <libavfilter/buffersrc.h>
 #include <libavutil/opt.h>
 #include <libavutil/mathematics.h>
+#include <libswresample/swresample.h>
 
 int width ;
 int height ;
@@ -31,6 +32,9 @@ AVStream *video_stream;
 AVStream *audio_stream;
 int y_size = 0;
 AVPacket *pkt_video , *pkt_audio;
+SwrContext *swr;
+uint8_t *outs[2];
+//FILE *SRCFILE , *CONVERTFILE;
 
 int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     int ret = 0 ;
@@ -48,6 +52,7 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     ofmt = ofmt_ctx->oformat;
     initMuxerVideo();
     initMuxerAudio();
+    init_muxer_Sws();
     /**
    * AVFMT_NOFILE需要一个没有打开的File
    */
@@ -65,15 +70,11 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
     LOGE("init_camera_muxer SUCCESS %s"  , ofmt->name);
 
-//    LOGE(" audio STREAM INDEX %d " , audio_stream->index);
-//    LOGE(" AUDIOFRAME nb_sample %d " , audioFrame->nb_samples );
-//    LOGE(" NUM_PKT %d  " , (44100 / audioFrame->nb_samples));
-//    LOGE(" audio_timebase.den %d ,audio_timebase.num %d " , audio_stream->time_base.den , audio_stream->time_base.num);
     return ret;
 }
 
-//
 int initMuxerVideo(){
+
     int ret = -1 ;
     video_stream = avformat_new_stream(ofmt_ctx , 0 );
     if (video_stream == NULL) {
@@ -163,6 +164,7 @@ int initMuxerAudio(){
         LOGE("Failed to open audio encoder! \n");
         return -1;
     }
+
     if(ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER){
         audio_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
@@ -173,8 +175,8 @@ int initMuxerAudio(){
     audioFrame->channel_layout = audio_stream->codec->channel_layout;
     /* the codec gives us the frame size, in samples,
      * we calculate the size of the samples buffer in bytes */
-    int buffer_size = av_samples_get_buffer_size(NULL, audio_stream->codec->channels, audio_stream->codec->frame_size ,
-                                                 audio_stream->codec->sample_fmt, 0);
+//    int buffer_size = av_samples_get_buffer_size(NULL, audio_stream->codec->channels, audio_stream->codec->frame_size ,
+//                                                 audio_stream->codec->sample_fmt, 0);
 
 
     pkt_audio = (AVPacket *) av_malloc(sizeof(AVPacket));
@@ -182,6 +184,21 @@ int initMuxerAudio(){
     LOGE(" AUDIO SAMPLE %d " , audioFrame->nb_samples);
     return ret ;
 }
+//初始化格式转换器
+int init_muxer_Sws(){
+    swr = swr_alloc();
+    av_opt_set_int(swr, "in_channel_layout",  AV_CH_LAYOUT_MONO, 0);
+    av_opt_set_int(swr, "out_channel_layout", AV_CH_LAYOUT_MONO,  0);
+    av_opt_set_int(swr, "in_sample_rate",     16000, 0);
+    av_opt_set_int(swr, "out_sample_rate",    16000, 0);
+    av_opt_set_sample_fmt(swr, "in_sample_fmt",  AV_SAMPLE_FMT_S16, 0);
+    av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_FLTP,  0);
+    swr_init(swr);
+
+    outs[0]=(uint8_t *)malloc(audio_size);
+    outs[1]=(uint8_t *)malloc(audio_size);
+}
+
 
 int encodeYuv_(jbyte *nativeYuv){
     videoFrame->data[0] = (uint8_t *)nativeYuv;
@@ -198,25 +215,16 @@ int encodeYuv_(jbyte *nativeYuv){
     if (got_picture == 1) {
         interleaved_write(pkt_video , NULL);
         frame_video_index ++;
-        //这一段还不怎么明白,不理解pts如何计算。r_frame_rate是干嘛用的，然后AV_TIME_BASE有啥作用。
-//        pkt_video->stream_index = video_stream->index;
-//        AVRational time_base = video_stream->time_base;
-//        pFrame->pts = frame_video_index * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
-//        int64_t calc_duration = (double)AV_TIME_BASE / av_q2d(video_stream->r_frame_rate);
-//        pkt_video->pts = (double)(frame_video_index*calc_duration) / (double)(av_q2d(time_base)*AV_TIME_BASE);
-//        //dts 解码时间
-//        pkt_video->dts=pkt_video->pts;
-//        //间隔时间，需要除以时间 AVStream 的时间基
-//        pkt_video->duration = (double) calc_duration / (double)(av_q2d(time_base) * AV_TIME_BASE);
-
     }
     return 1;
 }
 
 int encodePcm_(jbyte *nativePcm){
-    audioFrame->data[0] = (uint8_t *)nativePcm;
-    audioFrame->pts = frame_audio_index * audioFrame->nb_samples;//cur_pts_a * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
-    LOGE("AUDIO PTS %lld" , audioFrame->pts);
+    int count = swr_convert(swr,&outs , audio_size * 2 , &nativePcm ,audio_size / 2);
+    audioFrame->data[0] =(uint8_t*)outs[0];
+    audioFrame->data[1] =(uint8_t*)outs[1];
+    audioFrame->pts = frame_audio_index * audioFrame->nb_samples;
+    cur_pts_a = audioFrame->pts;
     int got_audio = -1;
     int ret = -1;
     ret = avcodec_encode_audio2(audio_stream->codec , pkt_audio , audioFrame , &got_audio);
@@ -235,25 +243,26 @@ int encodePcm_(jbyte *nativePcm){
 
 int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
 
-    if(yuvPkt != NULL){
-        LOGE(" WRITE YUV PKT ");
-        if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
-            LOGE( "Error muxing packet\n");
+
+        //写视频
+        if(yuvPkt != NULL){
+            LOGE(" WRITE YUV PKT ");
+
+            if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
+                LOGE( "Error muxing packet\n");
+            }
+            av_free_packet(yuvPkt);
+            yuvPkt = NULL;
         }
-        av_free_packet(yuvPkt);
-        yuvPkt = NULL;
-    }
-    else if(pcmPkt != NULL){
-        LOGE(" WRITE PCM PKT ");
-        if (av_interleaved_write_frame(ofmt_ctx, pcmPkt) < 0) {
-            LOGE( "Error muxing packet\n");
+        else if(pcmPkt != NULL){
+            LOGE(" WRITE PCM PKT ");
+
+            if (av_interleaved_write_frame(ofmt_ctx, pcmPkt) < 0) {
+                LOGE( "Error muxing PCM packet\n");
+            }
+            av_free_packet(pcmPkt);
+            pcmPkt = NULL;
         }
-        av_free_packet(pcmPkt);
-        pcmPkt = NULL;
-    }
-    else{
-        return -1;
-    }
     if(pcmPkt != NULL){
         av_free_packet(pcmPkt);
     }

@@ -226,13 +226,6 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodePcm(JNIE
 }
 
 
-//public static native int initMyCameraMuxer(String outputPath , int width , int height , int aSize);
-//
-//                     public static native int encodeMyMuxerCamera(byte[] bytes);
-//
-//                     public static native int encodeMyMuxerAudio(byte[] bytes);
-//
-//                     public static native int closeMyMuxer();
 
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_initMyCameraMuxer(JNIEnv *env, jclass clazz ,
                                                                                     jstring joutputPath , jint width , jint height , jint aSize){
@@ -275,22 +268,23 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyMuxer(J
 }
 
 
-JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_init_audio_(JNIEnv *env, jclass clazz ,jstring joutputPath ,  jint aSize){
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_initAudioRecord(JNIEnv *env, jclass clazz ,
+                                                                                     jstring joutputPath , jint aSize){
     int ret = 0;
     const char *output_path= (*env)->GetStringUTFChars(env, joutputPath, NULL);
+    LOGE(" OUTPUT_PATH %s , " , output_path);
     ret = init_audio(output_path , aSize);
     (*env)->ReleaseStringUTFChars(env, joutputPath, output_path);
 
     return ret ;
 }
 
-JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_close_audio_(JNIEnv *env, jclass clazz  ){
-
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeAudioRecord(JNIEnv *env, jclass clazz  ){
 
     return close_audio();
 }
 
-JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encode_audio_(JNIEnv *env, jclass clazz ,jbyteArray pcmArray){
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeAudioRecord(JNIEnv *env, jclass clazz ,jbyteArray pcmArray){
 
     int ret = 0 ;
     jboolean copy = JNI_FALSE;

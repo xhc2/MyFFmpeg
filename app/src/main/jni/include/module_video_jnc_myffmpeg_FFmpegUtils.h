@@ -59,6 +59,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_transcodeing
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_myInit(JNIEnv *, jclass ,jstring outputVStr , int width , int height);
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyFFmpeg(JNIEnv * , jclass  );
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeCamera(JNIEnv *env, jclass clazz  , jbyteArray yuvArray);
+
+
 #ifdef __cplusplus
 }
 #endif

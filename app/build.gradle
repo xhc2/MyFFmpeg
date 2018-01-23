@@ -12,7 +12,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters 'armeabi'
+            abiFilters 'armeabi' /*, 'armeabi-v7a'*/
         }
     }
     //屏蔽gradle的jni生成过程，在cmd中运行ndk-build ，然后再生成so文件。android.mk生效
@@ -31,6 +31,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    //利用gradle来编译jni，不然就用cmd中自己去编译
     externalNativeBuild {
         ndkBuild {
             path 'src/main/jni/Android.mk'

@@ -52,8 +52,7 @@ public class MyNewRecordActivity extends AppCompatActivity {
                 camera.setPreviewCallback(new Camera.PreviewCallback() {
                     @Override
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
-
-//                        FFmpegUtils.nv21ToYv12(bytes);
+                        Log.e("xhc_jni" , "get camera frame");
                         FFmpegUtils.encodeMyMuxerCamera(bytes);
                         findViewById(R.id.bt_start).setEnabled(false);
                     }
