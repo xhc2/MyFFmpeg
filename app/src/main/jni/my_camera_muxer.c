@@ -213,6 +213,8 @@ int encodeYuv_(jbyte *nativeYuv){
         return -1;
     }
     if (got_picture == 1) {
+        LOGE(" video DTS %lld  , pts %lld" , pkt_video->dts , pkt_video->pts);
+
         interleaved_write(pkt_video , NULL);
         frame_video_index ++;
     }
@@ -233,6 +235,8 @@ int encodePcm_(jbyte *nativePcm){
         return -1;
     }
     if(got_audio == 1){
+        LOGE(" AUDIO DTS %lld  , pts %lld" , pkt_audio->dts , pkt_audio->pts);
+
         interleaved_write(NULL , pkt_audio);
         frame_audio_index++;
     }
@@ -240,7 +244,7 @@ int encodePcm_(jbyte *nativePcm){
     return 1;
 }
 
-
+//http://ffmpeg.org/doxygen/3.2/tests_2movenc_8c_source.html#l00246 可以参考下
 int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
 
 
