@@ -213,7 +213,9 @@ int encodeYuv_(jbyte *nativeYuv){
         return -1;
     }
     if (got_picture == 1) {
+//        pkt_video->duration = pkt_video->
         LOGE(" video DTS %lld  , pts %lld" , pkt_video->dts , pkt_video->pts);
+        LOGE(" video duration %lld " , pkt_video->duration);
 
         interleaved_write(pkt_video , NULL);
         frame_video_index ++;
@@ -236,7 +238,7 @@ int encodePcm_(jbyte *nativePcm){
     }
     if(got_audio == 1){
         LOGE(" AUDIO DTS %lld  , pts %lld" , pkt_audio->dts , pkt_audio->pts);
-
+        LOGE(" AUDIO duration %lld " , pkt_audio->duration);
         interleaved_write(NULL , pkt_audio);
         frame_audio_index++;
     }
@@ -278,8 +280,11 @@ int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
 
 
 int encode(jbyte *nativeYuv , jbyte *nativePcm){
-    if(av_compare_ts(cur_pts_v ,video_stream->codec->time_base ,
-                     cur_pts_a , audio_stream->codec->time_base ) <= 0){
+
+    int writeVideo = av_compare_ts(cur_pts_v ,video_stream->codec->time_base ,
+                                   cur_pts_a , audio_stream->codec->time_base );
+    LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , cur_pts_v  , cur_pts_a , writeVideo);
+    if( writeVideo <= 0){
         if(nativeYuv != NULL){
             LOGE("write video ");
             encodeYuv_(nativeYuv);

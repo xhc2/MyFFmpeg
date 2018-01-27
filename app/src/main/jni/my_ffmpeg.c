@@ -199,7 +199,6 @@ int encodeCamera(jbyte *navtiveYuv){
         pkt->stream_index = video_st->index;
         ret = av_write_frame(pOFC, pkt);
         av_free_packet(pkt);
-
         framecnt++ ;
     }
 

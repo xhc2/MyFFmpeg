@@ -348,11 +348,20 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
         AVFormatContext *ifmt_ctx;
         int stream_index = 0;
         AVStream *in_stream , *out_stream;
+
         //比较，是先写视频帧还是写音频帧，不然会出现音视频不同步的现象
+
+        LOGE("muxer cur_pts_v = %lld , ifmt_ctx_v->streams[videoindex_v]->time_base.num = %d , ifmt_ctx_v->streams[videoindex_v]->time_base.den = %d" ,
+             cur_pts_v , ifmt_ctx_v->streams[videoindex_v]->time_base.num  ,ifmt_ctx_v->streams[videoindex_v]->time_base.den);
+
+        LOGE("muxer cur_pts_a = %lld , ifmt_ctx_a->streams[audioindex_a]->time_base.num = %d , ifmt_ctx_a->streams[audioindex_a]->time_base.den = %d" ,
+             cur_pts_a ,  ifmt_ctx_a->streams[audioindex_a]->time_base.num  , ifmt_ctx_a->streams[audioindex_a]->time_base.den);
+
         if(av_compare_ts(cur_pts_v,
                          ifmt_ctx_v->streams[videoindex_v]->time_base,
                          cur_pts_a,
                          ifmt_ctx_a->streams[audioindex_a]->time_base) <= 0){
+
             LOGE("  write video  ");
             ifmt_ctx = ifmt_ctx_v;
             stream_index = videoindex_out;
@@ -415,7 +424,7 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
                     in_stream  = ifmt_ctx->streams[pkt.stream_index];
                     out_stream = ofmt_ctx->streams[stream_index];
 
-                    if(pkt.stream_index==audioindex_a){
+                    if(pkt.stream_index == audioindex_a){
 
                         //FIX：No PTS
                         //Simple Write PTS
@@ -431,7 +440,6 @@ int muxer(const char* output_path , const char *input_v_path , const char *input
                             frame_index++;
                         }
                         cur_pts_a=pkt.pts;
-
                         break;
                     }
                 }while(av_read_frame(ifmt_ctx, &pkt) >= 0);
