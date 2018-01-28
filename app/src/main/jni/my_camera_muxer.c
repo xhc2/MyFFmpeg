@@ -88,9 +88,9 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
 
     return ret;
 }
-
-int initMuxerVideo(){
-
+enum AVRounding AVROUNDING2;
+        int initMuxerVideo(){
+     AVROUNDING2 = AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX ;
     int ret = -1 ;
     video_stream = avformat_new_stream(ofmt_ctx , 0 );
     if (video_stream == NULL) {
@@ -231,6 +231,7 @@ int encodeYuv_(jbyte *nativeYuv){
     if (got_picture == 1) {
         pkt_video->stream_index = my_video_stream_index;
         av_bitstream_filter_filter(my_h264bsfc, video_stream->codec, NULL, &pkt_video->data, &pkt_video->size,pkt_video->data, pkt_video->size, 0);
+//        pkt_video->pts = av_rescale_q_rnd(pkt_video->pts , AV_TIME_BASE , video_stream->time_base, AVROUNDING2);
         interleaved_write(pkt_video , NULL);
         frame_video_index ++;
     }
