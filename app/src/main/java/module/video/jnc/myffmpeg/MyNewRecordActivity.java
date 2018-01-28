@@ -10,6 +10,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
 
 /**
@@ -30,6 +33,11 @@ public class MyNewRecordActivity extends AppCompatActivity {
 
     private static int EncodingBitRate = AudioFormat.ENCODING_PCM_16BIT;    //音频数据格式：脉冲编码调制（PCM）每个样品16位
 
+    private static List<byte[]> listVideo = new ArrayList<>();
+    private static List<byte[]> listAudio = new ArrayList<>();
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +46,6 @@ public class MyNewRecordActivity extends AppCompatActivity {
         fl = findViewById(R.id.container);
         cm = new CameraManeger();
         size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
-        Log.e("xhc", " min size " + size);
         ar = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfiguration, EncodingBitRate, size);
         camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this, camera);
@@ -49,17 +56,47 @@ public class MyNewRecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startReocrdAudio();
+                startWriteBufferThread();
+                startDealAudio();
                 camera.setPreviewCallback(new Camera.PreviewCallback() {
                     @Override
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
-                        Log.e("xhc_jni" , "get camera frame");
-                        FFmpegUtils.encodeMyMuxerCamera(bytes);
-                        findViewById(R.id.bt_start).setEnabled(false);
+                        listVideo.add(bytes);
                     }
                 });
+                findViewById(R.id.bt_start).setEnabled(false);
             }
         });
     }
+
+    private class WriteBufferThread extends Thread{
+
+        public boolean flag = false;
+        @Override
+        public void run() {
+            super.run();
+
+            while (flag){
+                if(!listVideo.isEmpty()){
+                    FFmpegUtils.encodeMyMuxerCamera(listVideo.remove(0));
+                }
+            }
+        }
+    }
+
+    WriteBufferThread wbt ;
+
+    private void startWriteBufferThread(){
+        wbt = new WriteBufferThread();
+        wbt.flag = true;
+        wbt.start();
+    }
+    private void stopWriteBufferThread(){
+        if(wbt != null){
+            wbt.flag = false;
+        }
+    }
+
 
     private void startReocrdAudio() {
         if (ar.getState() == AudioRecord.STATE_INITIALIZED) {
@@ -88,19 +125,43 @@ public class MyNewRecordActivity extends AppCompatActivity {
         public void run() {
             super.run();
             byte[] buffer = new byte[size];
-
             int read = 0;
             while (recordFlag) {
                 read = ar.read(buffer, 0, buffer.length);
                 Log.e("xhc", "read " + read);
                 if (AudioRecord.ERROR_INVALID_OPERATION != read) {
-//                    FFmpegUtils.encodePcm(buffer, buffer.length);
-                    FFmpegUtils.encodeMyMuxerAudio(buffer);
+                    listAudio.add(buffer);
                 }
             }
         }
     }
 
+    class DealAudioThread extends Thread{
+        boolean flag = false;
+        @Override
+        public void run() {
+            super.run();
+            while(flag){
+                if(!listAudio.isEmpty()){
+                    FFmpegUtils.encodeMyMuxerAudio(listAudio.remove(0));
+                }
+            }
+        }
+    }
+
+
+    DealAudioThread daThread ;
+    private void startDealAudio(){
+        daThread = new DealAudioThread();
+        daThread.flag = true;
+        daThread.start();
+    }
+
+    private void stopDealAudio(){
+        if(daThread != null){
+            daThread.flag = false;
+        }
+    }
     @Override
     protected void onStop() {
         super.onStop();
@@ -109,5 +170,7 @@ public class MyNewRecordActivity extends AppCompatActivity {
         cm.closeCamera();
         FFmpegUtils.closeMyMuxer();
         releaseAudioRecord();
+        stopWriteBufferThread();
+        stopDealAudio();
     }
 }

@@ -21,9 +21,11 @@ int height ;
 int audio_size ;
 AVOutputFormat *ofmt = NULL;
 AVFormatContext *ofmt_ctx ;
-int video_outindex = -1 , audio_outindex = -1;
+int my_video_stream_index = -1 ;
+int my_audio_stream_index = -1;
 //保存码流的pts
 int64_t cur_pts_v = 0 , cur_pts_a = 0;
+int64_t video_duration  , audio_duration;
 int frame_video_index , frame_audio_index;
 AVBitStreamFilterContext *h264bsfc;
 AVBitStreamFilterContext *aacbsfc ;
@@ -70,6 +72,17 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
     LOGE("init_camera_muxer SUCCESS %s"  , ofmt->name);
 
+
+
+    for(int i = 0 ;i < ofmt_ctx->nb_streams ; ++ i){
+        if(ofmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO){
+            LOGE("video media index %d " , i);
+        }
+        else if(ofmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO){
+            LOGE("audio media index %d " , i);
+        }
+    }
+
     return ret;
 }
 
@@ -94,10 +107,10 @@ int initMuxerVideo(){
     //最小视频量化标度，设定最小质量。
     video_stream->codec->qmin = 30;
     video_stream->codec->qmax = 51;
-
-    video_outindex = video_stream->index;
-    LOGE(" VIDEO_OUTINDEX %d " , video_outindex);
-
+    video_duration = video_stream->time_base.den / 25;
+    my_video_stream_index = video_stream->index;
+    LOGE(" VIDEO_OUTINDEX %d " , my_video_stream_index);
+    LOGE(" video_duration %lld " ,video_duration );
     AVCodec *avCodec = avcodec_find_encoder(video_stream->codec->codec_id );
 
     if (avcodec_open2(video_stream->codec, avCodec, NULL) < 0) {
@@ -137,7 +150,6 @@ int initMuxerVideo(){
 //http://www.samirchen.com/ffmpeg-tutorial-5/ 参考pts博客
 //http://ffmpeg.org/doxygen/3.2/transcode__aac_8c_source.html#l00582 关于audio pts的处理
 //http://blog.csdn.net/XIAIBIANCHENG/article/details/72810495 s16 转 AV_SAMPLE_FMT_FLTP
-
 int initMuxerAudio(){
     int ret = -1 ;
     audio_stream  = avformat_new_stream(ofmt_ctx , 0);
@@ -153,7 +165,9 @@ int initMuxerAudio(){
     audio_stream->codec->channel_layout = AV_CH_LAYOUT_MONO;
     audio_stream->codec->channels = av_get_channel_layout_nb_channels(audio_stream->codec->channel_layout);
     audio_stream->codec->bit_rate = 64000;
-    audio_outindex = audio_stream->index;
+    my_audio_stream_index = audio_stream->index;
+    audio_duration = 1024 * audio_stream->time_base.den / audio_stream->codec->sample_rate;
+    LOGE(" audio_stream_index %d " , my_audio_stream_index );
 
     AVCodec *avCodec = avcodec_find_encoder(audio_stream->codec->codec_id );
     if(avCodec == NULL){
@@ -177,8 +191,6 @@ int initMuxerAudio(){
      * we calculate the size of the samples buffer in bytes */
 //    int buffer_size = av_samples_get_buffer_size(NULL, audio_stream->codec->channels, audio_stream->codec->frame_size ,
 //                                                 audio_stream->codec->sample_fmt, 0);
-
-
     pkt_audio = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt_audio, audio_size);
     LOGE(" AUDIO SAMPLE %d " , audioFrame->nb_samples);
@@ -206,6 +218,7 @@ int encodeYuv_(jbyte *nativeYuv){
     videoFrame->data[2] =(uint8_t *) nativeYuv + y_size * 5 / 4;
     videoFrame->pts = frame_video_index * (video_stream->time_base.den) / ((video_stream->time_base.num) * 25);
     cur_pts_v = videoFrame->pts;
+    pkt_video->dts = cur_pts_v;
     int got_picture = 0;
     int ret = avcodec_encode_video2(video_stream->codec, pkt_video, videoFrame, &got_picture);
     if(ret < 0){
@@ -213,10 +226,7 @@ int encodeYuv_(jbyte *nativeYuv){
         return -1;
     }
     if (got_picture == 1) {
-//        pkt_video->duration = pkt_video->
-        LOGE(" video DTS %lld  , pts %lld" , pkt_video->dts , pkt_video->pts);
-        LOGE(" video duration %lld " , pkt_video->duration);
-
+        pkt_video->stream_index = my_video_stream_index;
         interleaved_write(pkt_video , NULL);
         frame_video_index ++;
     }
@@ -224,11 +234,13 @@ int encodeYuv_(jbyte *nativeYuv){
 }
 
 int encodePcm_(jbyte *nativePcm){
+
     int count = swr_convert(swr,&outs , audio_size * 2 , &nativePcm ,audio_size / 2);
     audioFrame->data[0] =(uint8_t*)outs[0];
     audioFrame->data[1] =(uint8_t*)outs[1];
     audioFrame->pts = frame_audio_index * audioFrame->nb_samples;
     cur_pts_a = audioFrame->pts;
+    pkt_audio->dts = cur_pts_a;
     int got_audio = -1;
     int ret = -1;
     ret = avcodec_encode_audio2(audio_stream->codec , pkt_audio , audioFrame , &got_audio);
@@ -237,8 +249,7 @@ int encodePcm_(jbyte *nativePcm){
         return -1;
     }
     if(got_audio == 1){
-        LOGE(" AUDIO DTS %lld  , pts %lld" , pkt_audio->dts , pkt_audio->pts);
-        LOGE(" AUDIO duration %lld " , pkt_audio->duration);
+        pkt_audio->stream_index = my_audio_stream_index;
         interleaved_write(NULL , pkt_audio);
         frame_audio_index++;
     }
@@ -255,10 +266,9 @@ int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
             LOGE(" WRITE YUV PKT ");
 
             if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
-                LOGE( "Error muxing packet\n");
+                LOGE( "Error muxing yuv packet\n");
             }
             av_free_packet(yuvPkt);
-            yuvPkt = NULL;
         }
         else if(pcmPkt != NULL){
             LOGE(" WRITE PCM PKT ");
@@ -267,32 +277,39 @@ int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
                 LOGE( "Error muxing PCM packet\n");
             }
             av_free_packet(pcmPkt);
-            pcmPkt = NULL;
         }
+
     if(pcmPkt != NULL){
         av_free_packet(pcmPkt);
     }
+
     if(yuvPkt != NULL){
         av_free_packet(yuvPkt);
+
     }
     return 1;
 }
 
+int tempIndex = 0;
 
 int encode(jbyte *nativeYuv , jbyte *nativePcm){
+    //这里永远都是等于1，不知道为什么。 http://blog.csdn.net/dancing_night/article/details/46472477
+
+//    tempIndex ++;测试代码
+//    int writeVideo = tempIndex % 2 == 0 ? 0 : 1;
 
     int writeVideo = av_compare_ts(cur_pts_v ,video_stream->codec->time_base ,
                                    cur_pts_a , audio_stream->codec->time_base );
+
     LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , cur_pts_v  , cur_pts_a , writeVideo);
+
     if( writeVideo <= 0){
         if(nativeYuv != NULL){
-            LOGE("write video ");
             encodeYuv_(nativeYuv);
         }
     }
     else {
         if(nativePcm != NULL){
-            LOGE("write audio ");
             encodePcm_(nativePcm);
         }
     }
@@ -315,5 +332,6 @@ int encodeAudio_muxer(jbyte *nativePcm){
 
 int close_muxer(){
     LOGE("CLOSE_CAMERA_MUXER");
+    av_write_trailer(ofmt_ctx);
     return 1;
 }

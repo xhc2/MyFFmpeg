@@ -41,7 +41,9 @@ AVPacket *pkt;
 int y_size;
 FILE *oFile;
 FILE *aFile;
-
+int gop_size;
+//两个帧中间的时间
+int duration ;
 int init(const char *ouputPath , int w , int h){
     av_register_all();
     av_log_set_callback(custom_log);
@@ -102,7 +104,7 @@ int initVideo(const char *ouputPath , int w , int h){
         LOGE(" video_st FAILD !");
         return -1;
     }
-
+    gop_size = 100;
     video_st->codec->codec_id = pOFC->oformat->video_codec;
     video_st->codec->codec_type = AVMEDIA_TYPE_VIDEO;
     video_st->codec->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -110,12 +112,13 @@ int initVideo(const char *ouputPath , int w , int h){
     video_st->codec->height = height;
     video_st->codec->bit_rate = 400000;
     //设置图像组的大小，表示两个i帧之间的间隔
-    video_st->codec->gop_size = 100;
+    video_st->codec->gop_size = gop_size;
     video_st->codec->time_base.num = 1;
     video_st->codec->time_base.den = 25;
     //最小视频量化标度，设定最小质量。
     video_st->codec->qmin = 30;
     video_st->codec->qmax = 51;
+
 
     pCodec = avcodec_find_encoder(video_st->codec->codec_id);
 
@@ -146,14 +149,15 @@ int initVideo(const char *ouputPath , int w , int h){
     avpicture_fill((AVPicture *) pFrame, picture_buf, video_st->codec->pix_fmt,
                    video_st->codec->width, video_st->codec->height);
 
-
-
-    //write header 之后就把采样率，time_base写入了
+    //
     /**
+     * write header 之后就把采样率，time_base写入了
      * 比如采样率是12800，就是一秒钟采集12800次，比如一秒25帧，那么一帧占的时间跨度就是 12800 / 25
      */
     avformat_write_header(pOFC, NULL);
     LOGE(" video_st time_base %d " , video_st->time_base.den);
+    duration = video_st->time_base.den / 30;
+    LOGE(" duration %d " , duration);
     pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt, pic_size);
     y_size = video_st->codec->width * video_st->codec->height;
@@ -181,9 +185,7 @@ int encodeCamera(jbyte *navtiveYuv){
     pFrame->data[0] = (uint8_t *)navtiveYuv;
     pFrame->data[1] = (uint8_t *) navtiveYuv + y_size;
     pFrame->data[2] =(uint8_t *) navtiveYuv + y_size * 5 / 4;
-//    int64_t duration = AV_TIME_BASE / video_st->time_base.den;
-    LOGE(" video_st->time_base.den %d , video_st->time_base.num %d " ,video_st->time_base.den ,video_st->time_base.num );
-    pFrame->pts = framecnt * (video_st->time_base.den) / ((video_st->time_base.num) * 25);
+    pFrame->pts = framecnt * duration;
 
     int got_picture = 0;
 
@@ -197,6 +199,16 @@ int encodeCamera(jbyte *navtiveYuv){
     if (got_picture == 1) {
         LOGE(" ENCODE success %d", framecnt);
         pkt->stream_index = video_st->index;
+        pkt->duration = duration;
+        pkt->dts = pkt->pts;
+        if(framecnt % gop_size == 0){
+            //I 帧
+            pkt->flags |= AV_PKT_FLAG_KEY;
+            pkt->pts = pkt->dts + duration;
+
+        }
+
+
         ret = av_write_frame(pOFC, pkt);
         av_free_packet(pkt);
         framecnt++ ;
