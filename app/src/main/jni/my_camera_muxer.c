@@ -27,8 +27,8 @@ int my_audio_stream_index = -1;
 int64_t cur_pts_v = 0 , cur_pts_a = 0;
 int64_t video_duration  , audio_duration;
 int frame_video_index , frame_audio_index;
-AVBitStreamFilterContext *h264bsfc;
-AVBitStreamFilterContext *aacbsfc ;
+//AVBitStreamFilterContext *h264bsfc;
+//AVBitStreamFilterContext *aacbsfc ;
 AVFrame *videoFrame , *audioFrame;
 AVStream *video_stream;
 AVStream *audio_stream;
@@ -68,8 +68,8 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
         LOGE("write_header faild ");
         return -1;
     }
-    h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
-    aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
+//    h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
+//    aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
     LOGE("init_camera_muxer SUCCESS %s"  , ofmt->name);
 
 
@@ -101,12 +101,13 @@ int initMuxerVideo(){
     video_stream->codec->height = height;
     video_stream->codec->bit_rate = 400000;
     //设置图像组的大小，表示两个i帧之间的间隔
-    video_stream->codec->gop_size = 100;
+    video_stream->codec->gop_size = 30;
     video_stream->codec->time_base.num = 1;
     video_stream->codec->time_base.den = 25;
     //最小视频量化标度，设定最小质量。
     video_stream->codec->qmin = 30;
     video_stream->codec->qmax = 51;
+
     video_duration = video_stream->time_base.den / 25;
     my_video_stream_index = video_stream->index;
     LOGE(" VIDEO_OUTINDEX %d " , my_video_stream_index);
@@ -300,7 +301,7 @@ int encode(jbyte *nativeYuv , jbyte *nativePcm){
 
     int writeVideo = av_compare_ts(cur_pts_v ,video_stream->codec->time_base ,
                                    cur_pts_a , audio_stream->codec->time_base );
-
+    writeVideo = 0;
     LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , cur_pts_v  , cur_pts_a , writeVideo);
 
     if( writeVideo <= 0){
