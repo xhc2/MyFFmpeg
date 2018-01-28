@@ -27,8 +27,9 @@ int my_audio_stream_index = -1;
 int64_t cur_pts_v = 0 , cur_pts_a = 0;
 int64_t video_duration  , audio_duration;
 int frame_video_index , frame_audio_index;
-//AVBitStreamFilterContext *h264bsfc;
-//AVBitStreamFilterContext *aacbsfc ;
+AVBitStreamFilterContext * my_h264bsfc;
+AVBitStreamFilterContext * my_aacbsfc ;
+
 AVFrame *videoFrame , *audioFrame;
 AVStream *video_stream;
 AVStream *audio_stream;
@@ -51,6 +52,8 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
         LOGE(" OPEN AVFormatContext FAILD ");
         return -1 ;
     }
+    my_h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
+    my_aacbsfc =  av_bitstream_filter_init("aac_adtstoasc");
     ofmt = ofmt_ctx->oformat;
     initMuxerVideo();
     initMuxerAudio();
@@ -112,13 +115,14 @@ int initMuxerVideo(){
     my_video_stream_index = video_stream->index;
     LOGE(" VIDEO_OUTINDEX %d " , my_video_stream_index);
     LOGE(" video_duration %lld " ,video_duration );
+
     AVCodec *avCodec = avcodec_find_encoder(video_stream->codec->codec_id );
 
     if (avcodec_open2(video_stream->codec, avCodec, NULL) < 0) {
         LOGE("Failed to open video encoder! \n");
         return -1;
     }
-
+    LOGE(" vidoe codec name %s" , video_stream->codec->codec_name);
     if(ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER ){
         video_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
@@ -142,8 +146,6 @@ int initMuxerVideo(){
 
     pkt_video = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_new_packet(pkt_video, pic_size);
-    LOGE(" VIDEO STREAM INDEX %d " , video_stream->index);
-    LOGE(" FRAME RATE %f ，%d , %d " , av_q2d(video_stream->r_frame_rate) ,video_stream->r_frame_rate.den , video_stream->r_frame_rate.num);
     return ret ;
 }
 
@@ -228,6 +230,7 @@ int encodeYuv_(jbyte *nativeYuv){
     }
     if (got_picture == 1) {
         pkt_video->stream_index = my_video_stream_index;
+        av_bitstream_filter_filter(my_h264bsfc, video_stream->codec, NULL, &pkt_video->data, &pkt_video->size,pkt_video->data, pkt_video->size, 0);
         interleaved_write(pkt_video , NULL);
         frame_video_index ++;
     }
@@ -251,6 +254,7 @@ int encodePcm_(jbyte *nativePcm){
     }
     if(got_audio == 1){
         pkt_audio->stream_index = my_audio_stream_index;
+        av_bitstream_filter_filter(my_aacbsfc, audio_stream->codec, NULL, &pkt_audio->data, &pkt_audio->size,pkt_audio->data, pkt_audio->size, 0);
         interleaved_write(NULL , pkt_audio);
         frame_audio_index++;
     }
@@ -301,7 +305,7 @@ int encode(jbyte *nativeYuv , jbyte *nativePcm){
 
     int writeVideo = av_compare_ts(cur_pts_v ,video_stream->codec->time_base ,
                                    cur_pts_a , audio_stream->codec->time_base );
-    writeVideo = 0;
+//    writeVideo = 0;
     LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , cur_pts_v  , cur_pts_a , writeVideo);
 
     if( writeVideo <= 0){
