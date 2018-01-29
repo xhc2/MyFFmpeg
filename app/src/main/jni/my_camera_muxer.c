@@ -15,7 +15,7 @@
 #include <libavutil/opt.h>
 #include <libavutil/mathematics.h>
 #include <libswresample/swresample.h>
-
+//http://blog.csdn.net/bixinwei22/article/details/78779259
 int width ;
 int height ;
 int audio_size ;
