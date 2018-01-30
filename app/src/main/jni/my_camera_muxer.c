@@ -249,6 +249,7 @@ int encodePcm_(jbyte *nativePcm){
     int got_audio = -1;
     int ret = -1;
     ret = avcodec_encode_audio2(audio_stream->codec , pkt_audio , audioFrame , &got_audio);
+
     if(ret < 0){
         LOGE(" ENCODE AUDIO FAILD !");
         return -1;
@@ -269,6 +270,7 @@ int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
 
         //写视频
         if(yuvPkt != NULL){
+
             LOGE(" WRITE YUV PKT ");
 
             if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {

@@ -1,0 +1,17 @@
+
+ffmpeg 的学习过程笔记，会往其中放思维导图。
+
+1.解码（将mp4文件视频数据解码成yuv等原始数据，对应的思维导图是mydecode.png）：
+AVFormatContext ：封装格式的容器 e.gMP4
+AVCodecContext ：编解码中的相关数据
+AVCodec ：存储编解码器的结构体
+AVFrame ：用来存储原始数据 视频的就是yuv，音频的就是pcm
+如果视频原始数据AV_PIX_FMT_YUV420P 就是平面格式的（yyyy uu vv yv12） ,(yyyy uu vv nv21)。
+但是我的锤子手机使用yv12最后拿到的yuv原始数据是nv12才能正确解析出来。
+当如果发现你解析出来的界面蓝绿色对调了问题就是你的uv数据放反了。
+如果是花屏了就是你的原始数据和解码器对应错了。比如你yv12的原始yuv数据，然后用nv12来解析，就是花屏
+
+其他：malloc_usable_size（*）查看实际分配的内存大小
+
+
+2.编码
