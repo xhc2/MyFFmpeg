@@ -23,3 +23,40 @@ AVOutputFormat:对输出文件格式的抽象
 通过av_guess_format创建AVOutputFormat
 使用   AVFormatContext->oformat = AVOutputFormat;来关联
 avpicture_fill，为AvFrame来关联一个缓冲区，然后Avframe中的data[4]其实就是指向这个缓冲区的不同地方。要看你是原始数据的格式方式。
+
+
+3.关于ffmepg中pts，dts，time_base中的问题：
+先以视频帧来理解
+pts就是视频显示的时间
+dts就是被解码的时间
+time_base ，就是一秒钟的一个，比如视频是一秒钟25帧，那么time_base就是=（1,25）=1/25;
+如果是吧时间分成90000份，那么就是1/90000秒，此时的time_base={1,90000};
+所以pts就是占多少个时间格子
+在ffmpeg中有av_q2d(time_base),就是把分数转换成小数的
+pts * av_q2d(time_base)才是帧的显示时间戳。
+AVStream->duration就是这个视频流有多长
+AVStream->duration * av_q2d(time_base) = time就是这个视频的长度（秒）
+ffmpeg内部的时间和标准的时间转换就是一个AV_TIME_BASE
+比如ffmepg内部的时间 = time * AV_TIME_BASE;
+
+av_rescale_q(int64_t a, AVRational bq, AVRational cq) 这个是时间基的转换函数a * bq / cq
+比如计算的时间他会有avcodec的时间基，读取的instream有时间基，写入文件的时候有outstream的时间基等等。都需要转换
+
+
+4.音频录制（通过设备拿到pcm原始数据转换成aac存在本地）：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
