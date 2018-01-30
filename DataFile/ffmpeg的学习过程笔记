@@ -1,11 +1,14 @@
 
 ffmpeg 的学习过程笔记，会往其中放思维导图。
 
-1.解码（将mp4文件视频数据解码成yuv等原始数据，对应的思维导图是mydecode.png）：
+1.解码（将mp4文件视频数据解码成yuv等原始数据，对应的思维导图是 mydecode.png）：
 AVFormatContext ：封装格式的容器 e.gMP4
-AVCodecContext ：编解码中的相关数据
-AVCodec ：存储编解码器的结构体
+AVCodecContext ：编解码中的相关数据，编解码格式的抽象
+AVCodec ：存储编解码器的结构体，编解码器
+AVStream 对流的抽象
 AVFrame ：用来存储原始数据 视频的就是yuv，音频的就是pcm
+AVOutputFormat:对输出文件格式的抽象
+
 如果视频原始数据AV_PIX_FMT_YUV420P 就是平面格式的（yyyy uu vv yv12） ,(yyyy uu vv nv21)。
 但是我的锤子手机使用yv12最后拿到的yuv原始数据是nv12才能正确解析出来。
 当如果发现你解析出来的界面蓝绿色对调了问题就是你的uv数据放反了。
@@ -14,4 +17,9 @@ AVFrame ：用来存储原始数据 视频的就是yuv，音频的就是pcm
 其他：malloc_usable_size（*）查看实际分配的内存大小
 
 
-2.编码
+2.编码：（将yuv数据编码成h264文件，对应的思维导图是 my_encode_yuv_2_h264.png）
+这里记录下导图中没有体现的细节
+通过avformat_alloc_context创建的AVFormatContext
+通过av_guess_format创建AVOutputFormat
+使用   AVFormatContext->oformat = AVOutputFormat;来关联
+avpicture_fill，为AvFrame来关联一个缓冲区，然后Avframe中的data[4]其实就是指向这个缓冲区的不同地方。要看你是原始数据的格式方式。

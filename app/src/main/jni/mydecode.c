@@ -384,6 +384,8 @@ int encodeYuv(char *input_str, char *output_str) {
                                       video_st->codec->height);
     LOGE(" pic_size %d ", pic_size);
     uint8_t *picture_buf = (uint8_t *) av_malloc(pic_size);
+
+    //为avframe挂上一个缓冲空间
     avpicture_fill((AVPicture *) pFrame, picture_buf, video_st->codec->pix_fmt,
                    video_st->codec->width, video_st->codec->height);
 
