@@ -22,6 +22,7 @@ import module.video.jnc.myffmpeg.opengl.OpenglActivity;
  * https://www.gitbook.com/book/xdsnet/other-doc-cn-ffmpeg/details 中文文档
  * http://blog.51cto.com/ticktick/category17.html
  * http://blog.csdn.net/u011913612/article/list/2
+ * http://www.iqiyi.com/playlist442489402.html 视频教程
  * 1.将视频和音频分离，再复用。（比如a视频的画面，b的声音）
  * 2.推流：rtmp
  * 3.水印：时间戳，图片
