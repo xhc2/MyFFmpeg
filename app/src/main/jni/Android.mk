@@ -40,7 +40,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
-LOCAL_SRC_FILES := ffmpeg.c my_stream.c mydecode.c filter.c my_log.c filter_video.c swscale.c my_muxer.c my_ffmpeg.c my_camera_muxer.c my_audio_reocrd.c
+LOCAL_SRC_FILES := ffmpeg.c my_stream.c mydecode.c filter.c my_log.c filter_video.c swscale.c my_muxer.c my_ffmpeg.c my_new_camera_muxer.c my_audio_reocrd.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_LDLIBS := -llog -lz
 LOCAL_SHARED_LIBRARIES := avcodec avdevice avfilter avformat avutil swresample swscale
