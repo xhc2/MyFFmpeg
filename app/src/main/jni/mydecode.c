@@ -273,6 +273,7 @@ int encode_h264(char *input_str, char *output_str) {
                 LOGE(" got pic faild ");
                 return -1;
             }
+
             pFrameFLV->data[0] = pFrameMP4->data[0];
             pFrameFLV->data[1] = pFrameMP4->data[1];
             pFrameFLV->data[2] = pFrameMP4->data[2];

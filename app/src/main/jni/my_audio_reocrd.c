@@ -78,7 +78,7 @@ int init_Sws(){
     av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_FLTP,  0);
     swr_init(swr);
 
-    outs[0]=(uint8_t *)malloc(audio_size);//len 为4096
+    outs[0]=(uint8_t *)malloc(audio_size);
     outs[1]=(uint8_t *)malloc(audio_size);
 }
 
@@ -109,6 +109,7 @@ int initAudio_record(){
         LOGE("Failed to open audio encoder! \n");
         return -1;
     }
+
     if(ofmt_ctx_audio->oformat->flags & AVFMT_GLOBALHEADER){
         audio_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
@@ -117,6 +118,9 @@ int initAudio_record(){
     audioFrame->format = audio_stream->codec->sample_fmt;
     audioFrame->nb_samples = audio_stream->codec->frame_size;
     audioFrame->channel_layout = audio_stream->codec->channel_layout;
+//    avcodec_fill_audio_frame(audioFrame ,audio_stream->codec->channels ,audio_stream->codec->sample_fmt ,outs_16,
+//                             audio_size,  0 );
+
     /* the codec gives us the frame size, in samples,
      * we calculate the size of the samples buffer in bytes */
 //    int buffer_size = av_samples_get_buffer_size(NULL, audio_stream->codec->channels, audio_stream->codec->frame_size ,
@@ -149,9 +153,9 @@ int encode_audio_(jbyte *nativepcm){
     int ret = 1 ;
     LOGE("ENCODE_AUDIO_");
 //    fwrite(nativepcm , 1 , audio_size , SRCFILE);
-    int count = swr_convert(swr,&outs , audio_size * 2 , &nativepcm ,audio_size / 2);
-    audioFrame->data[0] =(uint8_t*)outs[0];//audioFrame 是VFrame
-    audioFrame->data[1] =(uint8_t*)outs[1];
+    int count = swr_convert(swr , &outs , audio_size * 2 , &nativepcm ,audio_size / 2);
+    audioFrame->data[0] = outs[0];
+    audioFrame->data[1] = outs[1];
     /**
      * 一秒钟有num_pkt packet , 一个packet不止一帧
      * num_pkt = 采样率 / nb_samples;

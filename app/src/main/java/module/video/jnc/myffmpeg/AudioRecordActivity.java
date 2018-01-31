@@ -30,7 +30,7 @@ public class AudioRecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_record);
 
-//        size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
+        size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
         ar = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfiguration, EncodingBitRate, size);
         FFmpegUtils.initAudioRecord(Constant.rootFile.getAbsolutePath() + "/my_record_audio_.aac" , size);
 
