@@ -148,9 +148,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this,  AudioRecordActivity.class));
             }
         });
-
-//        new Thread(new MyRunable()).start();
-
     }
     byte[] b ={1 , 2 , 3};
     class MyRunable implements Runnable{
