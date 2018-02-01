@@ -23,10 +23,9 @@ public class MyNewRecordActivity extends AppCompatActivity {
     private FrameLayout fl;
     private CameraManeger cm;
     private AudioRecord ar;
-    private int size;
     private boolean recordFlag = false;
     Camera camera;
-
+    private int size = 2048;
     private static int frequency = 44100;
 
     private static int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;//单声道
@@ -45,7 +44,7 @@ public class MyNewRecordActivity extends AppCompatActivity {
 
         fl = findViewById(R.id.container);
         cm = new CameraManeger();
-        size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
+//        size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
         ar = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfiguration, EncodingBitRate, size);
         camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this, camera);

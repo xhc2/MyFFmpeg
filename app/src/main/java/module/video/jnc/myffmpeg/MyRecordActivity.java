@@ -32,13 +32,9 @@ public class MyRecordActivity extends AppCompatActivity {
     Camera camera;
 
     private static int frequency = 44100;
-
     private static int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;//单声道
-
     private static int EncodingBitRate = AudioFormat.ENCODING_PCM_16BIT;    //音频数据格式：脉冲编码调制（PCM）每个样品16位
-
     private static List<byte[]> list = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
