@@ -45,7 +45,7 @@ public class CameraManeger {
     }
 
     public Camera OpenCamera(){
-        mCamera = Camera.open(CAMERA_FACING_FRONT);
+        mCamera = Camera.open(CAMERA_FACING_BACK);
         mCamera.setDisplayOrientation(90);
         Camera.Parameters params = mCamera.getParameters();
         params.setPreviewSize(width, height );

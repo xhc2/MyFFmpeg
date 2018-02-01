@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
@@ -32,8 +33,8 @@ public class MyNewRecordActivity extends AppCompatActivity {
 
     private static int EncodingBitRate = AudioFormat.ENCODING_PCM_16BIT;    //音频数据格式：脉冲编码调制（PCM）每个样品16位
 
-    private static List<byte[]> listVideo = new ArrayList<>();
-    private static List<byte[]> listAudio = new ArrayList<>();
+    private static List<byte[]> listVideo = new LinkedList<>();
+    private static List<byte[]> listAudio = new LinkedList<>();
 
 
 
@@ -77,9 +78,11 @@ public class MyNewRecordActivity extends AppCompatActivity {
 
             while (flag){
                 if(!listVideo.isEmpty()){
-                    byte[] bytes = listVideo.remove(0);
+                    byte[] bytes = listVideo.get(0);
                     FFmpegUtils.nv21ToYv12(bytes);
-                    FFmpegUtils.encodeMyMuxerCamera(bytes);
+                    if(FFmpegUtils.encodeMyMuxerCamera(bytes) > 0){
+                        listVideo.remove(0);
+                    }
                 }
             }
         }
@@ -144,7 +147,9 @@ public class MyNewRecordActivity extends AppCompatActivity {
             super.run();
             while(flag){
                 if(!listAudio.isEmpty()){
-                    FFmpegUtils.encodeMyMuxerAudio(listAudio.remove(0));
+                    if(FFmpegUtils.encodeMyMuxerAudio(listAudio.get(0)) > 0){
+                        listAudio.remove(0);
+                    }
                 }
             }
         }

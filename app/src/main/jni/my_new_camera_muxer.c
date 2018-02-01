@@ -112,7 +112,7 @@ int initMuxerVideo() {
     }
     AVCodecContext *vCodeContext = video_stream->codec;
     vCodeContext->codec_type = AVMEDIA_TYPE_VIDEO;
-    vCodeContext->bit_rate = 400000;
+    vCodeContext->bit_rate = 600000;
     vCodeContext->width = width;
     vCodeContext->height = height;
     vCodeContext->time_base.den = 25;
@@ -121,10 +121,10 @@ int initMuxerVideo() {
     vCodeContext->pix_fmt = AV_PIX_FMT_YUV420P;
     vCodeContext->qmin = 10;
     vCodeContext->qmax = 51;
-//    vCodeContext->qcompress = 0.6f;
-//    vCodeContext->max_b_frames = 0;
-    video_stream->time_base.den = 90000;
-    video_stream->time_base.num = 1;
+    vCodeContext->qcompress = 0.6f;
+    vCodeContext->max_b_frames = 0;
+//    video_stream->time_base.den = 90000;
+//    video_stream->time_base.num = 1;
     ret = avcodec_open2(video_stream->codec, avVideoCode, NULL);
     if (ret < 0) {
         LOGE(" VIDEO AVCODE OPEN FAILD !");
@@ -220,7 +220,7 @@ int encode(jbyte *nativeYuv , jbyte *nativePcm){
     int writeVideo = av_compare_ts(video_last_pts ,video_stream->time_base ,
                                    audio_last_pts , audio_stream->time_base );
     LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , video_last_pts  , audio_last_pts , writeVideo);
-
+//    writeVideo =-1;
     if( writeVideo <= 0){
         if(nativeYuv != NULL){
             encodeYuv_(nativeYuv);
@@ -264,7 +264,6 @@ int encodeYuv_(jbyte *nativeYuv){
 }
 
 int encodePcm_(jbyte *nativePcm){
-
     int ret ;
     int count = swr_convert(swr, &outs, audio_size * 2, &nativePcm, audio_size / 2);
     audio_frame->data[0] = outs[0];
@@ -280,7 +279,6 @@ int encodePcm_(jbyte *nativePcm){
         audioPacket.stream_index = audio_stream->index;
         audio_last_pts = audio_frame->pts;
         interleaved_write(  NULL ,  &audioPacket);
-//        av_write_frame(ofmt_ctx, &audioPacket);
         av_free_packet(&audioPacket);
         audioFrameCount++;
     }
@@ -289,7 +287,6 @@ int encodePcm_(jbyte *nativePcm){
 
 int encodeCamera_muxer(jbyte *nativeYuv) {
     int ret = encode(nativeYuv , NULL);
-
     return ret;
 }
 
