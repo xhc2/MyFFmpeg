@@ -202,7 +202,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_nv21ToYv12(JNI
 
     jboolean flag = JNI_FALSE;
     int length = (*env)->GetArrayLength(env,yuvArray); //获取长度
-    LOGE("YUV LENGTH %d " , length);
+//    LOGE("YUV LENGTH %d " , length);
     jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , yuvArray , &flag);
     nv21ToYv12(navtiveYuv);
     //0的意思是将内容复制过来，并释放原生数组

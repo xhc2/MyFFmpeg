@@ -29,12 +29,21 @@ int video_gop_size = 20;
 SwrContext *swr;
 uint8_t *outs[2];
 int y_size;
+AVFrame *video_frame;
+int videoFrameCount = 0;
+int audioFrameCount = 0;
+AVPacket videoPacket;
+AVPacket audioPacket;
+int64_t video_last_pts ,audio_last_pts;
+
 int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     int ret = 0;
     mp4_output_path = outputPath;
     width = w ;
     height = h;
     y_size = w * h ;
+    audio_size = aSize;
+    LOGE("W %d , h %d ,y_size %d" , w , h , y_size);
     av_register_all();
     av_log_set_callback(custom_log);
 //    ofmt = av_guess_format(NULL , outputPath , NULL);
@@ -73,6 +82,9 @@ int init_camera_muxer(const char *outputPath , int w , int h , int aSize){
     }
 
     ret = avformat_write_header(ofmt_ctx , NULL);
+    av_init_packet(&audioPacket);
+    av_init_packet(&videoPacket);
+
 
     if(ret < 0){
         LOGE(" WRITE HEADER FAILD !");
@@ -107,8 +119,8 @@ int initMuxerVideo(){
     vCodeContext->pix_fmt = AV_PIX_FMT_YUV420P;
     vCodeContext->qmin = 10;
     vCodeContext->qmax = 51;
-    vCodeContext->qcompress = 0.6f;
-    vCodeContext->max_b_frames = 0;
+//    vCodeContext->qcompress = 0.6f;
+//    vCodeContext->max_b_frames = 0;
     video_stream->time_base.den = 90000;
     video_stream->time_base.num = 1;
     ret = avcodec_open2(video_stream->codec , avVideoCode , NULL);
@@ -116,14 +128,27 @@ int initMuxerVideo(){
         LOGE(" VIDEO AVCODE OPEN FAILD !");
         return -1;
     }
-    AVFrame *pFrame = av_frame_alloc();
+    video_frame = av_frame_alloc();
+    video_frame->format = video_stream->codec->pix_fmt;
+    video_frame->width  = video_stream->codec->width;
+    video_frame->height = video_stream->codec->height;
+//    uint8_t *data[4];
+//    int linesize[4]; //这个不知道怎么使用。有问题
+//    ret = av_image_fill_arrays(data , linesize , NULL , video_stream->codec->pix_fmt , width , height ,0);
 
-    pFrame->format = video_stream->codec->pix_fmt;
-    pFrame->width  = video_stream->codec->width;
-    pFrame->height = video_stream->codec->height;
-    uint8_t *data[4];
-    int linesize[4];
-    ret = av_image_fill_arrays(data , linesize , NULL , video_stream->codec->pix_fmt , width , height ,0);
+
+    int pic_size = avpicture_get_size(video_stream->codec->pix_fmt, video_stream->codec->width,
+                                      video_stream->codec->height);
+
+    LOGE(" pic_size %d ", pic_size);
+
+    uint8_t *picture_buf = (uint8_t *) av_malloc(pic_size);
+    /**
+     * Setup the data pointers and linesizes based on the specified image parameters and the provided array.
+     */
+    avpicture_fill((AVPicture *) video_frame, picture_buf, video_stream->codec->pix_fmt,
+                   video_stream->codec->width, video_stream->codec->height);
+
     if(ret < 0){
         LOGE(" AVIMAGE FILL ARRAY FAILD !");
         return -1;
@@ -165,6 +190,7 @@ int initMuxerAudio(){
     LOGE(" INIT AUDIO MUXER SUCCESS !");
     return 1;
 }
+
 int init_muxer_Sws(){
     swr = swr_alloc();
     av_opt_set_int(swr, "in_channel_layout",  AV_CH_LAYOUT_MONO, 0);
@@ -177,13 +203,28 @@ int init_muxer_Sws(){
     outs[0]=(uint8_t *)malloc(audio_size);
     outs[1]=(uint8_t *)malloc(audio_size);
 }
-//int encodePcm_(jbyte *nativePcm){
-//    return 1;
-//}
-//int encodeYuv_(jbyte *nativeYuv){
-//    return -1;
-//}
+
 int encodeCamera_muxer(jbyte *nativeYuv){
+    video_frame->data[0] = (uint8_t *)nativeYuv;
+    video_frame->data[1] = (uint8_t *) nativeYuv + y_size;
+    video_frame->data[2] =(uint8_t *) nativeYuv + y_size * 5 / 4;
+    int got_picture;
+    if(avcodec_encode_video2(video_stream->codec , &videoPacket ,video_frame , &got_picture ) < 0){
+        LOGE("ENCODE VIDEO FAILD ！");
+        return -1;
+    }
+    if(got_picture == 1){
+            videoPacket.duration = av_rescale_q(1, video_stream->codec->time_base, video_stream->time_base);
+            videoPacket.pts = videoFrameCount * videoPacket.duration;
+            videoPacket.dts = videoPacket.pts;
+            videoPacket.stream_index = video_stream->index;
+            LOGE("duration %lld , video pts %lld " ,  videoPacket.duration  ,videoPacket.pts );
+            video_last_pts = videoPacket.pts;
+//        interleaved_write(&videoPacket , NULL);
+        av_write_frame(ofmt_ctx , &videoPacket);
+        av_free_packet(&videoPacket);
+        videoFrameCount ++;
+    }
 
     return -1;
 }
@@ -195,9 +236,24 @@ int encodeAudio_muxer(jbyte *nativePcm){
 }
 
 int close_muxer(){
+    av_write_trailer(ofmt_ctx);
+    LOGE("CLOSE SUCCESS ");
     return -1;
 }
 int interleaved_write(AVPacket *yuvPkt , AVPacket *pcmPkt){
+    if(av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0){
+        LOGE(" WRITE VIDEO_FRAME FAILD ! ");
+        return -1;
+    }
+
+    if(yuvPkt != NULL){
+        av_free_packet(&videoPacket);
+    }
+
+    if(pcmPkt != NULL){
+        av_free_packet(pcmPkt);
+    }
+
     return -1;
 }
 
