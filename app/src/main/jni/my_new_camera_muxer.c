@@ -153,6 +153,7 @@ int initMuxerVideo(){
         LOGE(" AVIMAGE FILL ARRAY FAILD !");
         return -1;
     }
+
     // some formats want stream headers to be separate
     if (ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER)
         ofmt_ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
