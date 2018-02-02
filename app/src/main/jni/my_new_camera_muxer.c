@@ -25,7 +25,7 @@ AVCodec *avVideoCode;
 AVStream *video_stream;
 AVCodec *avAudioCode;
 AVStream *audio_stream;
-int video_gop_size = 20;
+int video_gop_size = 12;
 SwrContext *swr;
 uint8_t *outs[2];
 int y_size;
@@ -49,6 +49,7 @@ int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
     av_log_set_callback(custom_log);
 //    ofmt = av_guess_format(NULL , outputPath , NULL);
     ret = avformat_alloc_output_context2(&ofmt_ctx, NULL, NULL, outputPath);
+
     if (ret < 0) {
         LOGE("AVFormatContext ALLOC CONTEXT FAILD !");
         return -1;
@@ -59,6 +60,7 @@ int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
         return -1;
     }
     if (ofmt->audio_codec != AV_CODEC_ID_NONE) {
+
         ret = initMuxerAudio();
         init_muxer_Sws();
         if (ret < 0) {
@@ -101,6 +103,7 @@ int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
 int initMuxerVideo() {
     int ret = 0;
     avVideoCode = avcodec_find_encoder(ofmt->video_codec);
+    LOGE(" VIDEO CODE NAME %s" , avVideoCode->name);
     if (avVideoCode == NULL) {
         LOGE("FIND VIDEO CODE FAILD!");
         return -1;
@@ -123,8 +126,8 @@ int initMuxerVideo() {
     vCodeContext->qmax = 51;
     vCodeContext->qcompress = 0.6f;
     vCodeContext->max_b_frames = 0;
-//    video_stream->time_base.den = 90000;
-//    video_stream->time_base.num = 1;
+    video_stream->time_base.den = 90000;
+    video_stream->time_base.num = 1;
     ret = avcodec_open2(video_stream->codec, avVideoCode, NULL);
     if (ret < 0) {
         LOGE(" VIDEO AVCODE OPEN FAILD !");
@@ -134,6 +137,11 @@ int initMuxerVideo() {
     video_frame->format = video_stream->codec->pix_fmt;
     video_frame->width = video_stream->codec->width;
     video_frame->height = video_stream->codec->height;
+    AVBitStreamFilterContext* mpeg4bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
+    if(mpeg4bsfc == NULL){
+        LOGE("mpeg4bsfc FAILD !");
+        return -1;
+    }
 //    uint8_t *data[4];
 //    int linesize[4]; //这个不知道怎么使用。有问题
 //    ret = av_image_fill_arrays(data , linesize , NULL , video_stream->codec->pix_fmt , width , height ,0);
@@ -215,7 +223,6 @@ int init_muxer_Sws() {
 
 
 int encode(jbyte *nativeYuv , jbyte *nativePcm){
-    //这里永远都是等于1，不知道为什么。 http://blog.csdn.net/dancing_night/article/details/46472477
 //    LOGE("codec %d");
     int writeVideo = av_compare_ts(video_last_pts ,video_stream->time_base ,
                                    audio_last_pts , audio_stream->time_base );
@@ -305,6 +312,7 @@ int close_muxer() {
 
 int interleaved_write(AVPacket *yuvPkt, AVPacket *pcmPkt) {
     if(yuvPkt != NULL){
+
         if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
             LOGE(" WRITE VIDEO_FRAME FAILD ! ");
             return -1;
