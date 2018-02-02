@@ -36,7 +36,7 @@ int audioFrameCount = 0;
 AVPacket videoPacket;
 AVPacket audioPacket;
 int64_t video_last_pts, audio_last_pts;
-
+AVBitStreamFilterContext* h264bsfc;
 int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
     int ret = 0;
     mp4_output_path = outputPath;
@@ -76,6 +76,7 @@ int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
     }
 
     if (ofmt->subtitle_codec != AV_CODEC_ID_NONE) {
+
     }
 
     if (!(ofmt->flags & AVFMT_NOFILE)) {
@@ -84,12 +85,12 @@ int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
             return -1;
         }
     }
-
+    h264bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
     ret = avformat_write_header(ofmt_ctx, NULL);
     av_init_packet(&audioPacket);
     av_init_packet(&videoPacket);
-
-
+    //打印信息到log文件中
+    av_dump_format(ofmt_ctx, 0, outputPath, 1);
     if (ret < 0) {
         LOGE(" WRITE HEADER FAILD !");
         return -1;
@@ -137,11 +138,11 @@ int initMuxerVideo() {
     video_frame->format = video_stream->codec->pix_fmt;
     video_frame->width = video_stream->codec->width;
     video_frame->height = video_stream->codec->height;
-    AVBitStreamFilterContext* mpeg4bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
-    if(mpeg4bsfc == NULL){
-        LOGE("mpeg4bsfc FAILD !");
-        return -1;
-    }
+//    AVBitStreamFilterContext* mpeg4bsfc =  av_bitstream_filter_init("h264_mp4toannexb");
+//    if(mpeg4bsfc == NULL){
+//        LOGE("mpeg4bsfc FAILD !");
+//        return -1;
+//    }
 //    uint8_t *data[4];
 //    int linesize[4]; //这个不知道怎么使用。有问题
 //    ret = av_image_fill_arrays(data , linesize , NULL , video_stream->codec->pix_fmt , width , height ,0);
@@ -192,6 +193,7 @@ int initMuxerAudio() {
     audio_context->sample_rate = 44100;
     audio_context->sample_fmt = AV_SAMPLE_FMT_FLTP;//*avAudioCode->sample_fmts;
     ret = avcodec_open2(audio_context, avAudioCode, NULL);
+    LOGE(" AUDIO CODE NAME %s" ,avAudioCode->name );
     if (ret < 0) {
         LOGE(" avcodec_open2 AUDIO FAILD ! ");
         return -1;

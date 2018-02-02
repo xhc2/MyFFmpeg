@@ -50,7 +50,7 @@ public class MyNewRecordActivity extends AppCompatActivity {
         camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this, camera);
         fl.addView(cp);
-        FFmpegUtils.initMyCameraMuxer(Constant.rootFile.getAbsolutePath() + "/my_new_camera.MP4", CameraManeger.width, CameraManeger.height , size);
+        FFmpegUtils.initMyCameraMuxer(Constant.rootFile.getAbsolutePath() + "/my_new_camera.mp4", CameraManeger.width, CameraManeger.height , size);
 
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
