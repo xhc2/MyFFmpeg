@@ -79,7 +79,6 @@ public class MyNewRecordActivity extends AppCompatActivity {
             while (flag){
                 if(!listVideo.isEmpty()){
                     byte[] bytes = listVideo.get(0);
-                    FFmpegUtils.nv21ToYv12(bytes);
                     if(FFmpegUtils.encodeMyMuxerCamera(bytes) > 0){
                         listVideo.remove(0);
                     }

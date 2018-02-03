@@ -15,6 +15,7 @@
 #include <libavutil/opt.h>
 #include <libavutil/mathematics.h>
 #include <libswresample/swresample.h>
+#include <my_utils.h>
 //http://blog.csdn.net/bixinwei22/article/details/78779259
 
 AVOutputFormat *ofmt = NULL;
@@ -37,12 +38,14 @@ AVPacket videoPacket;
 AVPacket audioPacket;
 int64_t video_last_pts, audio_last_pts;
 AVBitStreamFilterContext* h264bsfc;
+//FILE *srcYuv ;
 int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
     int ret = 0;
     mp4_output_path = outputPath;
     width = w;
     height = h;
     y_size = w * h;
+//    srcYuv = fopen("sdcard/FFmpeg/my_new_camera.yuv" , "wb+");
     audio_size = aSize;
     LOGE("W %d , h %d ,y_size %d", w, h, y_size);
     av_register_all();
@@ -126,7 +129,7 @@ int initMuxerVideo() {
     vCodeContext->qmin = 10;
     vCodeContext->qmax = 51;
     vCodeContext->qcompress = 0.6f;
-    vCodeContext->max_b_frames = 0;
+    vCodeContext->max_b_frames = 2;
     video_stream->time_base.den = 90000;
     video_stream->time_base.num = 1;
     ret = avcodec_open2(video_stream->codec, avVideoCode, NULL);
@@ -227,9 +230,8 @@ int init_muxer_Sws() {
 int encode(jbyte *nativeYuv , jbyte *nativePcm){
 //    LOGE("codec %d");
     int writeVideo = av_compare_ts(video_last_pts ,video_stream->time_base ,
-                                   audio_last_pts , audio_stream->time_base );
+                                   audio_last_pts , audio_stream->codec->time_base );
     LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , video_last_pts  , audio_last_pts , writeVideo);
-//    writeVideo =-1;
     if( writeVideo <= 0){
         if(nativeYuv != NULL){
             encodeYuv_(nativeYuv);
@@ -250,9 +252,12 @@ int encode(jbyte *nativeYuv , jbyte *nativePcm){
 }
 
 int encodeYuv_(jbyte *nativeYuv){
+
+    utils_nv21ToYv12(nativeYuv ,y_size);
     video_frame->data[0] = (uint8_t *) nativeYuv;
     video_frame->data[1] = (uint8_t *) nativeYuv + y_size;
     video_frame->data[2] = (uint8_t *) nativeYuv + y_size * 5 / 4;
+//    fwrite(nativeYuv , 1 ,y_size * 3 / 2 , srcYuv );
     int got_picture;
     if (avcodec_encode_video2(video_stream->codec, &videoPacket, video_frame, &got_picture) < 0) {
         LOGE("ENCODE VIDEO FAILD ！");
@@ -308,6 +313,7 @@ int encodeAudio_muxer(jbyte *nativePcm) {
 
 int close_muxer() {
     av_write_trailer(ofmt_ctx);
+//    fclose(srcYuv);
     LOGE("CLOSE SUCCESS ");
     return -1;
 }
@@ -338,8 +344,6 @@ int interleaved_write(AVPacket *yuvPkt, AVPacket *pcmPkt) {
 
     return -1;
 }
-
-
 
 
 
