@@ -22,6 +22,7 @@
 #include <my_ffmpeg.h>
 #include <my_camera_muxer.h>
 #include <my_audio_record.h>
+#include <my_new_camera_muxer_filter.h>
 
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative
         (JNIEnv *env, jclass clazz) {
@@ -296,7 +297,15 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeAudioRec
 
     return ret;
 }
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_filterCameraInit(JNIEnv *env, jclass clazz ,jstring joutputPath ){
 
+    int ret = 0 ;
+    const char *output_path= (*env)->GetStringUTFChars(env, joutputPath, NULL);
+    LOGE(" OUTPUT_PATH %s , " , output_path);
+    ret = init_camera_filter(output_path);
+    (*env)->ReleaseStringUTFChars(env, joutputPath, output_path);
+    return ret;
+}
 
 
 /**

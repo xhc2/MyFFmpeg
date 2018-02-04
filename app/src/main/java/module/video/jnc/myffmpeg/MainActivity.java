@@ -48,6 +48,12 @@ public class MainActivity extends AppCompatActivity {
             rootFile.mkdirs();
         }
 
+        findViewById(R.id.camera_filter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  MyCameraFilter.class));
+            }
+        });
         findViewById(R.id.decode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

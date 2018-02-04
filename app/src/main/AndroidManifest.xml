@@ -44,7 +44,8 @@
         <activity android:name=".MyRecordActivity" />
         <activity android:name=".TestActivity" />
         <activity android:name=".MyNewRecordActivity" />
-        <activity android:name=".AudioRecordActivity"></activity>
+        <activity android:name=".AudioRecordActivity" />
+        <activity android:name=".MyCameraFilter"></activity>
     </application>
 
 </manifest>

@@ -1,4 +1,7 @@
-#include "my_camera_muxer.h"
+//
+// Created by Administrator on 2018/2/4/004.
+//
+#include "my_new_camera_muxer_filter.h"
 #include "My_LOG.h"
 #include <string.h>
 #include <time.h>
@@ -16,7 +19,6 @@
 #include <libavutil/mathematics.h>
 #include <libswresample/swresample.h>
 #include <my_utils.h>
-//http://blog.csdn.net/bixinwei22/article/details/78779259
 
 AVOutputFormat *ofmt = NULL;
 const char *mp4_output_path;
@@ -38,8 +40,9 @@ AVPacket videoPacket;
 AVPacket audioPacket;
 int64_t video_last_pts, audio_last_pts;
 AVBitStreamFilterContext* h264bsfc;
-//FILE *srcYuv ;
-int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
+
+int init_camera_filter(const char* outputPath  , int w , int h , int aSize){
+    LOGE("init_camera_filter");
     int ret = 0;
     mp4_output_path = outputPath;
     width = w;
@@ -64,15 +67,15 @@ int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
     }
     if (ofmt->audio_codec != AV_CODEC_ID_NONE) {
 
-        ret = initMuxerAudio();
-        init_muxer_Sws();
+        ret = initMuxerAudio_filter();
+        init_muxer_Sws_filter();
         if (ret < 0) {
             return -1;
         }
     }
 
     if (ofmt->video_codec != AV_CODEC_ID_NONE) {
-        ret = initMuxerVideo();
+        ret = initMuxerVideo_filter();
         if (ret < 0) {
             return -1;
         }
@@ -100,11 +103,12 @@ int init_camera_muxer(const char *outputPath, int w, int h, int aSize) {
     }
     LOGE(" INIT SUCCESS ！");
 
-    return ret;
+    return 1;
 }
 
 
-int initMuxerVideo() {
+
+int initMuxerVideo_filter() {
     int ret = 0;
     avVideoCode = avcodec_find_encoder(ofmt->video_codec);
     LOGE(" VIDEO CODE NAME %s" , avVideoCode->name);
@@ -176,7 +180,7 @@ int initMuxerVideo() {
 }
 
 
-int initMuxerAudio() {
+int initMuxerAudio_filter() {
     int ret = 0;
     avAudioCode = avcodec_find_encoder(ofmt->audio_codec);
     if (avAudioCode == NULL) {
@@ -213,7 +217,7 @@ int initMuxerAudio() {
     return 1;
 }
 
-int init_muxer_Sws() {
+int init_muxer_Sws_filter() {
     swr = swr_alloc();
     av_opt_set_int(swr, "in_channel_layout", AV_CH_LAYOUT_MONO, 0);
     av_opt_set_int(swr, "out_channel_layout", AV_CH_LAYOUT_MONO, 0);
@@ -227,7 +231,7 @@ int init_muxer_Sws() {
 }
 
 
-int encode(jbyte *nativeYuv , jbyte *nativePcm){
+int encode_filter(jbyte *nativeYuv , jbyte *nativePcm){
 //    LOGE("codec %d");
 
     int writeVideo = av_compare_ts(video_last_pts ,video_stream->time_base ,
@@ -235,7 +239,7 @@ int encode(jbyte *nativeYuv , jbyte *nativePcm){
     LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , video_last_pts  , audio_last_pts , writeVideo);
     if( writeVideo <= 0){
         if(nativeYuv != NULL){
-            encodeYuv_(nativeYuv);
+            encodeYuv__filter(nativeYuv);
         }
         else{
             return -1;
@@ -243,7 +247,7 @@ int encode(jbyte *nativeYuv , jbyte *nativePcm){
     }
     else {
         if(nativePcm != NULL){
-            encodePcm_(nativePcm);
+            encodePcm__filter(nativePcm);
         }
         else{
             return -1;
@@ -252,7 +256,7 @@ int encode(jbyte *nativeYuv , jbyte *nativePcm){
     return 1;
 }
 
-int encodeYuv_(jbyte *nativeYuv){
+int encodeYuv__filter(jbyte *nativeYuv){
 
     utils_nv21ToYv12(nativeYuv ,y_size);
     video_frame->data[0] = (uint8_t *) nativeYuv;
@@ -273,14 +277,14 @@ int encodeYuv_(jbyte *nativeYuv){
         videoPacket.dts = videoPacket.pts;
         videoPacket.stream_index = video_stream->index;
         video_last_pts = videoPacket.pts;
-        interleaved_write(&videoPacket , NULL);
+        interleaved_write_filter(&videoPacket , NULL);
         av_free_packet(&videoPacket);
         videoFrameCount++;
     }
     return 1;
 }
 
-int encodePcm_(jbyte *nativePcm){
+int encodePcm__filter(jbyte *nativePcm){
     int ret ;
     int count = swr_convert(swr, &outs, audio_size * 2, &nativePcm, audio_size / 2);
     audio_frame->data[0] = outs[0];
@@ -295,22 +299,22 @@ int encodePcm_(jbyte *nativePcm){
     if (got_audio == 1) {
         audioPacket.stream_index = audio_stream->index;
         audio_last_pts = audio_frame->pts;
-        interleaved_write(  NULL ,  &audioPacket);
+        interleaved_write_filter(  NULL ,  &audioPacket);
         av_free_packet(&audioPacket);
         audioFrameCount++;
     }
     return 1;
 }
 
-int encodeCamera_muxer(jbyte *nativeYuv) {
-    int ret = encode(nativeYuv , NULL);
+int encodeCamera_muxer_filter(jbyte *nativeYuv) {
+    int ret = encode_filter(nativeYuv , NULL);
     return ret;
 }
 
 
-int encodeAudio_muxer(jbyte *nativePcm) {
+int encodeAudio_muxer_filter(jbyte *nativePcm) {
     int ret = 0;
-    ret = encode(NULL , nativePcm);
+    ret = encode_filter(NULL , nativePcm);
     return ret;
 }
 
@@ -321,7 +325,7 @@ int close_muxer() {
     return -1;
 }
 
-int interleaved_write(AVPacket *yuvPkt, AVPacket *pcmPkt) {
+int interleaved_write_filter(AVPacket *yuvPkt, AVPacket *pcmPkt) {
     if(yuvPkt != NULL){
         if (av_interleaved_write_frame(ofmt_ctx, yuvPkt) < 0) {
             LOGE(" WRITE VIDEO_FRAME FAILD ! ");
@@ -346,11 +350,3 @@ int interleaved_write(AVPacket *yuvPkt, AVPacket *pcmPkt) {
 
     return -1;
 }
-
-
-
-
-
-
-
-

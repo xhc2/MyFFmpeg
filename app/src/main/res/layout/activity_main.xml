@@ -17,6 +17,12 @@
             android:orientation="vertical"
             >
             <Button
+                android:id="@+id/camera_filter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="camera_filter" />
+
+            <Button
                 android:id="@+id/audio_record"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
