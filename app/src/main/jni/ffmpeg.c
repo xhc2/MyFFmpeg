@@ -297,12 +297,12 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeAudioRec
 
     return ret;
 }
-JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_filterCameraInit(JNIEnv *env, jclass clazz ,jstring joutputPath ){
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_filterCameraInit(JNIEnv *env, jclass clazz ,jstring joutputPath , jint width , jint height , jint aSize){
 
     int ret = 0 ;
     const char *output_path= (*env)->GetStringUTFChars(env, joutputPath, NULL);
     LOGE(" OUTPUT_PATH %s , " , output_path);
-    ret = init_camera_filter(output_path);
+    ret = init_camera_filter(output_path , width , height , aSize);
     (*env)->ReleaseStringUTFChars(env, joutputPath, output_path);
     return ret;
 }

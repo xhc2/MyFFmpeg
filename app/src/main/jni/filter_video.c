@@ -12,12 +12,12 @@
  * 将MP4解码成yuv然后打上水印，然后再编码成h264的mp4格式。
  */
 const char *filter_descr = "drawbox=x=100:y=100:w=100:h=100:color=white@0.5";
-
-AVFormatContext *fmt_ctx;
-AVCodecContext *dec_ctx;
 AVFilterContext *buffersink_ctx;
 AVFilterContext *buffersrc_ctx;
 AVFilterGraph *filter_graph;
+AVFormatContext *fmt_ctx;
+AVCodecContext *dec_ctx;
+
 int video_stream_index = -1;
 int64_t last_pts = AV_NOPTS_VALUE;
 //将yuv打包成mp4格式输出到sdcard上
