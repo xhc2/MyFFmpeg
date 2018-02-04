@@ -44,7 +44,7 @@ av_rescale_q(int64_t a, AVRational bq, AVRational cq) 这个是时间基的转�
 
 
 4.音频录制（通过设备拿到pcm原始数据转换成aac存在本地 , 导图是audio_record.png）：
-http://blog.csdn.net/XIAIBIANCHENG/article/details/72810495格式转换
+http://blog.csdn.net/XIAIBIANCHENG/article/details/72810495 格式转换
 音频录制，首先要通过android上层的api（audiorecord）拿到数据，不过在jni成也能拿到数据.
 在上层会初始化一些参数，我这边是单声道，44100的采样率，16bit的数据这是大多数的android机都支持的。
 但是在ffmepg自带的编码器（当然可以在编译ffmpeg中支持对应的编码器，aac等）中是只支持AV_SAMPLE_FMT_FLTP。
@@ -55,7 +55,10 @@ AV_SAMPLE_FMT_FLTP(data[0] data[1] lllll rrrrr);
 这个就要用SwrContext来转换下。具体内容看代码my_audio_record.c
 因为是要转码所以bufferSizeInBytes 要设置2048，如果是双声道的话要设置成4096.
 
-
+5.采集音视频并复合mp4（现在已经做好的还有点问题就是音频播放过快。但是还不知道如何改正）
+这里面需要注意的一个点是av_compare_ts ，传入的是上一帧（音视频）的pts，time_base 是最后状态的pts，
+比如音频是编码后的codec->time_base , 视频是编码后的video_stream->time_base.
+这个音视频同步的问题感觉还没有个方向，先暂时放一会（xxxxxxxxxx）
 
 
 

@@ -229,6 +229,7 @@ int init_muxer_Sws() {
 
 int encode(jbyte *nativeYuv , jbyte *nativePcm){
 //    LOGE("codec %d");
+
     int writeVideo = av_compare_ts(video_last_pts ,video_stream->time_base ,
                                    audio_last_pts , audio_stream->codec->time_base );
     LOGE("cur_pts_v = %lld  ，cur_pts_a = %lld , writeVideo = %d " , video_last_pts  , audio_last_pts , writeVideo);
@@ -257,6 +258,8 @@ int encodeYuv_(jbyte *nativeYuv){
     video_frame->data[0] = (uint8_t *) nativeYuv;
     video_frame->data[1] = (uint8_t *) nativeYuv + y_size;
     video_frame->data[2] = (uint8_t *) nativeYuv + y_size * 5 / 4;
+//    int64_t temp = av_frame_get_best_effort_timestamp(video_frame);
+//    LOGE(" TEMP %lld" , temp);
 //    fwrite(nativeYuv , 1 ,y_size * 3 / 2 , srcYuv );
     int got_picture;
     if (avcodec_encode_video2(video_stream->codec, &videoPacket, video_frame, &got_picture) < 0) {
