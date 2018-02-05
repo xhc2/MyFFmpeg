@@ -182,12 +182,6 @@ void display_frame(const AVFrame *frame, AVRational time_base  ,FILE *output)
     }
     int y_size = frame->width * frame->height;
     encode_frame(frame , pkt , video_st);
-
-
-
-//    fwrite(frame->data[0], 1, y_size, output);
-//    fwrite(frame->data[1], 1, y_size / 4, output);
-//    fwrite(frame->data[2], 1, y_size / 4, output);
 }
 
 
@@ -338,6 +332,7 @@ int filter_video(const char* input_path , const char* output_path){
             }
             if (got_frame) {
                 framecnt ++;
+                //这个函数是有pts的，比如MP4可以直接拿到
                 frame->pts = av_frame_get_best_effort_timestamp(frame);
                 /* push the decoded frame into the filtergraph */
                 if (av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF) < 0) {

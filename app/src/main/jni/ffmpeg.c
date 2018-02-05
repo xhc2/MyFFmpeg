@@ -297,6 +297,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeAudioRec
 
     return ret;
 }
+
+
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_filterCameraInit(JNIEnv *env, jclass clazz ,jstring joutputPath , jint width , jint height , jint aSize){
 
     int ret = 0 ;
@@ -307,7 +309,37 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_filterCameraIn
     return ret;
 }
 
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeMyMuxerCameraFilter(JNIEnv *env, jclass clazz ,jbyteArray yuvArray){
 
+    int ret = 0 ;
+    jboolean copy = JNI_FALSE;
+
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , yuvArray , &copy);
+    ret =  encodeCamera_muxer_filter(navtiveYuv);
+    //0的意思是将内容复制过来，并释放原生数组
+    (*env)->ReleaseByteArrayElements(env , yuvArray , navtiveYuv , JNI_ABORT);
+
+    return ret;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeMyMuxerAudioFilter(JNIEnv *env, jclass clazz ,jbyteArray pcmArray){
+
+    int ret = 0 ;
+    jboolean copy = JNI_FALSE;
+
+    jbyte *navtiveYuv = (*env)->GetByteArrayElements(env , pcmArray , &copy);
+    ret =  encodeAudio_muxer_filter(navtiveYuv);
+    //0的意思是将内容复制过来，并释放原生数组
+    (*env)->ReleaseByteArrayElements(env , pcmArray , navtiveYuv , JNI_ABORT);
+
+    return ret;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_closeMyMuxerFilter(JNIEnv *env, jclass clazz ){
+
+
+    return close_muxer_filter();
+}
 /**
  *GetByteArrayElements 中的第三个参数 和 ReleaseByteArrayElements 第三个参数可以配合使用。
  * JNI_FALSE 指向副本

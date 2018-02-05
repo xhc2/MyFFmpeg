@@ -67,6 +67,11 @@ public class FFmpegUtils {
     public static native int encodeMyMuxerAudio(byte[] bytes);
 
     public static native int closeMyMuxer();
-    public static native int filterCameraInit(String outputPath , int width , int height , int aSize);
 
+    public static native int filterCameraInit(String outputPath , int width , int height , int aSize);
+    public static native int encodeMyMuxerCameraFilter(byte[] bytes);
+
+    public static native int encodeMyMuxerAudioFilter(byte[] bytes);
+
+    public static native int closeMyMuxerFilter();
 }
