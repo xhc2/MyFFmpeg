@@ -40,7 +40,9 @@ int audioFrameCount_f = 0;
 AVPacket videoPacket;
 AVPacket audioPacket;
 int64_t video_last_pts, audio_last_pts;
+
 //http://blog.csdn.net/dreamInTheWorld/article/details/55224529
+
 //const char *filter_descr_filter = "drawbox=x=100:y=100:w=100:h=100:color=white@0.5";
 const char *filter_descr_filter = "drawtext=fontfile=arial.ttf:fontcolor=green:fontsize=30:text='Lei Xiaohua'";
 AVFilterContext *buffersink_ctx_filter;

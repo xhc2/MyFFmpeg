@@ -17,6 +17,12 @@
             android:orientation="vertical"
             >
             <Button
+                android:id="@+id/play_activity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="视频播放" />
+
+            <Button
                 android:id="@+id/camera_filter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

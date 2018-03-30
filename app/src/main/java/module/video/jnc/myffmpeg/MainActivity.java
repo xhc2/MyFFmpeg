@@ -47,7 +47,12 @@ public class MainActivity extends AppCompatActivity {
             //创建文件夹
             rootFile.mkdirs();
         }
-
+        findViewById(R.id.play_activity).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,  PlayVideoActivity.class));
+            }
+        });
         findViewById(R.id.camera_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
