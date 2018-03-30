@@ -15,12 +15,16 @@ import java.util.List;
 
 import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
 
+/**
+ * 通过摄像头，和音频的录制。
+ * 然后利用ffmpeg来编码和混合成一个视频
+ */
 public class MyCameraFilter extends AppCompatActivity {
     private FrameLayout fl;
     private CameraManeger cm;
     private AudioRecord ar;
     private boolean recordFlag = false;
-    Camera camera;
+    private Camera camera;
     private int size = 2048;
     private static int frequency = 44100;
 
@@ -30,20 +34,21 @@ public class MyCameraFilter extends AppCompatActivity {
 
     private static List<byte[]> listVideo = new LinkedList<>();
     private static List<byte[]> listAudio = new LinkedList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_camera_filter);
-        FFmpegUtils.filterCameraInit(Constant.rootFile+"/"+"my_camera_filter.mp4" , CameraManeger.width , CameraManeger.height , size);
+        FFmpegUtils.filterCameraInit(Constant.rootFile + "/" + "my_camera_filter.mp4", CameraManeger.width, CameraManeger.height, size);
         fl = findViewById(R.id.container);
         cm = new CameraManeger();
-//        size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
         ar = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfiguration, EncodingBitRate, size);
         camera = cm.OpenCamera();
         CameraPreview cp = new CameraPreview(this, camera);
         fl.addView(cp);
 
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
                 startReocrdAudio();
@@ -60,17 +65,18 @@ public class MyCameraFilter extends AppCompatActivity {
         });
     }
 
-    private class WriteBufferThread extends Thread{
+    private class WriteBufferThread extends Thread {
 
         public boolean flag = false;
+
         @Override
         public void run() {
             super.run();
 
-            while (flag){
-                if(!listVideo.isEmpty()){
+            while (flag) {
+                if (!listVideo.isEmpty()) {
                     byte[] bytes = listVideo.get(0);
-                    if(FFmpegUtils.encodeMyMuxerCameraFilter(bytes) > 0){
+                    if (FFmpegUtils.encodeMyMuxerCameraFilter(bytes) > 0) {
                         listVideo.remove(0);
                     }
                 }
@@ -78,15 +84,16 @@ public class MyCameraFilter extends AppCompatActivity {
         }
     }
 
-     WriteBufferThread wbt ;
+    WriteBufferThread wbt;
 
-    private void startWriteBufferThread(){
-        wbt = new  WriteBufferThread();
+    private void startWriteBufferThread() {
+        wbt = new WriteBufferThread();
         wbt.flag = true;
         wbt.start();
     }
-    private void stopWriteBufferThread(){
-        if(wbt != null){
+
+    private void stopWriteBufferThread() {
+        if (wbt != null) {
             wbt.flag = false;
         }
     }
@@ -99,7 +106,7 @@ public class MyCameraFilter extends AppCompatActivity {
             Log.e("xhc", "AudioRecord.STATE_unINITIALIZED ");
         }
         ar.startRecording();
-        new  RecordThread().start();
+        new RecordThread().start();
         recordFlag = true;
     }
 
@@ -130,14 +137,15 @@ public class MyCameraFilter extends AppCompatActivity {
         }
     }
 
-    class DealAudioThread extends Thread{
+    class DealAudioThread extends Thread {
         boolean flag = false;
+
         @Override
         public void run() {
             super.run();
-            while(flag){
-                if(!listAudio.isEmpty()){
-                    if(FFmpegUtils.encodeMyMuxerAudioFilter(listAudio.get(0)) > 0){
+            while (flag) {
+                if (!listAudio.isEmpty()) {
+                    if (FFmpegUtils.encodeMyMuxerAudioFilter(listAudio.get(0)) > 0) {
                         listAudio.remove(0);
                     }
                 }
@@ -146,18 +154,20 @@ public class MyCameraFilter extends AppCompatActivity {
     }
 
 
-    DealAudioThread daThread ;
-    private void startDealAudio(){
+    DealAudioThread daThread;
+
+    private void startDealAudio() {
         daThread = new DealAudioThread();
         daThread.flag = true;
         daThread.start();
     }
 
-    private void stopDealAudio(){
-        if(daThread != null){
+    private void stopDealAudio() {
+        if (daThread != null) {
             daThread.flag = false;
         }
     }
+
     @Override
     protected void onStop() {
         super.onStop();

@@ -141,7 +141,6 @@ int close_audio(){
     if (audio_stream) {
         avcodec_close(audio_stream->codec);
         av_free(audioFrame);
-//        av_free(picture_buf);
     }
     avio_close(ofmt_ctx_audio->pb);
     avformat_free_context(ofmt_ctx_audio);
