@@ -16,35 +16,31 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <Button
-                android:id="@+id/play_activity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="视频播放" />
+
 
             <Button
                 android:id="@+id/camera_filter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="camera_filter" />
+                android:text="相机摄像打水印" />
 
             <Button
                 android:id="@+id/audio_record"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="audio_record" />
+                android:text="音频录制" />
 
             <Button
                 android:id="@+id/camera_ffmpeg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="camera_ffmpeg" />
+                android:text="相机录制用ffmpeg混合" />
 
             <Button
                 android:id="@+id/decode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="decode" />
+                android:text="解码" />
 
             <Button
                 android:id="@+id/bt_encode"
@@ -64,12 +60,6 @@
                 android:layout_height="wrap_content"
                 android:text="编码yuv" />
 
-            <Button
-                android:id="@+id/bt_sdl"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="sdl"
-                android:visibility="gone" />
 
             <Button
                 android:id="@+id/bt_filter"
@@ -95,24 +85,6 @@
                 android:layout_height="wrap_content"
                 android:text="视音频分离复用" />
 
-            <Button
-                android:id="@+id/bt_opengl"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="opengl" />
-
-            <Button
-                android:id="@+id/bt_opengl_texure"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="opengl纹理" />
-
-
-            <Button
-                android:id="@+id/eglcamera"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="eglcamera" />
 
             <Button
                 android:id="@+id/ffmpeg_camera"
@@ -121,20 +93,6 @@
                 android:text="ffmpeg_camera" />
 
 
-            <Button
-                android:id="@+id/test"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="test" />
-
-            <TextView
-                android:id="@+id/tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
 
         </LinearLayout>
 

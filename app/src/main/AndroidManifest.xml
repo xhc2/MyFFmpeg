@@ -17,7 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".NewMainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -46,7 +46,10 @@
         <activity android:name=".MyNewRecordActivity" />
         <activity android:name=".AudioRecordActivity" />
         <activity android:name=".MyCameraFilter" />
-        <activity android:name=".PlayVideoActivity"></activity>
+        <activity android:name=".PlayVideoActivity" />
+        <activity android:name=".OpenGlActivity" />
+        <activity android:name=".MyFFmpegActivity" />
+        <activity android:name=".MyAllActivity"></activity>
     </application>
 
 </manifest>
