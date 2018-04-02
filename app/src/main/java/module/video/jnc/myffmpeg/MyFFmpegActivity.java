@@ -16,7 +16,9 @@ import module.video.jnc.myffmpeg.opengl.OpenglActivity;
  * 一些编解码，然后打水印等
  */
 public class MyFFmpegActivity extends AppCompatActivity {
+
     private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,12 +88,14 @@ public class MyFFmpegActivity extends AppCompatActivity {
                 startActivity(new Intent(MyFFmpegActivity.this , MyRecordActivity.class));
             }
         });
+
         findViewById(R.id.camera_ffmpeg).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(MyFFmpegActivity.this , MyNewRecordActivity.class));
             }
         });
+
         findViewById(R.id.audio_record).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

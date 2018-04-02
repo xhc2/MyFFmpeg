@@ -10,6 +10,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import module.video.jnc.myffmpeg.EGLCamera.CameraManeger;
 
 /**
@@ -24,7 +27,7 @@ public class AudioRecordActivity extends AppCompatActivity {
     private static int frequency = 44100;
     private static int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;//单声道
     private static int EncodingBitRate = AudioFormat.ENCODING_PCM_16BIT;    //音频数据格式：脉冲编码调制（PCM）每个样品16位
-
+    private static List<byte[]> listAudio = new LinkedList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,11 +41,18 @@ public class AudioRecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startReocrdAudio();
+                startDealAudio();
             }
         });
     }
 
 
+
+
+
+
+
+    private RecordThread recordThread ;
 
     private void startReocrdAudio() {
         if (ar.getState() == AudioRecord.STATE_INITIALIZED) {
@@ -51,8 +61,10 @@ public class AudioRecordActivity extends AppCompatActivity {
             Log.e("xhc", "AudioRecord.STATE_unINITIALIZED ");
         }
         ar.startRecording();
-        new RecordThread().start();
         recordFlag = true;
+        recordThread = new RecordThread();
+        recordThread.start();
+
     }
 
     private void releaseAudioRecord() {
@@ -75,9 +87,40 @@ public class AudioRecordActivity extends AppCompatActivity {
                 read = ar.read(buffer, 0, buffer.length);
                 Log.e("xhc", "read " + read);
                 if (AudioRecord.ERROR_INVALID_OPERATION != read) {
-                    FFmpegUtils.encodeAudioRecord(buffer);
+                    listAudio.add(buffer);
                 }
             }
+        }
+    }
+
+    class DealAudioThread extends Thread {
+        boolean flag = false;
+
+        @Override
+        public void run() {
+            super.run();
+            while (flag) {
+                if (!listAudio.isEmpty()) {
+                    if (FFmpegUtils.encodeAudioRecord(listAudio.get(0)) > 0) {
+                        listAudio.remove(0);
+                    }
+                }
+            }
+        }
+    }
+
+
+     DealAudioThread daThread;
+
+    private void startDealAudio() {
+        daThread = new  DealAudioThread();
+        daThread.flag = true;
+        daThread.start();
+    }
+
+    private void stopDealAudio() {
+        if (daThread != null) {
+            daThread.flag = false;
         }
     }
 
@@ -85,7 +128,17 @@ public class AudioRecordActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         recordFlag = false;
-        FFmpegUtils.closeAudioRecord();
-        releaseAudioRecord();
+        stopDealAudio();
+        try{
+            recordThread.join();
+            daThread.join();
+        }catch (Exception e){
+
+        }finally {
+            FFmpegUtils.closeAudioRecord();
+            releaseAudioRecord();
+        }
+
+
     }
 }

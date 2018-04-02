@@ -23,17 +23,19 @@
 
 
 int audio_size ;
+int  frame_audio_index;
+int record_audio_out_index;
+//FILE *SRCFILE , *CONVERTFILE;
+int frame_count = 0 ;
+
 AVOutputFormat *ofmt_audio = NULL;
 AVFormatContext *ofmt_ctx_audio ;
-int  frame_audio_index;
 AVFrame  *audioFrame;
 AVStream *audio_stream;
 AVPacket *pkt_audio;
-int record_audio_out_index;
 SwrContext *swr;
 uint8_t *outs[2];
-//FILE *SRCFILE , *CONVERTFILE;
-int frame_count = 0 ;
+
 
 int init_audio(const char*output_path , int a_size){
     int ret = 0 ;
@@ -84,7 +86,7 @@ int init_Sws(){
 
 int initAudio_record(){
     int ret = -1 ;
-    audio_stream  = avformat_new_stream(ofmt_ctx_audio , 0);
+        audio_stream  = avformat_new_stream(ofmt_ctx_audio , 0);
     if (audio_stream==NULL){
         LOGE(" audio_st FAILD ");
         return -1;
@@ -136,14 +138,30 @@ int initAudio_record(){
 
 int close_audio(){
     LOGE("CLOSE AUDIO ");
-//    fclose(SRCFILE);
     av_write_trailer(ofmt_ctx_audio);
     if (audio_stream) {
         avcodec_close(audio_stream->codec);
         av_free(audioFrame);
     }
     avio_close(ofmt_ctx_audio->pb);
-    avformat_free_context(ofmt_ctx_audio);
+
+    if(!pkt_audio){
+        av_free_packet(pkt_audio);
+    }
+    LOGE(" ofmt_ctx_audio %d ", ofmt_ctx_audio);
+    if (!ofmt_ctx_audio) {
+        avformat_free_context(ofmt_ctx_audio);
+    }
+
+
+
+//    AVOutputFormat *ofmt_audio = NULL;
+//    AVFormatContext *ofmt_ctx_audio ;
+//    AVFrame  *audioFrame;
+//    AVStream *audio_stream;
+//    AVPacket *pkt_audio;
+//    SwrContext *swr;
+//    uint8_t *outs[2];
 
     return 1;
 }
@@ -173,7 +191,10 @@ int encode_audio_(jbyte *nativepcm){
     }
     if(got_audio == 1){
         pkt_audio->stream_index = audio_stream->index;
-        av_write_frame(ofmt_ctx_audio , pkt_audio);
+        ret = av_write_frame(ofmt_ctx_audio , pkt_audio);
+        if(ret < 0){
+            return ret;
+        }
         av_free_packet(pkt_audio);
         frame_count ++ ;
     }

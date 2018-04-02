@@ -54,6 +54,7 @@ public class MyCameraFilter extends AppCompatActivity {
                 startReocrdAudio();
                 startWriteBufferThread();
                 startDealAudio();
+
                 camera.setPreviewCallback(new Camera.PreviewCallback() {
                     @Override
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
@@ -72,7 +73,6 @@ public class MyCameraFilter extends AppCompatActivity {
         @Override
         public void run() {
             super.run();
-
             while (flag) {
                 if (!listVideo.isEmpty()) {
                     byte[] bytes = listVideo.get(0);
