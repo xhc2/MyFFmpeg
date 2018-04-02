@@ -169,8 +169,7 @@ int close_audio(){
 int encode_audio_(jbyte *nativepcm){
     int ret = 1 ;
     LOGE("ENCODE_AUDIO_");
-//    fwrite(nativepcm , 1 , audio_size , SRCFILE);
-    int count = swr_convert(swr , &outs , audio_size * 2 , &nativepcm ,audio_size / 2);
+    swr_convert(swr , &outs , audio_size * 2 , &nativepcm ,audio_size / 2);
     audioFrame->data[0] = outs[0];
     audioFrame->data[1] = outs[1];
     /**

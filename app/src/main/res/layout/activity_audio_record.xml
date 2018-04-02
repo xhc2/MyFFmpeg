@@ -1,16 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="module.video.jnc.myffmpeg.AudioRecordActivity">
+
+    <TextView
+        android:id="@+id/tv"
+        android:text="音频录制"
+        android:padding="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <Button
         android:id="@+id/bt_start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="start"
+        android:text="开始"
         />
-
-</android.support.constraint.ConstraintLayout>
+    <Button
+        android:id="@+id/bt_stop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="结束"
+        />
+    <Button
+        android:id="@+id/bt_play"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="播放"
+        />
+</LinearLayout>

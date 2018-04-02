@@ -1,5 +1,6 @@
 package module.video.jnc.myffmpeg;
 
+import android.content.Intent;
 import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -9,7 +10,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,12 +31,17 @@ public class AudioRecordActivity extends AppCompatActivity {
     private static int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;//单声道
     private static int EncodingBitRate = AudioFormat.ENCODING_PCM_16BIT;    //音频数据格式：脉冲编码调制（PCM）每个样品16位
     private static List<byte[]> listAudio = new LinkedList<>();
+    private TextView tv;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_record);
 
+        tv = (TextView) findViewById(R.id.tv);
+
         size = AudioRecord.getMinBufferSize(frequency, channelConfiguration, EncodingBitRate);
+        size = 2048;
         ar = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfiguration, EncodingBitRate, size);
         FFmpegUtils.initAudioRecord(Constant.rootFile.getAbsolutePath() + "/my_record_audio_.aac" , size);
 
@@ -42,10 +50,44 @@ public class AudioRecordActivity extends AppCompatActivity {
             public void onClick(View view) {
                 startReocrdAudio();
                 startDealAudio();
+                tv.setText("请说话...");
             }
         });
+
+        findViewById(R.id.bt_stop).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tv.setText("完成");
+                stop();
+            }
+        });
+
+        findViewById(R.id.bt_play).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(new File(Constant.rootFile.getAbsolutePath() + "/my_record_audio_.aac").exists()){
+                    Intent intent = new Intent(AudioRecordActivity.this , PlayAudioActivity.class);
+                    intent.putExtra("path" ,Constant.rootFile.getAbsolutePath() + "/my_record_audio_.aac" );
+                    startActivity(intent);
+                }
+            }
+        });
+
     }
 
+    private void stop(){
+        recordFlag = false;
+        stopDealAudio();
+        try{
+            recordThread.join();
+            daThread.join();
+        }catch (Exception e){
+
+        }finally {
+            FFmpegUtils.closeAudioRecord();
+            releaseAudioRecord();
+        }
+    }
 
 
 
@@ -88,6 +130,7 @@ public class AudioRecordActivity extends AppCompatActivity {
                 Log.e("xhc", "read " + read);
                 if (AudioRecord.ERROR_INVALID_OPERATION != read) {
                     listAudio.add(buffer);
+                    Log.e("xhc" , " buffer size "+listAudio.size());
                 }
             }
         }
@@ -101,9 +144,11 @@ public class AudioRecordActivity extends AppCompatActivity {
             super.run();
             while (flag) {
                 if (!listAudio.isEmpty()) {
-                    if (FFmpegUtils.encodeAudioRecord(listAudio.get(0)) > 0) {
+                    int result = 0 ;
+                    if ((result = FFmpegUtils.encodeAudioRecord(listAudio.get(0))) >= 0) {
                         listAudio.remove(0);
                     }
+                    Log.e("xhc" , " result "+result);
                 }
             }
         }
@@ -127,18 +172,6 @@ public class AudioRecordActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        recordFlag = false;
-        stopDealAudio();
-        try{
-            recordThread.join();
-            daThread.join();
-        }catch (Exception e){
-
-        }finally {
-            FFmpegUtils.closeAudioRecord();
-            releaseAudioRecord();
-        }
-
-
+        stop();
     }
 }
