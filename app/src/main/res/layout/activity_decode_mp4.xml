@@ -1,14 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="module.video.jnc.myffmpeg.DecodeMP4Activity">
 
+    <TextView
+        android:id="@+id/tv"
+        android:padding="40dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:text="hello world"
+        android:layout_height="wrap_content" />
+
     <Button
-        android:id="@+id/start"
+        android:id="@+id/decode_start"
+        android:text="解码test.mp4,生成yuv原始数据文件"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-    
-</android.support.constraint.ConstraintLayout>
+
+    <Button
+        android:id="@+id/encode_start"
+        android:text="编码，将yuv数据编码成mp4文件"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/play"
+        android:text="播放"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

@@ -32,7 +32,10 @@ public class PlayAudioActivity extends AppCompatActivity implements AdapterView.
         setContentView(R.layout.activity_play_audio);
 
         Intent intent = getIntent();
-        path = intent.getStringExtra("path");
+        if(intent != null){
+            path = intent.getStringExtra("path");
+        }
+
         playPath(path);
         addSuffixs();
         findViewById(R.id.bt_play).setOnClickListener(new View.OnClickListener() {
@@ -60,8 +63,9 @@ public class PlayAudioActivity extends AppCompatActivity implements AdapterView.
         suffixs.add("wav");
     }
     private void playPath(String path){
-        Log.e("xhc" , " path "+path);
+
         if(!TextUtils.isEmpty(path)){
+            Log.e("xhc" , " path "+path);
             releaseAudio();
             mp = new MediaPlayer();
             try{
@@ -136,12 +140,12 @@ public class PlayAudioActivity extends AppCompatActivity implements AdapterView.
     }
 
     private boolean filterFile(File file ){
-        for(String str : suffixs){
-            if(file.getName().endsWith(str)){
-                return true;
-            }
-        }
-        return false;
+//        for(String str : suffixs){
+//            if(file.getName().endsWith(str)){
+//                return true;
+//            }
+//        }
+        return true;
     }
 
     private class FileAdater extends BaseAdapter {

@@ -40,13 +40,13 @@
                 android:id="@+id/decode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="解码" />
+                android:text="对yuv数据的编解码" />
 
             <Button
                 android:id="@+id/bt_encode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="编码" />
+                android:text="转视频格式mp4->flv" />
 
             <Button
                 android:id="@+id/stream"
@@ -58,6 +58,7 @@
                 android:id="@+id/encode_yuv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:text="编码yuv" />
 
 
@@ -71,6 +72,7 @@
                 android:id="@+id/bt_transcoding"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:text="转码" />
 
             <Button

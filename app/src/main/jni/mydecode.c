@@ -1,7 +1,6 @@
 //
 // Created by xhc on 2017/11/27.
 // http://blog.csdn.net/leixiaohua1020/article/details/26838535 转码参考
-//
 #include <string.h>
 #include "My_LOG.h"
 #include <time.h>
@@ -18,6 +17,10 @@
 #include <libavutil/opt.h>
 #include "mydecode.h"
 #include <libavutil/mathematics.h>
+
+/**
+ * 这个是先将mp4转成yuv数据，然后yuv数据转成flv数据
+ */
 static AVFormatContext *ifmt_ctx;
 static AVFormatContext *ofmt_ctx;
 typedef struct FilteringContext {
@@ -40,7 +43,7 @@ int encode_h264(char *input_str, char *output_str) {
     int i, videoIndex = -1;
     AVCodecContext *pCodeCtx;
     AVCodec *pCodec;
-    AVFrame *pFrameMP4/*, *pFrameYUV*/;
+    AVFrame *pFrameMP4;
     uint8_t *out_buffer;
     AVPacket *packet;
     int ret, got_pic;
@@ -279,9 +282,6 @@ int encode_h264(char *input_str, char *output_str) {
             pFrameFLV->data[2] = pFrameMP4->data[2];
             pFrameFLV->pts = pFrameMP4->pts;
 
-//            fwrite(pFrameFLV->data[0] ,1 ,y_size,  ftest);
-//            fwrite(pFrameFLV->data[1], 1, y_size / 4, ftest);  //U
-//            fwrite(pFrameFLV->data[2], 1, y_size / 4, ftest);  //V
 
             LOGE(" CODE W %d , H %d , Frame w %d ,h %d ", video_st->codec->width,
                  video_st->codec->height,
@@ -335,6 +335,7 @@ int encodeYuv(char *input_str, char *output_str) {
         LOGE(" POFG FAILD ");
         return -1;
     }
+
     if (oft == NULL) {
         LOGE(" guess fmt faild ");
         return -1;
@@ -346,6 +347,7 @@ int encodeYuv(char *input_str, char *output_str) {
         LOGE(" avio_open faild! ");
         return -1;
     }
+
     AVStream *video_st;
 
     video_st = avformat_new_stream(pOFC, 0);
@@ -397,7 +399,7 @@ int encodeYuv(char *input_str, char *output_str) {
     av_new_packet(pkt, pic_size);
 
     int y_size = video_st->codec->width * video_st->codec->height;
-    int i = 0 ;
+    int i = 0;
     while (fread(picture_buf, 1, y_size * 3 / 2, iFile)) {
         pFrame->data[0] = picture_buf;              // Y
         pFrame->data[1] = picture_buf + y_size;      // U
@@ -706,19 +708,16 @@ int decode(const char *input_str, const char *output_str) {
 }
 
 
-
-
-
 static int open_input_file(const char *filename) {
     int ret;
     unsigned int i;
     ifmt_ctx = NULL;
     if ((ret = avformat_open_input(&ifmt_ctx, filename, NULL, NULL)) < 0) {
-        LOGE( "Cannot openinput file\n");
+        LOGE("Cannot openinput file\n");
         return ret;
     }
     if ((ret = avformat_find_stream_info(ifmt_ctx, NULL)) < 0) {
-        LOGE( "Cannot findstream information\n");
+        LOGE("Cannot findstream information\n");
         return ret;
     }
     for (i = 0; i < ifmt_ctx->nb_streams; i++) {
@@ -752,13 +751,13 @@ static int open_output_file(const char *filename) {
     ofmt_ctx = NULL;
     avformat_alloc_output_context2(&ofmt_ctx, NULL, NULL, filename);
     if (!ofmt_ctx) {
-        LOGE( "Could notcreate output context\n");
+        LOGE("Could notcreate output context\n");
         return AVERROR_UNKNOWN;
     }
     for (i = 0; i < ifmt_ctx->nb_streams; i++) {
         out_stream = avformat_new_stream(ofmt_ctx, NULL);
         if (!out_stream) {
-            LOGE( "Failedallocating output stream\n");
+            LOGE("Failedallocating output stream\n");
             return AVERROR_UNKNOWN;
         }
         in_stream = ifmt_ctx->streams[i];
@@ -791,19 +790,19 @@ static int open_output_file(const char *filename) {
             /* Third parameter can be used to pass settings to encoder*/
             ret = avcodec_open2(enc_ctx, encoder, NULL);
             if (ret < 0) {
-                LOGE( "Cannot openvideo encoder for stream #%u\n", i);
+                LOGE("Cannot openvideo encoder for stream #%u\n", i);
                 return ret;
             }
         } else if (dec_ctx->codec_type == AVMEDIA_TYPE_UNKNOWN) {
             LOGE("Elementarystream #%d is of unknown type, cannot proceed\n",
-                   i);
+                 i);
             return AVERROR_INVALIDDATA;
         } else {
             /* if this stream must be remuxed */
             ret = avcodec_copy_context(ofmt_ctx->streams[i]->codec,
                                        ifmt_ctx->streams[i]->codec);
             if (ret < 0) {
-                LOGE( "Copyingstream context failed\n");
+                LOGE("Copyingstream context failed\n");
                 return ret;
             }
         }
@@ -814,14 +813,14 @@ static int open_output_file(const char *filename) {
     if (!(ofmt_ctx->oformat->flags & AVFMT_NOFILE)) {
         ret = avio_open(&ofmt_ctx->pb, filename, AVIO_FLAG_WRITE);
         if (ret < 0) {
-            LOGE( "Could notopen output file '%s'", filename);
+            LOGE("Could notopen output file '%s'", filename);
             return ret;
         }
     }
     /* init muxer, write output file header */
     ret = avformat_write_header(ofmt_ctx, NULL);
     if (ret < 0) {
-        LOGE( "Error occurred when openingoutput file\n");
+        LOGE("Error occurred when openingoutput file\n");
         return ret;
     }
     return 0;
@@ -846,7 +845,7 @@ static int init_filter(FilteringContext *fctx, AVCodecContext *dec_ctx,
         buffersrc = avfilter_get_by_name("buffer");
         buffersink = avfilter_get_by_name("buffersink");
         if (!buffersrc || !buffersink) {
-            LOGE( "filteringsource or sink element not found\n");
+            LOGE("filteringsource or sink element not found\n");
             ret = AVERROR_UNKNOWN;
             goto end;
         }
@@ -860,27 +859,27 @@ static int init_filter(FilteringContext *fctx, AVCodecContext *dec_ctx,
         ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
                                            args, NULL, filter_graph);
         if (ret < 0) {
-            LOGE( "Cannotcreate buffer source\n");
+            LOGE("Cannotcreate buffer source\n");
             goto end;
         }
         ret = avfilter_graph_create_filter(&buffersink_ctx, buffersink, "out",
                                            NULL, NULL, filter_graph);
         if (ret < 0) {
-            LOGE( "Cannotcreate buffer sink\n");
+            LOGE("Cannotcreate buffer sink\n");
             goto end;
         }
         ret = av_opt_set_bin(buffersink_ctx, "pix_fmts",
                              (uint8_t *) &enc_ctx->pix_fmt, sizeof(enc_ctx->pix_fmt),
                              AV_OPT_SEARCH_CHILDREN);
         if (ret < 0) {
-            LOGE( "Cannot setoutput pixel format\n");
+            LOGE("Cannot setoutput pixel format\n");
             goto end;
         }
     } else if (dec_ctx->codec_type == AVMEDIA_TYPE_AUDIO) {
         buffersrc = avfilter_get_by_name("abuffer");
         buffersink = avfilter_get_by_name("abuffersink");
         if (!buffersrc || !buffersink) {
-            LOGE( "filteringsource or sink element not found\n");
+            LOGE("filteringsource or sink element not found\n");
             ret = AVERROR_UNKNOWN;
             goto end;
         }
@@ -895,34 +894,34 @@ static int init_filter(FilteringContext *fctx, AVCodecContext *dec_ctx,
         ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
                                            args, NULL, filter_graph);
         if (ret < 0) {
-            LOGE( "Cannotcreate audio buffer source\n");
+            LOGE("Cannotcreate audio buffer source\n");
             goto end;
         }
         ret = avfilter_graph_create_filter(&buffersink_ctx, buffersink, "out",
                                            NULL, NULL, filter_graph);
         if (ret < 0) {
-            LOGE( "Cannotcreate audio buffer sink\n");
+            LOGE("Cannotcreate audio buffer sink\n");
             goto end;
         }
         ret = av_opt_set_bin(buffersink_ctx, "sample_fmts",
                              (uint8_t *) &enc_ctx->sample_fmt, sizeof(enc_ctx->sample_fmt),
                              AV_OPT_SEARCH_CHILDREN);
         if (ret < 0) {
-            LOGE( "Cannot setoutput sample format\n");
+            LOGE("Cannot setoutput sample format\n");
             goto end;
         }
         ret = av_opt_set_bin(buffersink_ctx, "channel_layouts",
                              (uint8_t *) &enc_ctx->channel_layout,
                              sizeof(enc_ctx->channel_layout), AV_OPT_SEARCH_CHILDREN);
         if (ret < 0) {
-            LOGE( "Cannot setoutput channel layout\n");
+            LOGE("Cannot setoutput channel layout\n");
             goto end;
         }
         ret = av_opt_set_bin(buffersink_ctx, "sample_rates",
                              (uint8_t *) &enc_ctx->sample_rate, sizeof(enc_ctx->sample_rate),
                              AV_OPT_SEARCH_CHILDREN);
         if (ret < 0) {
-            LOGE( "Cannot setoutput sample rate\n");
+            LOGE("Cannot setoutput sample rate\n");
             goto end;
         }
     } else {
@@ -1017,7 +1016,7 @@ static int encode_write_frame(AVFrame *filt_frame, unsigned int stream_index, in
     enc_pkt.duration = av_rescale_q(enc_pkt.duration,
                                     ofmt_ctx->streams[stream_index]->codec->time_base,
                                     ofmt_ctx->streams[stream_index]->time_base);
-    LOGE( "Muxing frame\n");
+    LOGE("Muxing frame\n");
     /* mux encoded frame */
     ret = av_interleaved_write_frame(ofmt_ctx, &enc_pkt);
     return ret;
@@ -1031,7 +1030,7 @@ static int filter_encode_write_frame(AVFrame *frame, unsigned int stream_index) 
     ret = av_buffersrc_add_frame_flags(filter_ctx[stream_index].buffersrc_ctx,
                                        frame, 0);
     if (ret < 0) {
-        LOGE( "Error whilefeeding the filtergraph\n");
+        LOGE("Error whilefeeding the filtergraph\n");
         return ret;
     }
     /* pull filtered frames from the filtergraph */
@@ -1041,7 +1040,7 @@ static int filter_encode_write_frame(AVFrame *frame, unsigned int stream_index) 
             ret = AVERROR(ENOMEM);
             break;
         }
-        LOGE( "Pullingfiltered frame from filters\n");
+        LOGE("Pullingfiltered frame from filters\n");
         ret = av_buffersink_get_frame(filter_ctx[stream_index].buffersink_ctx,
                                       filt_frame);
         if (ret < 0) {

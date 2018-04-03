@@ -50,12 +50,12 @@ public class MyFFmpegActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.encode_yuv).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  EncodeYuvActivity.class));
-            }
-        });
+//        findViewById(R.id.encode_yuv).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                startActivity(new Intent(MyFFmpegActivity.this,  EncodeYuvActivity.class));
+//            }
+//        });
 
         findViewById(R.id.bt_filter).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,12 +63,12 @@ public class MyFFmpegActivity extends AppCompatActivity {
                 startActivity(new Intent(MyFFmpegActivity.this,  AddFilterActivity.class));
             }
         });
-        findViewById(R.id.bt_transcoding).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FFmpegUtils.transcodeing(rootFile+"/test.mp4" , rootFile+"/trancoding.avi");
-            }
-        });
+//        findViewById(R.id.bt_transcoding).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                FFmpegUtils.transcodeing(rootFile+"/test.mp4" , rootFile+"/trancoding.avi");
+//            }
+//        });
         findViewById(R.id.bt_swscale).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

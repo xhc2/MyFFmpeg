@@ -62,7 +62,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decode
 
     (*env)->ReleaseStringUTFChars(env, input_jstr, input_str);
     (*env)->ReleaseStringUTFChars(env, output_jstr, output_str);
-    return 0;
+    return 1;
 }
 
 /*
@@ -111,7 +111,7 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_encodeYuv
     encodeYuv(input_str, output_str);
     (*env)->ReleaseStringUTFChars(env, jstr_input, input_str);
     (*env)->ReleaseStringUTFChars(env, jstr_output, output_str);
-
+    return 1;
 }
 
 /*

@@ -112,12 +112,12 @@ public class PlayVideoActivity extends AppCompatActivity implements AdapterView.
     }
 
     private boolean filterFile(File file ){
-        for(String str : suffixs){
-            if(file.getName().endsWith(str)){
-                return true;
-            }
-        }
-        return false;
+//        for(String str : suffixs){
+//            if(file.getName().endsWith(str)){
+//                return true;
+//            }
+//        }
+        return true;
     }
 
     private class FileAdater extends BaseAdapter{

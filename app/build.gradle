@@ -30,6 +30,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug{
+            jniDebuggable true
+            jniDebuggable = true
+        }
     }
     //利用gradle来编译jni，不然就用cmd中自己去编译
     externalNativeBuild {

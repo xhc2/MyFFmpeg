@@ -72,20 +72,21 @@ public class AudioRecordActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     private void stop(){
-        recordFlag = false;
-        stopDealAudio();
-        try{
-            recordThread.join();
-            daThread.join();
-        }catch (Exception e){
+        if(recordFlag){
+            recordFlag = false;
+            stopDealAudio();
+            try{
+                recordThread.join();
+                daThread.join();
+            }catch (Exception e){
 
-        }finally {
-            FFmpegUtils.closeAudioRecord();
-            releaseAudioRecord();
+            }finally {
+                FFmpegUtils.closeAudioRecord();
+                releaseAudioRecord();
+            }
         }
     }
 
