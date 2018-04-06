@@ -85,6 +85,7 @@ public class MyRender implements GLSurfaceView.Renderer{
             -0.5f,-0.5f,   1f,0.7f,0.7f,0.7f,
             0.5f ,-0.5f, 1f, 0.7f,0.7f,0.7f,
             0.5f , 0.5f,  2f ,0.7f,0.7f,0.7f,
+
             -0.5f,0.5f,   2f , 0.7f,0.7f,0.7f,
             -0.5f,-0.5f,  1f , 0.7f,0.7f,0.7f,
 

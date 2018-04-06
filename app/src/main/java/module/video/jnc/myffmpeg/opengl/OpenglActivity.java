@@ -8,12 +8,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import module.video.jnc.myffmpeg.PlayYuvRender;
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.opengl.MyRender;
 
 
 /**
- * 用这个做一个视频播放界面
+ *  用来播放视频处理
+ *  1.显示yuv图片
+ *  2.播放yuv的视频
+ *  3.处理音频
+ *  4.然后同步处理
  */
 public class OpenglActivity extends AppCompatActivity {
 
@@ -34,7 +39,7 @@ public class OpenglActivity extends AppCompatActivity {
             Log.e("xhc" , " 支持  ");
             glSurfaceView.setEGLContextClientVersion(2);
             glSurfaceView.setEGLConfigChooser(8,8,8,8,16,0);
-            glSurfaceView.setRenderer(new MyRender(this));
+            glSurfaceView.setRenderer(new PlayYuvRender(OpenglActivity.this));
             renderSet = true;
         }
 

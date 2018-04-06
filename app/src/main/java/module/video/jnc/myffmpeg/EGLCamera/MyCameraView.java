@@ -72,7 +72,6 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
         MyRender(Context context){
             this.context = context;
-
             //单位矩阵乘以任何矩阵都是得到以前的矩阵
 //            Matrix.setIdentityM(mProjectMatrix, 0);
 //            Matrix.setIdentityM(mCameraMatrix, 0);

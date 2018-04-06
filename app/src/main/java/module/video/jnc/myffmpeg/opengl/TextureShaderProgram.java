@@ -36,6 +36,7 @@ public class TextureShaderProgram extends ShaderProgram{
 
     public void setUniforms(float[] matrix , int textureId){
         glUniformMatrix4fv(uMatrixLocaktion , 1 , false , matrix , 0);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D , textureId);
         glUniform1i(uTextureUnitLocation , 0);

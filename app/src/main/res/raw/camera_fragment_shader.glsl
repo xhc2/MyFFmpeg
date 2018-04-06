@@ -5,8 +5,6 @@ uniform samplerExternalOES s_texture;
 uniform vec3 vChangeColor;
 uniform sampler2D u_TextureUnit;
 void main() {
-//    vec4 nColor =
-//    float c = nColor.r * vChangeColor.r+nColor.g * vChangeColor.g + nColor.b * vChangeColor.b;
     gl_FragColor = texture2D(s_texture , textureCoordinate);
 }
 /**

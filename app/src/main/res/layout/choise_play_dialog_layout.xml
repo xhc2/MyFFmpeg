@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="300dp"
+    android:background="#eeeeee"
+    android:layout_height="400dp">
+
+    <TextView
+        android:id="@+id/play_audio"
+        android:text="android api 播放音频"
+        android:gravity="center"
+        android:padding="10dp"
+        android:layout_width="match_parent"
+        android:background="#ffffff"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/play_mp4"
+        android:text="android api 播放视频"
+        android:gravity="center"
+        android:background="#ffffff"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/play_MP4_open_gl"
+        android:text="opengl 播放视频"
+        android:gravity="center"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        android:background="#ffffff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

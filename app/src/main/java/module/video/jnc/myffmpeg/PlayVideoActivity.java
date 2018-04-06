@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -144,6 +145,7 @@ public class PlayVideoActivity extends AppCompatActivity implements AdapterView.
                 holder = new ViewHolder();
                 holder.tv = new TextView(PlayVideoActivity.this);
                 holder.tv.setPadding(10 , 10 , 10 , 10);
+                holder.tv.setGravity(Gravity.CENTER);
                 ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.WRAP_CONTENT );
                 holder.tv.setLayoutParams(params);
                 view = holder.tv;

@@ -50,7 +50,7 @@
         <activity android:name=".OpenGlActivity" />
         <activity android:name=".MyFFmpegActivity" />
         <activity android:name=".MyAllActivity" />
-        <activity android:name=".PlayAudioActivity"></activity>
+        <activity android:name=".PlayAudioActivity" />
     </application>
 
 </manifest>
