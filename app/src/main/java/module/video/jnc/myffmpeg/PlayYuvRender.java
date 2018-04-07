@@ -251,17 +251,17 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
 
         glActiveTexture(GLES20.GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D , myTextureY);
-        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , 0 , width, height ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferY);
+        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width, height ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferY);
         glUniform1i(yLocation ,0);
 
         glActiveTexture(GLES20.GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D , myTextureU);
-        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , 0 , width /2 , height /2  ,0,   GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferU);
+        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width /2 , height /2  ,0,   GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferU);
         glUniform1i(uLocation ,1);
 
         glActiveTexture(GLES20.GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D , myTextureV);
-        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , 0 , width /2 , height /2  ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE  , byteBufferV);
+        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE, width /2 , height /2  ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE  , byteBufferV);
         glUniform1i(vLocation ,2);
     }
 
