@@ -3,6 +3,7 @@ package module.video.jnc.myffmpeg.opengl;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.opengl.GLES20;
 import android.opengl.GLES20.*;
 import android.util.Log;
 
@@ -50,6 +51,7 @@ public class TextureHelper {
         glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         //加载位图数据到opengl中
         texImage2D(GL_TEXTURE_2D , 0 , bitmap,0);
+
         bitmap.recycle();
         //生成mip贴图
         glGenerateMipmap(GL_TEXTURE_2D);
