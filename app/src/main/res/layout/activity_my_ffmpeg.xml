@@ -93,7 +93,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="ffmpeg_camera" />
-
+            <Button
+                android:id="@+id/test"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="test" />
 
 
         </LinearLayout>

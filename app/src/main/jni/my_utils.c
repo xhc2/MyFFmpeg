@@ -23,3 +23,12 @@ void utils_nv21ToYv12(jbyte *navtiveYuv ,int y_size){
         free(result);
     }
 }
+
+
+void myThreadStart(){
+
+}
+
+void myThreadStop(){
+
+}

@@ -30,6 +30,7 @@ typedef struct FilteringContext {
 } FilteringContext;
 
 static FilteringContext *filter_ctx;
+
 enum AVRounding avRounding = {AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX};
 
 int encode_h264(char *input_str, char *output_str) {

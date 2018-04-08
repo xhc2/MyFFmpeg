@@ -371,3 +371,19 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_testArray(JNIE
     LOGE(" jni %d", navtiveYuv[1] );
     LOGE(" jni %d", navtiveYuv[2] );
 }
+
+/**
+ * 测试原生线程和java的交互等。
+ * @param env
+ * @param clazz
+ * @return
+ */
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_jniNativeThreadStart(JNIEnv *env, jclass clazz){
+
+    return 1;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_jniNativeThreadStop(JNIEnv *env, jclass clazz){
+
+    return 1;
+}

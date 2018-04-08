@@ -5,4 +5,7 @@
 #ifndef MYFFMPEG_MY_UTILS_H
 #define MYFFMPEG_MY_UTILS_H
 void utils_nv21ToYv12(jbyte *navtiveYuv ,int y_size);
+void myThreadStart();
+void myThreadStop();
+
 #endif //MYFFMPEG_MY_UTILS_H

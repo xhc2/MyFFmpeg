@@ -19,7 +19,6 @@
         android:text="start"
         android:layout_height="wrap_content" />
 
-
     <Button
         android:id="@+id/end"
         android:layout_width="match_parent"

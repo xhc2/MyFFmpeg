@@ -67,7 +67,6 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
     private final FloatBuffer myTextureData;
     private static final int POSITION_COMPONENT_COUNT = 2;
     private static final int BYTES_PER_FLOAT = 4;
-//    private int uTextureUnitLocation;
     private int myTextureY , myTextureU , myTextureV;
 
     private ByteBuffer byteBufferY,byteBufferU,byteBufferV;
@@ -153,6 +152,7 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         yLocation = glGetUniformLocation(mProgram, "textureY");
         uLocation = glGetUniformLocation(mProgram, "textureU");
         vLocation = glGetUniformLocation(mProgram, "textureV");
+
         Log.e("xhc" , "  yLocation "+yLocation+" uLocation "+uLocation+" vLocation "+vLocation);
 
     }
@@ -168,7 +168,7 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         byteBufferY.put(byteY);
         byteBufferY.position(0);
 
-        byteBufferU =  ByteBuffer.allocateDirect(uLength )  ;
+        byteBufferU =  ByteBuffer.allocateDirect(uLength)  ;
         System.arraycopy(myFileBytes , width * height , byteU , 0 ,uLength);
         byteBufferU.put(byteU);
         byteBufferU.position(0);
@@ -190,49 +190,42 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
 //            fos.write(byteY);
 //            fos.write(byteU);
 //            fos.write(byteV);
-//
 //            FileOutputStream fosu = new FileOutputStream(fileU);
 //            fosu.write(byteU);
-//
 //            FileOutputStream fosv = new FileOutputStream(fileV);
 //            fosv.write(byteV);
 //        }
 //        catch(Exception e){
 //
 //        }
-
-
-
     }
 
     private int loadYuvTexture(){
         final int[] textureObjectIds = new int[1];
 
-
         glGenTextures(1 ,textureObjectIds , 0);
         myTextureY = textureObjectIds[0];
         glBindTexture(GL_TEXTURE_2D , myTextureY);
-        glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
+        GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_LINEAR_MIPMAP_LINEAR);
+        GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
         glGenTextures(1 ,textureObjectIds , 0);
         myTextureU = textureObjectIds[0];
         glBindTexture(GL_TEXTURE_2D , myTextureU);
-        glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
+        GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_LINEAR_MIPMAP_LINEAR);
+        GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
         glGenTextures(1 ,textureObjectIds , 0);
         myTextureV = textureObjectIds[0];
         glBindTexture(GL_TEXTURE_2D , myTextureV);
-        glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
+        GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_LINEAR_MIPMAP_LINEAR);
+        GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        Log.e("xhc" ," myTextureY "+myTextureY+" myTextureU "+myTextureU+" myTextureV "+myTextureV);
 
         return 1;
     }
@@ -263,6 +256,7 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         glBindTexture(GL_TEXTURE_2D , myTextureV);
         GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE, width /2 , height /2  ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE  , byteBufferV);
         glUniform1i(vLocation ,2);
+
     }
 
     private int getMaxTextrueSize() {
@@ -292,7 +286,6 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
             try {
                 is.close();
             } catch (Exception e) {
-
             }
             try {
                 bos.close();
@@ -314,11 +307,10 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl10) {
         glClear(GL_COLOR_BUFFER_BIT);
 
-
-//        glBindTexture(GL_TEXTURE_2D, myTextureY);
+        //glBindTexture(GL_TEXTURE_2D, myTextureY);
 
         //uTextureUnitLocation，纹理数据的位置，0是对应的GL_TEXTURE0纹理单元
-//        glUniform1i(uTextureUnitLocation, 0);
+        //glUniform1i(uTextureUnitLocation, 0);
 
         updateImage();
 //        glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);

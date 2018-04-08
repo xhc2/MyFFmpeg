@@ -27,79 +27,74 @@ public class MyFFmpegActivity extends AppCompatActivity {
         findViewById(R.id.camera_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  MyCameraFilter.class));
+                startActivity(new Intent(MyFFmpegActivity.this, MyCameraFilter.class));
             }
         });
 
         findViewById(R.id.decode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  DecodeMP4Activity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, DecodeMP4Activity.class));
             }
         });
         findViewById(R.id.stream).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  StreamActivity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, StreamActivity.class));
             }
         });
         findViewById(R.id.bt_encode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  EncodeActivity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, EncodeActivity.class));
             }
         });
 
-//        findViewById(R.id.encode_yuv).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                startActivity(new Intent(MyFFmpegActivity.this,  EncodeYuvActivity.class));
-//            }
-//        });
 
         findViewById(R.id.bt_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  AddFilterActivity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, AddFilterActivity.class));
             }
         });
-//        findViewById(R.id.bt_transcoding).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                FFmpegUtils.transcodeing(rootFile+"/test.mp4" , rootFile+"/trancoding.avi");
-//            }
-//        });
         findViewById(R.id.bt_swscale).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FFmpegUtils.swscale(rootFile+"/test.yuv" , rootFile+"/swscale.rgb");
+                FFmpegUtils.swscale(rootFile + "/test.yuv", rootFile + "/swscale.rgb");
             }
         });
         findViewById(R.id.bt_muxer).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  MuxerActivity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, MuxerActivity.class));
             }
         });
 
         findViewById(R.id.ffmpeg_camera).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this , MyRecordActivity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, MyRecordActivity.class));
             }
         });
 
         findViewById(R.id.camera_ffmpeg).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this , MyNewRecordActivity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, MyNewRecordActivity.class));
             }
         });
 
         findViewById(R.id.audio_record).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MyFFmpegActivity.this,  AudioRecordActivity.class));
+                startActivity(new Intent(MyFFmpegActivity.this, AudioRecordActivity.class));
+            }
+        });
+
+        findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MyFFmpegActivity.this, TestActivity.class));
             }
         });
     }

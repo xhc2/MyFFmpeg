@@ -75,4 +75,9 @@ public class FFmpegUtils {
     public static native int encodeMyMuxerAudioFilter(byte[] bytes);
 
     public static native int closeMyMuxerFilter();
+
+    public static native int jniNativeThreadStart();
+
+    public static native int jniNativeThreadStop();
+
 }
