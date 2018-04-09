@@ -6,6 +6,7 @@ import android.media.MediaRecorder;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -28,18 +29,28 @@ public class TestActivity extends AppCompatActivity {
 
         tvText = (TextView)findViewById(R.id.tv_text);
 
+        findViewById(R.id.init).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FFmpegUtils.jniNativeThreadInit();
+            }
+        });
+
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                FFmpegUtils.jniNativeThreadStart();
             }
         });
 
         findViewById(R.id.end).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                FFmpegUtils.jniNativeThreadStop();
             }
         });
     }
+
+
+
 }

@@ -1,5 +1,7 @@
 package module.video.jnc.myffmpeg;
 
+import android.util.Log;
+
 /**
  * Created by xhc on 2017/11/1.
  */
@@ -76,8 +78,14 @@ public class FFmpegUtils {
 
     public static native int closeMyMuxerFilter();
 
+    public static native int jniNativeThreadInit();
+
     public static native int jniNativeThreadStart();
 
     public static native int jniNativeThreadStop();
 
+    private void printMsgFromJni(String str){
+        Log.e("xhc_jni" ,str);
+//        return "x";
+    }
 }

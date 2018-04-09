@@ -13,6 +13,13 @@
         android:text="test"
         android:layout_height="wrap_content" />
 
+
+    <Button
+        android:id="@+id/init"
+        android:layout_width="match_parent"
+        android:text="初始化"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/start"
         android:layout_width="match_parent"

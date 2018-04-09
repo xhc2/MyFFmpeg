@@ -23,6 +23,7 @@
 #include <my_camera_muxer.h>
 #include <my_audio_record.h>
 #include <my_new_camera_muxer_filter.h>
+#include <my_utils.h>
 
 JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative
         (JNIEnv *env, jclass clazz) {
@@ -378,12 +379,18 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_testArray(JNIE
  * @param clazz
  * @return
  */
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_jniNativeThreadInit(JNIEnv *env, jclass clazz){
+    myThreadInit(env , clazz);
+    return 1;
+}
+
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_jniNativeThreadStart(JNIEnv *env, jclass clazz){
 
+    myThreadStart(env,  clazz);
     return 1;
 }
 
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_jniNativeThreadStop(JNIEnv *env, jclass clazz){
-
+    myThreadStop(env,  clazz);
     return 1;
 }
