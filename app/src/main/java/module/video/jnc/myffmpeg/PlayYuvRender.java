@@ -42,6 +42,7 @@ import static android.opengl.GLES20.glDisableVertexAttribArray;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGenTextures;
+import static android.opengl.GLES20.glGenerateMipmap;
 import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetIntegerv;
 import static android.opengl.GLES20.glGetUniformLocation;
@@ -210,6 +211,8 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D , myTextureY);
 
         glGenTextures(1 ,textureObjectIds , 0);
         myTextureU = textureObjectIds[0];
@@ -218,6 +221,8 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D , myTextureU);
 
         glGenTextures(1 ,textureObjectIds , 0);
         myTextureV = textureObjectIds[0];
@@ -226,6 +231,8 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D , myTextureV);
 
         return 1;
     }
@@ -256,6 +263,7 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         glBindTexture(GL_TEXTURE_2D , myTextureV);
         GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE, width /2 , height /2  ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE  , byteBufferV);
         glUniform1i(vLocation ,2);
+
 
     }
 

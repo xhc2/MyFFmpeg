@@ -38,5 +38,11 @@ public class OpenGlActivity extends AppCompatActivity {
                 startActivity(new Intent(OpenGlActivity.this , EGLCameraActivity.class));
             }
         });
+        findViewById(R.id.load_jpg).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(OpenGlActivity.this , LoadJpgActivity.class));
+            }
+        });
     }
 }

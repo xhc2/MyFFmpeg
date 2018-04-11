@@ -25,6 +25,7 @@ import static android.opengl.GLUtils.texImage2D;
  */
 
 public class TextureHelper {
+
     public static int loadTexture(Context context , int resourceId){
         final int[] textureObjectIds = new int[1];
         glGenTextures(1,textureObjectIds , 0);
@@ -46,7 +47,6 @@ public class TextureHelper {
          * 设置过滤器GL_TEXTURE_MIN_FILTER指缩小的情况选择GL_LINEAR_MIPMAP_LINEAR说明缩小使用三线性过滤
          * GL_TEXTURE_MAG_FILTER 指放大的情况GL_LINEAR使用双线性过滤
          */
-
         glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         //加载位图数据到opengl中

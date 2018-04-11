@@ -187,15 +187,6 @@ public class NewMyRender implements GLSurfaceView.Renderer {
         puck.bindData(colorShaderProgram);
         puck.draw();
 
-//        textureShaderProgram.useProgram();
-//        textureShaderProgram.setUniforms(projectionMatrix , textture);
-//        table.bindData(textureShaderProgram);
-//        table.draw();
-//        colorShaderProgram.useProgram();
-//        colorShaderProgram.setUniforms(projectionMatrix);
-//        mallet.bindData(colorShaderProgram);
-//        mallet.draw();
-
     }
 
     private void positionTableInScene(){

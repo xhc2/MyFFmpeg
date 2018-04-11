@@ -35,6 +35,11 @@
                 android:text="eglcamera" />
 
 
+            <Button
+                android:id="@+id/load_jpg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="加载普通图片做为纹理" />
             <TextView
                 android:id="@+id/tv"
                 android:layout_width="wrap_content"
