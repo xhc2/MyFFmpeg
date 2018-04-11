@@ -131,7 +131,7 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         vLength = myFileBytes.length * 1 / 6;
         Log.e("xhc" , " yLength "+yLength+" uLength "+uLength+" vLength "+vLength);
         mallocYuvBuffer();
-        loadYuvTexture();
+
         String yuvFragment = TextResourceReader.readTextFileFromResource(context, R.raw.yuv_frg_shader);
         String yuvVertex = TextResourceReader.readTextFileFromResource(context, R.raw.yuv_vertex_shader);
         mProgram = ShaderHelper.buildProgram(yuvVertex, yuvFragment);
@@ -155,7 +155,7 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         vLocation = glGetUniformLocation(mProgram, "textureV");
 
         Log.e("xhc" , "  yLocation "+yLocation+" uLocation "+uLocation+" vLocation "+vLocation);
-
+        loadYuvTexture();
     }
 
 
@@ -211,8 +211,9 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width, height ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferY);
         glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D , myTextureY);
+        glBindTexture(GL_TEXTURE_2D , 0);
 
         glGenTextures(1 ,textureObjectIds , 0);
         myTextureU = textureObjectIds[0];
@@ -221,8 +222,9 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width /2 , height /2  ,0,   GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferU);
         glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D , myTextureU);
+        glBindTexture(GL_TEXTURE_2D , 0);
 
         glGenTextures(1 ,textureObjectIds , 0);
         myTextureV = textureObjectIds[0];
@@ -231,8 +233,9 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE, width /2 , height /2  ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE  , byteBufferV);
         glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D , myTextureV);
+        glBindTexture(GL_TEXTURE_2D , 0);
 
         return 1;
     }
@@ -251,17 +254,14 @@ public class PlayYuvRender implements GLSurfaceView.Renderer {
 
         glActiveTexture(GLES20.GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D , myTextureY);
-        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width, height ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferY);
         glUniform1i(yLocation ,0);
 
         glActiveTexture(GLES20.GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D , myTextureU);
-        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width /2 , height /2  ,0,   GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBufferU);
         glUniform1i(uLocation ,1);
 
         glActiveTexture(GLES20.GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D , myTextureV);
-        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE, width /2 , height /2  ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE  , byteBufferV);
         glUniform1i(vLocation ,2);
 
 

@@ -2,6 +2,8 @@ package module.video.jnc.myffmpeg;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
@@ -33,11 +35,13 @@ import static android.opengl.GLES20.glClearColor;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGenTextures;
+import static android.opengl.GLES20.glGenerateMipmap;
 import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetUniformLocation;
 import static android.opengl.GLES20.glUniform1i;
 import static android.opengl.GLES20.glVertexAttribPointer;
 import static android.opengl.GLES20.glViewport;
+import static android.opengl.GLUtils.texImage2D;
 
 /**
  * Created by Administrator on 2018/4/11/011.
@@ -89,7 +93,7 @@ public class LoadJpgRender implements GLSurfaceView.Renderer{
 
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
-        glClearColor(1f, 1f, 1f, 1f);
+        glClearColor(0f, 1f, 0f, 1f);
         String yuvFragment = TextResourceReader.readTextFileFromResource(context, R.raw.load_jpg_frgment_shader);
         String yuvVertex = TextResourceReader.readTextFileFromResource(context, R.raw.load_jpg_vertext_shader);
         mProgram = ShaderHelper.buildProgram(yuvVertex, yuvFragment);
@@ -125,8 +129,11 @@ public class LoadJpgRender implements GLSurfaceView.Renderer{
         glActiveTexture(GLES20.GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D , texture);
         getAssetFile();
-        mallocBytes();
-//        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width, height ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBuffer);
+
+        texImage2D(GL_TEXTURE_2D , 0 , bitmap,0);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D , 0);
+        bitmap.recycle();
     }
     private  byte[] myFileBytes;
 
@@ -138,15 +145,14 @@ public class LoadJpgRender implements GLSurfaceView.Renderer{
         byteBuffer.put(myFileBytes);
         byteBuffer.position(0);
     }
+
+    private Bitmap bitmap;
+
     private void updateImage(){
 
         glActiveTexture(GLES20.GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D , texture);
-        GLES20.glTexImage2D(GL_TEXTURE_2D , 0 , GLES20.GL_LUMINANCE , width, height ,0,  GLES20.GL_ALPHA , GLES20.GL_UNSIGNED_BYTE , byteBuffer);
         glUniform1i(uTextureUnitLocation ,0);
-
-
-
     }
     private void getAssetFile() {
         AssetManager am = context.getAssets();
@@ -161,6 +167,9 @@ public class LoadJpgRender implements GLSurfaceView.Renderer{
                 bos.write(temp, 0, len);
             }
             myFileBytes = bos.toByteArray();
+
+            bitmap = BitmapFactory.decodeByteArray(myFileBytes , 0 , myFileBytes.length);
+
             Log.e("xhc" , " file byte size "+myFileBytes.length);
         } catch (Exception e) {
 
