@@ -51,7 +51,8 @@
         <activity android:name=".MyFFmpegActivity" />
         <activity android:name=".MyAllActivity" />
         <activity android:name=".PlayAudioActivity" />
-        <activity android:name=".LoadJpgActivity"></activity>
+        <activity android:name=".LoadJpgActivity" />
+        <activity android:name=".GlSurfaceViewActivity"></activity>
     </application>
 
 </manifest>

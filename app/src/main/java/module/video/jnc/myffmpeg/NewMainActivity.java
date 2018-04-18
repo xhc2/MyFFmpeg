@@ -80,6 +80,13 @@ public class NewMainActivity extends AppCompatActivity {
                 startActivity(new Intent(NewMainActivity.this, OpenglActivity.class));
             }
         });
+        dialog.findViewById(R.id.play_gl_surfaceview).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(NewMainActivity.this, OpenglActivity.class));
+            }
+        });
+
     }
 
     private void showDialog() {
