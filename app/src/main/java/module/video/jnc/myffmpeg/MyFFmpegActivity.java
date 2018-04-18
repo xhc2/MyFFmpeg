@@ -13,7 +13,14 @@ import module.video.jnc.myffmpeg.opengl.OpenglActivity;
 
 /**
  * ffmpeg展示界面
- * 一些编解码，然后打水印等
+ * 1.对音视频文件的编解码
+ * 2.推流先不搞,等服务器rtmp的服务器先搭个简单的再处理
+ * 3.用swscale yuv ， rgb转码然后显示
+ * 4.视频录制
+ * 5.打水印
+ * 6.音频录制
+ * 7.相机录制，然后将视频打水印
+ * 8.
  */
 public class MyFFmpegActivity extends AppCompatActivity {
 
@@ -49,7 +56,6 @@ public class MyFFmpegActivity extends AppCompatActivity {
                 startActivity(new Intent(MyFFmpegActivity.this, EncodeActivity.class));
             }
         });
-
 
         findViewById(R.id.bt_filter).setOnClickListener(new View.OnClickListener() {
             @Override

@@ -10,6 +10,7 @@ import module.video.jnc.myffmpeg.opengl.OpenglActivity;
 
 /**
  * 展示opengl功能模块
+ *
  */
 public class OpenGlActivity extends AppCompatActivity {
 
