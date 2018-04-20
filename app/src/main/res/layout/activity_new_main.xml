@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:text="ffmpeg"
+        android:text="ffmpeg处理"
         />
 
     <Button
@@ -26,6 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:visibility="gone"
         android:text="opengl"
         />
 
@@ -34,6 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:visibility="gone"
         android:text="结合"
         />
 

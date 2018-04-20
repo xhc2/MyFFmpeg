@@ -28,7 +28,6 @@
         <activity android:name=".StreamActivity" />
         <activity android:name=".EncodeActivity" />
         <activity android:name=".EncodeYuvActivity" />
-        <activity android:name=".MySDLActivity" />
         <activity
             android:name=".SDLActivity"
             android:configChanges="keyboardHidden|orientation" />

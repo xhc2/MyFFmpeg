@@ -18,8 +18,6 @@ public class FFmpegUtils {
         System.loadLibrary("avfilter");
         System.loadLibrary("ffmpeg");
     }
-//    Cannot resolve corresponding JNI function Java_module_video_jnc_myffmpeg_FFmpegUtils_init_1audio_1record_1 less... (Ctrl+F1)
-//    Reports native method declarations in Java where no corresponding JNI function is found in the project.
 
     //方法名最好不要有下划线，不然ndk编译有问题，还不知道为什么。
     public static native int initAudioRecord(String outputPath , int aSize);
@@ -39,8 +37,6 @@ public class FFmpegUtils {
     public static native int stream(String inputUrl , String ouputUrl);
 
     public static native int encodeYuv(String inputUrl , String outputPath);
-
-//    public static native int transcodeing(String inputUrl , String outputPath);
 
     public static native int addfilter(String inputStr , String outputPath);
 
@@ -78,11 +74,6 @@ public class FFmpegUtils {
 
     public static native int closeMyMuxerFilter();
 
-    public static native int jniNativeThreadInit();
-
-    public static native int jniNativeThreadStart();
-
-    public static native int jniNativeThreadStop();
 
     private void printMsgFromJni(String str){
         Log.e("xhc_jni" ,str);

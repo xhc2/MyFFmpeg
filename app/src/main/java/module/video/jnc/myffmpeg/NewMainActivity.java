@@ -25,7 +25,7 @@ public class NewMainActivity extends AppCompatActivity {
         findViewById(R.id.bt_opengl).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(NewMainActivity.this, OpenGlActivity.class));
+//                startActivity(new Intent(NewMainActivity.this, OpenGlActivity.class));
             }
         });
 
@@ -39,7 +39,7 @@ public class NewMainActivity extends AppCompatActivity {
         findViewById(R.id.bt_all).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(NewMainActivity.this, MyAllActivity.class));
+//                startActivity(new Intent(NewMainActivity.this, MyAllActivity.class));
             }
         });
 
