@@ -55,7 +55,7 @@ public class EncodeActivity extends AppCompatActivity {
         public void run() {
             super.run();
             handler.sendEmptyMessage(1);
-            FFmpegUtils.encode(rootFile+"/test.mp4" , rootFile.getAbsolutePath());
+//            FFmpegUtils.encode(rootFile+"/test.mp4" , rootFile.getAbsolutePath());
             handler.sendEmptyMessage(2);
         }
     }

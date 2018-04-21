@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import module.video.jnc.myffmpeg.opengl.OpenglActivity;
@@ -21,6 +22,8 @@ public class NewMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_main);
+
+        Log.e("xhc" , FFmpegUtils.stringNative());
 
         findViewById(R.id.bt_opengl).setOnClickListener(new View.OnClickListener() {
             @Override

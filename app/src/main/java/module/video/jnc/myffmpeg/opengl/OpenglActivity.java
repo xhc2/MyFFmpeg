@@ -8,9 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import module.video.jnc.myffmpeg.PlayYuvRender;
-import module.video.jnc.myffmpeg.R;
-import module.video.jnc.myffmpeg.opengl.MyRender;
 
 
 /**
@@ -39,7 +36,7 @@ public class OpenglActivity extends AppCompatActivity {
             Log.e("xhc" , " 支持  ");
             glSurfaceView.setEGLContextClientVersion(2);
             glSurfaceView.setEGLConfigChooser(8,8,8,8,16,0);
-            glSurfaceView.setRenderer(new PlayYuvRender(OpenglActivity.this));
+//            glSurfaceView.setRenderer(new PlayYuvRender(OpenglActivity.this));
             renderSet = true;
         }
     }

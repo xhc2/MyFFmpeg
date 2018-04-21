@@ -2,42 +2,40 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avcodec
-LOCAL_SRC_FILES := libavcodec.so
+LOCAL_SRC_FILES := prebuilt/libavcodec.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avfilter
-LOCAL_SRC_FILES := libavfilter.so
+LOCAL_SRC_FILES := prebuilt/libavfilter.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avformat
-LOCAL_SRC_FILES := libavformat.so
+LOCAL_SRC_FILES := prebuilt/libavformat.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avutil
-LOCAL_SRC_FILES := libavutil.so
+LOCAL_SRC_FILES := prebuilt/libavutil.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := swresample
-LOCAL_SRC_FILES := libswresample.so
+LOCAL_SRC_FILES := prebuilt/libswresample.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := swscale
-LOCAL_SRC_FILES := libswscale.so
+LOCAL_SRC_FILES := prebuilt/libswscale.so
 include $(PREBUILT_SHARED_LIBRARY)
-
 # Program FFmpeg
 
-#include $(CLEAR_VARS)
-#LOCAL_MODULE := ffmpeg
-#LOCAL_SRC_FILES := ffmpeg.c my_stream.c mydecode.c filter.c my_log.c filter_video.c swscale.c my_muxer.c my_ffmpeg.c my_new_camera_muxer.c my_audio_reocrd.c my_utils.c \
-#                   my_new_camera_filter.c
-#LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
-#LOCAL_LDLIBS := -llog -lz
+include $(CLEAR_VARS)
+LOCAL_MODULE := my_ffmpeg
+LOCAL_SRC_FILES := my_ffmpeg.cpp
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 
-LOCAL_SHARED_LIBRARIES := avcodec avfilter avformat avutil swresample swscale
+LOCAL_LDLIBS := -llog -lz
+LOCAL_SHARED_LIBRARIES := avfilter avformat avutil swresample swscale avcodec my_ffmpeg
 include $(BUILD_SHARED_LIBRARY)
