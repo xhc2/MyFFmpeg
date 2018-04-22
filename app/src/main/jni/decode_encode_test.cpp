@@ -16,14 +16,14 @@ extern "C" {
 }
 using namespace std;
 
-extern "C"
-JNIEXPORT
-jint JNI_OnLoad(JavaVM *vm,void *res)
-{
-    av_jni_set_java_vm(vm,0);
-    return JNI_VERSION_1_4;
-}
-//Error:(22) undefined reference to 'av_jni_set_java_vm(void*, void*)'
+//extern "C"
+//JNIEXPORT
+//jint JNI_OnLoad(JavaVM *vm,void *res)
+//{
+//    av_jni_set_java_vm(vm,0);
+//    return JNI_VERSION_1_4;
+//}
+
 int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
     int result;
     av_register_all();

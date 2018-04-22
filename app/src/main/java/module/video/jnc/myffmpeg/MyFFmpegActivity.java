@@ -12,6 +12,7 @@ import module.video.jnc.myffmpeg.EGLCamera.EGLCameraActivity;
 import module.video.jnc.myffmpeg.opengl.OpenglActivity;
 
 /**
+ * http://ffmpeg.org/doxygen/3.4/index.html
  * ffmpeg展示界面
  * 1.对音视频文件的编解码
  * 2.推流先不搞,等服务器rtmp的服务器先搭个简单的再处理
