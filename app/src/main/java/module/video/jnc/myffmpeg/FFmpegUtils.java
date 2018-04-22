@@ -1,5 +1,6 @@
 package module.video.jnc.myffmpeg;
 
+import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 /**
@@ -20,7 +21,7 @@ public class FFmpegUtils {
     public static native String stringNative();
 
     //将MP4解码成yuv，和pcm
-    public static native int decodeMp4ToYuvPcm(String path);
+    public static native int decodeMp4ToYuvPcm(String path , Object glSurfaceView);
 
 
 //    public static native int initAudioRecord(String outputPath , int aSize);

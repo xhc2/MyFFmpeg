@@ -4,16 +4,27 @@
 #include<iostream>
 #include <my_log.h>
 #include "decode_encode_test.h"
+#include <android/native_window.h>
+#include <android/native_window_jni.h>
+#include <jni.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
+#include <libavcodec/jni.h>
 }
 using namespace std;
 
-
-int decode(const char *input_path) {
+extern "C"
+JNIEXPORT
+jint JNI_OnLoad(JavaVM *vm,void *res)
+{
+    av_jni_set_java_vm(vm,0);
+    return JNI_VERSION_1_4;
+}
+//Error:(22) undefined reference to 'av_jni_set_java_vm(void*, void*)'
+int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
     int result;
     av_register_all();
     avcodec_register_all();
@@ -118,12 +129,19 @@ int decode(const char *input_path) {
         LOGE(" swr_init FAILD !");
         return -1;
     }
+
+
+    ANativeWindow *aWindow = ANativeWindow_fromSurface(env , surface);
+    ANativeWindow_setBuffersGeometry(aWindow , outWidth , outHeight , WINDOW_FORMAT_RGBA_8888);
+    ANativeWindow_Buffer wbuf ;
+
     while (true) {
         result = av_read_frame(afc, pkt);
         if (result < 0) {
             LOGE(" READ FRAME FAILD !");
             break;
         }
+
         frameCount ++ ;
 //        LOGE(" FRAME COUNT %d" , frameCount);
         AVCodecContext *tempCC = vc;
@@ -160,6 +178,15 @@ int decode(const char *input_path) {
                     int lines[AV_NUM_DATA_POINTERS] = {0};
                     lines[0] = outWidth * 4;
                     int h = sws_scale(sws , (const uint8_t **)frame->data , frame->linesize , 0 ,frame->height , data , lines);
+                    LOGE("SLICE HEIGHT %d " , h);
+                    //一帧的高度
+//                    if(h > 0){
+                        ANativeWindow_lock(aWindow , &wbuf , 0);
+                        uint8_t *dst = (uint8_t *)wbuf.bits;
+                        memcpy(dst , rgb , outWidth * outHeight * 4);
+                        ANativeWindow_unlockAndPost(aWindow);
+//                    }
+
 //                    fwrite(rgb , 1 ,outWidth * outHeight * 4 , fvout );
 
                 }
@@ -175,6 +202,7 @@ int decode(const char *input_path) {
                                           (const uint8_t**)frame->data,
                                           frame->nb_samples);
                     LOGE("frame->pkt_size %d frame->nb_samples %d " ,frame->linesize[0] , frame->nb_samples  );
+                    //单声道
                     fwrite(out[0] , 1 , 2048 , faout_l );
 //                    fwrite(frame->data[1] , 1 ,frame->linesize[1] , faout_r );
                 }

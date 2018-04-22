@@ -3,25 +3,27 @@ package module.video.jnc.myffmpeg;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class DecodeEncodeActivity extends AppCompatActivity {
 
     private TextView tv;
-
+    private LinearLayout linearLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_decode_encode);
-
+        linearLayout= (LinearLayout) findViewById(R.id.container);
         tv = (TextView)findViewById(R.id.tv_warn);
 
         findViewById(R.id.bt_decode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 findViewById(R.id.bt_decode).setEnabled(false);
-                tv.setText("解码开始");
-                FFmpegUtils.decodeMp4ToYuvPcm(Constant.rootFile.getAbsolutePath()+"/test.MP4");
+                MyGlSurface glSurface = new MyGlSurface(DecodeEncodeActivity.this);
+                LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+                linearLayout.addView(glSurface , parms);
                 tv.setText("解码结束");
             }
         });

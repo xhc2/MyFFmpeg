@@ -24,11 +24,11 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNativ
 }
 
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuvPcm
-        (JNIEnv  *env ,jclass clazz , jstring path){
+        (JNIEnv  *env ,jclass clazz , jstring path ,  jobject surface ){
     int result = 0;
    const char *input_str = env->GetStringUTFChars(path, NULL);
     LOGE("input path %s ", input_str);
-    decode(input_str);
+    decode(input_str , env , surface);
     env->ReleaseStringUTFChars( path, input_str);
     return result;
 }
