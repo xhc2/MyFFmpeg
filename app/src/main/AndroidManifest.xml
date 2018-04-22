@@ -24,34 +24,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DecodeMP4Activity" />
-        <activity android:name=".StreamActivity" />
         <activity android:name=".EncodeActivity" />
-        <activity android:name=".EncodeYuvActivity" />
-        <activity
-            android:name=".SDLActivity"
-            android:configChanges="keyboardHidden|orientation" />
-        <activity
-            android:name=".AddFilterActivity"
-            android:label="@string/title_activity_add_filter"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".SwscaleActivity" />
-        <activity android:name=".MuxerActivity" />
         <activity android:name=".opengl.OpenglActivity" />
-        <activity android:name=".OpenGlTureActivity" />
         <activity android:name=".EGLCamera.EGLCameraActivity" />
-        <activity android:name=".MyRecordActivity" />
-        <activity android:name=".TestActivity" />
-        <activity android:name=".MyNewRecordActivity" />
-        <activity android:name=".AudioRecordActivity" />
-        <activity android:name=".MyCameraFilter" />
         <activity android:name=".PlayVideoActivity" />
-        <activity android:name=".OpenGlActivity" />
         <activity android:name=".MyFFmpegActivity" />
-        <activity android:name=".MyAllActivity" />
         <activity android:name=".PlayAudioActivity" />
-        <activity android:name=".LoadJpgActivity" />
-        <activity android:name=".GlSurfaceViewActivity"></activity>
+        <activity android:name=".DecodeEncodeActivity"></activity>
     </application>
 
 </manifest>

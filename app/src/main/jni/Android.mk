@@ -33,7 +33,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := my_ffmpeg
-LOCAL_SRC_FILES := my_ffmpeg.cpp
+LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 
 LOCAL_LDLIBS := -llog -lz

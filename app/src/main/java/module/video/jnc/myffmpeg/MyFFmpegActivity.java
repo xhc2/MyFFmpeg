@@ -37,5 +37,32 @@ public class MyFFmpegActivity extends AppCompatActivity {
 //                startActivity(new Intent(MyFFmpegActivity.this, MyCameraFilter.class));
             }
         });
+
+        findViewById(R.id.bt_decode_encode).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MyFFmpegActivity.this, DecodeEncodeActivity.class));
+            }
+        });
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

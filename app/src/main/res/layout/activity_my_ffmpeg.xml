@@ -16,7 +16,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-
+            <Button
+                android:id="@+id/bt_decode_encode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="编解码" />
 
             <Button
                 android:id="@+id/camera_filter"
@@ -24,11 +28,7 @@
                 android:layout_height="wrap_content"
                 android:text="相机摄像打水印" />
 
-            <!--<Button-->
-                <!--android:id="@+id/audio_record"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:text="音频录制" />-->
+
 
             <!--<Button-->
                 <!--android:id="@+id/camera_ffmpeg"-->
