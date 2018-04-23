@@ -24,7 +24,7 @@ using namespace std;
 //    return JNI_VERSION_1_4;
 //}
 
-int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
+int decode(const char *input_path, JNIEnv *env, jobject surface) {
     int result;
     av_register_all();
     avcodec_register_all();
@@ -83,8 +83,10 @@ int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
     //将codec中的参数放进accodeccontext
     avcodec_parameters_to_context(vc, afc->streams[video_index]->codecpar);
     avcodec_parameters_to_context(ac, afc->streams[audio_index]->codecpar);
-    LOGE("AC sample_rate %d chnnel %d , pix format %d ", afc->streams[audio_index]->codecpar->sample_rate , afc->streams[audio_index]->codecpar->channels ,
-    afc->streams[audio_index]->codecpar->format);
+    LOGE("AC sample_rate %d chnnel %d , pix format %d ",
+         afc->streams[audio_index]->codecpar->sample_rate,
+         afc->streams[audio_index]->codecpar->channels,
+         afc->streams[audio_index]->codecpar->format);
 
     vc->thread_count = 4;
     ac->thread_count = 4;
@@ -111,29 +113,29 @@ int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
     char *rgb = new char[outWidth * outHeight * 4];
     char *pcm = new char[48000 * 4 * 2];
 
-    FILE *fvout = fopen("sdcard/FFmpeg/tempout.rgba" , "wb+");
-    FILE *faout_l = fopen("sdcard/FFmpeg/temppcm_left.pcm" , "wb+");
-    FILE *faout_r = fopen("sdcard/FFmpeg/temppcm_right.pcm" , "wb+");
+    FILE *fvout = fopen("sdcard/FFmpeg/tempout.rgba", "wb+");
+    FILE *faout_l = fopen("sdcard/FFmpeg/temppcm_left.pcm", "wb+");
+    FILE *faout_r = fopen("sdcard/FFmpeg/temppcm_right.pcm", "wb+");
 
 
     //音频重采样上下文初始化
     SwrContext *actx = swr_alloc();
     actx = swr_alloc_set_opts(actx,
                               av_get_default_channel_layout(1),
-                              AV_SAMPLE_FMT_S16,ac->sample_rate,
+                              AV_SAMPLE_FMT_S16, ac->sample_rate,
                               av_get_default_channel_layout(ac->channels),
-                              ac->sample_fmt,ac->sample_rate,
-                              0,0 );
+                              ac->sample_fmt, ac->sample_rate,
+                              0, 0);
     result = swr_init(actx);
-    if(result < 0){
+    if (result < 0) {
         LOGE(" swr_init FAILD !");
         return -1;
     }
 
 
-    ANativeWindow *aWindow = ANativeWindow_fromSurface(env , surface);
-    ANativeWindow_setBuffersGeometry(aWindow , outWidth , outHeight , WINDOW_FORMAT_RGBA_8888);
-    ANativeWindow_Buffer wbuf ;
+    ANativeWindow *aWindow = ANativeWindow_fromSurface(env, surface);
+    ANativeWindow_setBuffersGeometry(aWindow, outWidth, outHeight, WINDOW_FORMAT_RGBA_8888);
+    ANativeWindow_Buffer wbuf;
 
     while (true) {
         result = av_read_frame(afc, pkt);
@@ -142,7 +144,7 @@ int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
             break;
         }
 
-        frameCount ++ ;
+        frameCount++;
 //        LOGE(" FRAME COUNT %d" , frameCount);
         AVCodecContext *tempCC = vc;
         if (pkt->stream_index == audio_index) {
@@ -169,41 +171,36 @@ int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
                                            outWidth, outHeight, AV_PIX_FMT_RGBA, SWS_FAST_BILINEAR,
                                            0, 0, 0);
 
-                if(!sws){
+                if (!sws) {
                     LOGE("sws_getCachedContext FAILD !");
-                }
-                else{
+                } else {
                     uint8_t *data[AV_NUM_DATA_POINTERS] = {0};
-                    data[0] = (uint8_t *)rgb;
+                    data[0] = (uint8_t *) rgb;
                     int lines[AV_NUM_DATA_POINTERS] = {0};
                     lines[0] = outWidth * 4;
-                    int h = sws_scale(sws , (const uint8_t **)frame->data , frame->linesize , 0 ,frame->height , data , lines);
-                    LOGE("SLICE HEIGHT %d " , h);
-                    //一帧的高度
-//                    if(h > 0){
-                        ANativeWindow_lock(aWindow , &wbuf , 0);
-                        uint8_t *dst = (uint8_t *)wbuf.bits;
-                        memcpy(dst , rgb , outWidth * outHeight * 4);
-                        ANativeWindow_unlockAndPost(aWindow);
-//                    }
-
-//                    fwrite(rgb , 1 ,outWidth * outHeight * 4 , fvout );
+                    int h = sws_scale(sws, (const uint8_t **) frame->data, frame->linesize, 0,
+                                      frame->height, data, lines);
+                    LOGE("SLICE HEIGHT %d ", h);
+                    ANativeWindow_lock(aWindow, &wbuf, 0);
+                    uint8_t *dst = (uint8_t *) wbuf.bits;
+                    memcpy(dst, rgb, outWidth * outHeight * 4);
+                    ANativeWindow_unlockAndPost(aWindow);
 
                 }
-            }
-            else if(tempCC == ac){
-                if(ac->channels == 2){
+            } else if (tempCC == ac) {
+                if (ac->channels == 2) {
 //                    LOGE("LINESIZE[0] %d , linesize[1] %d " ,frame->linesize[0] , frame->linesize[1] );
                     uint8_t *out[1] = {0};
-                    out[0] = (uint8_t*) pcm;
+                    out[0] = (uint8_t *) pcm;
                     //音频重采样
-                    int len = swr_convert(actx,out,
+                    int len = swr_convert(actx, out,
                                           frame->nb_samples,
-                                          (const uint8_t**)frame->data,
+                                          (const uint8_t **) frame->data,
                                           frame->nb_samples);
-                    LOGE("frame->pkt_size %d frame->nb_samples %d " ,frame->linesize[0] , frame->nb_samples  );
+                    LOGE("frame->pkt_size %d frame->nb_samples %d ", frame->linesize[0],
+                         frame->nb_samples);
                     //单声道
-                    fwrite(out[0] , 1 , 2048 , faout_l );
+                    fwrite(out[0], 1, 2048, faout_l);
 //                    fwrite(frame->data[1] , 1 ,frame->linesize[1] , faout_r );
                 }
             }
@@ -212,7 +209,6 @@ int decode(const char *input_path ,JNIEnv* env , jobject surface ) {
 
     //清楚数组，如果没有括号将会造成内存泄露
     delete[] rgb;
-
     fclose(fvout);
     fclose(faout_l);
     fclose(faout_r);

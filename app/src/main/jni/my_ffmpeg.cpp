@@ -6,9 +6,9 @@
 #include <jni.h>
 #include <string.h>
 #include <stdio.h>
-#include <libavcodec/avcodec.h>
 #include <my_log.h>
 #include "decode_encode_test.h"
+#include "my_open_sl_test.h"
 
 /**
  * 返回 >=0 表示成功
@@ -31,4 +31,12 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuv
     decode(input_str , env , surface);
     env->ReleaseStringUTFChars( path, input_str);
     return result;
+}
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLTest(JNIEnv *env ,jclass clazz  ,jstring path){
+    const char *input_str = env->GetStringUTFChars(path, NULL);
+    LOGE("input path %s ", input_str);
+    play_audio(input_str);
+    env->ReleaseStringUTFChars( path, input_str);
+    return 1;
 }

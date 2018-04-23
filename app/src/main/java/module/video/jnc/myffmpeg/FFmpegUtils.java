@@ -23,6 +23,7 @@ public class FFmpegUtils {
     //将MP4解码成yuv，和pcm
     public static native int decodeMp4ToYuvPcm(String path , Object glSurfaceView);
 
+    public static native int openSLTest(String path);
 
 //    public static native int initAudioRecord(String outputPath , int aSize);
 //

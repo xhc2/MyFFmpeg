@@ -18,7 +18,7 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNativ
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuvPcm
         (JNIEnv  *env ,jclass clazz , jstring path ,  jobject surface );
 
-
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLTest(JNIEnv *env ,jclass clazz  ,jstring path);
 #ifdef __cplusplus
 }
 #endif

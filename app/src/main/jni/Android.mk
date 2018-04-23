@@ -33,9 +33,9 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := my_ffmpeg
-LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp
+LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp my_open_sl_test.cpp
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 
-LOCAL_LDLIBS := -llog -lz -landroid
+LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES
 LOCAL_SHARED_LIBRARIES := avfilter avformat avutil swresample swscale avcodec my_ffmpeg
 include $(BUILD_SHARED_LIBRARY)

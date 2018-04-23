@@ -39,6 +39,13 @@ public class MyFFmpegActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.bt_opensl_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FFmpegUtils.openSLTest(Constant.rootFile.getAbsolutePath()+"/test_sl.pcm");
+            }
+        });
+
         findViewById(R.id.bt_decode_encode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

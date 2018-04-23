@@ -28,7 +28,11 @@
                 android:layout_height="wrap_content"
                 android:text="相机摄像打水印" />
 
-
+            <Button
+                android:id="@+id/bt_opensl_test"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="音频opensl测试" />
 
             <!--<Button-->
                 <!--android:id="@+id/camera_ffmpeg"-->
