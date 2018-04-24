@@ -27,6 +27,18 @@ public class DecodeEncodeActivity extends AppCompatActivity {
                 tv.setText("解码结束");
             }
         });
+
+        findViewById(R.id.bt_decode_show_shader).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findViewById(R.id.bt_encode).setEnabled(false);
+                MyGLSurfaceShader glSurface = new MyGLSurfaceShader(DecodeEncodeActivity.this);
+                LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+                linearLayout.addView(glSurface , parms);
+                tv.setText("解码结束");
+            }
+        });
+
         findViewById(R.id.bt_encode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

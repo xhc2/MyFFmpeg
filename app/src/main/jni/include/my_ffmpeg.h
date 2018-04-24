@@ -15,10 +15,15 @@ JNIEXPORT jstring JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNativ
  * Method:    stringJni
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuvPcm
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuv
         (JNIEnv  *env ,jclass clazz , jstring path ,  jobject surface );
 
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLTest(JNIEnv *env ,jclass clazz  ,jstring path);
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLPauseOrPlay(JNIEnv *env ,jclass clazz  ,jboolean flag);
+
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLDestroy(JNIEnv *env ,jclass clazz );
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuvShowShader(JNIEnv *env ,jclass clazz , jstring path ,  jobject surface);
 #ifdef __cplusplus
 }
 #endif

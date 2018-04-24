@@ -8,4 +8,6 @@
 
 int play_audio(const char* path);
 
+int pause(bool flag);
+int openslDestroy();
 #endif //MYFFMPEG_MY_OPEN_SL_TEST_H

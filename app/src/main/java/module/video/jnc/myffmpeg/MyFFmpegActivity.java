@@ -26,12 +26,13 @@ import module.video.jnc.myffmpeg.opengl.OpenglActivity;
 public class MyFFmpegActivity extends AppCompatActivity {
 
     private File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/");
-
+    boolean openSLFlag = false;
+    boolean openSLCreateFlag = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_ffmpeg);
-
+        FFmpegUtils.stringNative();
         findViewById(R.id.camera_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -42,7 +43,16 @@ public class MyFFmpegActivity extends AppCompatActivity {
         findViewById(R.id.bt_opensl_test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FFmpegUtils.openSLTest(Constant.rootFile.getAbsolutePath()+"/test_sl.pcm");
+                if(!openSLCreateFlag){
+                    openSLFlag = true;
+                    openSLCreateFlag = true;
+                    FFmpegUtils.openSLTest(Constant.rootFile.getAbsolutePath()+"/test_sl.pcm");
+                }
+                else{
+                    openSLFlag = !openSLFlag ;
+                    FFmpegUtils.openSLPauseOrPlay(openSLFlag);
+                }
+
             }
         });
 
@@ -52,6 +62,12 @@ public class MyFFmpegActivity extends AppCompatActivity {
                 startActivity(new Intent(MyFFmpegActivity.this, DecodeEncodeActivity.class));
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FFmpegUtils.openSLDestroy();
     }
 }
 

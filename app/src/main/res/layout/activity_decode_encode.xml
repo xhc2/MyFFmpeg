@@ -20,8 +20,12 @@
         android:id="@+id/bt_decode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="解码" />
-
+        android:text="解码,cpu转yuv-》rgb" />
+    <Button
+        android:id="@+id/bt_decode_show_shader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="解码,gpu转yuv-》rgb" />
     <Button
         android:id="@+id/bt_encode"
         android:layout_width="match_parent"

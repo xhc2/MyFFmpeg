@@ -8,9 +8,19 @@
 #include "my_open_sl_test.h"
 /**
  * 利用opensles 播放pcm原始数据文件
+ * 播放和暂停应该是要控制pcm的原始数据
+ * seek等也是。跳转到10s出，就去解码10s出的音频。
  */
-static SLObjectItf engineSL = NULL;
+SLObjectItf engineSL = NULL;
 const char * pcm_path;
+SLPlayItf iplayer = NULL;
+SLEngineItf eng =  NULL;
+SLObjectItf mix =  NULL;
+SLObjectItf  player = NULL;
+FILE *fp = NULL;
+char *buf = NULL;
+SLAndroidSimpleBufferQueueItf  pcmQue = NULL;
+
 SLEngineItf createSL() {
     SLresult re = NULL;
     SLEngineItf en = NULL;
@@ -29,14 +39,12 @@ SLEngineItf createSL() {
         LOGE("GetInterface FAILD ");
         return NULL;
     }
-
     return en;
 }
 
 void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
-    LOGD("PcmCall");
-    static FILE *fp = NULL;
-    static char *buf = NULL;
+
+
     if(!buf)
     {
         buf = new char[1024*1024];
@@ -45,25 +53,44 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
     {
         fp = fopen(pcm_path,"rb");
     }
-    if(!fp)return;
+    if(!fp){
+        LOGE("file faild !");
+        return;
+    }
     if(feof(fp) == 0)
     {
         int len = fread(buf,1,1024,fp);
         if(len > 0)
+            //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数
             (*bf)->Enqueue(bf,buf,len);
     }
+}
+
+int pause(bool flag){
+    if(iplayer != NULL){
+
+        SLresult re = (*iplayer)->SetPlayState(iplayer , flag== true ? SL_PLAYSTATE_PLAYING : SL_PLAYSTATE_PAUSED);
+
+        if(re != SL_RESULT_SUCCESS){
+            LOGE("SetPlayState pause FAILD ");
+            return -1;
+        }
+        LOGE("SetPlayState pause success ");
+    }
+
+    return 0;
 }
 
 int play_audio(const char *path) {
     pcm_path = path;
     //创建引擎
-    SLEngineItf eng = createSL();
+    eng = createSL();
     if(!eng){
         LOGE("createSL FAILD ");
     }
 
     //2.创建混音器
-    SLObjectItf mix = NULL;
+    mix = NULL;
     SLresult re = 0;
     re = (*eng)->CreateOutputMix(eng , &mix , 0 ,0 , 0);
     if(re != SL_RESULT_SUCCESS){
@@ -80,7 +107,7 @@ int play_audio(const char *path) {
 
     //配置音频信息
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE , 10};
-//音频格式
+    //音频格式
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
             2,//    声道数
@@ -93,12 +120,12 @@ int play_audio(const char *path) {
     SLDataSource ds = {&que,&pcm};
 
     //创建播放器
-    SLObjectItf  player = NULL;
-    SLPlayItf iplayer = NULL;
-    SLAndroidSimpleBufferQueueItf  pcmQue = NULL;
+
+
+
     const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
     const SLboolean req[] = {SL_BOOLEAN_TRUE};
-    re = (*eng)->CreateAudioPlayer(eng , &player , &ds , &audioSink , sizeof(ids)/ sizeof(SLInterfaceID) , ids , req);
+    re = (*eng)->CreateAudioPlayer(eng , &player , &ds , &audioSink , sizeof(ids) / sizeof(SLInterfaceID) , ids , req);
     if(re != SL_RESULT_SUCCESS){
         LOGE("CreateAudioPlayer FAILD ");
         return -1;
@@ -121,6 +148,30 @@ int play_audio(const char *path) {
 
     (*pcmQue)->Enqueue(pcmQue , "" , 1);
     LOGE(" play_audio SUCCESS ");
+    return 1;
+}
+
+// 对象应按照与创建时相反的顺序销毁 ,  例如，请按照此顺序销毁：音频播放器和录制器、输出混合，最后是引擎。
+int openslDestroy(){
+    if(player != NULL){
+        (*player)->Destroy(player);
+        player = NULL;
+        iplayer = NULL;
+        pcmQue = NULL;
+    }
+    if(mix != NULL){
+        (*mix)->Destroy(mix);
+        mix = NULL;
+    }
+    if(engineSL != NULL){
+        (*engineSL)->Destroy(engineSL);
+        engineSL = NULL;
+        eng = NULL;
+    }
+    if(fp != NULL){
+        fclose(fp);
+        fp = NULL;
+    }
     return 1;
 }
 
