@@ -235,7 +235,6 @@ int openAndShowUseShader(const char *path, JNIEnv *env, jobject surface) {
                  NULL                    //纹理的数据
     );
 
-    //////////////////////////////////////////////////////
     ////纹理的修改和显示
     unsigned char *buf[3] = {0};
     buf[0] = new unsigned char[width * height];

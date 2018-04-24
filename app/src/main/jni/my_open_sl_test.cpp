@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "my_open_sl_test.h"
 /**
+ * https://developer.android.com/ndk/guides/audio/android-extensions.html?hl=zh-cn#dynamic-interfaces 官方链接
  * 利用opensles 播放pcm原始数据文件
  * 播放和暂停应该是要控制pcm的原始数据
  * seek等也是。跳转到10s出，就去解码10s出的音频。
@@ -66,6 +67,7 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
     }
 }
 
+//暂停或者播放
 int pause(bool flag){
     if(iplayer != NULL){
 
@@ -120,9 +122,6 @@ int play_audio(const char *path) {
     SLDataSource ds = {&que,&pcm};
 
     //创建播放器
-
-
-
     const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
     const SLboolean req[] = {SL_BOOLEAN_TRUE};
     re = (*eng)->CreateAudioPlayer(eng , &player , &ds , &audioSink , sizeof(ids) / sizeof(SLInterfaceID) , ids , req);

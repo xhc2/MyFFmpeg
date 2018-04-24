@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/container"
+
     android:orientation="vertical">
 
 
@@ -31,6 +31,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="编码" />
+
+    <LinearLayout
+        android:id="@+id/container"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
     <!--<module.video.jnc.myffmpeg.MyGlSurface-->
         <!--android:id="@+id/surface_view"-->
