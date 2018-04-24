@@ -4,5 +4,5 @@
 
 #ifndef MYFFMPEG_DECODE_SHOW_GL_H
 #define MYFFMPEG_DECODE_SHOW_GL_H
-int openAndShowUseShader(const char *path , jobject surface);
+int openAndShowUseShader(const char *path ,JNIEnv *env , jobject surface);
 #endif //MYFFMPEG_DECODE_SHOW_GL_H

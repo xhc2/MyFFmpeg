@@ -38,7 +38,7 @@ public class MyGLSurfaceShader extends GLSurfaceView implements SurfaceHolder.Ca
         @Override
         public void run() {
             super.run();
-            FFmpegUtils.decodeMp4ToYuvShowShader(Constant.rootFile.getAbsolutePath()+"/test.MP4" , getHolder().getSurface());
+            FFmpegUtils.decodeMp4ToYuvShowShader(Constant.rootFile.getAbsolutePath()+"/test_480_272.yuv" , getHolder().getSurface());
         }
     }
 

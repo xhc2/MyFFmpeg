@@ -36,6 +36,6 @@ LOCAL_MODULE := my_ffmpeg
 LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp my_open_sl_test.cpp decode_show_gl.cpp
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 
-LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES
+LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES -lGLESv2 -lEGL
 LOCAL_SHARED_LIBRARIES := avfilter avformat avutil swresample swscale avcodec my_ffmpeg
 include $(BUILD_SHARED_LIBRARY)

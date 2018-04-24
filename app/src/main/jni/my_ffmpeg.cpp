@@ -65,7 +65,7 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuvShowShader(JNIEnv *env, jclass clazz,
                                                                     jstring path, jobject surface) {
     const char *input_str = env->GetStringUTFChars(path, NULL);
-    openAndShowUseShader(input_str ,  surface);
+    openAndShowUseShader(input_str ,env,  surface);
     env->ReleaseStringUTFChars(path, input_str);
     return  1;
 }

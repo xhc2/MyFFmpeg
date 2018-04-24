@@ -23,6 +23,7 @@ public class DecodeEncodeActivity extends AppCompatActivity {
                 findViewById(R.id.bt_decode).setEnabled(false);
                 MyGlSurface glSurface = new MyGlSurface(DecodeEncodeActivity.this);
                 LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+                linearLayout.removeAllViews();
                 linearLayout.addView(glSurface , parms);
                 tv.setText("解码结束");
             }
@@ -31,9 +32,10 @@ public class DecodeEncodeActivity extends AppCompatActivity {
         findViewById(R.id.bt_decode_show_shader).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                findViewById(R.id.bt_encode).setEnabled(false);
+                findViewById(R.id.bt_decode_show_shader).setEnabled(false);
                 MyGLSurfaceShader glSurface = new MyGLSurfaceShader(DecodeEncodeActivity.this);
                 LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+                linearLayout.removeAllViews();
                 linearLayout.addView(glSurface , parms);
                 tv.setText("解码结束");
             }
