@@ -38,7 +38,7 @@ public class MyVideoAudioSurfaceView  extends GLSurfaceView implements SurfaceHo
         @Override
         public void run() {
             super.run();
-            FFmpegUtils.videoAudioDecodeShow(Constant.rootFile.getAbsolutePath()+"/test_480_272.yuv" , getHolder().getSurface());
+            FFmpegUtils.videoAudioDecodeShow(Constant.rootFile.getAbsolutePath()+"/sintel.ts" , getHolder().getSurface());
         }
     }
 

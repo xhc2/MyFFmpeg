@@ -78,3 +78,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoAudioDecodeShow(JNIEnv *env, jcl
     env->ReleaseStringUTFChars(path, input_str);
     return  1;
 }
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testMyShow(JNIEnv *env, jclass clazz) {
+//    videoAudioOpen(env , surface , input_str);
+    testPlay();
+    return  1;
+}

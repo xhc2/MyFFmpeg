@@ -8,5 +8,5 @@
 #include <jni.h>
 
 int videoAudioOpen(JNIEnv *env , jobject surface , const char* path);
-
+void testPlay();
 #endif //MYFFMPEG_VIDEO_AUDIO_DECODE_SHOW_H

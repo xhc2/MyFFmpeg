@@ -31,9 +31,11 @@
         <activity android:name=".MyFFmpegActivity" />
         <activity android:name=".PlayAudioActivity" />
         <activity android:name=".DecodeEncodeActivity" />
+        <!--android:screenOrientation="landscape"-->
         <activity android:name=".ShowVideoAndAudioActivity"
-            android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
+
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            />
     </application>
 
 </manifest>

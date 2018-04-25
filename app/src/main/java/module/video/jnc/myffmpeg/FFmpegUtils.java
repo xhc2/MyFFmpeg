@@ -34,6 +34,8 @@ public class FFmpegUtils {
 
     public static native int videoAudioDecodeShow(String path , Object glSurfaceView);
 
+    public static native int testMyShow();
+
 //    public static native int initAudioRecord(String outputPath , int aSize);
 //
 //    public static native int encodeAudioRecord(byte[] bytes);

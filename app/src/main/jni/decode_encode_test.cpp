@@ -188,7 +188,7 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
                     uint8_t *dst = (uint8_t *) wbuf.bits;
                     memcpy(dst, rgb, outWidth * outHeight * 4);
                     ANativeWindow_unlockAndPost(aWindow);
-                    Sleep(40);
+//                    Sleep(40);
                 }
             } else if (tempCC == ac) {
                 if (ac->channels == 2) {
