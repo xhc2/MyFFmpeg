@@ -53,8 +53,10 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
         if (avStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             //视频
             video_index = i;
-            LOGE("VIDEO WIDTH %d , HEIGHT %d , format %d ", avStream->codecpar->width,
-                 avStream->codecpar->height, avStream->codecpar->format);
+
+            LOGE("VIDEO WIDTH %d , HEIGHT %d , format %d , fps %f ", avStream->codecpar->width,
+                 avStream->codecpar->height, avStream->codecpar->format ,av_q2d(avStream->avg_frame_rate ));
+
             videoCode = avcodec_find_decoder(avStream->codecpar->codec_id);
             if (!videoCode) {
                 LOGE("VIDEO avcodec_find_decoder FAILD!");
@@ -83,10 +85,11 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
     //将codec中的参数放进accodeccontext
     avcodec_parameters_to_context(vc, afc->streams[video_index]->codecpar);
     avcodec_parameters_to_context(ac, afc->streams[audio_index]->codecpar);
-    LOGE("AC sample_rate %d chnnel %d , pix format %d ",
-         afc->streams[audio_index]->codecpar->sample_rate,
-         afc->streams[audio_index]->codecpar->channels,
-         afc->streams[audio_index]->codecpar->format);
+//    LOGE(" VIDEO FPS %f , den %d , num %d " , av_q2d(vc->framerate) , vc->framerate.den , vc->framerate.num);
+//    LOGE("AC sample_rate %d chnnel %d , pix format %d ",
+//         afc->streams[audio_index]->codecpar->sample_rate,
+//         afc->streams[audio_index]->codecpar->channels,
+//         afc->streams[audio_index]->codecpar->format );
 
     vc->thread_count = 4;
     ac->thread_count = 4;
@@ -185,7 +188,7 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
                     uint8_t *dst = (uint8_t *) wbuf.bits;
                     memcpy(dst, rgb, outWidth * outHeight * 4);
                     ANativeWindow_unlockAndPost(aWindow);
-
+                    Sleep(40);
                 }
             } else if (tempCC == ac) {
                 if (ac->channels == 2) {

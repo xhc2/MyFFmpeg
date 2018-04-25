@@ -8,6 +8,7 @@
 #include "my_open_sl_test.h"
 /**
  * https://developer.android.com/ndk/guides/audio/android-extensions.html?hl=zh-cn#dynamic-interfaces 官方链接
+ * https://blog.csdn.net/ywl5320/article/details/78503768
  * 利用opensles 播放pcm原始数据文件
  * 播放和暂停应该是要控制pcm的原始数据
  * seek等也是。跳转到10s出，就去解码10s出的音频。
@@ -64,6 +65,7 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
         if(len > 0)
             //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数
             (*bf)->Enqueue(bf,buf,len);
+            LOGE(" ADD BUFFER !");
     }
 }
 

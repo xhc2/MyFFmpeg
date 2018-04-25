@@ -24,6 +24,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLPauseOrP
 
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLDestroy(JNIEnv *env ,jclass clazz );
 JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuvShowShader(JNIEnv *env ,jclass clazz , jstring path ,  jobject surface);
+JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_videoAudioDecodeShow(JNIEnv *env, jclass clazz,
+                                                                jstring path, jobject surface);
 #ifdef __cplusplus
 }
 #endif

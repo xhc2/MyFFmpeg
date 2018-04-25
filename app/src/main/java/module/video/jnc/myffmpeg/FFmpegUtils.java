@@ -32,6 +32,7 @@ public class FFmpegUtils {
 
     public static native int decodeMp4ToYuvShowShader(String path , Object glSurfaceView);
 
+    public static native int videoAudioDecodeShow(String path , Object glSurfaceView);
 
 //    public static native int initAudioRecord(String outputPath , int aSize);
 //

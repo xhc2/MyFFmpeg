@@ -62,6 +62,13 @@ public class MyFFmpegActivity extends AppCompatActivity {
                 startActivity(new Intent(MyFFmpegActivity.this, DecodeEncodeActivity.class));
             }
         });
+
+        findViewById(R.id.bt_video_audio_play).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MyFFmpegActivity.this, ShowVideoAndAudioActivity.class));
+            }
+        });
     }
 
     @Override
