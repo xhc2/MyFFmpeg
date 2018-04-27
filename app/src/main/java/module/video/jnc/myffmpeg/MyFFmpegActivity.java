@@ -69,6 +69,15 @@ public class MyFFmpegActivity extends AppCompatActivity {
                 startActivity(new Intent(MyFFmpegActivity.this, ShowVideoAndAudioActivity.class));
             }
         });
+
+        findViewById(R.id.bt_pthred_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //原生线程测试。
+                FFmpegUtils.testNativeThread();
+
+            }
+        });
     }
 
     @Override

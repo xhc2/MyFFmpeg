@@ -28,6 +28,16 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_videoAudioDeco
                                                                 jstring path, jobject surface);
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_testMyShow(JNIEnv *env, jclass clazz);
+
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThread(JNIEnv *env, jclass clazz) ;
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadFree(JNIEnv *env, jclass clazz) ;
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadRun(JNIEnv *env, jclass clazz);
 #ifdef __cplusplus
 }
 #endif

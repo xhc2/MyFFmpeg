@@ -11,6 +11,7 @@
 #include "decode_encode_test.h"
 #include "my_open_sl_test.h"
 #include "video_audio_decode_show.h"
+#include "my_thread.h"
 //void testPointer(char* test){
 //    test = (char *)malloc(sizeof(char) * 6);
 //    LOGE("TEST HANSHU %d " , test);
@@ -65,22 +66,38 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuvShowShader(JNIEnv *env, jclass clazz,
                                                                     jstring path, jobject surface) {
     const char *input_str = env->GetStringUTFChars(path, NULL);
-    openAndShowUseShader(input_str ,env,  surface);
+    openAndShowUseShader(input_str, env, surface);
     env->ReleaseStringUTFChars(path, input_str);
-    return  1;
+    return 1;
 }
 
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_videoAudioDecodeShow(JNIEnv *env, jclass clazz,
-                                                                    jstring path, jobject surface) {
+                                                                jstring path, jobject surface) {
     const char *input_str = env->GetStringUTFChars(path, NULL);
-    videoAudioOpen(env , surface , input_str);
+    videoAudioOpen(env, surface, input_str);
     env->ReleaseStringUTFChars(path, input_str);
-    return  1;
+    return 1;
 }
+
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_testMyShow(JNIEnv *env, jclass clazz) {
 //    videoAudioOpen(env , surface , input_str);
     testPlay();
-    return  1;
+    return 1;
+}
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThread(JNIEnv *env, jclass clazz) {
+    return initThread();
+}
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadFree(JNIEnv *env, jclass clazz) {
+    return threadFree();
+}
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadRun(JNIEnv *env, jclass clazz) {
+    return threadRun();
 }

@@ -164,6 +164,7 @@ int openslDestroy(){
         (*mix)->Destroy(mix);
         mix = NULL;
     }
+
     if(engineSL != NULL){
         (*engineSL)->Destroy(engineSL);
         engineSL = NULL;

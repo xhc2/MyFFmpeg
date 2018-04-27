@@ -41,6 +41,11 @@
                 android:layout_height="wrap_content"
                 android:text="shader播放视频，opensl播放音频" />
 
+            <Button
+                android:id="@+id/bt_pthred_test"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="posix 线程测试" />
             <!--<Button-->
                 <!--android:id="@+id/camera_ffmpeg"-->
                 <!--android:layout_width="match_parent"-->

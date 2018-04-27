@@ -17,8 +17,7 @@ extern "C" {
 }
 using namespace std;
 
-const static int RESULT_SUCCESS = 1;
-const static int RESULT_FAILD = -1;
+
 queue<char *> audioQue;
 SLObjectItf engineOpenSL = NULL;
 SLPlayItf iplayer_ = NULL;

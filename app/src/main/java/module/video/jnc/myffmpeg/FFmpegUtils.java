@@ -36,6 +36,10 @@ public class FFmpegUtils {
 
     public static native int testMyShow();
 
+    public static native int testNativeThread();
+    public static native int testNativeThreadFree();
+    public static native int testNativeThreadRun();
+
 //    public static native int initAudioRecord(String outputPath , int aSize);
 //
 //    public static native int encodeAudioRecord(byte[] bytes);
