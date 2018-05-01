@@ -46,6 +46,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="posix 线程测试" />
+
+            <Button
+                android:id="@+id/bt_cplusplus_thread_test"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="c++线程测试" />
             <!--<Button-->
                 <!--android:id="@+id/camera_ffmpeg"-->
                 <!--android:layout_width="match_parent"-->

@@ -75,7 +75,13 @@ public class MyFFmpegActivity extends AppCompatActivity {
             public void onClick(View view) {
                 //原生线程测试。
                 FFmpegUtils.testNativeThread();
+            }
+        });
 
+        findViewById(R.id.bt_cplusplus_thread_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FFmpegUtils.testCPlusPlusThread();
             }
         });
     }

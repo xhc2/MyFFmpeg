@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <my_log.h>
 #include <decode_show_gl.h>
+#include <my_c_plus_plus_thread.h>
 #include "decode_encode_test.h"
 #include "my_open_sl_test.h"
 #include "video_audio_decode_show.h"
@@ -100,4 +101,12 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadFree(JNIEnv *env, jcl
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadRun(JNIEnv *env, jclass clazz) {
     return threadRun();
+}
+
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testCPlusPlusThread(JNIEnv *env, jclass clazz) {
+    LOGE("TEST C++ THREAD");
+    initMyCPlusPlusThread();
+    return 1 ;
 }

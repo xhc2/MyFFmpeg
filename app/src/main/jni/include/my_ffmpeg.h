@@ -38,6 +38,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadFree(JNIEnv *env, jcl
 
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadRun(JNIEnv *env, jclass clazz);
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_testCPlusPlusThread(JNIEnv *env, jclass clazz) ;
 #ifdef __cplusplus
 }
 #endif

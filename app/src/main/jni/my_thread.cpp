@@ -6,7 +6,6 @@
 #include "pthread.h"
 #include "my_log.h"
 #include "stdio.h"
-#include <thread>
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int num = 0 ;
 void addNum(){
