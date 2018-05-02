@@ -34,7 +34,7 @@ int initMyCPlusPlusThread() {
     thread1.detach();
     thread thread2 (run ,  "thread 2 ");
     thread2.detach();
- // join不能和detach一起使用，不然崩溃。
+//    join不能和detach一起使用，不然崩溃。
 //    thread1.join();
 
     return 1;
