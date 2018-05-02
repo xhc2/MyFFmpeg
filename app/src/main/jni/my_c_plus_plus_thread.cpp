@@ -2,10 +2,9 @@
 #include <thread>
 #include <my_log.h>
 #include <mutex>
-/**
- * 需要测试同步，阻塞，销毁等
- */
+
 using namespace std;
+
 mutex my_mutex;
 int num_count = 100;
 

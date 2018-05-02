@@ -9,7 +9,7 @@
 #include <queue>
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
-
+#include "my_data.h"
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -18,7 +18,9 @@ extern "C" {
 using namespace std;
 
 
-queue<char *> audioQue;
+queue<MyData> audioQue;
+queue<MyData> yuvQue;
+
 SLObjectItf engineOpenSL = NULL;
 SLPlayItf iplayer_ = NULL;
 SLEngineItf eng_ = NULL;
@@ -28,6 +30,8 @@ SLObjectItf player_ = NULL;
 //FILE *filePcm ;
 char *buf_ = NULL;
 SLAndroidSimpleBufferQueueItf pcmQue_ = NULL;
+//设置缓冲区大小
+int maxSize = 100;
 bool playFlag = false;
 
 
@@ -60,25 +64,13 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     }
     LOGE(" ADD BUFFER audioQue.size %d ", audioQue.size());
     if (!audioQue.empty()) {
-        char *pointer = audioQue.front();
+        MyData myData ;
+
+        myData = audioQue.front();
+
         audioQue.pop();
-        (*bf)->Enqueue(bf, pointer, 2048);
+        (*bf)->Enqueue(bf, myData.data, 2048);
     }
-//    if(!filePcm)
-//    {
-//        filePcm = fopen("sdcard/FFmpeg/test_sl.pcm_","rb");
-//    }
-//    if(!filePcm){
-//        LOGE("file faild !");
-//        return;
-//    }
-//    if(feof(filePcm) == 0)
-//    {
-//        int len = fread(buf_,1,1024,filePcm);
-//        if(len > 0)
-//            //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数
-//
-//    }
 }
 
 
@@ -143,9 +135,6 @@ int play_audio_stream() {
 
     (*pcmQue_)->RegisterCallback(pcmQue_, pcmCallBack, 0);
 
-//    (*iplayer_)->SetPlayState(iplayer_ , SL_PLAYSTATE_PLAYING);
-//
-//    (*pcmQue_)->Enqueue(pcmQue_ , "" , 1);
     LOGE(" OpenSles init SUCCESS ");
     return RESULT_SUCCESS;
 }
@@ -184,10 +173,6 @@ int audioDestroy() {
         engineOpenSL = NULL;
         eng_ = NULL;
     }
-//    if(filePcm != NULL){
-//        fclose(filePcm);
-//        filePcm = NULL;
-//    }
     return 1;
 }
 
@@ -220,27 +205,27 @@ int initWindow(JNIEnv *env, jobject surface) {
 }
 
 int initFFmpeg(const char *input_path) {
+
     int result = 0;
     av_register_all();
     avcodec_register_all();
 
-
     pkt_ = av_packet_alloc();
     frame_ = av_frame_alloc();
-
 
     result = avformat_open_input(&afc_, input_path, 0, 0);
     if (result != 0) {
         LOGE("avformat_open_input FAILD !");
         return RESULT_FAILD;
     }
+
     result = avformat_find_stream_info(afc_, 0);
+
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
         LOGE("avformat_find_stream_info FAILD !");
         return RESULT_FAILD;
     }
-
 
     for (int i = 0; i < afc_->nb_streams; ++i) {
         AVStream *avStream = afc_->streams[i];
@@ -282,11 +267,6 @@ int initFFmpeg(const char *input_path) {
     //将codec中的参数放进accodeccontext
     avcodec_parameters_to_context(vc_, afc_->streams[video_index_]->codecpar);
     avcodec_parameters_to_context(ac_, afc_->streams[audio_index_]->codecpar);
-//    LOGE(" VIDEO FPS %f , den %d , num %d " , av_q2d(vc_->framerate) , vc_->framerate.den , vc_->framerate.num);
-//    LOGE("ac_ sample_rate %d chnnel %d , pix format %d ",
-//         afc_->streams[audio_index_]->codecpar->sample_rate,
-//         afc_->streams[audio_index_]->codecpar->channels,
-//         afc_->streams[audio_index_]->codecpar->format );
 
     vc_->thread_count = 4;
     ac_->thread_count = 4;
@@ -355,6 +335,7 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
 
     //控制音频的播放，音频里面有缓冲数据的时候，并且播放状态是playing的时候才能开始播放，后面正式的时候用解码线程，和播放线程应该能解决这个问题
     int audioCount = 0;
+
     while (true) {
         result = av_read_frame(afc_, pkt_);
         if (result < 0) {
@@ -395,13 +376,14 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
                     data[0] = (uint8_t *) rgb_;
                     int lines[AV_NUM_DATA_POINTERS] = {0};
                     lines[0] = outWidth_ * 4;
+
                     int h = sws_scale(sws_, (const uint8_t **) frame_->data, frame_->linesize, 0,
                                       frame_->height, data, lines);
-//                    LOGE("SLICE HEIGHT %d ", h);
-                    ANativeWindow_lock(aWindow, &wbuf_, 0);
-                    uint8_t *dst = (uint8_t *) wbuf_.bits;
-                    memcpy(dst, rgb_, outWidth_ * outHeight_ * 4);
-                    ANativeWindow_unlockAndPost(aWindow);
+
+//                    ANativeWindow_lock(aWindow, &wbuf_, 0);
+//                    uint8_t *dst = (uint8_t *) wbuf_.bits;
+//                    memcpy(dst, rgb_, outWidth_ * outHeight_ * 4);
+//                    ANativeWindow_unlockAndPost(aWindow);
                 }
             } else if (tempCC == ac_) {
                 uint8_t *out[1] = {0};
@@ -415,7 +397,10 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
                 //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
                 char *pcm_temp = new char[48000 * 4 * 2];
                 memcpy(pcm_temp, pcm_, 2048);
-                audioQue.push(pcm_temp);
+                MyData myData ;
+                myData.data = pcm_temp;
+                myData.isAudio = true;
+                audioQue.push(myData);
                 audioCount++;
                 //要先缓冲几帧才能播放音频数据
                 if (audioCount == 5) {
