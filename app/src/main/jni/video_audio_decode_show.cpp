@@ -17,6 +17,12 @@ extern "C" {
 }
 using namespace std;
 
+/**
+ * 1.解码音视频分别用两个线程。
+ * 2.解封装的时候往两个线程中丢数据，然后自己解码。
+ * 3.当数据太多。让read_frame的等待。
+ * 4.
+ */
 
 queue<MyData> audioQue;
 queue<MyData> yuvQue;
