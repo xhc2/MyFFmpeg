@@ -10,6 +10,7 @@
 #include <chrono>
 #include <thread>
 #include "my_data.h"
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -28,6 +29,9 @@ using namespace std;
 //queue<MyData> yuvQue;
 queue<AVPacket *> audioPktQue;
 queue<AVPacket *> videoPktQue;
+queue<MyData> audioFrameQue;
+queue<MyData> videoFrameQue;
+
 
 SLObjectItf engineOpenSL = NULL;
 SLPlayItf iplayer_ = NULL;
@@ -90,13 +94,13 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     if (!buf_) {
         buf_ = new char[1024 * 1024];
     }
-    LOGE(" ADD BUFFER audioQue.size %d ", audioQue.size());
-    if (!audioQue.empty()) {
+    LOGE(" ADD BUFFER audioQue.size %d ", audioFrameQue.size());
+    if (!audioFrameQue.empty()) {
         MyData myData ;
 
-        myData = audioQue.front();
+        myData = audioFrameQue.front();
 
-        audioQue.pop();
+        audioFrameQue.pop();
         (*bf)->Enqueue(bf, myData.data, 2048);
     }
 }
@@ -209,7 +213,6 @@ int initOpenSlEs() {
 }
 
 
-
 int initWindow(JNIEnv *env, jobject surface) {
     aWindow = ANativeWindow_fromSurface(env, surface);
     ANativeWindow_setBuffersGeometry(aWindow, outWidth_, outHeight_, WINDOW_FORMAT_RGBA_8888);
@@ -282,7 +285,7 @@ int initFFmpeg(const char *input_path) {
 
     vc_->thread_count = 4;
     ac_->thread_count = 4;
-    LOGE(" SUCCESS ");
+
 
     result = avcodec_open2(vc_, 0, 0);
     if (result != 0) {
@@ -331,61 +334,102 @@ bool decodeVideoFlag = false;
 bool decodeAudioFlag = false;
 //控制最大缓冲区
 int maxPacket = 100;
-
-void ThreadSleep(int mis){
+int maxFrame = 100;
+void ThreadSleep(int mis) {
     chrono::milliseconds du(mis);
     this_thread::sleep_for(du);
 }
+
 /**
  * 读取帧数据，然后判断是音频还是视频
  * 1.如果是音频就往音频的队列中放数据
  * 2.如果是视频就往视频的队列中放数据
- *
+ * 然后如果音频数据和视频数据中有一个满了，是不是就不要读取帧数据往里放了。？会不会出现一个音频的放完了。但是视频帧还是满的
  */
-void readFrame(){
-    int  result  = 0;
-    while(readFrameFlag){
-        if(packetQue.size() >= maxPacket){
+void readFrame() {
+    int result = 0;
+    while (readFrameFlag) {
+        if (audioPktQue.size() >= maxPacket || videoPktQue.size() >= maxPacket) {
             //控制缓冲大小
             ThreadSleep(2);
             continue;
         }
-        LOGE("readframe %d " ,packetQue.size() );
+//        LOGE("audioPktQue %d  , videoPktQue %d ", audioPktQue.size(), videoPktQue.size());
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc_, pkt_);
-        if(result < 0){
+        if (result < 0) {
             av_packet_free(&pkt_);
             continue;
         }
-        if(pkt_->stream_index == audio_index_){
+        if (pkt_->stream_index == audio_index_) {
             audioPktQue.push(pkt_);
         }
-        else if(pkt_->stream_index == video_index_){
-
-        }
+//        else if (pkt_->stream_index == video_index_) {
+//            videoPktQue.push(pkt_);
+//        }
 
     }
 }
 
 //解码视频数据
-void decodeVideo(){
-    while(decodeVideoFlag){
-        AVPacket *pck  = packetQue.front();
-        //如果不是视频数据就返回
-        if(pck->stream_index != video_index_){
+void decodeVideo() {
+    while (decodeVideoFlag) {
+        AVPacket *pck = videoPktQue.front();
+
+    }
+}
+
+//解码音频数据 , 解码后也要加入队列缓冲中。
+void decodeAudio() {
+    int result = 0;
+    int audioCount = 0;
+    while (decodeAudioFlag) {
+        if(audioPktQue.size() >= maxFrame){
+            ThreadSleep(2);
             continue;
         }
-        //是视频数据就解码
+
+        AVPacket *pck = audioPktQue.front();
+        audioPktQue.pop();
+        result = avcodec_send_packet(ac_, pck);
+        if (result < 0) {
+            LOGE(" SEND PACKET FAILD !");
+            continue;
+        }
+        av_packet_unref(pck);
+        while (true) {
+            result = avcodec_receive_frame(ac_, frame_);
+
+            if (result < 0) {
+                break;
+            }
+            audioCount++;
+            uint8_t *out[1] = {0};
+            out[0] = (uint8_t *) pcm_;
+            //音频重采样
+            int len = swr_convert(actx_, out,
+                                  frame_->nb_samples,
+                                  (const uint8_t **) frame_->data,
+                                  frame_->nb_samples);
+//                    LOGE("frame_->pkt_size %d frame_->nb_samples %d ", frame_->linesize[0] , frame_->nb_samples);
+            //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
+            char *pcm_temp = new char[48000 * 4 * 2];
+            memcpy(pcm_temp, pcm_, 2048);
+            MyData myData;
+            myData.data = pcm_temp;
+            myData.isAudio = true;
+            audioFrameQue.push(myData);
+            LOGE("DECODE AUDIO %d " , audioFrameQue.size());
+            //要先缓冲几帧才能播放音频数据
+//            if (audioCount == 5) {
+//                playFlag = true;
+//                playOrPauseAudio();
+//            }
+        }
 
     }
 }
 
-//解码音频数据
-void decodeAudio(){
-    while(decodeAudioFlag){
-
-    }
-}
 
 
 int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
@@ -407,13 +451,14 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
         return RESULT_FAILD;
     }
 
-    //控制音频的播放，音频里面有缓冲数据的时候，并且播放状态是playing的时候才能开始播放，后面正式的时候用解码线程，和播放线程应该能解决这个问题
-    int audioCount = 0;
+
     readFrameFlag = true;
     thread threadReadFrame(readFrame);
     threadReadFrame.detach();
 
-
+    decodeAudioFlag = true;
+    thread threadDecodeAudio(decodeAudio);
+    threadDecodeAudio.detach();
 //    while (true) {
 //        result = av_read_frame(afc_, pkt_);
 //        if (result < 0) {
