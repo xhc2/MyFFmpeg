@@ -425,7 +425,7 @@ void decodeVideo() {
                     uint8_t *dst = (uint8_t *) wbuf_.bits;
                     memcpy(dst, rgb_, outWidth_ * outHeight_ * 4);
                     ANativeWindow_unlockAndPost(aWindow);
-                    ThreadSleep(40);
+//                    ThreadSleep(40);
                 }
 
         }
