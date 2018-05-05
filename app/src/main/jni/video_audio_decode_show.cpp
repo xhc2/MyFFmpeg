@@ -88,7 +88,7 @@ SLEngineItf createOpenSL() {
     }
     return en;
 }
-
+unsigned char *audio_buf_ = 0;
 void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     if (!buf_) {
@@ -100,8 +100,10 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
         myData = audioFrameQue.front();
         audioFrameQue.pop();
-        LOGE(" play audio %d ", audioFrameQue.size());
-        (*bf)->Enqueue(bf, myData.data, 2048);
+        LOGE(" play audio %d , data size %d", audioFrameQue.size() ,myData.size);
+        memcpy(audio_buf_,myData.data,myData.size);
+        (*bf)->Enqueue(bf, audio_buf_, 2048);
+        free(myData.data);
     }
 }
 
@@ -166,7 +168,9 @@ int play_audio_stream() {
     }
 
     (*pcmQue_)->RegisterCallback(pcmQue_, pcmCallBack, 0);
-
+    //设置为播放状态
+    (*iplayer_)->SetPlayState(iplayer_,SL_PLAYSTATE_PLAYING);
+    (*pcmQue_)->Enqueue(pcmQue_,"",1);
     LOGE(" OpenSles init SUCCESS ");
     return RESULT_SUCCESS;
 }
@@ -354,7 +358,7 @@ void readFrame() {
             ThreadSleep(2);
             continue;
         }
-        LOGE("audioPktQue %d  , videoPktQue %d ", audioPktQue.size(), videoPktQue.size());
+//        LOGE("audioPktQue %d  , videoPktQue %d ", audioPktQue.size(), videoPktQue.size());
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc_, pkt_);
         if (result < 0) {
@@ -375,7 +379,7 @@ void readFrame() {
 void decodeVideo() {
     int result ;
     while (decodeVideoFlag) {
-        LOGE(" videoFrameQue.SIZE %d ,  videoPktQue.size %d " , videoFrameQue.size(), videoPktQue.size());
+//        LOGE(" videoFrameQue.SIZE %d ,  videoPktQue.size %d " , videoFrameQue.size(), videoPktQue.size());
         if(videoFrameQue.size() >= maxFrame || videoPktQue.empty()){
             ThreadSleep(2);
             continue;
@@ -437,7 +441,7 @@ void decodeAudio() {
     int result = 0;
     int audioCount = 0;
     while (decodeAudioFlag) {
-        LOGE(" audioFrameQue.SIZE %d , audioPktQue.size %d  " , audioFrameQue.size() , audioPktQue.size());
+//        LOGE(" audioFrameQue.SIZE %d , audioPktQue.size %d  " , audioFrameQue.size() , audioPktQue.size());
         if(audioFrameQue.size() >= maxFrame || audioPktQue.empty()){
             ThreadSleep(2);
             continue;
@@ -473,12 +477,14 @@ void decodeAudio() {
 //                    LOGE("frame_->pkt_size %d frame_->nb_samples %d ", frame_->linesize[0] , frame_->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
             char *pcm_temp = new char[48000 * 4 * 2];
+
             memcpy(pcm_temp, pcm_, 2048);
             MyData myData;
             myData.data = pcm_temp;
             myData.isAudio = true;
+            myData.size = av_get_bytes_per_sample((AVSampleFormat)frame_->format) * frame_->nb_samples;
+            LOGE("deocde audio size %d " , myData.size);
             audioFrameQue.push(myData);
-            LOGE("DECODE AUDIO %d " , audioFrameQue.size());
             //要先缓冲几帧才能播放音频数据
 //            if (audioCount == 5) {
 //                playFlag = true;

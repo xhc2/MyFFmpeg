@@ -11,7 +11,7 @@ public :
     char* data;
     //audio true ， video false
     bool isAudio = false;
-
+    int size = 0;
 };
 
 #endif //MYFFMPEG_MY_DATA_H
