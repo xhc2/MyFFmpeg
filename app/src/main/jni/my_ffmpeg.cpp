@@ -2,6 +2,7 @@
 // Created by Administrator on 2018/4/21/021.
 //
 
+//adb logcat | ndk-stack -sym obj/local/armeabi 查看底层错误栈
 #include "my_ffmpeg.h"
 #include <jni.h>
 #include <string.h>

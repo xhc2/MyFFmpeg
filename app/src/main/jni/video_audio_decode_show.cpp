@@ -94,13 +94,13 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     if (!buf_) {
         buf_ = new char[1024 * 1024];
     }
-    LOGE(" ADD BUFFER audioQue.size %d ", audioFrameQue.size());
+
     if (!audioFrameQue.empty()) {
         MyData myData ;
 
         myData = audioFrameQue.front();
-
         audioFrameQue.pop();
+        LOGE(" play audio %d ", audioFrameQue.size());
         (*bf)->Enqueue(bf, myData.data, 2048);
     }
 }
@@ -354,7 +354,7 @@ void readFrame() {
             ThreadSleep(2);
             continue;
         }
-//        LOGE("audioPktQue %d  , videoPktQue %d ", audioPktQue.size(), videoPktQue.size());
+        LOGE("audioPktQue %d  , videoPktQue %d ", audioPktQue.size(), videoPktQue.size());
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc_, pkt_);
         if (result < 0) {
@@ -364,18 +364,71 @@ void readFrame() {
         if (pkt_->stream_index == audio_index_) {
             audioPktQue.push(pkt_);
         }
-//        else if (pkt_->stream_index == video_index_) {
-//            videoPktQue.push(pkt_);
-//        }
+        else if (pkt_->stream_index == video_index_) {
+            videoPktQue.push(pkt_);
+        }
 
     }
 }
 
 //解码视频数据
 void decodeVideo() {
+    int result ;
     while (decodeVideoFlag) {
+        LOGE(" videoFrameQue.SIZE %d ,  videoPktQue.size %d " , videoFrameQue.size(), videoPktQue.size());
+        if(videoFrameQue.size() >= maxFrame || videoPktQue.empty()){
+            ThreadSleep(2);
+            continue;
+        }
         AVPacket *pck = videoPktQue.front();
+        videoPktQue.pop();
+        if(!pck){
+            LOGE(" video packet null !");
+            continue;
+        }
+        result = avcodec_send_packet(vc_, pck);
+        if (result < 0) {
+            LOGE(" SEND PACKET FAILD !");
+            av_packet_unref(pck);
+            continue;
+        }
+        av_packet_unref(pck);
+        while(true){
+            result = avcodec_receive_frame(vc_, frame_);
+            if (result < 0) {
+                break;
+            }
+            sws_ = sws_getCachedContext(sws_,
+                                            frame_->width, frame_->height,
+                                            (AVPixelFormat) frame_->format,
+                                            outWidth_, outHeight_, AV_PIX_FMT_RGBA,
+                                            SWS_FAST_BILINEAR,
+                                            0, 0, 0);
 
+                if (!sws_) {
+                    LOGE("sws_getCachedContext FAILD !");
+                } else {
+                    uint8_t *data[AV_NUM_DATA_POINTERS] = {0};
+                    data[0] = (uint8_t *) rgb_;
+                    int lines[AV_NUM_DATA_POINTERS] = {0};
+                    lines[0] = outWidth_ * 4;
+
+                    int h = sws_scale(sws_, (const uint8_t **) frame_->data, frame_->linesize, 0,
+                                      frame_->height, data, lines);
+
+//                    MyData myData ;
+//                    myData.isAudio = false;
+//                    myData.data = rgb_;
+//                    videoFrameQue.push(myData);
+
+                    ANativeWindow_lock(aWindow, &wbuf_, 0);
+                    uint8_t *dst = (uint8_t *) wbuf_.bits;
+                    memcpy(dst, rgb_, outWidth_ * outHeight_ * 4);
+                    ANativeWindow_unlockAndPost(aWindow);
+                    ThreadSleep(40);
+                }
+
+        }
     }
 }
 
@@ -384,16 +437,22 @@ void decodeAudio() {
     int result = 0;
     int audioCount = 0;
     while (decodeAudioFlag) {
-        if(audioPktQue.size() >= maxFrame){
+        LOGE(" audioFrameQue.SIZE %d , audioPktQue.size %d  " , audioFrameQue.size() , audioPktQue.size());
+        if(audioFrameQue.size() >= maxFrame || audioPktQue.empty()){
             ThreadSleep(2);
             continue;
         }
 
         AVPacket *pck = audioPktQue.front();
         audioPktQue.pop();
+        if(!pck){
+            LOGE(" packet null !");
+            continue;
+        }
         result = avcodec_send_packet(ac_, pck);
         if (result < 0) {
             LOGE(" SEND PACKET FAILD !");
+            av_packet_unref(pck);
             continue;
         }
         av_packet_unref(pck);
@@ -459,6 +518,10 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
     decodeAudioFlag = true;
     thread threadDecodeAudio(decodeAudio);
     threadDecodeAudio.detach();
+
+    decodeVideoFlag = true;
+    thread threadDecodeVideo(decodeVideo);
+    threadDecodeVideo.detach();
 //    while (true) {
 //        result = av_read_frame(afc_, pkt_);
 //        if (result < 0) {
