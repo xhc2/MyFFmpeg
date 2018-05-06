@@ -54,16 +54,22 @@ AV_SAMPLE_FMT_S16（data[0] lrlrlrlrlrlr）
 AV_SAMPLE_FMT_FLTP(data[0] data[1] lllll rrrrr);
 这个就要用SwrContext来转换下。具体内容看代码my_audio_record.c
 
-因为是要转码所以bufferSizeInBytes 要设置2048，如果是双声道的话要设置成4096.
-frame->nb_samples：采样样本个数（1024），一帧的采样个数
-ac->sample_rate：采样率（e.g 44100 就是每秒44100个sample)，一秒采样次数
-那么一帧的数据量就是 frame->nb_samples（1024） * 声道数（2） * av_get_bytes_per_sample(s16)(2) = 4096
+frame->nb_samples，一帧音频（frame）中有多少个采样（一般是1024）
+而一般1s中的音频是44100个采样。
+一般一个采样的大小 AV_SAMPLE_FMT_S16（16比特，2字节）
+所以单声道1s 的音频大小是 44100 * 2 个字节（byte）;
+一帧的大小（frame）frame->nb_samples * av_get_bytes_per_sample(s16) 个字节（一般是2048）
+
+
 音频的时间方面：
-一帧 1024个 sample。采样率 Samplerate 44100KHz，每秒44100个sample, 所以根据公式   音频帧的播放时间=一个AAC帧对应的采样样本的个数/采样频率
+
+一帧 1024个 sample。采样率 Samplerate 44100KHz，每秒44100个AV_SAMPLE_FMT_S16, 所以根据公式   音频帧的播放时间=一个AAC帧对应的采样样本的个数/采样频率
 当前AAC一帧的播放时间是= 1024*1000000/44100= 22.2ms(单位为ms)
+
 调试发现，对音频重采样后，frame_->format中的格式并不会改变，所以使用av_get_bytes_per_sample获取每个采样的大小的时候需要手动改成outFormat
 
-opensl中的的缓冲播放完毕后会回调pcmcallback，第一调用需要延迟个几百毫秒，然后需要保证队列中一直有数据
+opensl中的的缓冲播放完毕后会回调pcmcallback，
+询问老师：第一次调用需要延迟个几百毫秒，然后需要保证队列中一直有数据
 
 5.采集音视频并复合mp4（现在已经做好的还有点问题就是音频播放过快。但是还不知道如何改正）
 这里面需要注意的一个点是av_compare_ts ，传入的是上一帧（音视频）的pts，time_base 是最后状态的pts，
@@ -79,6 +85,11 @@ opensl中的的缓冲播放完毕后会回调pcmcallback，第一调用需要延
 
 
 
+音视频缓冲中的困惑。
+1.视频音频的缓冲帧数量大小都是100
+ 视频的100是四秒
+ 音频的100就两秒多 一帧有1024个采样，那么100帧音频占时 = 100 / (44100 / 1024) = 2.3 秒左右
+ 两个队列只要一个满了，都会造成av_read_frame（）线程的阻塞，会不会出现视频还是满的，但是音频已经空了的现象。然后音频的播放就会停止
 
 
 

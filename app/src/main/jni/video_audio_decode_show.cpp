@@ -22,7 +22,9 @@ using namespace std;
  * 1.解码音视频分别用两个线程。
  * 2.解封装的时候往两个线程中丢数据，然后自己解码。
  * 3.当数据太多。让read_frame的等待。
- * 4.
+ *
+ * 一个问题。
+ * q:一个线程read_frame,两个线程分别维护视频，音频队列，其中一个队列满了都会阻塞读取帧的线程，会不会出现一个队列满了，但是另个队列是空 的情况
  */
 
 //queue<MyData> audioQue;
@@ -88,6 +90,7 @@ SLEngineItf createOpenSL() {
     }
     return en;
 }
+
 unsigned char *audio_buf_ = 0;
 /**
  * 问题 1.最开始要缓冲几帧再开始播放，一般是几帧，我这边缓冲了5帧好像还是有问题，播放不了？
@@ -175,11 +178,16 @@ int play_audio_stream() {
     }
     audio_buf_ = new unsigned char[1024 * 1024];
     (*pcmQue_)->RegisterCallback(pcmQue_, pcmCallBack, 0);
-    //设置为播放状态
-    (*iplayer_)->SetPlayState(iplayer_,SL_PLAYSTATE_PLAYING);
-    (*pcmQue_)->Enqueue(pcmQue_,"",1);
+
     LOGE(" OpenSles init SUCCESS ");
     return RESULT_SUCCESS;
+}
+
+void audioPlayDelay(){
+    //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
+    ThreadSleep(300);
+    (*iplayer_)->SetPlayState(iplayer_,SL_PLAYSTATE_PLAYING);
+    (*pcmQue_)->Enqueue(pcmQue_,"",1);
 }
 
 //播放或者暂停音频
@@ -296,7 +304,6 @@ int initFFmpeg(const char *input_path) {
     vc_->thread_count = 4;
     ac_->thread_count = 4;
 
-
     result = avcodec_open2(vc_, 0, 0);
     if (result != 0) {
         LOGE("vc_ avcodec_open2 Faild !");
@@ -356,6 +363,7 @@ void ThreadSleep(int mis) {
  * 1.如果是音频就往音频的队列中放数据
  * 2.如果是视频就往视频的队列中放数据
  * 然后如果音频数据和视频数据中有一个满了，是不是就不要读取帧数据往里放了。？会不会出现一个音频的放完了。但是视频帧还是满的
+ *
  */
 void readFrame() {
     int result = 0;
@@ -378,7 +386,6 @@ void readFrame() {
         else if (pkt_->stream_index == video_index_) {
             videoPktQue.push(pkt_);
         }
-
     }
 }
 
@@ -495,11 +502,7 @@ void decodeAudio() {
 
             LOGE("deocde audio size %d " , myData.size);
             audioFrameQue.push(myData);
-            //要先缓冲几帧才能播放音频数据
-//            if (audioCount == 5) {
-//                playFlag = true;
-//                playOrPauseAudio();
-//            }
+
         }
 
     }
@@ -538,6 +541,9 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
     decodeVideoFlag = true;
     thread threadDecodeVideo(decodeVideo);
     threadDecodeVideo.detach();
+
+    thread playAudioDelayThread(audioPlayDelay);
+    playAudioDelayThread.detach();
 
 //    while (true) {
 //        result = av_read_frame(afc_, pkt_);

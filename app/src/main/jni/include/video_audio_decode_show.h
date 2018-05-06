@@ -9,4 +9,6 @@
 
 int videoAudioOpen(JNIEnv *env , jobject surface , const char* path);
 void testPlay();
+void ThreadSleep(int mis);
+
 #endif //MYFFMPEG_VIDEO_AUDIO_DECODE_SHOW_H

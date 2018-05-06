@@ -93,16 +93,14 @@ void ThreadSleep2(int mis) {
 
 
 void playAudioDelay(){
-    ThreadSleep2(500);
-    (*iplayer)->SetPlayState(iplayer , SL_PLAYSTATE_PLAYING);
-    (*pcmQue)->Enqueue(pcmQue , "" , 1);
+
 }
 
 int play_audio(const char *path) {
     pcm_path =(char*)malloc(1024);
     LOGE("SIZE OF *CHAR %d " , sizeof(*path));
-    memcpy(pcm_path , path , 1024);
-//    pcm_path = path;
+//    memcpy(pcm_path , path , 1024);
+    pcm_path = path;
     //创建引擎
     eng = createSL();
     if(!eng){
@@ -161,9 +159,8 @@ int play_audio(const char *path) {
 
     (*pcmQue)->RegisterCallback(pcmQue , pcmCall , 0);
     LOGE("THREAD START %s " , pcm_path);
-    thread playAudioDelayThread(playAudioDelay);
-    playAudioDelayThread.detach();
-
+    (*iplayer)->SetPlayState(iplayer , SL_PLAYSTATE_PLAYING);
+    (*pcmQue)->Enqueue(pcmQue , "" , 1);
     LOGE(" play_audio SUCCESS ");
     return 1;
 }
@@ -180,7 +177,6 @@ int openslDestroy(){
         (*mix)->Destroy(mix);
         mix = NULL;
     }
-
     if(engineSL != NULL){
         (*engineSL)->Destroy(engineSL);
         engineSL = NULL;
