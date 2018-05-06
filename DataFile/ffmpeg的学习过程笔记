@@ -63,11 +63,13 @@ ac->sample_rate：采样率（e.g 44100 就是每秒44100个sample)，一秒采�
 当前AAC一帧的播放时间是= 1024*1000000/44100= 22.2ms(单位为ms)
 调试发现，对音频重采样后，frame_->format中的格式并不会改变，所以使用av_get_bytes_per_sample获取每个采样的大小的时候需要手动改成outFormat
 
+opensl中的的缓冲播放完毕后会回调pcmcallback，第一调用需要延迟个几百毫秒，然后需要保证队列中一直有数据
 
 5.采集音视频并复合mp4（现在已经做好的还有点问题就是音频播放过快。但是还不知道如何改正）
 这里面需要注意的一个点是av_compare_ts ，传入的是上一帧（音视频）的pts，time_base 是最后状态的pts，
 比如音频是编码后的codec->time_base , 视频是编码后的video_stream->time_base.
 这个音视频同步的问题感觉还没有个方向，先暂时放一会（xxxxxxxxxx）
+
 
 
 6.音视频同步问题。

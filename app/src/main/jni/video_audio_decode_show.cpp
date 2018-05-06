@@ -90,9 +90,9 @@ SLEngineItf createOpenSL() {
 }
 unsigned char *audio_buf_ = 0;
 /**
- * 问题
- * 1.最开始要缓冲几帧再开始播放，一般是几帧，我这边缓冲了5帧好像还是有问题，播放不了？
- * 2.如果sl缓冲区播放完了，需要再从队列中拿到已经解码的缓冲，但是队列中目前还没有，到有的时候如何处理？再调用一次播放？这个播放在什么时候调用比较合适？
+ * 问题 1.最开始要缓冲几帧再开始播放，一般是几帧，我这边缓冲了5帧好像还是有问题，播放不了？
+ * 2.如果sl缓冲区播放完了，需要再从队列中拿到已经解码的缓冲，但是队列中目前还没有，
+ * 到有的时候如何处理？再调用一次播放？这个播放在什么时候调用比较合适？
  * @param bf
  * @param context
  */
@@ -108,9 +108,9 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
         myData = audioFrameQue.front();
         audioFrameQue.pop();
         LOGE(" play audio %d , data size %d", audioFrameQue.size() ,myData.size);
-        memcpy(audio_buf_,myData.data,myData.size);
-        (*bf)->Enqueue(bf, myData.data, myData.size);
-//        free(myData.data);
+        memcpy(audio_buf_ , myData.data , myData.size);
+        (*bf)->Enqueue(bf, audio_buf_ , myData.size);
+        free(myData.data);
     }
 }
 
@@ -236,7 +236,6 @@ int initFFmpeg(const char *input_path) {
     av_register_all();
     avcodec_register_all();
 
-
     frame_ = av_frame_alloc();
 
     result = avformat_open_input(&afc_, input_path, 0, 0);
@@ -346,6 +345,7 @@ bool decodeAudioFlag = false;
 //控制最大缓冲区
 int maxPacket = 100;
 int maxFrame = 100;
+
 void ThreadSleep(int mis) {
     chrono::milliseconds du(mis);
     this_thread::sleep_for(du);
@@ -484,10 +484,10 @@ void decodeAudio() {
                                   frame_->nb_samples);
 //                    LOGE("frame_->pkt_size %d frame_->nb_samples %d ", frame_->linesize[0] , frame_->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
-            char *pcm_temp = new char[48000 * 4 * 2];
+
             //outFormat
             myData.size = av_get_bytes_per_sample((AVSampleFormat)  outFormat) * frame_->nb_samples;
-            LOGE("format %d , get_bytes_per_sample %d " , outFormat, av_get_bytes_per_sample((AVSampleFormat)outFormat));
+            char *pcm_temp = new char[myData.size];
             memcpy(pcm_temp, pcm_, myData.size);
 
             myData.data = pcm_temp;
@@ -538,6 +538,7 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
     decodeVideoFlag = true;
     thread threadDecodeVideo(decodeVideo);
     threadDecodeVideo.detach();
+
 //    while (true) {
 //        result = av_read_frame(afc_, pkt_);
 //        if (result < 0) {

@@ -46,9 +46,8 @@ JNIEXPORT jint JNICALL Java_module_video_jnc_myffmpeg_FFmpegUtils_decodeMp4ToYuv
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_openSLTest(JNIEnv *env, jclass clazz, jstring path) {
     const char *input_str = env->GetStringUTFChars(path, NULL);
-    LOGE("input path %s ", input_str);
     play_audio(input_str);
-    env->ReleaseStringUTFChars(path, input_str);
+//    env->ReleaseStringUTFChars(path, input_str);
     return 1;
 }
 

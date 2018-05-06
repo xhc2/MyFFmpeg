@@ -6,6 +6,9 @@
 #include <SLES/OpenSLES_Android.h>
 #include <stdio.h>
 #include "my_open_sl_test.h"
+#include <thread>
+#include <stdio.h>
+using namespace std;
 /**
  * https://developer.android.com/ndk/guides/audio/android-extensions.html?hl=zh-cn#dynamic-interfaces 官方链接
  * https://blog.csdn.net/ywl5320/article/details/78503768
@@ -14,7 +17,7 @@
  * seek等也是。跳转到10s出，就去解码10s出的音频。
  */
 SLObjectItf engineSL = NULL;
-const char * pcm_path;
+const char *pcm_path;
 SLPlayItf iplayer = NULL;
 SLEngineItf eng =  NULL;
 SLObjectItf mix =  NULL;
@@ -46,7 +49,6 @@ SLEngineItf createSL() {
 
 void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
 
-
     if(!buf)
     {
         buf = new char[1024*1024];
@@ -56,7 +58,7 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
         fp = fopen(pcm_path,"rb");
     }
     if(!fp){
-        LOGE("file faild !");
+        LOGE("file faild ! %s ?" , pcm_path);
         return;
     }
     if(feof(fp) == 0)
@@ -84,9 +86,23 @@ int pause(bool flag){
 
     return 0;
 }
+void ThreadSleep2(int mis) {
+    chrono::milliseconds du(mis);
+    this_thread::sleep_for(du);
+}
+
+
+void playAudioDelay(){
+    ThreadSleep2(500);
+    (*iplayer)->SetPlayState(iplayer , SL_PLAYSTATE_PLAYING);
+    (*pcmQue)->Enqueue(pcmQue , "" , 1);
+}
 
 int play_audio(const char *path) {
-    pcm_path = path;
+    pcm_path =(char*)malloc(1024);
+    LOGE("SIZE OF *CHAR %d " , sizeof(*path));
+    memcpy(pcm_path , path , 1024);
+//    pcm_path = path;
     //创建引擎
     eng = createSL();
     if(!eng){
@@ -144,10 +160,10 @@ int play_audio(const char *path) {
     }
 
     (*pcmQue)->RegisterCallback(pcmQue , pcmCall , 0);
+    LOGE("THREAD START %s " , pcm_path);
+    thread playAudioDelayThread(playAudioDelay);
+    playAudioDelayThread.detach();
 
-    (*iplayer)->SetPlayState(iplayer , SL_PLAYSTATE_PLAYING);
-
-    (*pcmQue)->Enqueue(pcmQue , "" , 1);
     LOGE(" play_audio SUCCESS ");
     return 1;
 }
