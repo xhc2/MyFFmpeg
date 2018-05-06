@@ -62,7 +62,7 @@ int outWidth_ = 0;
 int outHeight_ = 0;
 ANativeWindow_Buffer wbuf_;
 ANativeWindow *aWindow;
-
+int outFormat = AV_SAMPLE_FMT_S16;
 SLEngineItf createOpenSL() {
     SLresult re = NULL;
     SLEngineItf en = NULL;
@@ -89,6 +89,13 @@ SLEngineItf createOpenSL() {
     return en;
 }
 unsigned char *audio_buf_ = 0;
+/**
+ * 问题
+ * 1.最开始要缓冲几帧再开始播放，一般是几帧，我这边缓冲了5帧好像还是有问题，播放不了？
+ * 2.如果sl缓冲区播放完了，需要再从队列中拿到已经解码的缓冲，但是队列中目前还没有，到有的时候如何处理？再调用一次播放？这个播放在什么时候调用比较合适？
+ * @param bf
+ * @param context
+ */
 void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     if (!buf_) {
@@ -102,8 +109,8 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
         audioFrameQue.pop();
         LOGE(" play audio %d , data size %d", audioFrameQue.size() ,myData.size);
         memcpy(audio_buf_,myData.data,myData.size);
-        (*bf)->Enqueue(bf, audio_buf_, 2048);
-        free(myData.data);
+        (*bf)->Enqueue(bf, myData.data, myData.size);
+//        free(myData.data);
     }
 }
 
@@ -166,7 +173,7 @@ int play_audio_stream() {
         LOGE("GetInterface SL_IID_BUFFERQUEUE FAILD ");
         return -1;
     }
-
+    audio_buf_ = new unsigned char[1024 * 1024];
     (*pcmQue_)->RegisterCallback(pcmQue_, pcmCallBack, 0);
     //设置为播放状态
     (*iplayer_)->SetPlayState(iplayer_,SL_PLAYSTATE_PLAYING);
@@ -469,6 +476,7 @@ void decodeAudio() {
             audioCount++;
             uint8_t *out[1] = {0};
             out[0] = (uint8_t *) pcm_;
+            MyData myData;
             //音频重采样
             int len = swr_convert(actx_, out,
                                   frame_->nb_samples,
@@ -477,12 +485,14 @@ void decodeAudio() {
 //                    LOGE("frame_->pkt_size %d frame_->nb_samples %d ", frame_->linesize[0] , frame_->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
             char *pcm_temp = new char[48000 * 4 * 2];
+            //outFormat
+            myData.size = av_get_bytes_per_sample((AVSampleFormat)  outFormat) * frame_->nb_samples;
+            LOGE("format %d , get_bytes_per_sample %d " , outFormat, av_get_bytes_per_sample((AVSampleFormat)outFormat));
+            memcpy(pcm_temp, pcm_, myData.size);
 
-            memcpy(pcm_temp, pcm_, 2048);
-            MyData myData;
             myData.data = pcm_temp;
             myData.isAudio = true;
-            myData.size = av_get_bytes_per_sample((AVSampleFormat)frame_->format) * frame_->nb_samples;
+
             LOGE("deocde audio size %d " , myData.size);
             audioFrameQue.push(myData);
             //要先缓冲几帧才能播放音频数据
