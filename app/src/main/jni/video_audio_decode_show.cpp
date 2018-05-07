@@ -30,7 +30,7 @@ using namespace std;
 queue<AVPacket *> audioPktQue;
 queue<AVPacket *> videoPktQue;
 queue<MyData> audioFrameQue;
-queue<MyData> videoFrameQue;
+//queue<MyData> videoFrameQue;
 
 
 SLObjectItf engineOpenSL = NULL;
@@ -69,6 +69,8 @@ bool showYuvFlag = false;
 bool readFrameFlag = false;
 bool decodeVideoFlag = false;
 bool decodeAudioFlag = false;
+//用来处理音视频同步的，视频同步音频
+int apts = 0;
 
 SLEngineItf createOpenSL() {
     SLresult re = NULL;
@@ -112,6 +114,7 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
         audioFrameQue.pop();
         memcpy(audio_buf_ , myData.data , myData.size);
         (*bf)->Enqueue(bf, audio_buf_ , myData.size);
+        apts = myData.pts;
         free(myData.data);
     }
 }
@@ -383,11 +386,21 @@ void readFrame() {
             continue;
         }
         if (pkt_->stream_index == audio_index_) {
+            pkt_->pts = pkt_->pts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
+            pkt_->dts = pkt_->dts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
             audioPktQue.push(pkt_);
+            LOGE(" audio Pkt PTS %lld " ,pkt_->pts );
         }
         else if (pkt_->stream_index == video_index_) {
+            pkt_->pts = pkt_->pts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
+            pkt_->dts = pkt_->dts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
             videoPktQue.push(pkt_);
+            LOGE(" video Pkt PTS %lld " ,pkt_->pts );
         }
+        else{
+            av_packet_free(&pkt_);
+        }
+
     }
 }
 
@@ -396,11 +409,17 @@ void decodeVideo() {
     int result ;
     while (decodeVideoFlag) {
 //        LOGE(" videoFrameQue.SIZE %d ,  videoPktQue.size %d " , videoFrameQue.size(), videoPktQue.size());
-        if(videoFrameQue.size() >= maxFrame || videoPktQue.empty()){
+        if(videoPktQue.empty()){
             ThreadSleep(2);
             continue;
         }
         AVPacket *pck = videoPktQue.front();
+        if(pck->pts > apts){
+            ThreadSleep(1);
+            LOGE("wait for audio !");
+            continue;
+        }
+
         videoPktQue.pop();
         if(!pck){
             LOGE(" video packet null !");
@@ -409,16 +428,17 @@ void decodeVideo() {
         result = avcodec_send_packet(vc_, pck);
         if (result < 0) {
             LOGE(" SEND PACKET FAILD !");
-            av_packet_unref(pck);
+            av_packet_free(&pck);
             continue;
         }
-        av_packet_unref(pck);
+        av_packet_free(&pck);
+
         while(true){
+            MyData myData ;
             result = avcodec_receive_frame(vc_, vframe_);
             if (result < 0) {
                 break;
             }
-//            LOGE("frame->width %d , frame->height %d " ,frame_->width , frame_->height);
 
             sws_ = sws_getCachedContext(sws_,
                                         vframe_->width, vframe_->height,
@@ -439,12 +459,15 @@ void decodeVideo() {
                     int h = sws_scale(sws_, (const uint8_t **) vframe_->data, vframe_->linesize, 0,
                                       vframe_->height, data, lines);
 
-                    MyData myData ;
                     myData.isAudio = false;
                     myData.size = outHeight_ * outWidth_ * 4;
                     myData.data = (char *)malloc(outHeight_ * outWidth_ * 4);
                     memcpy(myData.data , rgb_ ,  myData.size);
-                    videoFrameQue.push(myData);
+                    ANativeWindow_lock(aWindow, &wbuf_, 0);
+                    uint8_t *dst = (uint8_t *) wbuf_.bits;
+                    memcpy(dst, myData.data, myData.size );
+                    ANativeWindow_unlockAndPost(aWindow);
+//                    videoFrameQue.push(myData);
                 }
 
         }
@@ -452,28 +475,12 @@ void decodeVideo() {
 }
 
 
-void showYuvThread(){
-
-    while(showYuvFlag){
-//        LOGE(" videoFrameQue.size %d " , videoFrameQue.size());
-        if(videoFrameQue.empty()){
-            ThreadSleep(2);
-            continue;
-        }
-        MyData myData = videoFrameQue.front();
-        videoFrameQue.pop();
-        ANativeWindow_lock(aWindow, &wbuf_, 0);
-        uint8_t *dst = (uint8_t *) wbuf_.bits;
-        memcpy(dst, myData.data, myData.size );
-        ANativeWindow_unlockAndPost(aWindow);
-    }
-
-}
 
 //解码音频数据 , 解码后也要加入队列缓冲中。
 void decodeAudio() {
     int result = 0;
     int audioCount = 0;
+    int temp_pts = 0;
     while (decodeAudioFlag) {
 //        LOGE(" audioFrameQue.SIZE %d , audioPktQue.size %d  " , audioFrameQue.size() , audioPktQue.size());
         if(audioFrameQue.size() >= maxFrame || audioPktQue.empty()){
@@ -483,6 +490,7 @@ void decodeAudio() {
 
         AVPacket *pck = audioPktQue.front();
         audioPktQue.pop();
+        temp_pts = pck->pts;
         if(!pck){
             LOGE(" packet null !");
             continue;
@@ -490,10 +498,10 @@ void decodeAudio() {
         result = avcodec_send_packet(ac_, pck);
         if (result < 0) {
             LOGE(" SEND PACKET FAILD !");
-            av_packet_unref(pck);
+            av_packet_free(&pck);
             continue;
         }
-        av_packet_unref(pck);
+        av_packet_free(&pck);
         while (true) {
             result = avcodec_receive_frame(ac_, aframe_);
 
@@ -515,10 +523,9 @@ void decodeAudio() {
             myData.size = av_get_bytes_per_sample((AVSampleFormat)  outFormat) * aframe_->nb_samples;
             char *pcm_temp = new char[myData.size];
             memcpy(pcm_temp, pcm_, myData.size);
-
             myData.data = pcm_temp;
             myData.isAudio = true;
-
+            myData.pts = temp_pts;
             audioFrameQue.push(myData);
 
         }
@@ -563,10 +570,6 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
     thread playAudioDelayThread(audioPlayDelay);
     playAudioDelayThread.detach();
 
-
-    showYuvFlag = true;
-    thread playYuvThread(showYuvThread);
-    playYuvThread.detach();
 
     return RESULT_SUCCESS;
 }
