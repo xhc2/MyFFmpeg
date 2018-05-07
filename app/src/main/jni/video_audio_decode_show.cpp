@@ -110,7 +110,6 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
         myData = audioFrameQue.front();
         audioFrameQue.pop();
-        LOGE(" play audio %d , data size %d", audioFrameQue.size() ,myData.size);
         memcpy(audio_buf_ , myData.data , myData.size);
         (*bf)->Enqueue(bf, audio_buf_ , myData.size);
         free(myData.data);
@@ -368,12 +367,13 @@ void ThreadSleep(int mis) {
 void readFrame() {
     int result = 0;
     while (readFrameFlag) {
+
         if (audioPktQue.size() >= maxPacket || videoPktQue.size() >= maxPacket) {
             //控制缓冲大小
             ThreadSleep(2);
             continue;
         }
-//        LOGE("audioPktQue %d  , videoPktQue %d ", audioPktQue.size(), videoPktQue.size());
+//        LOGE(" READ FRAME SIZE audioPktQue %d , videoPktQue.size() %d " , audioPktQue.size() , videoPktQue.size());
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc_, pkt_);
         if (result < 0) {
@@ -434,20 +434,36 @@ void decodeVideo() {
                     int h = sws_scale(sws_, (const uint8_t **) frame_->data, frame_->linesize, 0,
                                       frame_->height, data, lines);
 
-//                    MyData myData ;
-//                    myData.isAudio = false;
-//                    myData.data = rgb_;
-//                    videoFrameQue.push(myData);
-
-                    ANativeWindow_lock(aWindow, &wbuf_, 0);
-                    uint8_t *dst = (uint8_t *) wbuf_.bits;
-                    memcpy(dst, rgb_, outWidth_ * outHeight_ * 4);
-                    ANativeWindow_unlockAndPost(aWindow);
-//                    ThreadSleep(40);
+                    MyData myData ;
+                    myData.isAudio = false;
+                    myData.data = rgb_;
+                    myData.size = (frame_->linesize[0] +  frame_->linesize[1]+  frame_->linesize[2]) * outHeight_;
+                    videoFrameQue.push(myData);
                 }
 
         }
     }
+}
+bool showYuvFlag = false;
+
+void showYuvThread(){
+
+    while(showYuvFlag){
+        LOGE(" videoFrameQue.size %d " , videoFrameQue.size());
+        if(videoFrameQue.empty()){
+            ThreadSleep(2);
+            continue;
+        }
+        MyData myData = videoFrameQue.front();
+        videoFrameQue.pop();
+        ANativeWindow_lock(aWindow, &wbuf_, 0);
+        uint8_t *dst = (uint8_t *) wbuf_.bits;
+        LOGE(" SHOW YUV THREAD myData.size %d " , myData.size);
+        memcpy(dst, myData.data, myData.size );
+        ANativeWindow_unlockAndPost(aWindow);
+//        free(myData.data);
+    }
+
 }
 
 //解码音频数据 , 解码后也要加入队列缓冲中。
@@ -500,14 +516,12 @@ void decodeAudio() {
             myData.data = pcm_temp;
             myData.isAudio = true;
 
-            LOGE("deocde audio size %d " , myData.size);
             audioFrameQue.push(myData);
 
         }
 
     }
 }
-
 
 
 int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
@@ -544,6 +558,11 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
 
     thread playAudioDelayThread(audioPlayDelay);
     playAudioDelayThread.detach();
+
+
+    showYuvFlag = true;
+    thread playYuvThread(showYuvThread);
+    playYuvThread.detach();
 
 //    while (true) {
 //        result = av_read_frame(afc_, pkt_);
