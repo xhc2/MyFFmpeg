@@ -55,7 +55,8 @@ int video_index_ = 0;
 int audio_index_ = 0;
 AVFormatContext *afc_ = NULL;
 //AVPacket *pkt_ = NULL;
-AVFrame *frame_ = NULL;
+AVFrame *vframe_ = NULL;
+AVFrame *aframe_ = NULL;
 SwsContext *sws_ = NULL;
 char *pcm_ = NULL;
 SwrContext *actx_ = NULL;
@@ -111,9 +112,9 @@ void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
         buf_ = new char[1024 * 1024];
     }
 
+    LOGE(" pcmCallBack audioFrameQue.empty %d" ,audioFrameQue.empty() );
     if (!audioFrameQue.empty()) {
         MyData myData ;
-
         myData = audioFrameQue.front();
         audioFrameQue.pop();
         memcpy(audio_buf_ , myData.data , myData.size);
@@ -190,7 +191,7 @@ int play_audio_stream() {
 
 void audioPlayDelay(){
     //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
-    ThreadSleep(300);
+    ThreadSleep(200);
     (*iplayer_)->SetPlayState(iplayer_,SL_PLAYSTATE_PLAYING);
     (*pcmQue_)->Enqueue(pcmQue_,"",1);
 }
@@ -249,8 +250,8 @@ int initFFmpeg(const char *input_path) {
     av_register_all();
     avcodec_register_all();
 
-    frame_ = av_frame_alloc();
-
+    aframe_ = av_frame_alloc();
+    vframe_ = av_frame_alloc();
     result = avformat_open_input(&afc_, input_path, 0, 0);
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
@@ -375,16 +376,17 @@ void ThreadSleep(int mis) {
 void readFrame() {
     int result = 0;
     while (readFrameFlag) {
-
+        LOGE(" READ FRAME SIZE audioPktQue %d , videoPktQue.size() %d " , audioPktQue.size() , videoPktQue.size());
         if (audioPktQue.size() >= maxAudioPacket || videoPktQue.size() >= maxVideoPacket) {
             //控制缓冲大小
             ThreadSleep(2);
             continue;
         }
-//        LOGE(" READ FRAME SIZE audioPktQue %d , videoPktQue.size() %d " , audioPktQue.size() , videoPktQue.size());
+
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc_, pkt_);
         if (result < 0) {
+            ThreadSleep(2);
             av_packet_free(&pkt_);
             continue;
         }
@@ -420,15 +422,15 @@ void decodeVideo() {
         }
         av_packet_unref(pck);
         while(true){
-            result = avcodec_receive_frame(vc_, frame_);
+            result = avcodec_receive_frame(vc_, vframe_);
             if (result < 0) {
                 break;
             }
 //            LOGE("frame->width %d , frame->height %d " ,frame_->width , frame_->height);
 
             sws_ = sws_getCachedContext(sws_,
-                                            frame_->width, frame_->height,
-                                            (AVPixelFormat) frame_->format,
+                                        vframe_->width, vframe_->height,
+                                            (AVPixelFormat) vframe_->format,
                                             outWidth_, outHeight_, AV_PIX_FMT_RGBA,
                                             SWS_FAST_BILINEAR,
                                             0, 0, 0);
@@ -437,24 +439,19 @@ void decodeVideo() {
                     LOGE("sws_getCachedContext FAILD !");
                 } else {
                     uint8_t *data[AV_NUM_DATA_POINTERS] = {0};
-                    data[0] = (uint8_t *) rgb_;
                     int lines[AV_NUM_DATA_POINTERS] = {0};
+
+                    data[0] = (uint8_t *) rgb_;
                     lines[0] = outWidth_ * 4;
 
-                    int h = sws_scale(sws_, (const uint8_t **) frame_->data, frame_->linesize, 0,
-                                      frame_->height, data, lines);
+                    int h = sws_scale(sws_, (const uint8_t **) vframe_->data, vframe_->linesize, 0,
+                                      vframe_->height, data, lines);
 
                     MyData myData ;
                     myData.isAudio = false;
                     myData.size = outHeight_ * outWidth_ * 4;
                     myData.data = (char *)malloc(outHeight_ * outWidth_ * 4);
-//                    myData.size 829440 , frame_->linesize[0] = 864 ,frame_->linesize[1] = 432 , frame_->linesize[2] = 432
-                    //frame_->linesize[0]是根据不同的cpu来对其的，保证读写效率。可能比width大
-//                    LOGE("myData.size %d , frame_->linesize[0] = %d ,frame_->linesize[1] = %d , frame_->linesize[2] = %d " ,
-//                         myData.size , frame_->linesize[0] , frame_->linesize[1]  ,frame_->linesize[2]  ); //829440
-                    //真机会花屏
                     memcpy(myData.data , rgb_ ,  myData.size);
-//                    fwrite( myData.data,1, myData.size , rgbFileTest);
                     videoFrameQue.push(myData);
                 }
 
@@ -466,7 +463,7 @@ void decodeVideo() {
 void showYuvThread(){
 
     while(showYuvFlag){
-        LOGE(" videoFrameQue.size %d " , videoFrameQue.size());
+//        LOGE(" videoFrameQue.size %d " , videoFrameQue.size());
         if(videoFrameQue.empty()){
             ThreadSleep(2);
             continue;
@@ -506,7 +503,7 @@ void decodeAudio() {
         }
         av_packet_unref(pck);
         while (true) {
-            result = avcodec_receive_frame(ac_, frame_);
+            result = avcodec_receive_frame(ac_, aframe_);
 
             if (result < 0) {
                 break;
@@ -517,13 +514,13 @@ void decodeAudio() {
             MyData myData;
             //音频重采样
             int len = swr_convert(actx_, out,
-                                  frame_->nb_samples,
-                                  (const uint8_t **) frame_->data,
-                                  frame_->nb_samples);
+                                  aframe_->nb_samples,
+                                  (const uint8_t **) aframe_->data,
+                                  aframe_->nb_samples);
 //                    LOGE("frame_->pkt_size %d frame_->nb_samples %d ", frame_->linesize[0] , frame_->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
 
-            myData.size = av_get_bytes_per_sample((AVSampleFormat)  outFormat) * frame_->nb_samples;
+            myData.size = av_get_bytes_per_sample((AVSampleFormat)  outFormat) * aframe_->nb_samples;
             char *pcm_temp = new char[myData.size];
             memcpy(pcm_temp, pcm_, myData.size);
 
