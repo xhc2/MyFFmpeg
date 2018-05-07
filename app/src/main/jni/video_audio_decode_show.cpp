@@ -27,8 +27,6 @@ using namespace std;
  * q:一个线程read_frame,两个线程分别维护视频，音频队列，其中一个队列满了都会阻塞读取帧的线程，会不会出现一个队列满了，但是另个队列是空 的情况
  */
 
-//queue<MyData> audioQue;
-//queue<MyData> yuvQue;
 queue<AVPacket *> audioPktQue;
 queue<AVPacket *> videoPktQue;
 queue<MyData> audioFrameQue;
@@ -42,7 +40,7 @@ SLObjectItf mix_ = NULL;
 SLObjectItf player_ = NULL;
 
 //FILE *filePcm ;
-char *buf_ = NULL;
+//char *buf_ = NULL;
 SLAndroidSimpleBufferQueueItf pcmQue_ = NULL;
 //设置缓冲区大小
 int maxSize = 100;
@@ -108,11 +106,6 @@ unsigned char *audio_buf_ = 0;
  */
 void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
-    if (!buf_) {
-        buf_ = new char[1024 * 1024];
-    }
-
-    LOGE(" pcmCallBack audioFrameQue.empty %d" ,audioFrameQue.empty() );
     if (!audioFrameQue.empty()) {
         MyData myData ;
         myData = audioFrameQue.front();
@@ -237,7 +230,6 @@ int initOpenSlEs() {
     return play_audio_stream();
 }
 
-
 int initWindow(JNIEnv *env, jobject surface) {
     aWindow = ANativeWindow_fromSurface(env, surface);
     ANativeWindow_setBuffersGeometry(aWindow, outWidth_, outHeight_, WINDOW_FORMAT_RGBA_8888);
@@ -260,7 +252,8 @@ int initFFmpeg(const char *input_path) {
     }
 
     result = avformat_find_stream_info(afc_, 0);
-
+    int duration = afc_->duration / (AV_TIME_BASE * 1000);
+    LOGE(" video duration %d " , duration);
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
         LOGE("avformat_find_stream_info FAILD !");
@@ -376,7 +369,6 @@ void ThreadSleep(int mis) {
 void readFrame() {
     int result = 0;
     while (readFrameFlag) {
-        LOGE(" READ FRAME SIZE audioPktQue %d , videoPktQue.size() %d " , audioPktQue.size() , videoPktQue.size());
         if (audioPktQue.size() >= maxAudioPacket || videoPktQue.size() >= maxVideoPacket) {
             //控制缓冲大小
             ThreadSleep(2);
@@ -576,80 +568,5 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
     thread playYuvThread(showYuvThread);
     playYuvThread.detach();
 
-//    while (true) {
-//        result = av_read_frame(afc_, pkt_);
-//        if (result < 0) {
-//            LOGE(" READ frame_ FAILD !");
-//            break;
-//        }
-//
-//        AVCodecContext *tempCC = vc_;
-//        if (pkt_->stream_index == audio_index_) {
-//            tempCC = ac_;
-//        } else if (pkt_->stream_index == video_index_) {
-//            tempCC = vc_;
-//        }
-//        result = avcodec_send_packet(tempCC, pkt_);
-//        int p = pkt_->pts;
-//        av_packet_unref(pkt_);
-//        if (result < 0) {
-//            LOGE(" SEND PACKET FAILD !");
-//            continue;
-//        }
-//        while (true) {
-//            result = avcodec_receive_frame(tempCC, frame_);
-//            if (result < 0) {
-//                break;
-//            }
-//            if (tempCC == vc_) {
-//                sws_ = sws_getCachedContext(sws_,
-//                                            frame_->width, frame_->height,
-//                                            (AVPixelFormat) frame_->format,
-//                                            outWidth_, outHeight_, AV_PIX_FMT_RGBA,
-//                                            SWS_FAST_BILINEAR,
-//                                            0, 0, 0);
-//
-//                if (!sws_) {
-//                    LOGE("sws_getCachedContext FAILD !");
-//                } else {
-//                    uint8_t *data[AV_NUM_DATA_POINTERS] = {0};
-//                    data[0] = (uint8_t *) rgb_;
-//                    int lines[AV_NUM_DATA_POINTERS] = {0};
-//                    lines[0] = outWidth_ * 4;
-//
-//                    int h = sws_scale(sws_, (const uint8_t **) frame_->data, frame_->linesize, 0,
-//                                      frame_->height, data, lines);
-//
-////                    ANativeWindow_lock(aWindow, &wbuf_, 0);
-////                    uint8_t *dst = (uint8_t *) wbuf_.bits;
-////                    memcpy(dst, rgb_, outWidth_ * outHeight_ * 4);
-////                    ANativeWindow_unlockAndPost(aWindow);
-//                }
-//            } else if (tempCC == ac_) {
-//                uint8_t *out[1] = {0};
-//                out[0] = (uint8_t *) pcm_;
-//                //音频重采样
-//                int len = swr_convert(actx_, out,
-//                                      frame_->nb_samples,
-//                                      (const uint8_t **) frame_->data,
-//                                      frame_->nb_samples);
-////                    LOGE("frame_->pkt_size %d frame_->nb_samples %d ", frame_->linesize[0] , frame_->nb_samples);
-//                //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
-//                char *pcm_temp = new char[48000 * 4 * 2];
-//                memcpy(pcm_temp, pcm_, 2048);
-//                MyData myData ;
-//                myData.data = pcm_temp;
-//                myData.isAudio = true;
-//                audioQue.push(myData);
-//                audioCount++;
-//                //要先缓冲几帧才能播放音频数据
-//                if (audioCount == 5) {
-//                    playFlag = true;
-//                    playOrPauseAudio();
-//                }
-//            }
-//        }
-//
-//    }
     return RESULT_SUCCESS;
 }
