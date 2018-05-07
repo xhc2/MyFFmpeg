@@ -62,9 +62,15 @@ SwrContext *actx_ = NULL;
 char *rgb_ = NULL;
 int outWidth_ = 0;
 int outHeight_ = 0;
+FILE *rgbFileTest;
 ANativeWindow_Buffer wbuf_;
 ANativeWindow *aWindow;
 int outFormat = AV_SAMPLE_FMT_S16;
+bool showYuvFlag = false;
+bool readFrameFlag = false;
+bool decodeVideoFlag = false;
+bool decodeAudioFlag = false;
+
 SLEngineItf createOpenSL() {
     SLresult re = NULL;
     SLEngineItf en = NULL;
@@ -247,6 +253,7 @@ int initFFmpeg(const char *input_path) {
 
     result = avformat_open_input(&afc_, input_path, 0, 0);
     if (result != 0) {
+        LOGE("avformat_open_input failed!:%s", av_err2str(result));
         LOGE("avformat_open_input FAILD !");
         return RESULT_FAILD;
     }
@@ -317,8 +324,11 @@ int initFFmpeg(const char *input_path) {
 
     outWidth_ = vc_->width;
     outHeight_ = vc_->height;
+    LOGE("outwidth %d , outheight %d " , outWidth_ , outHeight_ );
+
     int frameCount = 0;
 
+    //这里用来存的是rgb，不是yuv
     rgb_ = new char[outWidth_ * outHeight_ * 4];
     pcm_ = new char[48000 * 4 * 2];
 
@@ -345,11 +355,9 @@ void testPlay() {
     playOrPauseAudio();
 }
 
-bool readFrameFlag = false;
-bool decodeVideoFlag = false;
-bool decodeAudioFlag = false;
 //控制最大缓冲区
-int maxPacket = 100;
+int maxVideoPacket = 100;
+int maxAudioPacket = 200;
 int maxFrame = 100;
 
 void ThreadSleep(int mis) {
@@ -368,7 +376,7 @@ void readFrame() {
     int result = 0;
     while (readFrameFlag) {
 
-        if (audioPktQue.size() >= maxPacket || videoPktQue.size() >= maxPacket) {
+        if (audioPktQue.size() >= maxAudioPacket || videoPktQue.size() >= maxVideoPacket) {
             //控制缓冲大小
             ThreadSleep(2);
             continue;
@@ -389,7 +397,7 @@ void readFrame() {
     }
 }
 
-//解码视频数据
+//解码视频数据  VIDEO WIDTH 848 , HEIGHT 480
 void decodeVideo() {
     int result ;
     while (decodeVideoFlag) {
@@ -416,6 +424,8 @@ void decodeVideo() {
             if (result < 0) {
                 break;
             }
+//            LOGE("frame->width %d , frame->height %d " ,frame_->width , frame_->height);
+
             sws_ = sws_getCachedContext(sws_,
                                             frame_->width, frame_->height,
                                             (AVPixelFormat) frame_->format,
@@ -436,15 +446,22 @@ void decodeVideo() {
 
                     MyData myData ;
                     myData.isAudio = false;
-                    myData.data = rgb_;
-                    myData.size = (frame_->linesize[0] +  frame_->linesize[1]+  frame_->linesize[2]) * outHeight_;
+                    myData.size = outHeight_ * outWidth_ * 4;
+                    myData.data = (char *)malloc(outHeight_ * outWidth_ * 4);
+//                    myData.size 829440 , frame_->linesize[0] = 864 ,frame_->linesize[1] = 432 , frame_->linesize[2] = 432
+                    //frame_->linesize[0]是根据不同的cpu来对其的，保证读写效率。可能比width大
+//                    LOGE("myData.size %d , frame_->linesize[0] = %d ,frame_->linesize[1] = %d , frame_->linesize[2] = %d " ,
+//                         myData.size , frame_->linesize[0] , frame_->linesize[1]  ,frame_->linesize[2]  ); //829440
+                    //真机会花屏
+                    memcpy(myData.data , rgb_ ,  myData.size);
+//                    fwrite( myData.data,1, myData.size , rgbFileTest);
                     videoFrameQue.push(myData);
                 }
 
         }
     }
 }
-bool showYuvFlag = false;
+
 
 void showYuvThread(){
 
@@ -458,10 +475,8 @@ void showYuvThread(){
         videoFrameQue.pop();
         ANativeWindow_lock(aWindow, &wbuf_, 0);
         uint8_t *dst = (uint8_t *) wbuf_.bits;
-        LOGE(" SHOW YUV THREAD myData.size %d " , myData.size);
         memcpy(dst, myData.data, myData.size );
         ANativeWindow_unlockAndPost(aWindow);
-//        free(myData.data);
     }
 
 }
@@ -508,7 +523,6 @@ void decodeAudio() {
 //                    LOGE("frame_->pkt_size %d frame_->nb_samples %d ", frame_->linesize[0] , frame_->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
 
-            //outFormat
             myData.size = av_get_bytes_per_sample((AVSampleFormat)  outFormat) * frame_->nb_samples;
             char *pcm_temp = new char[myData.size];
             memcpy(pcm_temp, pcm_, myData.size);
@@ -542,7 +556,8 @@ int videoAudioOpen(JNIEnv *env, jobject surface, const char *path) {
         LOGE(" initWindow FAILD ! ");
         return RESULT_FAILD;
     }
-
+    //测试文件
+    rgbFileTest = fopen("sdcard/FFmpeg/rgbtest.rgb" , "wb+");
 
     readFrameFlag = true;
     thread threadReadFrame(readFrame);

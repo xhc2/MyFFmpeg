@@ -38,7 +38,9 @@ public class MyVideoAudioSurfaceView  extends GLSurfaceView implements SurfaceHo
         @Override
         public void run() {
             super.run();
-            FFmpegUtils.videoAudioDecodeShow(Constant.rootFile.getAbsolutePath()+"/sintel.ts" , getHolder().getSurface());
+            //用真机sintel.ts 会解码出花屏的视频，但是把解码后的rgb存入文件中自己播放又没有问题。后面再看看是不是解码器的什么问题先继续走下去
+            FFmpegUtils.videoAudioDecodeShow(/*Constant.rootFile.getAbsolutePath()+"/sintel.ts" */
+                    Constant.rootFile.getAbsolutePath()+"/test.MP4", getHolder().getSurface());
         }
     }
 
