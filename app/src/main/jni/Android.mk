@@ -1,7 +1,10 @@
-
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+#指定c++11版本
+#LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS := -std=c++11 -Wall -Werror -O0 -fsanitize=address -fno-omit -frame-pointer
+
 LOCAL_MODULE := avcodec
 LOCAL_SRC_FILES := prebuilt/libavcodec.so
 include $(PREBUILT_SHARED_LIBRARY)
@@ -41,6 +44,12 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 NDK_TOOLCHAIN_VERSION=4.8
 LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES -lGLESv2 -lEGL
 LOCAL_SHARED_LIBRARIES := avfilter avformat avutil swresample swscale avcodec my_ffmpeg
-#指定c++11版本
-LOCAL_CFLAGS += -std=c++11
+
+#LOCAL_SANITIZE:=unsigned-integer-overflow signed-integer-overflow
+#LOCAL_SANITIZE_DIAG:=unsigned-integer-overflow signed-integer-overflow
+LOCAL_CLANG:=true
+LOCAL_SANITIZE:=address
+LOCAL_MODULE_RELATIVE_PATH := asan
+
+
 include $(BUILD_SHARED_LIBRARY)

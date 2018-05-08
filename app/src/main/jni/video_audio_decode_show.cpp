@@ -24,6 +24,8 @@ using namespace std;
  * 3.当数据太多。让read_frame的等待。
  *https://source.android.com/devices/tech/debug/valgrind
  * https://source.android.com/devices/tech/debug/asan
+ * http://www.voidcn.com/article/p-tinxhvzp-bnv.html
+ * https://blog.csdn.net/u011280717/article/details/51820268
  * 一个问题。
  * q:一个线程read_frame,两个线程分别维护视频，音频队列，其中一个队列满了都会阻塞读取帧的线程，会不会出现一个队列满了，但是另个队列是空 的情况
  */
@@ -31,7 +33,6 @@ using namespace std;
 queue<AVPacket *> audioPktQue;
 queue<AVPacket *> videoPktQue;
 queue<MyData> audioFrameQue;
-//queue<MyData> videoFrameQue;
 
 
 SLObjectItf engineOpenSL = NULL;
