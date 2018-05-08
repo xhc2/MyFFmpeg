@@ -22,7 +22,7 @@ using namespace std;
  * 1.解码音视频分别用两个线程。
  * 2.解封装的时候往两个线程中丢数据，然后自己解码。
  * 3.当数据太多。让read_frame的等待。
- *
+ *https://source.android.com/devices/tech/debug/valgrind
  * 一个问题。
  * q:一个线程read_frame,两个线程分别维护视频，音频队列，其中一个队列满了都会阻塞读取帧的线程，会不会出现一个队列满了，但是另个队列是空 的情况
  */
