@@ -165,8 +165,16 @@ int play_audio(const char *path) {
     return 1;
 }
 
+
+
 // 对象应按照与创建时相反的顺序销毁 ,  例如，请按照此顺序销毁：音频播放器和录制器、输出混合，最后是引擎。
 int openslDestroy(){
+    if (iplayer && (*iplayer)) {
+        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
+    }
+    if (pcmQue  != NULL) {
+        (*pcmQue)->Clear(pcmQue);
+    }
     if(player != NULL){
         (*player)->Destroy(player);
         player = NULL;

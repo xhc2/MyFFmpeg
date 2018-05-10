@@ -6,7 +6,7 @@
 #define MYFFMPEG_GPU_VIDEO_SL_AUDIO_H
 #include <jni.h>
 
-int open_gpu(const char*path , jobject win);
+int open_gpu(JNIEnv *env , const char*path , jobject win);
 int playOrPause_gpu();
 //就是暂停
 int justPause_gpu();

@@ -44,7 +44,7 @@
             <Button
                 android:id="@+id/bt_video_audio_play_open_gl"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="100dp"
                 android:text="gpu播放视频，opensl播放音频" />
 
             <Button

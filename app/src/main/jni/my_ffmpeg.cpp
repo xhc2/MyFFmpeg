@@ -119,7 +119,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuAudioOpensl(JNIEnv *env, 
                                                                    jobject glSurfaceView) {
     const char *path = env->GetStringUTFChars(path_, 0);
 
-    open_gpu(path , glSurfaceView);
+    open_gpu(env , path , glSurfaceView);
 
     env->ReleaseStringUTFChars(path_, path);
     return 1;

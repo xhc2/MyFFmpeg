@@ -75,12 +75,14 @@ GLint InitShader(const char *code, GLint type) {
 }
 
 int openAndShowUseShader(const char *path, JNIEnv *env, jobject surface) {
+
     LOGE("PATH -> %s ", path);
     fpYuv = fopen(path, "rb");
     if (!fpYuv) {
         LOGE(" FILE OPEN FAILD !");
         return -1;
     }
+
     //获取原始窗口
     ANativeWindow *nwin = ANativeWindow_fromSurface(env, surface);
     //egl display 创建和初始化
@@ -174,6 +176,7 @@ int openAndShowUseShader(const char *path, JNIEnv *env, jobject surface) {
     glEnableVertexAttribArray(atex);
     glVertexAttribPointer(atex, 2, GL_FLOAT, GL_FALSE, 8, txts);
 
+
     int width = 480;
     int height = 272;
 
@@ -240,8 +243,9 @@ int openAndShowUseShader(const char *path, JNIEnv *env, jobject surface) {
     buf[0] = new unsigned char[width * height];
     buf[1] = new unsigned char[width * height / 4];
     buf[2] = new unsigned char[width * height / 4];
+/////
 
-
+    //显示部分
     for (int i = 0; i < 10000; i++) {
 
         //420p   yyyyyyyy uu vv
