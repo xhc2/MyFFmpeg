@@ -27,7 +27,7 @@ char *buf = NULL;
 SLAndroidSimpleBufferQueueItf  pcmQue = NULL;
 
 SLEngineItf createSL() {
-    SLresult re = NULL;
+    SLresult re = 0;
     SLEngineItf en = NULL;
     re = slCreateEngine(&engineSL, 0, 0, 0, 0, 0);
     if (re != SL_RESULT_SUCCESS) {

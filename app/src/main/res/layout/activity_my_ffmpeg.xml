@@ -39,7 +39,13 @@
                 android:id="@+id/bt_video_audio_play"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="shader播放视频，opensl播放音频" />
+                android:text="cpu播放视频，opensl播放音频" />
+
+            <Button
+                android:id="@+id/bt_video_audio_play_open_gl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="gpu播放视频，opensl播放音频" />
 
             <Button
                 android:id="@+id/bt_pthred_test"

@@ -22,12 +22,13 @@ using namespace std;
  * 1.解码音视频分别用两个线程。
  * 2.解封装的时候往两个线程中丢数据，然后自己解码。
  * 3.当数据太多。让read_frame的等待。
- *https://source.android.com/devices/tech/debug/valgrind
+ * https://source.android.com/devices/tech/debug/valgrind
  * https://source.android.com/devices/tech/debug/asan
  * http://www.voidcn.com/article/p-tinxhvzp-bnv.html
  * https://blog.csdn.net/u011280717/article/details/51820268
  * 一个问题。
- * q:一个线程read_frame,两个线程分别维护视频，音频队列，其中一个队列满了都会阻塞读取帧的线程，会不会出现一个队列满了，但是另个队列是空 的情况
+ * q:一个线程read_frame,两个线程分别维护视频，音频队列，其中一个队列满了都会阻塞读取帧的线程，
+ * 会不会出现一个队列满了，但是另个队列是空 的情况
  */
 
 queue<AVPacket *> audioPktQue;
@@ -45,7 +46,6 @@ SLObjectItf player_ = NULL;
 //char *buf_ = NULL;
 SLAndroidSimpleBufferQueueItf pcmQue_ = NULL;
 //设置缓冲区大小
-int maxSize = 100;
 bool playFlag = false;
 AVCodec *audioCode_ = NULL;
 AVCodec *videoCode_ = NULL;
@@ -75,7 +75,7 @@ bool decodeAudioFlag = false;
 int apts = 0;
 
 SLEngineItf createOpenSL() {
-    SLresult re = NULL;
+    SLresult re = 0;
     SLEngineItf en = NULL;
 
     re = slCreateEngine(&engineOpenSL, 0, 0, 0, 0, 0);
@@ -325,8 +325,6 @@ int initFFmpeg(const char *input_path) {
     outHeight_ = vc_->height;
     LOGE("outwidth %d , outheight %d " , outWidth_ , outHeight_ );
 
-    int frameCount = 0;
-
     //这里用来存的是rgb，不是yuv
     rgb_ = new char[outWidth_ * outHeight_ * 4];
     pcm_ = new char[48000 * 4 * 2];
@@ -356,7 +354,7 @@ void testPlay() {
 
 //控制最大缓冲区
 int maxVideoPacket = 100;
-int maxAudioPacket = 200;
+int maxAudioPacket = 150;
 int maxFrame = 100;
 
 void ThreadSleep(int mis) {
@@ -374,6 +372,7 @@ void ThreadSleep(int mis) {
 void readFrame() {
     int result = 0;
     while (readFrameFlag) {
+//        LOGE(" audioPktQue.size() %d , videoPktQue.size() %d" ,audioPktQue.size() , videoPktQue.size());
         if (audioPktQue.size() >= maxAudioPacket || videoPktQue.size() >= maxVideoPacket) {
             //控制缓冲大小
             ThreadSleep(2);
@@ -391,13 +390,13 @@ void readFrame() {
             pkt_->pts = pkt_->pts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
             pkt_->dts = pkt_->dts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
             audioPktQue.push(pkt_);
-            LOGE(" audio Pkt PTS %lld " ,pkt_->pts );
+//            LOGE(" audio Pkt PTS %lld " ,pkt_->pts );
         }
         else if (pkt_->stream_index == video_index_) {
             pkt_->pts = pkt_->pts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
             pkt_->dts = pkt_->dts * (1000 * av_q2d(afc_->streams[pkt_->stream_index]->time_base));
             videoPktQue.push(pkt_);
-            LOGE(" video Pkt PTS %lld " ,pkt_->pts );
+//            LOGE(" video Pkt PTS %lld " ,pkt_->pts );
         }
         else{
             av_packet_free(&pkt_);
@@ -415,13 +414,13 @@ void decodeVideo() {
             ThreadSleep(2);
             continue;
         }
+//        ThreadSleep(100);
         AVPacket *pck = videoPktQue.front();
         if(pck->pts > apts){
             ThreadSleep(1);
-            LOGE("wait for audio !");
+//            LOGE("wait for audio !");
             continue;
         }
-
         videoPktQue.pop();
         if(!pck){
             LOGE(" video packet null !");
@@ -436,7 +435,7 @@ void decodeVideo() {
         av_packet_free(&pck);
 
         while(true){
-            MyData myData ;
+//            MyData myData ;
             result = avcodec_receive_frame(vc_, vframe_);
             if (result < 0) {
                 break;
@@ -458,20 +457,21 @@ void decodeVideo() {
                     data[0] = (uint8_t *) rgb_;
                     lines[0] = outWidth_ * 4;
 
-                    int h = sws_scale(sws_, (const uint8_t **) vframe_->data, vframe_->linesize, 0,
+                     sws_scale(sws_, (const uint8_t **) vframe_->data, vframe_->linesize, 0,
                                       vframe_->height, data, lines);
 
-                    myData.isAudio = false;
-                    myData.size = outHeight_ * outWidth_ * 4;
-                    myData.data = (char *)malloc(outHeight_ * outWidth_ * 4);
-                    memcpy(myData.data , rgb_ ,  myData.size);
+//                    myData.isAudio = false;
+//                    myData.size = outHeight_ * outWidth_ * 4;
+//                    myData.data = (char *)malloc(outHeight_ * outWidth_ * 4);
+
+//                    memcpy(myData.data , rgb_ ,  myData.size);
+
                     ANativeWindow_lock(aWindow, &wbuf_, 0);
                     uint8_t *dst = (uint8_t *) wbuf_.bits;
-                    memcpy(dst, myData.data, myData.size );
+                    memcpy(dst, rgb_ , outHeight_ * outWidth_ * 4 );
                     ANativeWindow_unlockAndPost(aWindow);
 //                    videoFrameQue.push(myData);
                 }
-
         }
     }
 }
@@ -515,7 +515,7 @@ void decodeAudio() {
             out[0] = (uint8_t *) pcm_;
             MyData myData;
             //音频重采样
-            int len = swr_convert(actx_, out,
+            swr_convert(actx_, out,
                                   aframe_->nb_samples,
                                   (const uint8_t **) aframe_->data,
                                   aframe_->nb_samples);

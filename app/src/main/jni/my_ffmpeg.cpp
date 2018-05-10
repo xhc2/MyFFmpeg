@@ -10,6 +10,7 @@
 #include <my_log.h>
 #include <decode_show_gl.h>
 #include <my_c_plus_plus_thread.h>
+#include <gpu_video_sl_audio.h>
 #include "decode_encode_test.h"
 #include "my_open_sl_test.h"
 #include "video_audio_decode_show.h"
@@ -109,4 +110,24 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_testCPlusPlusThread(JNIEnv *env, jcla
     LOGE("TEST C++ THREAD");
     initMyCPlusPlusThread();
     return 1 ;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuAudioOpensl(JNIEnv *env, jclass type,
+                                                                   jstring path_,
+                                                                   jobject glSurfaceView) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+
+    open_gpu(path , glSurfaceView);
+
+    env->ReleaseStringUTFChars(path_, path);
+    return 1;
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuDestroy(JNIEnv *env, jclass type) {
+
+    // TODO
+    return destroy_gpu();
+
 }

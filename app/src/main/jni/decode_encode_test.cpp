@@ -156,7 +156,7 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
             tempCC = vc;
         }
         result = avcodec_send_packet(tempCC, pkt);
-        int p = pkt->pts;
+//        int p = pkt->pts;
         av_packet_unref(pkt);
         if (result < 0) {
             LOGE(" SEND PACKET FAILD !");
@@ -196,7 +196,7 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
                     uint8_t *out[1] = {0};
                     out[0] = (uint8_t *) pcm;
                     //音频重采样
-                    int len = swr_convert(actx, out,
+                    swr_convert(actx, out,
                                           frame->nb_samples,
                                           (const uint8_t **) frame->data,
                                           frame->nb_samples);
@@ -224,8 +224,7 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
 
 
 int encode(const char *input_yuv, const char *input_pcm) {
-
-
+    return 1;
 }
 
 

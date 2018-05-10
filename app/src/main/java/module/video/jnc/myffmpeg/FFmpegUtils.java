@@ -41,6 +41,9 @@ public class FFmpegUtils {
     public static native int testNativeThreadRun();
 
     public static native int testCPlusPlusThread();
+
+    public static native int showVideoGpuAudioOpensl(String path ,  Object glSurfaceView);
+    public static native int showVideoGpuDestroy();
 //    public static native int initAudioRecord(String outputPath , int aSize);
 //
 //    public static native int encodeAudioRecord(byte[] bytes);

@@ -17,6 +17,7 @@ public class ShowVideoAndAudioActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_video_and_audio);
+
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

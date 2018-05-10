@@ -31,11 +31,11 @@
         <activity android:name=".MyFFmpegActivity" />
         <activity android:name=".PlayAudioActivity" />
         <activity android:name=".DecodeEncodeActivity" />
-        <!--android:screenOrientation="landscape"-->
-        <activity android:name=".ShowVideoAndAudioActivity"
-
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-            />
+        <!-- android:screenOrientation="landscape" -->
+        <activity
+            android:name=".ShowVideoAndAudioActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+        <activity android:name=".ShowVideoShaderActivity"></activity>
     </application>
 
 </manifest>

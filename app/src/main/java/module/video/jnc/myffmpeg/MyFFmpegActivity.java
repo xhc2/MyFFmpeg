@@ -56,9 +56,18 @@ public class MyFFmpegActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.bt_video_audio_play_open_gl).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //gpu显示视频
+                startActivity(new Intent(MyFFmpegActivity.this, ShowVideoShaderActivity.class));
+            }
+        });
+
         findViewById(R.id.bt_decode_encode).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //编解码
                 startActivity(new Intent(MyFFmpegActivity.this, DecodeEncodeActivity.class));
             }
         });
@@ -66,6 +75,7 @@ public class MyFFmpegActivity extends AppCompatActivity {
         findViewById(R.id.bt_video_audio_play).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //cpu显示的视频
                 startActivity(new Intent(MyFFmpegActivity.this, ShowVideoAndAudioActivity.class));
             }
         });
@@ -81,6 +91,7 @@ public class MyFFmpegActivity extends AppCompatActivity {
         findViewById(R.id.bt_cplusplus_thread_test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //c++原生线程测试
                 FFmpegUtils.testCPlusPlusThread();
             }
         });
