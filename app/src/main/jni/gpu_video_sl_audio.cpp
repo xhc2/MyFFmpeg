@@ -322,7 +322,6 @@ int destroy_Audio() {
         LOGE("audio player_gpu destory ! ");
     }
 
-
     if (mix_gpu != NULL) {
         (*mix_gpu)->Destroy(mix_gpu);
         mix_gpu = NULL;
