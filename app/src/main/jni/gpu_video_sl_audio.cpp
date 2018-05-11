@@ -8,14 +8,17 @@
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
+#include <my_data.h>
 #include "gpu_video_sl_audio.h"
+#include <thread>
+#include <queue>
+
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
-#include <libavutil/error.h>
 }
-
+using namespace std;
 //ffmepg
 AVFrame *aframe_gpu;
 AVFrame *vframe_gpu;
@@ -23,8 +26,7 @@ AVFormatContext *afc_gpu;
 int video_index_gpu, audio_index_gpu;
 AVCodec *videoCode_gpu, *audioCode_gpu;
 AVCodecContext *ac_gpu, *vc_gpu;
-int outWidth_gpu = 640, outHeight_gpu = 360;
-//char *pcm_gpu;
+int outWidth_gpu = 480, outHeight_gpu = 272;
 SwrContext *swc_gpu;
 int videoDuration_gpu;
 
@@ -48,15 +50,25 @@ GLuint apos;
 GLuint atex;
 EGLContext context;
 
+//other
+bool pauseFlag = false;
+bool yuvRunFlag_gpu = false;
+bool pcmRunFlag_gpu = false;
+bool readFrameFlag_gpu = false;
+queue<AVPacket *> audioPktQue_gpu;
+queue<AVPacket *> videoPktQue_gpu;
+queue<MyData> audioFrameQue_gpu;
+int apts_gpu = 0;
+unsigned char *play_audio_buffer = 0;
+int maxAudioPacket_gpu = 140;
+int maxVideoPacket_gpu = 100;
+// shader part
 //顶点着色器glsl,这是define的单行定义 #x = "x"
 #define GET_STR(x) #x
 static const char *vertexShader_gpu = GET_STR(
-        attribute
-        vec4 aPosition; //顶点坐标
-        attribute
-        vec2 aTexCoord; //材质顶点坐标
-        varying
-        vec2 vTexCoord;   //输出的材质坐标
+        attribute vec4 aPosition; //顶点坐标
+        attribute vec2 aTexCoord; //材质顶点坐标
+        varying vec2 vTexCoord;   //输出的材质坐标
         void main() {
             vTexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
             gl_Position = aPosition;
@@ -65,16 +77,11 @@ static const char *vertexShader_gpu = GET_STR(
 
 //片元着色器,软解码和部分x86硬解码
 static const char *fragYUV420P_gpu = GET_STR(
-        precision
-        mediump float;    //精度
-        varying
-        vec2 vTexCoord;     //顶点着色器传递的坐标
-        uniform
-        sampler2D yTexture; //输入的材质（不透明灰度，单像素）
-        uniform
-        sampler2D uTexture;
-        uniform
-        sampler2D vTexture;
+        precision mediump float;    //精度
+        varying vec2 vTexCoord;     //顶点着色器传递的坐标
+        uniform sampler2D yTexture; //输入的材质（不透明灰度，单像素）
+        uniform sampler2D uTexture;
+        uniform sampler2D vTexture;
         void main() {
             vec3 yuv;
             vec3 rgb;
@@ -110,13 +117,12 @@ GLuint InitShader_gpu(const char *code, GLint type) {
 }
 
 
-
 int init_opengl(JNIEnv *env, jobject surface) {
     if (outHeight_gpu == 0 || outWidth_gpu == 0) {
         LOGE(" outHeight_gpu == 0 || outWidth_gpu == 0 ");
         return RESULT_FAILD;
     }
-
+    LOGE("  out width %d , out height %d " , outWidth_gpu , outHeight_gpu);
     //获取原始窗口
     nwin = ANativeWindow_fromSurface(env, surface);
     //egl display 创建和初始化
@@ -186,7 +192,7 @@ int init_opengl(JNIEnv *env, jobject surface) {
     glUseProgram(program);
 
     //加入三维顶点数据 两个三角形组成正方形
-    float vers[] = {
+    const float vers[] = {
             1.0f, -1.0f, 0.0f,
             -1.0f, -1.0f, 0.0f,
             1.0f, 1.0f, 0.0f,
@@ -200,12 +206,13 @@ int init_opengl(JNIEnv *env, jobject surface) {
     glVertexAttribPointer(apos, 3, GL_FLOAT, GL_FALSE, 12, vers);
 
     //加入材质坐标数据
-    static float txts[] = {
+    const float txts[] = {
             1.0f, 0.0f, //右下
             0.0f, 0.0f,
             1.0f, 1.0f,
             0.0, 1.0
     };
+
     atex = (GLuint) glGetAttribLocation(program, "aTexCoord");
     glEnableVertexAttribArray(atex);
 
@@ -277,7 +284,7 @@ int init_opengl(JNIEnv *env, jobject surface) {
     return RESULT_SUCCESS;
 }
 
-
+//ffmepg part
 
 int initFFmpeg_gpu(const char *input_path) {
 
@@ -305,7 +312,7 @@ int initFFmpeg_gpu(const char *input_path) {
         return RESULT_FAILD;
     }
 
-    videoDuration_gpu = afc_gpu->duration / (AV_TIME_BASE / 1000);
+    videoDuration_gpu = (int) (afc_gpu->duration / (AV_TIME_BASE / 1000));
 
     LOGE(" video duration %d ", videoDuration_gpu);
 
@@ -383,6 +390,8 @@ int initFFmpeg_gpu(const char *input_path) {
                                  ac_gpu->sample_fmt, ac_gpu->sample_rate,
                                  0, 0);
     result = swr_init(swc_gpu);
+//    frame->nb_samples * AV_SAMPLE_FMT_S16（2）
+    play_audio_buffer = new unsigned char[2 * 1024];
     if (result < 0) {
         LOGE(" swr_init FAILD !");
         return RESULT_FAILD;
@@ -391,6 +400,7 @@ int initFFmpeg_gpu(const char *input_path) {
     return RESULT_SUCCESS;
 }
 
+// audio part
 SLEngineItf createOpenSL_gpu() {
     SLresult re = 0;
     SLEngineItf en = NULL;
@@ -414,19 +424,20 @@ SLEngineItf createOpenSL_gpu() {
         LOGE("GetInterface FAILD ");
         return NULL;
     }
+
     return en;
 }
 
 void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
-//    if (!audioFrameQue.empty()) {
-//        MyData myData ;
-//        myData = audioFrameQue.front();
-//        audioFrameQue.pop();
-//        memcpy(audio_buf_ , myData.data , myData.size);
-//        (*bf)->Enqueue(bf, audio_buf_ , myData.size);
-//        apts = myData.pts;
-//        free(myData.data);
-//    }
+    if (!audioFrameQue_gpu.empty()) {
+        MyData myData;
+        myData = audioFrameQue_gpu.front();
+        audioFrameQue_gpu.pop();
+        memcpy(play_audio_buffer, myData.data, myData.size);
+        (*bf)->Enqueue(bf, play_audio_buffer, myData.size);
+        apts_gpu = myData.pts;
+        free(myData.data);
+    }
 }
 
 int initAudio_gpu() {
@@ -494,9 +505,152 @@ int initAudio_gpu() {
 }
 
 
+void ThreadSleep_gpu(int mis) {
+    chrono::milliseconds du(mis);
+    this_thread::sleep_for(du);
+}
+
+void readFrame_gpu() {
+    int result = 0;
+    while (readFrameFlag_gpu) {
+//        LOGE(" audioPktQue.size() %d , videoPktQue.size() %d", audioPktQue_gpu.size(),
+//             videoPktQue_gpu.size());
+        if (audioPktQue_gpu.size() >= maxAudioPacket_gpu ||
+            videoPktQue_gpu.size() >= maxVideoPacket_gpu) {
+            //控制缓冲大小
+            ThreadSleep_gpu(2);
+            continue;
+        }
+
+        AVPacket *pkt_ = av_packet_alloc();
+        result = av_read_frame(afc_gpu, pkt_);
+        if (result < 0) {
+            ThreadSleep_gpu(2);
+            av_packet_free(&pkt_);
+            continue;
+        }
+        if (pkt_->stream_index == audio_index_gpu) {
+            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
+                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
+                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+            audioPktQue_gpu.push(pkt_);
+        } else if (pkt_->stream_index == video_index_gpu) {
+            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
+                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
+                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+            videoPktQue_gpu.push(pkt_);
+        } else {
+            av_packet_free(&pkt_);
+        }
+
+    }
+}
+
+// 0 y , 1 u , 2 v
+int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
+    LOGE(" SHOW YUV width %d , height %d " , outWidth_gpu , outHeight_gpu);
+    //激活第1层纹理,绑定到创建的opengl纹理
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texts[0]);
+    //替换纹理内容
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, outWidth_gpu, outHeight_gpu, GL_LUMINANCE,
+                    GL_UNSIGNED_BYTE,
+                    buf_y);
+
+    //激活第2层纹理,绑定到创建的opengl纹理
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, texts[1]);
+    //替换纹理内容
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, outWidth_gpu / 2, outHeight_gpu / 2, GL_LUMINANCE,
+                    GL_UNSIGNED_BYTE, buf_u);
+
+    //激活第2层纹理,绑定到创建的opengl纹理
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, texts[2]);
+    //替换纹理内容
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, outWidth_gpu / 2, outHeight_gpu / 2, GL_LUMINANCE,
+                    GL_UNSIGNED_BYTE, buf_v);
+
+    //三维绘制
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    //窗口显示
+    eglSwapBuffers(display, winsurface);
+    ////纹理的修改和显示
+
+
+    return RESULT_SUCCESS;
+}
+
+unsigned char *buf_gpu[3] = {0};
+FILE *test;
+
+void test_gpu() {
+    test = fopen("sdcard/FFmpeg/test_480_272.yuv", "rb");
+    outWidth_gpu = 480;
+    outHeight_gpu = 272;
+    buf_gpu[0] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu);//new unsigned char[outWidth_gpu * outHeight_gpu];
+    buf_gpu[1] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
+    buf_gpu[2] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
+}
+
+int decodeVideo_gpu() {
+//    int result;
+    while (yuvRunFlag_gpu) {
+        ThreadSleep_gpu(40);
+        if (feof(test) == 0) {
+            fread(buf_gpu[0], 1, outWidth_gpu * outHeight_gpu, test);
+            fread(buf_gpu[1], 1, outWidth_gpu * outHeight_gpu / 4, test);
+            fread(buf_gpu[2], 1, outWidth_gpu * outHeight_gpu / 4, test);
+            showYuv(buf_gpu[0], buf_gpu[1], buf_gpu[2]);
+        }
+
+
+
+//        LOGE(" videoPktQue_gpu.size %d " , videoPktQue_gpu.size());
+//        if (videoPktQue_gpu.empty()) {
+//            ThreadSleep_gpu(2);
+//            continue;
+//        }
+//        AVPacket *pck = videoPktQue_gpu.front();
+//
+//        if (pck->pts > apts_gpu) {
+//            ThreadSleep_gpu(1);
+////            LOGE("wait for audio !");
+//            continue;
+//        }
+//
+//        videoPktQue_gpu.pop();
+//        if (!pck) {
+//            LOGE(" video packet null !");
+//            continue;
+//        }
+//
+//        result = avcodec_send_packet(vc_gpu, pck);
+//
+//        if (result < 0) {
+//            LOGE(" SEND PACKET FAILD !");
+//            av_packet_free(&pck);
+//            continue;
+//        }
+//        av_packet_free(&pck);
+//
+//        while (true) {
+//            result = avcodec_receive_frame(vc_gpu, vframe_gpu);
+//            if (result < 0) {
+//                break;
+//            }
+////            memcpy(d.datas,frame->data,sizeof(d.datas));
+//            showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
+//        }
+    }
+    return RESULT_SUCCESS;
+}
+
 int open_gpu(JNIEnv *env, const char *path, jobject win) {
     int result = RESULT_FAILD;
-//    result =  initFFmpeg_gpu(path);
+//    result = initFFmpeg_gpu(path);
 //    if (RESULT_FAILD == result) {
 //        LOGE(" initFFmpeg_gpu faild");
 //        return RESULT_FAILD;
@@ -506,28 +660,50 @@ int open_gpu(JNIEnv *env, const char *path, jobject win) {
 //        LOGE(" initAudio_gpu faild");
 //        return RESULT_FAILD;
 //    }
-    //这个地方有内存泄露
+
+    //这个地方有内存泄露，每次重新进界面都回有内存增加
     result = init_opengl(env, win);
     if (RESULT_FAILD == result) {
         LOGE(" init_opengl faild ");
         return RESULT_FAILD;
     }
 
+    test_gpu();
+
+//    readFrameFlag_gpu = true;
+//    thread readFrameThread(readFrame_gpu);
+//    readFrameThread.detach();
+
+    yuvRunFlag_gpu = true;
+    decodeVideo_gpu();
+    //显示部分放在子线程就显示不了。不知道为什么
+//    thread decodeYuvThread(decodeVideo_gpu);
+//    decodeYuvThread.detach();
+
+
     return RESULT_SUCCESS;
 }
 
-int playOrPause_gpu() {
+//通过标志位全部销毁线程
+void stopAllThread() {
+    readFrameFlag_gpu = false;
+    yuvRunFlag_gpu = false;
 
+}
+
+int playOrPause_gpu() {
+    pauseFlag = !pauseFlag;
     return 1;
 }
 
 //就是暂停
 int justPause_gpu() {
-
+    pauseFlag = true;
     return 1;
 }
 
 int seek_gpu(double radio) {
+    justPause_gpu();
 
     return 1;
 }
@@ -599,8 +775,8 @@ int destroyShader() {
 //    EGLDisplay display;
     glDisableVertexAttribArray(apos);
     glDisableVertexAttribArray(atex);
-    glDetachShader(vsh ,program );
-    glDetachShader(fsh ,program );
+    glDetachShader(vsh, program);
+    glDetachShader(fsh, program);
     glDeleteShader(vsh);
     glDeleteShader(fsh);
     glDeleteProgram(program);
@@ -609,18 +785,17 @@ int destroyShader() {
     eglDestroySurface(display, winsurface);
     eglTerminate(display);
     if (nwin != NULL) {
-        LOGE("ANativeWindow_release");
         ANativeWindow_release(nwin);
     }
-
-
     LOGE(" destroyShader ");
     return RESULT_SUCCESS;
 }
+
 int destroy_gpu() {
     destroy_FFmpeg();
     destroy_Audio();
     destroyShader();
+    stopAllThread();
     return 1;
 }
 
