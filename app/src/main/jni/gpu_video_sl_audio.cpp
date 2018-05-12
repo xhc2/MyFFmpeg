@@ -63,6 +63,7 @@ unsigned char *play_audio_buffer = 0;
 int maxAudioPacket_gpu = 140;
 int maxVideoPacket_gpu = 100;
 // shader part
+bool initOpenglFlag = false;
 //顶点着色器glsl,这是define的单行定义 #x = "x"
 #define GET_STR(x) #x
 static const char *vertexShader_gpu = GET_STR(
@@ -117,14 +118,15 @@ GLuint InitShader_gpu(const char *code, GLint type) {
 }
 
 
-int init_opengl(JNIEnv *env, jobject surface) {
+int init_opengl( ) {
     if (outHeight_gpu == 0 || outWidth_gpu == 0) {
         LOGE(" outHeight_gpu == 0 || outWidth_gpu == 0 ");
         return RESULT_FAILD;
     }
+    initOpenglFlag  = true;
     LOGE("  out width %d , out height %d " , outWidth_gpu , outHeight_gpu);
     //获取原始窗口
-    nwin = ANativeWindow_fromSurface(env, surface);
+
     //egl display 创建和初始化
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (display == EGL_NO_DISPLAY) {
@@ -225,6 +227,8 @@ int init_opengl(JNIEnv *env, jobject surface) {
     glUniform1i(glGetUniformLocation(program, "vTexture"), 2); //对于纹理第3层
 
 
+
+
     //创建三个纹理
     glGenTextures(3, texts);
     //设置纹理属性
@@ -275,6 +279,7 @@ int init_opengl(JNIEnv *env, jobject surface) {
                  NULL                    //纹理的数据
     );
 
+
     ////纹理的修改和显示
     unsigned char *buf[3] = {0};
     buf[0] = new unsigned char[outWidth_gpu * outHeight_gpu];
@@ -283,6 +288,8 @@ int init_opengl(JNIEnv *env, jobject surface) {
     LOGE(" INIT shader SUCCESS ");
     return RESULT_SUCCESS;
 }
+
+
 
 //ffmepg part
 
@@ -550,7 +557,9 @@ void readFrame_gpu() {
 
 // 0 y , 1 u , 2 v
 int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
-    LOGE(" SHOW YUV width %d , height %d " , outWidth_gpu , outHeight_gpu);
+//    LOGE(" SHOW YUV width %d , height %d " , outWidth_gpu , outHeight_gpu);
+
+
     //激活第1层纹理,绑定到创建的opengl纹理
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texts[0]);
@@ -585,100 +594,99 @@ int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
 
 unsigned char *buf_gpu[3] = {0};
 FILE *test;
-
-void test_gpu() {
-    test = fopen("sdcard/FFmpeg/test_480_272.yuv", "rb");
-    outWidth_gpu = 480;
-    outHeight_gpu = 272;
-    buf_gpu[0] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu);//new unsigned char[outWidth_gpu * outHeight_gpu];
-    buf_gpu[1] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
-    buf_gpu[2] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
-}
-
+//测试代码
+//void test_gpu() {
+//    test = fopen("sdcard/FFmpeg/test_480_272.yuv", "rb");
+//    outWidth_gpu = 480;
+//    outHeight_gpu = 272;
+//    buf_gpu[0] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu);//new unsigned char[outWidth_gpu * outHeight_gpu];
+//    buf_gpu[1] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
+//    buf_gpu[2] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
+//}
 int decodeVideo_gpu() {
-//    int result;
+    int result;
+    if(!initOpenglFlag){
+        initOpenglFlag = true;
+        init_opengl();
+    }
+
     while (yuvRunFlag_gpu) {
-        ThreadSleep_gpu(40);
-        if (feof(test) == 0) {
-            fread(buf_gpu[0], 1, outWidth_gpu * outHeight_gpu, test);
-            fread(buf_gpu[1], 1, outWidth_gpu * outHeight_gpu / 4, test);
-            fread(buf_gpu[2], 1, outWidth_gpu * outHeight_gpu / 4, test);
-            showYuv(buf_gpu[0], buf_gpu[1], buf_gpu[2]);
+        //测试代码
+//        ThreadSleep_gpu(40);
+//        if (feof(test) == 0) {
+//            fread(buf_gpu[0], 1, outWidth_gpu * outHeight_gpu, test);
+//            fread(buf_gpu[1], 1, outWidth_gpu * outHeight_gpu / 4, test);
+//            fread(buf_gpu[2], 1, outWidth_gpu * outHeight_gpu / 4, test);
+//            showYuv(buf_gpu[0], buf_gpu[1], buf_gpu[2]);
+//        }
+
+
+
+        LOGE(" videoPktQue_gpu.size %d " , videoPktQue_gpu.size());
+        if (videoPktQue_gpu.empty()) {
+            ThreadSleep_gpu(2);
+            continue;
+        }
+        AVPacket *pck = videoPktQue_gpu.front();
+
+        if (pck->pts > apts_gpu) {
+            ThreadSleep_gpu(1);
+//            LOGE("wait for audio !");
+            continue;
         }
 
+        videoPktQue_gpu.pop();
+        if (!pck) {
+            LOGE(" video packet null !");
+            continue;
+        }
 
+        result = avcodec_send_packet(vc_gpu, pck);
 
-//        LOGE(" videoPktQue_gpu.size %d " , videoPktQue_gpu.size());
-//        if (videoPktQue_gpu.empty()) {
-//            ThreadSleep_gpu(2);
-//            continue;
-//        }
-//        AVPacket *pck = videoPktQue_gpu.front();
-//
-//        if (pck->pts > apts_gpu) {
-//            ThreadSleep_gpu(1);
-////            LOGE("wait for audio !");
-//            continue;
-//        }
-//
-//        videoPktQue_gpu.pop();
-//        if (!pck) {
-//            LOGE(" video packet null !");
-//            continue;
-//        }
-//
-//        result = avcodec_send_packet(vc_gpu, pck);
-//
-//        if (result < 0) {
-//            LOGE(" SEND PACKET FAILD !");
-//            av_packet_free(&pck);
-//            continue;
-//        }
-//        av_packet_free(&pck);
-//
-//        while (true) {
-//            result = avcodec_receive_frame(vc_gpu, vframe_gpu);
-//            if (result < 0) {
-//                break;
-//            }
-////            memcpy(d.datas,frame->data,sizeof(d.datas));
-//            showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
-//        }
+        if (result < 0) {
+            LOGE(" SEND PACKET FAILD !");
+            av_packet_free(&pck);
+            continue;
+        }
+        av_packet_free(&pck);
+
+        while (true) {
+            result = avcodec_receive_frame(vc_gpu, vframe_gpu);
+            if (result < 0) {
+                break;
+            }
+//            memcpy(d.datas,frame->data,sizeof(d.datas));
+            showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
+        }
     }
     return RESULT_SUCCESS;
 }
 
 int open_gpu(JNIEnv *env, const char *path, jobject win) {
     int result = RESULT_FAILD;
-//    result = initFFmpeg_gpu(path);
-//    if (RESULT_FAILD == result) {
-//        LOGE(" initFFmpeg_gpu faild");
-//        return RESULT_FAILD;
-//    }
-//    result = initAudio_gpu();
-//    if (RESULT_FAILD == result) {
-//        LOGE(" initAudio_gpu faild");
-//        return RESULT_FAILD;
-//    }
-
-    //这个地方有内存泄露，每次重新进界面都回有内存增加
-    result = init_opengl(env, win);
+    nwin = ANativeWindow_fromSurface(env, win);
+    result = initFFmpeg_gpu(path);
     if (RESULT_FAILD == result) {
-        LOGE(" init_opengl faild ");
+        LOGE(" initFFmpeg_gpu faild");
+        return RESULT_FAILD;
+    }
+    result = initAudio_gpu();
+    if (RESULT_FAILD == result) {
+        LOGE(" initAudio_gpu faild");
         return RESULT_FAILD;
     }
 
-    test_gpu();
 
-//    readFrameFlag_gpu = true;
-//    thread readFrameThread(readFrame_gpu);
-//    readFrameThread.detach();
+//    test_gpu();
+
+    readFrameFlag_gpu = true;
+    thread readFrameThread(readFrame_gpu);
+    readFrameThread.detach();
 
     yuvRunFlag_gpu = true;
-    decodeVideo_gpu();
-    //显示部分放在子线程就显示不了。不知道为什么
-//    thread decodeYuvThread(decodeVideo_gpu);
-//    decodeYuvThread.detach();
+    //创建opengl和显示的都要放在一个线程中。
+    thread decodeYuvThread(decodeVideo_gpu );
+    decodeYuvThread.detach();
 
 
     return RESULT_SUCCESS;
@@ -773,6 +781,7 @@ int destroy_Audio() {
 
 int destroyShader() {
 //    EGLDisplay display;
+    initOpenglFlag = false;
     glDisableVertexAttribArray(apos);
     glDisableVertexAttribArray(atex);
     glDetachShader(vsh, program);
