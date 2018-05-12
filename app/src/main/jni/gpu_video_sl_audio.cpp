@@ -37,18 +37,7 @@ SLEngineItf eng_gpu = NULL;
 SLObjectItf mix_gpu = NULL;
 SLObjectItf player_gpu = NULL;
 SLAndroidSimpleBufferQueueItf pcmQue_gpu = NULL;
-
-//shader
-ANativeWindow *nwin;
-EGLSurface winsurface;
-EGLDisplay display;
-GLuint vsh;
-GLuint fsh;
-GLuint program;
-GLuint texts[3] = {0};
-GLuint apos;
-GLuint atex;
-EGLContext context;
+int outFormat_gpu = AV_SAMPLE_FMT_S16;
 
 //other
 bool pauseFlag = false;
@@ -60,10 +49,22 @@ queue<AVPacket *> videoPktQue_gpu;
 queue<MyData> audioFrameQue_gpu;
 int apts_gpu = 0;
 unsigned char *play_audio_buffer = 0;
+unsigned char *play_audio_temp = 0;
 int maxAudioPacket_gpu = 140;
 int maxVideoPacket_gpu = 100;
+
 // shader part
 bool initOpenglFlag = false;
+ANativeWindow *nwin;
+EGLSurface winsurface;
+EGLDisplay display;
+GLuint vsh;
+GLuint fsh;
+GLuint program;
+GLuint texts[3] = {0};
+GLuint apos;
+GLuint atex;
+EGLContext context;
 //顶点着色器glsl,这是define的单行定义 #x = "x"
 #define GET_STR(x) #x
 static const char *vertexShader_gpu = GET_STR(
@@ -399,6 +400,7 @@ int initFFmpeg_gpu(const char *input_path) {
     result = swr_init(swc_gpu);
 //    frame->nb_samples * AV_SAMPLE_FMT_S16（2）
     play_audio_buffer = new unsigned char[2 * 1024];
+    play_audio_temp = new unsigned char[2 * 1024];
     if (result < 0) {
         LOGE(" swr_init FAILD !");
         return RESULT_FAILD;
@@ -592,17 +594,6 @@ int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
     return RESULT_SUCCESS;
 }
 
-unsigned char *buf_gpu[3] = {0};
-FILE *test;
-//测试代码
-//void test_gpu() {
-//    test = fopen("sdcard/FFmpeg/test_480_272.yuv", "rb");
-//    outWidth_gpu = 480;
-//    outHeight_gpu = 272;
-//    buf_gpu[0] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu);//new unsigned char[outWidth_gpu * outHeight_gpu];
-//    buf_gpu[1] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
-//    buf_gpu[2] = (unsigned char * ) malloc(outWidth_gpu * outHeight_gpu / 4);//new unsigned char[outWidth_gpu * outHeight_gpu / 4];
-//}
 int decodeVideo_gpu() {
     int result;
     if(!initOpenglFlag){
@@ -612,15 +603,6 @@ int decodeVideo_gpu() {
 
     while (yuvRunFlag_gpu) {
         //测试代码
-//        ThreadSleep_gpu(40);
-//        if (feof(test) == 0) {
-//            fread(buf_gpu[0], 1, outWidth_gpu * outHeight_gpu, test);
-//            fread(buf_gpu[1], 1, outWidth_gpu * outHeight_gpu / 4, test);
-//            fread(buf_gpu[2], 1, outWidth_gpu * outHeight_gpu / 4, test);
-//            showYuv(buf_gpu[0], buf_gpu[1], buf_gpu[2]);
-//        }
-
-
 
         LOGE(" videoPktQue_gpu.size %d " , videoPktQue_gpu.size());
         if (videoPktQue_gpu.empty()) {
@@ -631,7 +613,7 @@ int decodeVideo_gpu() {
 
         if (pck->pts > apts_gpu) {
             ThreadSleep_gpu(1);
-//            LOGE("wait for audio !");
+            LOGE("wait for audio !");
             continue;
         }
 
@@ -655,38 +637,111 @@ int decodeVideo_gpu() {
             if (result < 0) {
                 break;
             }
-//            memcpy(d.datas,frame->data,sizeof(d.datas));
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
     }
     return RESULT_SUCCESS;
 }
 
+int decodeAudio_gpu(){
+
+    int result = 0;
+    int audioCount = 0;
+    int temp_pts = 0;
+    while (pcmRunFlag_gpu) {
+        if(audioFrameQue_gpu.size() >= maxAudioPacket_gpu || audioPktQue_gpu.empty()){
+            ThreadSleep_gpu(2);
+            continue;
+        }
+
+        AVPacket *pck = audioPktQue_gpu.front();
+        audioPktQue_gpu.pop();
+        temp_pts = pck->pts;
+        if(!pck){
+            LOGE(" packet null !");
+            continue;
+        }
+        result = avcodec_send_packet(ac_gpu, pck);
+        if (result < 0) {
+            LOGE(" SEND PACKET FAILD !");
+            av_packet_free(&pck);
+            continue;
+        }
+        av_packet_free(&pck);
+        while (true) {
+            result = avcodec_receive_frame(ac_gpu, aframe_gpu);
+
+            if (result < 0) {
+                break;
+            }
+            audioCount++;
+            uint8_t *out[1] = {0};
+            out[0] = (uint8_t *) play_audio_temp;
+            MyData myData;
+            //音频重采样
+            swr_convert(swc_gpu, out,
+                        aframe_gpu->nb_samples,
+                        (const uint8_t **) aframe_gpu->data,
+                        aframe_gpu->nb_samples);
+            //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
+
+            myData.size = av_get_bytes_per_sample((AVSampleFormat)  outFormat_gpu) * aframe_gpu->nb_samples;
+            myData.data = (char*)malloc(myData.size); ;
+            memcpy(myData.data  ,play_audio_temp ,myData.size );
+            myData.isAudio = true;
+            myData.pts = temp_pts;
+            audioFrameQue_gpu.push(myData);
+
+        }
+
+    }
+
+    return RESULT_SUCCESS;
+}
+void audioPlayDelay_gpu(){
+    //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
+    ThreadSleep_gpu(200);
+    (*iplayer_gpu)->SetPlayState(iplayer_gpu,SL_PLAYSTATE_PLAYING);
+    (*pcmQue_gpu)->Enqueue(pcmQue_gpu,"",1);
+}
+
 int open_gpu(JNIEnv *env, const char *path, jobject win) {
     int result = RESULT_FAILD;
+
     nwin = ANativeWindow_fromSurface(env, win);
+
     result = initFFmpeg_gpu(path);
     if (RESULT_FAILD == result) {
         LOGE(" initFFmpeg_gpu faild");
         return RESULT_FAILD;
     }
+
     result = initAudio_gpu();
     if (RESULT_FAILD == result) {
         LOGE(" initAudio_gpu faild");
         return RESULT_FAILD;
     }
 
-
-//    test_gpu();
-
+    //读取帧线程
     readFrameFlag_gpu = true;
     thread readFrameThread(readFrame_gpu);
     readFrameThread.detach();
 
+    //解码视频线程
     yuvRunFlag_gpu = true;
     //创建opengl和显示的都要放在一个线程中。
     thread decodeYuvThread(decodeVideo_gpu );
     decodeYuvThread.detach();
+
+    //解码音频线程
+    pcmRunFlag_gpu = true;
+    //创建opengl和显示的都要放在一个线程中。
+    thread decodePcm(decodeAudio_gpu );
+    decodePcm.detach();
+
+    //延迟几百毫秒播放
+    thread playAudioDelayThread(audioPlayDelay_gpu);
+    playAudioDelayThread.detach();
 
 
     return RESULT_SUCCESS;
@@ -696,6 +751,16 @@ int open_gpu(JNIEnv *env, const char *path, jobject win) {
 void stopAllThread() {
     readFrameFlag_gpu = false;
     yuvRunFlag_gpu = false;
+    pcmRunFlag_gpu = false;
+    while(!audioPktQue_gpu.empty()){
+        audioPktQue_gpu.pop();
+    }
+    while(!videoPktQue_gpu.empty()){
+        videoPktQue_gpu.pop();
+    }
+    while(!audioFrameQue_gpu.empty()){
+        audioFrameQue_gpu.pop();
+    }
 
 }
 
@@ -776,6 +841,8 @@ int destroy_Audio() {
         eng_gpu = NULL;
         LOGE("audio engineOpenSL_gpu destory ! ");
     }
+    delete play_audio_buffer;
+    delete play_audio_temp;
     return 1;
 }
 
@@ -801,10 +868,10 @@ int destroyShader() {
 }
 
 int destroy_gpu() {
+    stopAllThread();
     destroy_FFmpeg();
     destroy_Audio();
     destroyShader();
-    stopAllThread();
     return 1;
 }
 
