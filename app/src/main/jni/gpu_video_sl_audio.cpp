@@ -524,6 +524,12 @@ void* readFrame_gpu(void* arg) {
     while (readFrameFlag_gpu) {
 //        LOGE(" audioPktQue.size() %d , videoPktQue.size() %d", audioPktQue_gpu.size(),
 //             videoPktQue_gpu.size());
+
+        if(pauseFlag){
+            ThreadSleep_gpu(500);
+            continue;
+        }
+
         if (audioPktQue_gpu.size() >= maxAudioPacket_gpu ||
             videoPktQue_gpu.size() >= maxVideoPacket_gpu) {
             //控制缓冲大小
@@ -604,7 +610,10 @@ void* decodeVideo_gpu(void* arg) {
 
     while (yuvRunFlag_gpu) {
         //测试代码
-
+        if(pauseFlag){
+            ThreadSleep_gpu(500);
+            continue;
+        }
         LOGE(" videoPktQue_gpu.size %d " , videoPktQue_gpu.size());
         if (videoPktQue_gpu.empty()) {
             ThreadSleep_gpu(2);
@@ -650,6 +659,11 @@ void* decodeAudio_gpu(void* arg){
     int audioCount = 0;
     int temp_pts = 0;
     while (pcmRunFlag_gpu) {
+        if(pauseFlag){
+            ThreadSleep_gpu(500);
+            continue;
+        }
+
         if(audioFrameQue_gpu.size() >= maxAudioPacket_gpu || audioPktQue_gpu.empty()){
             ThreadSleep_gpu(2);
             continue;
@@ -698,10 +712,12 @@ void* decodeAudio_gpu(void* arg){
     }
     return (void*)RESULT_SUCCESS;
 }
+
 pthread_t readFrameThread;
 pthread_t decodeYuvThread;
 pthread_t decodePcm;
 pthread_t playAudioDelayThread;
+
 void* audioPlayDelay_gpu(void* arg){
     //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
     ThreadSleep_gpu(200);
@@ -767,8 +783,34 @@ void stopAllThread() {
 
 }
 
+
+//暂停或者播放
+int pause_audio_gpu(bool myPauseFlag){
+    if(iplayer_gpu != NULL){
+        SLresult re = (*iplayer_gpu)->SetPlayState(iplayer_gpu , myPauseFlag ?  SL_PLAYSTATE_PAUSED : SL_PLAYSTATE_PLAYING);
+
+        if(re != SL_RESULT_SUCCESS){
+            LOGE("SetPlayState pause FAILD ");
+            return -1;
+        }
+        LOGE("SetPlayState pause success ");
+    }
+
+    return 0;
+}
+
 int playOrPause_gpu() {
     pauseFlag = !pauseFlag;
+    if(pauseFlag){
+        //暂停
+        LOGE(" playOrPause_gpu pauseing "  );
+        pause_audio_gpu(pauseFlag);
+    }
+    else{
+        //播放
+        pthread_create(&playAudioDelayThread ,NULL ,audioPlayDelay_gpu ,NULL);
+
+    }
     return 1;
 }
 

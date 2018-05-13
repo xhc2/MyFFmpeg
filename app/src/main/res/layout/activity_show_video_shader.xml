@@ -12,4 +12,29 @@
 
     <!--seekbar-->
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:background="#ffffff"
+        android:layout_height="30dp">
+
+        <Button
+            android:id="@+id/bt_play_button"
+            android:layout_width="40dp"
+            android:text="暂停"
+            android:textSize="8sp"
+            android:layout_centerVertical="true"
+            android:layout_height="30dp" />
+
+        <SeekBar
+            android:id="@+id/seek_bar"
+            android:layout_width="match_parent"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/bt_play_button"
+            android:layout_marginLeft="10dp"
+            android:layout_height="4dp" />
+    </RelativeLayout>
+
+
+
 </RelativeLayout>

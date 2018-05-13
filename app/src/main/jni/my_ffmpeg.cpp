@@ -123,11 +123,25 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuAudioOpensl(JNIEnv *env, 
 
     env->ReleaseStringUTFChars(path_, path);
     return 1;
-}extern "C"
+}
+extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuDestroy(JNIEnv *env, jclass type) {
 
     // TODO
     return destroy_gpu();
 
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuJustPause(JNIEnv *env, jclass type) {
+
+    // TODO
+    return justPause_gpu();
+
+}
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuPlayOrPause(JNIEnv *env, jclass type){
+
+    return playOrPause_gpu();
 }

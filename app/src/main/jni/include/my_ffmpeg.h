@@ -41,6 +41,15 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_testNativeThreadRun(JNIEnv *env, jcla
 
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_testCPlusPlusThread(JNIEnv *env, jclass clazz) ;
+
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuJustPause(JNIEnv *env, jclass type);
+
+
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuPlayOrPause(JNIEnv *env, jclass type);
+
 #ifdef __cplusplus
 }
 #endif
