@@ -519,7 +519,7 @@ void ThreadSleep_gpu(int mis) {
     this_thread::sleep_for(du);
 }
 
-void readFrame_gpu() {
+void* readFrame_gpu(void* arg) {
     int result = 0;
     while (readFrameFlag_gpu) {
 //        LOGE(" audioPktQue.size() %d , videoPktQue.size() %d", audioPktQue_gpu.size(),
@@ -555,6 +555,7 @@ void readFrame_gpu() {
         }
 
     }
+    return (void*)RESULT_SUCCESS;
 }
 
 // 0 y , 1 u , 2 v
@@ -594,7 +595,7 @@ int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
     return RESULT_SUCCESS;
 }
 
-int decodeVideo_gpu() {
+void* decodeVideo_gpu(void* arg) {
     int result;
     if(!initOpenglFlag){
         initOpenglFlag = true;
@@ -640,10 +641,10 @@ int decodeVideo_gpu() {
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
     }
-    return RESULT_SUCCESS;
+    return (void*)RESULT_SUCCESS;
 }
 
-int decodeAudio_gpu(){
+void* decodeAudio_gpu(void* arg){
 
     int result = 0;
     int audioCount = 0;
@@ -695,14 +696,18 @@ int decodeAudio_gpu(){
         }
 
     }
-
-    return RESULT_SUCCESS;
+    return (void*)RESULT_SUCCESS;
 }
-void audioPlayDelay_gpu(){
+pthread_t readFrameThread;
+pthread_t decodeYuvThread;
+pthread_t decodePcm;
+pthread_t playAudioDelayThread;
+void* audioPlayDelay_gpu(void* arg){
     //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
     ThreadSleep_gpu(200);
     (*iplayer_gpu)->SetPlayState(iplayer_gpu,SL_PLAYSTATE_PLAYING);
     (*pcmQue_gpu)->Enqueue(pcmQue_gpu,"",1);
+    return (void*)RESULT_SUCCESS;
 }
 
 int open_gpu(JNIEnv *env, const char *path, jobject win) {
@@ -724,25 +729,15 @@ int open_gpu(JNIEnv *env, const char *path, jobject win) {
 
     //读取帧线程
     readFrameFlag_gpu = true;
-    thread readFrameThread(readFrame_gpu);
-    readFrameThread.detach();
-
-    //解码视频线程
     yuvRunFlag_gpu = true;
-    //创建opengl和显示的都要放在一个线程中。
-    thread decodeYuvThread(decodeVideo_gpu );
-    decodeYuvThread.detach();
-
-    //解码音频线程
     pcmRunFlag_gpu = true;
-    //创建opengl和显示的都要放在一个线程中。
-    thread decodePcm(decodeAudio_gpu );
-    decodePcm.detach();
 
-    //延迟几百毫秒播放
-    thread playAudioDelayThread(audioPlayDelay_gpu);
-    playAudioDelayThread.detach();
 
+
+    pthread_create(&readFrameThread ,NULL ,readFrame_gpu ,NULL);
+    pthread_create(&decodeYuvThread ,NULL ,decodeVideo_gpu ,NULL);
+    pthread_create(&decodePcm ,NULL ,decodeAudio_gpu ,NULL);
+    pthread_create(&playAudioDelayThread ,NULL ,audioPlayDelay_gpu ,NULL);
 
     return RESULT_SUCCESS;
 }
@@ -752,6 +747,14 @@ void stopAllThread() {
     readFrameFlag_gpu = false;
     yuvRunFlag_gpu = false;
     pcmRunFlag_gpu = false;
+
+    void* t;
+
+    pthread_join(readFrameThread ,&t );
+    pthread_join(decodeYuvThread ,&t );
+    pthread_join(decodePcm ,&t );
+    pthread_join(playAudioDelayThread ,&t );
+
     while(!audioPktQue_gpu.empty()){
         audioPktQue_gpu.pop();
     }
@@ -816,6 +819,7 @@ int destroy_FFmpeg() {
 }
 
 int destroy_Audio() {
+    apts_gpu = 0;
     if (iplayer_gpu && (*iplayer_gpu)) {
         (*iplayer_gpu)->SetPlayState(iplayer_gpu, SL_PLAYSTATE_STOPPED);
     }

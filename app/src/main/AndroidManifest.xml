@@ -35,7 +35,10 @@
         <activity
             android:name=".ShowVideoAndAudioActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
-        <activity android:name=".ShowVideoShaderActivity"></activity>
+        <activity android:name=".ShowVideoShaderActivity"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:configChanges="keyboardHidden|orientation|screenSize"/>
     </application>
 
 </manifest>
