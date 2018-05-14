@@ -46,6 +46,10 @@ public class FFmpegUtils {
     public static native int showVideoGpuDestroy();
     public static native int showVideoGpuJustPause();
     public static native int showVideoGpuPlayOrPause();
+    public static native int showVideoGpuSeek(double seek);
+    //最大值一百，分别按比例处理
+    public static native int getPlayPosition();
+
 //    public static native int initAudioRecord(String outputPath , int aSize);
 //
 //    public static native int encodeAudioRecord(byte[] bytes);

@@ -145,3 +145,19 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuPlayOrPause(JNIEnv *env, 
 
     return playOrPause_gpu();
 }
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_showVideoGpuSeek(JNIEnv *env, jclass type,
+                                                            jdouble seek) {
+
+    return seekPos(seek);
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getPlayPosition(JNIEnv *env, jclass type) {
+
+    // TODO
+    return getPlayPosition();
+}
