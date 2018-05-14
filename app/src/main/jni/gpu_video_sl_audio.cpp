@@ -59,6 +59,7 @@ pthread_t readFrameThread;
 pthread_t decodeYuvThread;
 pthread_t decodePcm;
 pthread_t playAudioDelayThread;
+pthread_t jumpToSeekPosThread;
 pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
 
 // shader part
@@ -653,13 +654,12 @@ void *decodeVideo_gpu(void *arg) {
         }
 
         result = avcodec_send_packet(vc_gpu, pck);
-
+        av_packet_free(&pck);
         if (result < 0) {
             LOGE(" SEND PACKET FAILD !");
-            av_packet_free(&pck);
             continue;
         }
-        av_packet_free(&pck);
+
 
         while (true) {
             result = avcodec_receive_frame(vc_gpu, vframe_gpu);
@@ -672,12 +672,12 @@ void *decodeVideo_gpu(void *arg) {
                 LOGE(" I TYPE COUNT %d " , typeICount);
             };
 
-            if(vpts_seek_gpu != -1 && vframe_gpu->pts < vpts_seek_gpu){
-                continue;
-            }
-            LOGE(" FRAME PTS %lld ， vpts_seek_gpu %lld" , vframe_gpu->pts , vpts_seek_gpu);
-            vpts_gpu = vframe_gpu->pts;
-            vpts_seek_gpu = -1;
+//            if(vpts_seek_gpu != -1 && vframe_gpu->pts < vpts_seek_gpu){
+//                continue;
+//            }
+            LOGE(" FRAME PTS %lld ， vpts_seek_gpu %lld" , av_frame_get_best_effort_timestamp(vframe_gpu) , vpts_seek_gpu);
+            vpts_gpu = av_frame_get_best_effort_timestamp(vframe_gpu) ;
+//            vpts_seek_gpu = -1;
             ThreadSleep_gpu(40);
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
@@ -689,7 +689,7 @@ void *decodeAudio_gpu(void *arg) {
 
     int result = 0;
     int audioCount = 0;
-    int temp_pts = 0;
+    int64_t temp_pts = 0;
     while (pcmRunFlag_gpu) {
         if (pauseFlag) {
             ThreadSleep_gpu(500);
@@ -862,10 +862,55 @@ int clearAllQue() {
     return RESULT_SUCCESS;
 }
 
-int seekPos(double pos) {
+//获取时间
+int64_t  getMyTime(int64_t pts , AVRational time_base){
+    return pts <= 0 ? 0 : (int64_t)(pts * 1000 * av_q2d(time_base));
+}
 
-//    AVFormatContext *s, int stream_index, int64_t timestamp,
-//            int flags
+void* jumpToSeekFrame(void* arg){
+    int result =-1;
+
+    while(vpts_seek_gpu != -1 ){
+
+        AVPacket *pkt_ = av_packet_alloc();
+        result = av_read_frame(afc_gpu, pkt_);
+        if(result < 0){
+            av_packet_free(&pkt_);
+            continue;
+        }
+        if(pkt_->stream_index == audio_index_gpu){
+            continue;
+        }
+        result = avcodec_send_packet(vc_gpu, pkt_);
+        LOGE(" SIZE %d " ,pkt_->size );
+        if (result < 0 ||    pkt_->size <= 0) {
+            LOGE(" SEND PACKET FAILD !");
+            av_packet_free(&pkt_);
+            continue;
+        }
+        av_packet_free(&pkt_);
+
+        while (true) {
+
+            result = avcodec_receive_frame(vc_gpu, vframe_gpu);
+
+            if (result < 0) {
+                break;
+            }
+            LOGE("  jumpToSeekFrame  vframe_gpu->pts %lld , vpts_seek_gpu %lld " , av_frame_get_best_effort_timestamp(vframe_gpu)  , vpts_seek_gpu);
+            if(av_frame_get_best_effort_timestamp(vframe_gpu) < vpts_seek_gpu){
+                continue;
+            }
+            vpts_gpu = vframe_gpu->pts;
+            vpts_seek_gpu = -1;
+        }
+    }
+
+//    justPlay_gpu();
+    return (void*)RESULT_SUCCESS;
+}
+
+int seekPos(double pos) {
 
     int64_t seekPts = 0;
     seekPts = (int64_t)(afc_gpu->streams[video_index_gpu]->duration * pos);
@@ -873,10 +918,11 @@ int seekPos(double pos) {
     vpts_gpu = vpts_seek_gpu;
     LOGE("*************     seekPts，没有转毫秒 %lld , vpts_seek_gpu %lld " , seekPts , vpts_seek_gpu);
     clearAllQue();
-    avformat_flush(afc_gpu);
-    av_seek_frame(afc_gpu, video_index_gpu, seekPts , AVSEEK_FLAG_FRAME|AVSEEK_FLAG_BACKWARD);
-
-    justPlay_gpu();
+//    avformat_flush(afc_gpu);
+    av_seek_frame(afc_gpu, video_index_gpu, seekPts , AVSEEK_FLAG_BACKWARD);
+    pthread_create(&jumpToSeekPosThread , NULL, jumpToSeekFrame, NULL);
+//    void *t = NULL;
+//    jumpToSeekFrame(t);
     return RESULT_SUCCESS;
 }
 
