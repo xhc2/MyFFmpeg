@@ -41,6 +41,4 @@ public class MyVideoGpuShow extends GLSurfaceView implements SurfaceHolder.Callb
             FFmpegUtils.showVideoGpuAudioOpensl(Constant.rootFile.getAbsolutePath() + "/test.MP4", getHolder().getSurface());
         }
     }
-
-
 }

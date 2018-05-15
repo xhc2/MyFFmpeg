@@ -274,7 +274,8 @@ int init_opengl() {
     glTexImage2D(GL_TEXTURE_2D,
                  0,           //细节基本 0默认
                  GL_LUMINANCE,//gpu内部格式 亮度，灰度图
-                 outWidth_gpu / 2, outHeight_gpu / 2, //拉升到全屏
+                 outWidth_gpu / 2,
+                 outHeight_gpu / 2, //拉升到全屏
                  0,             //边框
                  GL_LUMINANCE,//数据的像素格式 亮度，灰度图 要与上面一致
                  GL_UNSIGNED_BYTE, //像素的数据类型
@@ -298,11 +299,6 @@ int init_opengl() {
     );
 
 
-    ////纹理的修改和显示
-    unsigned char *buf[3] = {0};
-    buf[0] = new unsigned char[outWidth_gpu * outHeight_gpu];
-    buf[1] = new unsigned char[outWidth_gpu * outHeight_gpu / 4];
-    buf[2] = new unsigned char[outWidth_gpu * outHeight_gpu / 4];
     LOGE(" INIT shader SUCCESS ");
     return RESULT_SUCCESS;
 }
@@ -336,8 +332,6 @@ int initFFmpeg_gpu(const char *input_path) {
         LOGE("avformat_find_stream_info FAILD !");
         return RESULT_FAILD;
     }
-
-
 
     videoDuration_gpu =  afc_gpu->duration / (AV_TIME_BASE / 1000);
 
@@ -417,7 +411,6 @@ int initFFmpeg_gpu(const char *input_path) {
                                  ac_gpu->sample_fmt, ac_gpu->sample_rate,
                                  0, 0);
     result = swr_init(swc_gpu);
-//    frame->nb_samples * AV_SAMPLE_FMT_S16（2）
     play_audio_buffer = new unsigned char[2 * 1024];
     play_audio_temp = new unsigned char[2 * 1024];
     if (result < 0) {
@@ -672,12 +665,12 @@ void *decodeVideo_gpu(void *arg) {
                 LOGE(" I TYPE COUNT %d " , typeICount);
             };
 
-//            if(vpts_seek_gpu != -1 && vframe_gpu->pts < vpts_seek_gpu){
-//                continue;
-//            }
+            if(vpts_seek_gpu != -1 && vframe_gpu->pts < vpts_seek_gpu){
+                continue;
+            }
             LOGE(" FRAME PTS %lld ， vpts_seek_gpu %lld" , av_frame_get_best_effort_timestamp(vframe_gpu) , vpts_seek_gpu);
             vpts_gpu = av_frame_get_best_effort_timestamp(vframe_gpu) ;
-//            vpts_seek_gpu = -1;
+            vpts_seek_gpu = -1;
             ThreadSleep_gpu(40);
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
@@ -811,7 +804,6 @@ int pause_audio_gpu(bool myPauseFlag) {
     if (iplayer_gpu != NULL) {
         SLresult re = (*iplayer_gpu)->SetPlayState(iplayer_gpu, myPauseFlag ? SL_PLAYSTATE_PAUSED
                                                                             : SL_PLAYSTATE_PLAYING);
-
         if (re != SL_RESULT_SUCCESS) {
             LOGE("SetPlayState pause FAILD ");
             return -1;
@@ -851,12 +843,18 @@ int justPlay_gpu() {
 
 int clearAllQue() {
     while (!audioPktQue_gpu.empty()) {
+        AVPacket *pck = audioPktQue_gpu.front();
+        av_packet_free(&pck);
         audioPktQue_gpu.pop();
     }
     while (!videoPktQue_gpu.empty()) {
+        AVPacket *pck = videoPktQue_gpu.front();
+        av_packet_free(&pck);
         videoPktQue_gpu.pop();
     }
     while (!audioFrameQue_gpu.empty()) {
+        MyData myData = audioFrameQue_gpu.front();
+        free(myData.data);
         audioFrameQue_gpu.pop();
     }
     return RESULT_SUCCESS;
@@ -874,21 +872,26 @@ void* jumpToSeekFrame(void* arg){
 
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc_gpu, pkt_);
-        if(result < 0){
+        if(result < 0 || pkt_->size <= 0){
             av_packet_free(&pkt_);
             continue;
         }
-        if(pkt_->stream_index == audio_index_gpu){
+        if(pkt_->stream_index == audio_index_gpu ){
+            pkt_->pts = (int64_t) (pkt_->pts * (1000 * av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+            if(pkt_->pts >= vpts_seek_gpu){
+                audioPktQue_gpu.push(pkt_);
+            }
+            else{
+                av_packet_free(&pkt_);
+            }
             continue;
         }
         result = avcodec_send_packet(vc_gpu, pkt_);
-        LOGE(" SIZE %d " ,pkt_->size );
-        if (result < 0 ||    pkt_->size <= 0) {
+        av_packet_free(&pkt_);
+        if (result < 0  ) {
             LOGE(" SEND PACKET FAILD !");
-            av_packet_free(&pkt_);
             continue;
         }
-        av_packet_free(&pkt_);
 
         while (true) {
 
@@ -897,32 +900,39 @@ void* jumpToSeekFrame(void* arg){
             if (result < 0) {
                 break;
             }
-            LOGE("  jumpToSeekFrame  vframe_gpu->pts %lld , vpts_seek_gpu %lld " , av_frame_get_best_effort_timestamp(vframe_gpu)  , vpts_seek_gpu);
-            if(av_frame_get_best_effort_timestamp(vframe_gpu) < vpts_seek_gpu){
+            LOGE("  jumpToSeekFrame  vframe_gpu->pts %lld , vpts_seek_gpu %lld " , av_frame_get_best_effort_timestamp(vframe_gpu)  ,
+                 vpts_seek_gpu);
+            if(vframe_gpu->pts < vpts_seek_gpu){
                 continue;
             }
             vpts_gpu = vframe_gpu->pts;
             vpts_seek_gpu = -1;
         }
     }
-
-//    justPlay_gpu();
+    justPlay_gpu();
     return (void*)RESULT_SUCCESS;
 }
 
 int seekPos(double pos) {
-
-    int64_t seekPts = 0;
-    seekPts = (int64_t)(afc_gpu->streams[video_index_gpu]->duration * pos);
+    int result = -1;
     vpts_seek_gpu = (int64_t)(pos * 1000 * afc_gpu->streams[video_index_gpu]->duration * av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
     vpts_gpu = vpts_seek_gpu;
-    LOGE("*************     seekPts，没有转毫秒 %lld , vpts_seek_gpu %lld " , seekPts , vpts_seek_gpu);
+    LOGE("*************      vpts_seek_gpu %lld " ,  vpts_seek_gpu);
+
+    result = avformat_flush(afc_gpu);
+    if(result < 0){
+        LOGE(" avformat_flush result %d " , result);
+        return RESULT_FAILD;
+    }
     clearAllQue();
-//    avformat_flush(afc_gpu);
-    av_seek_frame(afc_gpu, video_index_gpu, seekPts , AVSEEK_FLAG_BACKWARD);
+    result = av_seek_frame(afc_gpu, video_index_gpu, vpts_seek_gpu , AVSEEK_FLAG_BACKWARD);
+
+    if(result < 0){
+        LOGE(" av_seek_frame result %d " , result);
+        return RESULT_FAILD;
+    }
+//    justPlay_gpu();
     pthread_create(&jumpToSeekPosThread , NULL, jumpToSeekFrame, NULL);
-//    void *t = NULL;
-//    jumpToSeekFrame(t);
     return RESULT_SUCCESS;
 }
 
@@ -1020,7 +1030,6 @@ int destroyShader() {
 
 int destroyOther(){
     pauseFlag = false;
-
     return RESULT_SUCCESS;
 }
 
