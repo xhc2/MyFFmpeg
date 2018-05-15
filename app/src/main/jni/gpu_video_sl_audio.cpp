@@ -915,8 +915,9 @@ void* jumpToSeekFrame(void* arg){
 
 int seekPos(double pos) {
     int result = -1;
-    vpts_seek_gpu = (int64_t)(pos * 1000 * afc_gpu->streams[video_index_gpu]->duration * av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
-    vpts_gpu = vpts_seek_gpu;
+    vpts_gpu = (int64_t)(pos * 1000 * afc_gpu->streams[video_index_gpu]->duration * av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
+    vpts_seek_gpu = afc_gpu->streams[video_index_gpu]->duration * pos;
+//    vpts_gpu = vpts_seek_gpu;
     LOGE("*************      vpts_seek_gpu %lld " ,  vpts_seek_gpu);
 
     result = avformat_flush(afc_gpu);
