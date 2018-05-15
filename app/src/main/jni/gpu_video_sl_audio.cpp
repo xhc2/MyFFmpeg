@@ -665,12 +665,12 @@ void *decodeVideo_gpu(void *arg) {
                 LOGE(" I TYPE COUNT %d " , typeICount);
             };
 
-            if(vpts_seek_gpu != -1 && vframe_gpu->pts < vpts_seek_gpu){
-                continue;
-            }
+//            if(vpts_seek_gpu != -1 && av_frame_get_best_effort_timestamp(vframe_gpu) < vpts_seek_gpu){
+//                continue;
+//            }
             LOGE(" FRAME PTS %lld ， vpts_seek_gpu %lld" , av_frame_get_best_effort_timestamp(vframe_gpu) , vpts_seek_gpu);
             vpts_gpu = av_frame_get_best_effort_timestamp(vframe_gpu) ;
-            vpts_seek_gpu = -1;
+//            vpts_seek_gpu = -1;
             ThreadSleep_gpu(40);
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
