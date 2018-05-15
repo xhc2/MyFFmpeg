@@ -925,6 +925,7 @@ int seekPos(double pos) {
         return RESULT_FAILD;
     }
     clearAllQue();
+    //这里估计没有处理成功
     result = av_seek_frame(afc_gpu, video_index_gpu, vpts_seek_gpu , AVSEEK_FLAG_BACKWARD);
 
     if(result < 0){
