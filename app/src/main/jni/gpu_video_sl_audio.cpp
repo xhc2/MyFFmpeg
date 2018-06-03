@@ -29,6 +29,7 @@ AVCodec *videoCode_gpu, *audioCode_gpu;
 AVCodecContext *ac_gpu, *vc_gpu;
 int outWidth_gpu = 480, outHeight_gpu = 272;
 SwrContext *swc_gpu;
+//视频总长度
 int64_t videoDuration_gpu;
 
 //audio_sl
@@ -49,7 +50,10 @@ queue<AVPacket *> audioPktQue_gpu;
 queue<AVPacket *> videoPktQue_gpu;
 queue<MyData> audioFrameQue_gpu;
 int64_t apts_gpu = -1;
+//视频pts定位
 int64_t vpts_gpu = -1;
+
+//用来定位用户定位的位置
 int64_t vpts_seek_gpu = -1;
 unsigned char *play_audio_buffer = 0;
 unsigned char *play_audio_temp = 0;
@@ -333,7 +337,7 @@ int initFFmpeg_gpu(const char *input_path) {
         return RESULT_FAILD;
     }
 
-    videoDuration_gpu =  afc_gpu->duration / (AV_TIME_BASE / 1000);
+    videoDuration_gpu = afc_gpu->duration / (AV_TIME_BASE / 1000);
 
     LOGE(" video duration %lld ", videoDuration_gpu);
 
@@ -543,7 +547,7 @@ void *readFrame_gpu(void *arg) {
         }
 
         if (/*audioPktQue_gpu.size() >= maxAudioPacket_gpu ||*/
-            videoPktQue_gpu.size() >= maxVideoPacket_gpu) {
+                videoPktQue_gpu.size() >= maxVideoPacket_gpu) {
             //控制缓冲大小
             ThreadSleep_gpu(2);
             continue;
@@ -556,31 +560,30 @@ void *readFrame_gpu(void *arg) {
             av_packet_free(&pkt_);
             continue;
         }
-      /*  if (pkt_->stream_index == audio_index_gpu) {
-            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
-                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
-                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-            audioPktQue_gpu.push(pkt_);
-        } else */if (pkt_->stream_index == video_index_gpu) {
+        /*  if (pkt_->stream_index == audio_index_gpu) {
+              pkt_->pts = (int64_t) (pkt_->pts * (1000 *
+                                                  av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+              pkt_->dts = (int64_t) (pkt_->dts * (1000 *
+                                                  av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+              audioPktQue_gpu.push(pkt_);
+          } else */if (pkt_->stream_index == video_index_gpu) {
 
             pkt_->pts = (int64_t) (pkt_->pts * (1000 *
                                                 av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
             pkt_->dts = (int64_t) (pkt_->dts * (1000 *
                                                 av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+//            LOGE(" READ PTS %lld ", pkt_->pts );
+
             videoPktQue_gpu.push(pkt_);
         } else {
             av_packet_free(&pkt_);
         }
-
     }
     return (void *) RESULT_SUCCESS;
 }
 
 // 0 y , 1 u , 2 v
 int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
-//    LOGE(" SHOW YUV width %d , height %d " , outWidth_gpu , outHeight_gpu);
-
 
     //激活第1层纹理,绑定到创建的opengl纹理
     glActiveTexture(GL_TEXTURE0);
@@ -613,8 +616,10 @@ int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
 
     return RESULT_SUCCESS;
 }
+
 int typeICount = 0;
 
+//解码视频数据
 void *decodeVideo_gpu(void *arg) {
     int result;
     if (!initOpenglFlag) {
@@ -635,6 +640,7 @@ void *decodeVideo_gpu(void *arg) {
         }
         AVPacket *pck = videoPktQue_gpu.front();
 
+        //音视频同步处理
 //        if (pck->pts > apts_gpu) {
 //            ThreadSleep_gpu(1);
 //            continue;
@@ -660,17 +666,26 @@ void *decodeVideo_gpu(void *arg) {
             if (result < 0) {
                 break;
             }
-            if(AV_PICTURE_TYPE_I == vframe_gpu->pict_type){
-                typeICount ++;
-                LOGE(" I TYPE COUNT %d " , typeICount);
+            if (AV_PICTURE_TYPE_I == vframe_gpu->pict_type) {
+                typeICount++;
+                   //视频关键帧的pts，分别转换前后
+//                 I TYPE COUNT 1 ， pts 0                   0
+//                 I TYPE COUNT 2 ， pts 38912               3040
+//                 I TYPE COUNT 3 ， pts 61952               4840
+//                 I TYPE COUNT 4 ， pts 163328              12760
+//                 I TYPE COUNT 5 ， pts 233984              18280
+//                 I TYPE COUNT 6 ， pts 279040              21800
+//                 I TYPE COUNT 7 ， pts 312832              24440
+
+                LOGE(" I TYPE COUNT %d ， pts %lld ", typeICount,
+                     av_frame_get_best_effort_timestamp(vframe_gpu));
             };
 
 //            if(vpts_seek_gpu != -1 && av_frame_get_best_effort_timestamp(vframe_gpu) < vpts_seek_gpu){
 //                continue;
 //            }
-            LOGE(" FRAME PTS %lld ， vpts_seek_gpu %lld" , av_frame_get_best_effort_timestamp(vframe_gpu) , vpts_seek_gpu);
-            vpts_gpu = av_frame_get_best_effort_timestamp(vframe_gpu) ;
-//            vpts_seek_gpu = -1;
+            vpts_gpu = vframe_gpu->pts;//av_frame_get_best_effort_timestamp(vframe_gpu);
+            LOGE(" vpts_gpu pts %lld ",  vpts_gpu);
             ThreadSleep_gpu(40);
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
@@ -861,34 +876,35 @@ int clearAllQue() {
 }
 
 //获取时间
-int64_t  getMyTime(int64_t pts , AVRational time_base){
-    return pts <= 0 ? 0 : (int64_t)(pts * 1000 * av_q2d(time_base));
+int64_t getMyTime(int64_t pts, AVRational time_base) {
+    return pts <= 0 ? 0 : (int64_t) (pts * 1000 * av_q2d(time_base));
 }
 
-void* jumpToSeekFrame(void* arg){
-    int result =-1;
+//一直读取帧，一直到用户选择的位置
+void *jumpToSeekFrame(void *arg) {
+    int result = -1;
 
-    while(vpts_seek_gpu != -1 ){
+    while (vpts_seek_gpu != -1) {
 
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc_gpu, pkt_);
-        if(result < 0 || pkt_->size <= 0){
+        if (result < 0 || pkt_->size <= 0) {
             av_packet_free(&pkt_);
             continue;
         }
-        if(pkt_->stream_index == audio_index_gpu ){
-            pkt_->pts = (int64_t) (pkt_->pts * (1000 * av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-            if(pkt_->pts >= vpts_seek_gpu){
+        if (pkt_->stream_index == audio_index_gpu) {
+            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
+                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+            if (pkt_->pts >= vpts_seek_gpu) {
                 audioPktQue_gpu.push(pkt_);
-            }
-            else{
+            } else {
                 av_packet_free(&pkt_);
             }
             continue;
         }
         result = avcodec_send_packet(vc_gpu, pkt_);
         av_packet_free(&pkt_);
-        if (result < 0  ) {
+        if (result < 0) {
             LOGE(" SEND PACKET FAILD !");
             continue;
         }
@@ -900,47 +916,62 @@ void* jumpToSeekFrame(void* arg){
             if (result < 0) {
                 break;
             }
-            LOGE("  jumpToSeekFrame  vframe_gpu->pts %lld , vpts_seek_gpu %lld " , av_frame_get_best_effort_timestamp(vframe_gpu)  ,
+            LOGE("  jumpToSeekFrame  vframe_gpu->pts %lld , vpts_seek_gpu %lld ",
+                 av_frame_get_best_effort_timestamp(vframe_gpu),
                  vpts_seek_gpu);
-            if(vframe_gpu->pts < vpts_seek_gpu){
+            if (vframe_gpu->pts < vpts_seek_gpu) {
                 continue;
             }
-            vpts_gpu = vframe_gpu->pts;
+
+            //已经到了用户选择的帧了。
             vpts_seek_gpu = -1;
         }
     }
+    while(true){
+        //确保把里面的视频帧都取出来
+        result = avcodec_receive_frame(vc_gpu, vframe_gpu);
+        LOGE(" result %d " , result);
+        if (result < 0) {
+            break;
+        }
+    }
     justPlay_gpu();
-    return (void*)RESULT_SUCCESS;
+    return (void *) RESULT_SUCCESS;
 }
 
 int seekPos(double pos) {
     int result = -1;
-    vpts_gpu = (int64_t)(pos * 1000 * afc_gpu->streams[video_index_gpu]->duration * av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
+    //用户点击进度条跳转的地方
+    vpts_gpu = (int64_t) (pos * 1000 * afc_gpu->streams[video_index_gpu]->duration *
+                          av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
     vpts_seek_gpu = afc_gpu->streams[video_index_gpu]->duration * pos;
-//    vpts_gpu = vpts_seek_gpu;
-    LOGE("*************      vpts_seek_gpu %lld " ,  vpts_seek_gpu);
+    LOGE("*************      vpts_seek_gpu %lld ", vpts_seek_gpu);
 
     result = avformat_flush(afc_gpu);
-    if(result < 0){
-        LOGE(" avformat_flush result %d " , result);
+    if (result < 0) {
+        LOGE(" avformat_flush result %d ", result);
         return RESULT_FAILD;
     }
     clearAllQue();
-    //这里估计没有处理成功
-    result = av_seek_frame(afc_gpu, video_index_gpu, vpts_seek_gpu , AVSEEK_FLAG_BACKWARD);
+    //这里会直接会跳转到之前的关键帧
+    result = av_seek_frame(afc_gpu, video_index_gpu, vpts_seek_gpu, AVSEEK_FLAG_BACKWARD|AVSEEK_FLAG_FRAME);
 
-    if(result < 0){
-        LOGE(" av_seek_frame result %d " , result);
+    if (result < 0) {
+        LOGE(" av_seek_frame result %d ", result);
         return RESULT_FAILD;
     }
 //    justPlay_gpu();
-    pthread_create(&jumpToSeekPosThread , NULL, jumpToSeekFrame, NULL);
+    pthread_create(&jumpToSeekPosThread, NULL, jumpToSeekFrame, NULL);
     return RESULT_SUCCESS;
 }
 
 //获取当前的播放位置，最大值是100，0~100
-int getPlayPosition(){
-    return videoDuration_gpu <= 0 ? 0 : (int)((double)vpts_gpu /(double)videoDuration_gpu * 100);
+int getPlayPosition() {
+    LOGE(" getPlayPosition vpts_gpu %lld  videoDuration_gpu %lld , poition %d " , vpts_gpu , videoDuration_gpu  ,((int) ((double) vpts_gpu / (double) videoDuration_gpu *
+                                                                                                                         100)));
+
+    return videoDuration_gpu <= 0 ? 0 : (int) ((double) vpts_gpu / (double) videoDuration_gpu *
+                                               100);
 }
 
 int destroy_FFmpeg() {
@@ -1030,7 +1061,7 @@ int destroyShader() {
     return RESULT_SUCCESS;
 }
 
-int destroyOther(){
+int destroyOther() {
     pauseFlag = false;
     return RESULT_SUCCESS;
 }

@@ -40,7 +40,6 @@ public class ShowVideoShaderActivity extends Activity {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                Log.e("xhc" , "  onProgressChanged "+seekBar.getProgress());
             }
 
             @Override
@@ -88,7 +87,7 @@ public class ShowVideoShaderActivity extends Activity {
                     continue;
                 }
                 int position = FFmpegUtils.getPlayPosition();
-                Log.e("xhc" ," position %d "+position);
+//                Log.e("xhc" ," position %d "+position);
                 seekBar.setProgress(position);
             }
         }
@@ -98,12 +97,14 @@ public class ShowVideoShaderActivity extends Activity {
     protected void onPause() {
         super.onPause();
         Log.e("xhc" ," onPause ");
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.e("xhc" ," ondestroy ");
+        stopThread();
         FFmpegUtils.showVideoGpuDestroy();
     }
 }
