@@ -44,14 +44,12 @@ public class ShowVideoShaderActivity extends Activity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                Log.e("xhc" , "  onStartTrackingTouch "+seekBar.getProgress());
                 FFmpegUtils.showVideoGpuJustPause();
                 pauseFlag = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Log.e("xhc" , "  onStopTrackingTouch "+seekBar.getProgress());
                 FFmpegUtils.showVideoGpuSeek((double)seekBar.getProgress() / (double)seekBar.getMax());
                 pauseFlag = false;
             }
@@ -96,7 +94,6 @@ public class ShowVideoShaderActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e("xhc" ," onPause ");
 
     }
 
