@@ -85,7 +85,6 @@ public class ShowVideoShaderActivity extends Activity {
                     continue;
                 }
                 int position = FFmpegUtils.getPlayPosition();
-//                Log.e("xhc" ," position %d "+position);
                 seekBar.setProgress(position);
             }
         }

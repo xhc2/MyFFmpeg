@@ -22,6 +22,7 @@ using namespace std;
 //ffmepg
 AVFrame *aframe_gpu;
 AVFrame *vframe_gpu;
+AVFrame *vframe_gpu_seek;
 AVFormatContext *afc_gpu;
 int video_index_gpu = -1;
 int audio_index_gpu = -1;
@@ -319,7 +320,7 @@ int initFFmpeg_gpu(const char *input_path) {
 
     aframe_gpu = av_frame_alloc();
     vframe_gpu = av_frame_alloc();
-
+    vframe_gpu_seek = av_frame_alloc();
     LOGE(" input path %s ", input_path);
     result = avformat_open_input(&afc_gpu, input_path, 0, 0);
     if (result != 0) {
@@ -568,11 +569,12 @@ void *readFrame_gpu(void *arg) {
             audioPktQue_gpu.push(pkt_);
         } else */if (pkt_->stream_index == video_index_gpu) {
 
-            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
-                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
-                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-            LOGE(" READ PTS %lld ", pkt_->pts);
+//            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
+//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+//            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
+//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+//这边read一直是正确的，问题不知道出在哪里了。视频解码那边偶尔出问题。但是一般会是5帧左右。
+//            LOGE(" READ PTS %lld ", pkt_->pts);
 
             videoPktQue_gpu.push(pkt_);
         } else {
@@ -630,7 +632,7 @@ void *decodeVideo_gpu(void *arg) {
     while (yuvRunFlag_gpu) {
         //测试代码
         if (pauseFlag) {
-            ThreadSleep_gpu(500);
+            ThreadSleep_gpu(50);
             continue;
         }
 
@@ -639,7 +641,7 @@ void *decodeVideo_gpu(void *arg) {
             continue;
         }
         AVPacket *pck = videoPktQue_gpu.front();
-
+//        LOGE(" pop pck %lld " , pck->pts);
         //音视频同步处理
 //        if (pck->pts > apts_gpu) {
 //            ThreadSleep_gpu(1);
@@ -662,8 +664,11 @@ void *decodeVideo_gpu(void *arg) {
 
         while (true) {
             result = avcodec_receive_frame(vc_gpu, vframe_gpu);
-
-            if (result < 0) {
+            LOGE(" avcodec_receive_frame %d " , result);
+            if(result == AVERROR(EAGAIN) || result == AVERROR_EOF){
+                break;
+            }
+            else if (result < 0) {
                 break;
             }
             if (AV_PICTURE_TYPE_I == vframe_gpu->pict_type) {
@@ -681,10 +686,8 @@ void *decodeVideo_gpu(void *arg) {
             };
 
 
-//            vframe_gpu->pts = (int64_t) (vframe_gpu->pts * (1000 *
-//                                                av_q2d(afc_gpu->streams[video_index_gpu]->time_base)));
-//            vframe_gpu->dts = (int64_t) (vframe_gpu->dts * (1000 *
-//                                                av_q2d(afc_gpu->streams[vframe_gpu->stream_index]->time_base)));
+            vframe_gpu->pts = (int64_t) (vframe_gpu->pts * (1000 *
+                                                av_q2d(afc_gpu->streams[video_index_gpu]->time_base)));
             vpts_gpu = vframe_gpu->pts;
             LOGE(" vpts_gpu pts %lld ", vpts_gpu);
             ThreadSleep_gpu(40);
@@ -701,7 +704,7 @@ void *decodeAudio_gpu(void *arg) {
     int64_t temp_pts = 0;
     while (pcmRunFlag_gpu) {
         if (pauseFlag) {
-            ThreadSleep_gpu(500);
+            ThreadSleep_gpu(50);
             continue;
         }
 
@@ -855,8 +858,6 @@ int justPlay_gpu() {
     pauseFlag = false;
     //延迟播放音频
     pthread_create(&playAudioDelayThread, NULL, audioPlayDelay_gpu, NULL);
-
-
     return RESULT_SUCCESS;
 }
 
@@ -915,15 +916,15 @@ void *jumpToSeekFrame(void *arg) {
 
         while (true) {
 
-            result = avcodec_receive_frame(vc_gpu, vframe_gpu);
+            result = avcodec_receive_frame(vc_gpu, vframe_gpu_seek);
 
             if (result < 0) {
                 break;
             }
-            LOGE("  jumpToSeekFrame  vframe_gpu->pts %lld , vpts_seek_gpu %lld ",
-                 av_frame_get_best_effort_timestamp(vframe_gpu),
+            LOGE("  jumpToSeekFrame  vframe_gpu_seek->pts %lld , vpts_seek_gpu %lld ",
+                 av_frame_get_best_effort_timestamp(vframe_gpu_seek),
                  vpts_seek_gpu);
-            if (vframe_gpu->pts < vpts_seek_gpu) {
+            if (vframe_gpu_seek->pts < vpts_seek_gpu) {
                 continue;
             }
 
@@ -933,12 +934,16 @@ void *jumpToSeekFrame(void *arg) {
     }
     while (true) {
         //确保把里面的视频帧都取出来
-        result = avcodec_receive_frame(vc_gpu, vframe_gpu);
+        result = avcodec_receive_frame(vc_gpu, vframe_gpu_seek);
         LOGE(" result %d ", result);
         if (result < 0) {
             break;
         }
     }
+    //test
+//    avio_flush(afc_gpu->pb);
+    result = avformat_flush(afc_gpu);
+    LOGE(" avformat_flush result %d " , result);
     justPlay_gpu();
     return (void *) RESULT_SUCCESS;
 }
@@ -992,6 +997,10 @@ int destroy_FFmpeg() {
     if (vframe_gpu != NULL) {
         LOGE(" av_frame_free vframe_gpu ");
         av_frame_free(&vframe_gpu);
+    }
+    if (vframe_gpu_seek != NULL) {
+        LOGE(" av_frame_free vframe_gpu ");
+        av_frame_free(&vframe_gpu_seek);
     }
     if (vc_gpu != NULL) {
         LOGE(" avcodec_close vc_gpu ");
