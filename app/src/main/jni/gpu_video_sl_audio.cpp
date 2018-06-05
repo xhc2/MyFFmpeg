@@ -13,6 +13,10 @@
 #include <thread>
 #include <queue>
 
+/**
+ * https://www.jianshu.com/p/d5a0ed770b3d
+ * 倍速播放，只是单单改变采样率音调会变的很难听。应该不能用这个方法。可以用现成的库 ExoPlayer，sonic什么的
+ */
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -491,11 +495,14 @@ int initAudio_gpu() {
 
     //配置音频信息
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 10};
+
+    SLuint32 kz = (SLuint32)(48000000 * 2);
+
     //音频格式
     SLDataFormat_PCM pcm_ = {
             SL_DATAFORMAT_PCM,
             1,//    声道数
-            SL_SAMPLINGRATE_48,
+            kz ,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT,
@@ -548,7 +555,7 @@ void *readFrame_gpu(void *arg) {
         }
 
         if (audioPktQue_gpu.size() >= maxAudioPacket_gpu ||
-                videoPktQue_gpu.size() >= maxVideoPacket_gpu) {
+            videoPktQue_gpu.size() >= maxVideoPacket_gpu) {
             //控制缓冲大小
             ThreadSleep_gpu(2);
             continue;
@@ -561,13 +568,13 @@ void *readFrame_gpu(void *arg) {
             av_packet_free(&pkt_);
             continue;
         }
-      /*  if (pkt_->stream_index == audio_index_gpu) {
-            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
-                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
-                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+        if (pkt_->stream_index == audio_index_gpu) {
+//            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
+//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+//            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
+//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
             audioPktQue_gpu.push(pkt_);
-        } else */if (pkt_->stream_index == video_index_gpu) {
+        } else if (pkt_->stream_index == video_index_gpu) {
 
 //            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
 //                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
@@ -643,10 +650,12 @@ void *decodeVideo_gpu(void *arg) {
         AVPacket *pck = videoPktQue_gpu.front();
 //        LOGE(" pop pck %lld " , pck->pts);
         //音视频同步处理
-//        if (pck->pts > apts_gpu) {
-//            ThreadSleep_gpu(1);
-//            continue;
-//        }
+        int64_t pts = getConvertPts(pck->pts, afc_gpu->streams[pck->stream_index]->time_base);
+        LOGE("tong bu apts %lld , vpts %lld " , apts_gpu , pts);
+        if (pts > apts_gpu) {
+            ThreadSleep_gpu(1);
+            continue;
+        }
 
         videoPktQue_gpu.pop();
         if (!pck) {
@@ -664,16 +673,14 @@ void *decodeVideo_gpu(void *arg) {
 
         while (true) {
             result = avcodec_receive_frame(vc_gpu, vframe_gpu);
-            LOGE(" avcodec_receive_frame %d " , result);
-            if(result == AVERROR(EAGAIN) || result == AVERROR_EOF){
+            if (result == AVERROR(EAGAIN) || result == AVERROR_EOF) {
+                break;
+            } else if (result < 0) {
                 break;
             }
-            else if (result < 0) {
-                break;
-            }
-            if (AV_PICTURE_TYPE_I == vframe_gpu->pict_type) {
-                typeICount++;
-                //视频关键帧的pts，分别转换前后
+//            if (AV_PICTURE_TYPE_I == vframe_gpu->pict_type) {
+//                typeICount++;
+//                视频关键帧的pts，分别转换前                 后
 //                 I TYPE COUNT 1 ， pts 0                   0
 //                 I TYPE COUNT 2 ， pts 38912               3040
 //                 I TYPE COUNT 3 ， pts 61952               4840
@@ -683,14 +690,14 @@ void *decodeVideo_gpu(void *arg) {
 //                 I TYPE COUNT 7 ， pts 312832              24440
 //                LOGE(" I TYPE COUNT %d ， pts %lld ", typeICount,
 //                     av_frame_get_best_effort_timestamp(vframe_gpu));
-            };
+//            }
 
 
-            vframe_gpu->pts = (int64_t) (vframe_gpu->pts * (1000 *
-                                                av_q2d(afc_gpu->streams[video_index_gpu]->time_base)));
+            vframe_gpu->pts = getConvertPts(vframe_gpu->pts,
+                                            afc_gpu->streams[video_index_gpu]->time_base);
             vpts_gpu = vframe_gpu->pts;
             LOGE(" vpts_gpu pts %lld ", vpts_gpu);
-            ThreadSleep_gpu(40);
+//            ThreadSleep_gpu(40);
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
     }
@@ -701,7 +708,7 @@ void *decodeAudio_gpu(void *arg) {
 
     int result = 0;
     int audioCount = 0;
-    int64_t temp_pts = 0;
+//    int64_t temp_pts = 0;
     while (pcmRunFlag_gpu) {
         if (pauseFlag) {
             ThreadSleep_gpu(50);
@@ -715,7 +722,6 @@ void *decodeAudio_gpu(void *arg) {
 
         AVPacket *pck = audioPktQue_gpu.front();
         audioPktQue_gpu.pop();
-        temp_pts = pck->pts;
         if (!pck) {
             LOGE(" packet null !");
             continue;
@@ -749,7 +755,7 @@ void *decodeAudio_gpu(void *arg) {
             myData.data = (char *) malloc(myData.size);;
             memcpy(myData.data, play_audio_temp, myData.size);
             myData.isAudio = true;
-            myData.pts = temp_pts;
+            myData.pts = getConvertPts(aframe_gpu->pts  , afc_gpu->streams[audio_index_gpu]->time_base);
             audioFrameQue_gpu.push(myData);
 
         }
@@ -757,7 +763,6 @@ void *decodeAudio_gpu(void *arg) {
     }
     return (void *) RESULT_SUCCESS;
 }
-
 
 
 int open_gpu(JNIEnv *env, const char *path, jobject win) {
@@ -785,8 +790,8 @@ int open_gpu(JNIEnv *env, const char *path, jobject win) {
 
     pthread_create(&readFrameThread, NULL, readFrame_gpu, NULL);
     pthread_create(&decodeYuvThread, NULL, decodeVideo_gpu, NULL);
-//    pthread_create(&decodePcm, NULL, decodeAudio_gpu, NULL);
-//    pthread_create(&playAudioDelayThread, NULL, audioPlayDelay_gpu, NULL);
+    pthread_create(&decodePcm, NULL, decodeAudio_gpu, NULL);
+    pthread_create(&playAudioDelayThread, NULL, audioPlayDelay_gpu, NULL);
 
     return RESULT_SUCCESS;
 }
@@ -830,7 +835,6 @@ int pause_audio_gpu(bool myPauseFlag) {
         }
         LOGE("SetPlayState pause success ");
     }
-
     return 0;
 }
 
@@ -880,13 +884,14 @@ int clearAllQue() {
     return RESULT_SUCCESS;
 }
 
-//获取时间
-int64_t getMyTime(int64_t pts, AVRational time_base) {
-    return pts <= 0 ? 0 : (int64_t) (pts * 1000 * av_q2d(time_base));
+
+int getConvertPts(int64_t pts, AVRational time_base) {
+    return (int)(pts * av_q2d(time_base) * 1000);
 }
 
 //一直读取帧，一直到用户选择的位置
 void *jumpToSeekFrame(void *arg) {
+    pthread_mutex_lock(&mutex_pthread);
     int result = -1;
 
     while (vpts_seek_gpu != -1) {
@@ -898,8 +903,8 @@ void *jumpToSeekFrame(void *arg) {
             continue;
         }
         if (pkt_->stream_index == audio_index_gpu) {
-            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
-                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
+//            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
+//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
             if (pkt_->pts >= vpts_seek_gpu) {
                 audioPktQue_gpu.push(pkt_);
             } else {
@@ -924,10 +929,11 @@ void *jumpToSeekFrame(void *arg) {
             LOGE("  jumpToSeekFrame  vframe_gpu_seek->pts %lld , vpts_seek_gpu %lld ",
                  av_frame_get_best_effort_timestamp(vframe_gpu_seek),
                  vpts_seek_gpu);
+
             if (vframe_gpu_seek->pts < vpts_seek_gpu) {
                 continue;
             }
-
+            apts_gpu = vframe_gpu_seek->pts;
             //已经到了用户选择的帧了。
             vpts_seek_gpu = -1;
         }
@@ -943,20 +949,21 @@ void *jumpToSeekFrame(void *arg) {
     //test
 //    avio_flush(afc_gpu->pb);
     result = avformat_flush(afc_gpu);
-    LOGE(" avformat_flush result %d " , result);
+    LOGE(" avformat_flush result %d ", result);
     justPlay_gpu();
+    pthread_mutex_unlock(&mutex_pthread);
     return (void *) RESULT_SUCCESS;
 }
 
 int seekPos(double pos) {
+    pthread_mutex_lock(&mutex_pthread);
     int result = -1;
     //用户点击进度条跳转的地方
     vpts_gpu = (int64_t) (pos * 1000 * afc_gpu->streams[video_index_gpu]->duration *
                           av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
-    apts_gpu = vpts_gpu;
 
     vpts_seek_gpu = afc_gpu->streams[video_index_gpu]->duration * pos;
-    LOGE("*************      vpts_seek_gpu %lld ", vpts_seek_gpu);
+    LOGE("*************      vpts_seek_gpu %lld , after %d  ", vpts_seek_gpu,getConvertPts(vpts_seek_gpu ,afc_gpu->streams[video_index_gpu]->time_base ));
     avio_flush(afc_gpu->pb);
     result = avformat_flush(afc_gpu);
 
@@ -967,14 +974,14 @@ int seekPos(double pos) {
 
     clearAllQue();
     //这里会直接会跳转到之前的关键帧
-    result = av_seek_frame(afc_gpu, video_index_gpu, vpts_seek_gpu,
-                           AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
+    result = av_seek_frame(afc_gpu , video_index_gpu , vpts_seek_gpu , AVSEEK_FLAG_BACKWARD);
 
     if (result < 0) {
-        LOGE(" av_seek_frame result %d ", result);
+        LOGE(" av_seek_frame faild result %d ", result);
         return RESULT_FAILD;
     }
     pthread_create(&jumpToSeekPosThread, NULL, jumpToSeekFrame, NULL);
+    pthread_mutex_unlock(&mutex_pthread);
     return RESULT_SUCCESS;
 }
 

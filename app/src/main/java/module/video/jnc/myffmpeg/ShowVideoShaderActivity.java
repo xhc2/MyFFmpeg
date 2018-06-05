@@ -10,6 +10,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 //https://blog.csdn.net/u010302327/article/details/78457091
+
+/**
+ * 先做倍速播放吧。
+ * seek问题很多。video 的seek调不准。然后音频也会跟着出乱子。
+ */
 public class ShowVideoShaderActivity extends Activity {
 
     private SeekBar seekBar ;

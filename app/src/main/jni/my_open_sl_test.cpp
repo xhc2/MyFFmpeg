@@ -125,11 +125,17 @@ int play_audio(const char *path) {
 
     //配置音频信息
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE , 10};
+
+    SLuint32 kz = (SLuint32)(44100000 * 1.5 );
+
+
     //音频格式
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
             2,//    声道数
-            SL_SAMPLINGRATE_44_1,
+
+            /*SL_SAMPLINGRATE_44_1*/ kz,
+
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT|SL_SPEAKER_FRONT_RIGHT,
