@@ -950,7 +950,6 @@ void *jumpToSeekFrame(void *arg) {
     //test
 //    avio_flush(afc_gpu->pb);
     result = avformat_flush(afc_gpu);
-    LOGE(" avformat_flush result %d ", result);
     justPlay_gpu();
     pthread_mutex_unlock(&mutex_pthread);
     return (void *) RESULT_SUCCESS;
