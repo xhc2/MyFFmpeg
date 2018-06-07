@@ -496,13 +496,13 @@ int initAudio_gpu() {
     //配置音频信息
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 10};
 
-    SLuint32 kz = (SLuint32)(48000000 * 2);
+    SLuint32 kz = (SLuint32) (48000000 * 2);
 
     //音频格式
     SLDataFormat_PCM pcm_ = {
             SL_DATAFORMAT_PCM,
             1,//    声道数
-            kz ,
+            kz,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT,
@@ -651,7 +651,7 @@ void *decodeVideo_gpu(void *arg) {
 //        LOGE(" pop pck %lld " , pck->pts);
         //音视频同步处理
         int64_t pts = getConvertPts(pck->pts, afc_gpu->streams[pck->stream_index]->time_base);
-        LOGE("tong bu apts %lld , vpts %lld " , apts_gpu , pts);
+        LOGE("tong bu apts %lld , vpts %lld ", apts_gpu, pts);
         if (pts > apts_gpu) {
             ThreadSleep_gpu(1);
             continue;
@@ -755,7 +755,8 @@ void *decodeAudio_gpu(void *arg) {
             myData.data = (char *) malloc(myData.size);;
             memcpy(myData.data, play_audio_temp, myData.size);
             myData.isAudio = true;
-            myData.pts = getConvertPts(aframe_gpu->pts  , afc_gpu->streams[audio_index_gpu]->time_base);
+            myData.pts = getConvertPts(aframe_gpu->pts,
+                                       afc_gpu->streams[audio_index_gpu]->time_base);
             audioFrameQue_gpu.push(myData);
 
         }
@@ -886,7 +887,7 @@ int clearAllQue() {
 
 
 int getConvertPts(int64_t pts, AVRational time_base) {
-    return (int)(pts * av_q2d(time_base) * 1000);
+    return (int) (pts * av_q2d(time_base) * 1000);
 }
 
 //一直读取帧，一直到用户选择的位置
@@ -963,7 +964,8 @@ int seekPos(double pos) {
                           av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
 
     vpts_seek_gpu = afc_gpu->streams[video_index_gpu]->duration * pos;
-    LOGE("*************      vpts_seek_gpu %lld , after %d  ", vpts_seek_gpu,getConvertPts(vpts_seek_gpu ,afc_gpu->streams[video_index_gpu]->time_base ));
+    LOGE("*************      vpts_seek_gpu %lld , after %d  ", vpts_seek_gpu,
+         getConvertPts(vpts_seek_gpu, afc_gpu->streams[video_index_gpu]->time_base));
     avio_flush(afc_gpu->pb);
     result = avformat_flush(afc_gpu);
 
@@ -974,7 +976,7 @@ int seekPos(double pos) {
 
     clearAllQue();
     //这里会直接会跳转到之前的关键帧
-    result = av_seek_frame(afc_gpu , video_index_gpu , vpts_seek_gpu , AVSEEK_FLAG_BACKWARD);
+    result = av_seek_frame(afc_gpu, video_index_gpu, vpts_seek_gpu, AVSEEK_FLAG_BACKWARD);
 
     if (result < 0) {
         LOGE(" av_seek_frame faild result %d ", result);

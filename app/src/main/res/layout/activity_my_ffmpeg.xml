@@ -58,6 +58,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="c++线程测试" />
+
+            <Button
+                android:id="@+id/bt_sound_touch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="soundtouch_test" />
             <!--<Button-->
                 <!--android:id="@+id/camera_ffmpeg"-->
                 <!--android:layout_width="match_parent"-->
