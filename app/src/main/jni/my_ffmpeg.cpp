@@ -15,6 +15,7 @@
 #include "my_open_sl_test.h"
 #include "video_audio_decode_show.h"
 #include "my_thread.h"
+#include "SoundTouch.h"
 //void testPointer(char* test){
 //    test = (char *)malloc(sizeof(char) * 6);
 //    LOGE("TEST HANSHU %d " , test);
@@ -27,6 +28,8 @@
  * @param clazz
  * @return
  */
+// using namespace soundtouch;
+
 JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative(JNIEnv *env, jclass clazz) {
 
@@ -161,3 +164,13 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getPlayPosition(JNIEnv *env, jclass t
     // TODO
     return getPlayPosition();
 }
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getVersionString(JNIEnv *env, jclass type) {
+
+   const char *verStr;
+   verStr = soundtouch::SoundTouch::getVersionString();
+   return env->NewStringUTF(verStr);
+}
+

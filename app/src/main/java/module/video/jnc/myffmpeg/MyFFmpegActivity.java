@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-
 import java.io.File;
 
 import module.video.jnc.myffmpeg.EGLCamera.EGLCameraActivity;
@@ -33,7 +33,8 @@ public class MyFFmpegActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_ffmpeg);
-        FFmpegUtils.stringNative();
+//        FFmpegUtils.stringNative();
+        Log.e("xhc" ,FFmpegUtils.getVersionString());
         findViewById(R.id.camera_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
