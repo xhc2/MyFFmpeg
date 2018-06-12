@@ -34,7 +34,7 @@ public class MyFFmpegActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_ffmpeg);
 //        FFmpegUtils.stringNative();
-        Log.e("xhc" ,FFmpegUtils.getVersionString());
+        Log.e("xhc" ,FFmpegUtils.getVersionString()+" TEST");
         findViewById(R.id.camera_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

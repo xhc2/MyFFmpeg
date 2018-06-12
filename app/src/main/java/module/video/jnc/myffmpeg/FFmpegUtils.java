@@ -10,6 +10,7 @@ import android.util.Log;
 public class FFmpegUtils {
 
     static {
+        System.loadLibrary("soundtouch");
         System.loadLibrary("avutil");
         System.loadLibrary("avcodec");
         System.loadLibrary("avformat");
@@ -17,7 +18,7 @@ public class FFmpegUtils {
         System.loadLibrary("swscale");
         System.loadLibrary("avfilter");
         System.loadLibrary("my_ffmpeg");
-        System.loadLibrary("soundtouch");
+
     }
     public static native String stringNative();
 
