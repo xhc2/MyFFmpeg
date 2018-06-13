@@ -169,8 +169,8 @@ extern "C"
 JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_getVersionString(JNIEnv *env, jclass type) {
 
-//   const char *verStr;
-//   verStr = soundtouch::SoundTouch::getVersionString();
-   return /*env->NewStringUTF(verStr)*/NULL;
+   const char *verStr;
+   verStr = soundtouch::SoundTouch::getVersionString();
+   return env->NewStringUTF(verStr);
 }
 
