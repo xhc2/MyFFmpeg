@@ -36,8 +36,6 @@ LOCAL_MODULE := soundtouch
 LOCAL_SRC_FILES := prebuilt/libsoundtouch.so
 include $(PREBUILT_SHARED_LIBRARY)
 
-
-
 # Program FFmpeg
 
 include $(CLEAR_VARS)
@@ -64,6 +62,7 @@ LOCAL_CFLAGS := -std=c++11 -Wall -Werror -O0
 LOCAL_SANITIZE := address
 LOCAL_MODULE_RELATIVE_PATH := asan
 LOCAL_CLANG:=true
+#LOCAL_ALLOW_UNDEFINED_SYMBOLS := true
 #LOCAL_SANITIZE_DIAG := alignment bounds null unreachable integer
 
 include $(BUILD_SHARED_LIBRARY)

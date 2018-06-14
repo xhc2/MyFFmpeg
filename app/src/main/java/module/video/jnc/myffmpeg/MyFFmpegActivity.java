@@ -6,10 +6,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+
+
+import net.surina.soundtouch.SoundTouch;
+
 import java.io.File;
 
-import module.video.jnc.myffmpeg.EGLCamera.EGLCameraActivity;
-import module.video.jnc.myffmpeg.opengl.OpenglActivity;
 
 /**
  * http://ffmpeg.org/doxygen/3.4/index.html
@@ -34,7 +36,7 @@ public class MyFFmpegActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_ffmpeg);
 //        FFmpegUtils.stringNative();
-        Log.e("xhc" ,FFmpegUtils.getVersionString()+" TEST");
+        Log.e("xhc" , FFmpegUtils.getVersionString()+" TEST ");
         findViewById(R.id.camera_filter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
