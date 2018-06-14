@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.View;
 
 
-import net.surina.soundtouch.SoundTouch;
 
 import java.io.File;
 
@@ -45,6 +44,7 @@ public class MyFFmpegActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.bt_opensl_test).setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
                 if(!openSLCreateFlag){

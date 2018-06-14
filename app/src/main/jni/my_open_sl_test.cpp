@@ -8,7 +8,17 @@
 #include "my_open_sl_test.h"
 #include <thread>
 #include <stdio.h>
+#include <SoundTouch.h>
+#include <WavFile.h>
+#include "STTypes.h"
 using namespace std;
+/**
+ * soundtouch
+ */
+using namespace soundtouch;
+SoundTouch *mySoundTouch;
+
+
 /**
  * https://developer.android.com/ndk/guides/audio/android-extensions.html?hl=zh-cn#dynamic-interfaces 官方链接
  * https://blog.csdn.net/ywl5320/article/details/78503768
@@ -24,6 +34,7 @@ SLObjectItf mix =  NULL;
 SLObjectItf  player = NULL;
 FILE *fp = NULL;
 char *buf = NULL;
+SAMPLETYPE *reciveBuf = NULL;
 SLAndroidSimpleBufferQueueItf  pcmQue = NULL;
 
 SLEngineItf createSL() {
@@ -53,6 +64,9 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
     {
         buf = new char[1024*1024];
     }
+    if(!reciveBuf){
+        reciveBuf = new SAMPLETYPE[1024 * 1024  ];
+    }
     if(!fp)
     {
         fp = fopen(pcm_path,"rb");
@@ -64,9 +78,11 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
     if(feof(fp) == 0)
     {
         int len = fread(buf,1,1024,fp);
+        mySoundTouch->putSamples((SAMPLETYPE *)buf, 1);
+        mySoundTouch->receiveSamples(reciveBuf , 1);
         if(len > 0)
             //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数
-            (*bf)->Enqueue(bf,buf,len);
+            (*bf)->Enqueue(bf,reciveBuf,len);
             LOGE(" ADD BUFFER !");
     }
 }
@@ -96,11 +112,30 @@ void playAudioDelay(){
 
 }
 
+/**
+ * https://blog.csdn.net/ywl5320/article/details/79735943
+ * @return
+ */
+int init_sound_touch(){
+
+    mySoundTouch = new SoundTouch();
+    //采样率
+    mySoundTouch->setSampleRate(44100000);
+    //声道数
+    mySoundTouch->setChannels(2);
+    //速度
+    mySoundTouch->setTempo(1);
+    mySoundTouch->setPitch(1);
+    return RESULT_SUCCESS;
+}
+
 int play_audio(const char *path) {
     pcm_path =(char*)malloc(1024);
     LOGE("SIZE OF *CHAR %d " , sizeof(*path));
 //    memcpy(pcm_path , path , 1024);
     pcm_path = path;
+    //创建soundtouch
+    init_sound_touch();
     //创建引擎
     eng = createSL();
     if(!eng){
@@ -126,7 +161,6 @@ int play_audio(const char *path) {
     //配置音频信息
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE , 10};
 
-    SLuint32 kz = (SLuint32)(44100000 * 1.5 );
 
 
     //音频格式
@@ -134,7 +168,7 @@ int play_audio(const char *path) {
             SL_DATAFORMAT_PCM,
             2,//    声道数
 
-            /*SL_SAMPLINGRATE_44_1*/ kz,
+            SL_SAMPLINGRATE_44_1,
 
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
@@ -200,6 +234,11 @@ int openslDestroy(){
         fclose(fp);
         fp = NULL;
     }
+    if(mySoundTouch != NULL){
+        delete  mySoundTouch;
+        mySoundTouch = NULL;
+    }
+
     return 1;
 }
 
