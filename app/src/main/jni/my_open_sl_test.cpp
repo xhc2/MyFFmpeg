@@ -34,6 +34,7 @@ SLObjectItf mix =  NULL;
 SLObjectItf  player = NULL;
 FILE *fp = NULL;
 char *buf = NULL;
+//是16位的。
 SAMPLETYPE *reciveBuf = NULL;
 SLAndroidSimpleBufferQueueItf  pcmQue = NULL;
 
@@ -62,10 +63,11 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
 
     if(!buf)
     {
-        buf = new char[1024*1024];
+        //一帧是1024个sample ，
+        buf = new char[1024 * 16];
     }
     if(!reciveBuf){
-        reciveBuf = new SAMPLETYPE[1024 * 1024  ];
+        reciveBuf = new SAMPLETYPE[1024 * 16];
     }
     if(!fp)
     {
@@ -75,15 +77,26 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
         LOGE("file faild ! %s ?" , pcm_path);
         return;
     }
+
     if(feof(fp) == 0)
     {
-        int len = fread(buf,1,1024,fp);
-        mySoundTouch->putSamples((SAMPLETYPE *)buf, 1);
-        mySoundTouch->receiveSamples(reciveBuf , 1);
-        if(len > 0)
-            //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数
-            (*bf)->Enqueue(bf,reciveBuf,len);
-            LOGE(" ADD BUFFER !");
+        //一个sample 16位，
+        int len = fread(buf, 2 ,1024,fp);
+        if(len > 0){
+            mySoundTouch->putSamples((SAMPLETYPE *)buf, 1024);
+            LOGE(" len %d "  , len);
+        }
+        else{
+            mySoundTouch->clear();
+        }
+        int num = 0 ;
+//        do{
+            num = mySoundTouch->receiveSamples(reciveBuf , 1024 );
+            LOGE("receiveSamples NUM  %d " , num);
+//        }while (num != 0);
+        //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数
+        (*bf)->Enqueue(bf, reciveBuf ,1024 * 2);
+        LOGE(" ADD BUFFER !");
     }
 }
 

@@ -63,7 +63,8 @@ frame->nb_samples，一帧音频（frame）中有多少个采样（一般是1024
 
 音频的时间方面：
 
-一帧 1024个 sample。采样率 Samplerate 44100KHz，每秒44100个AV_SAMPLE_FMT_S16, 所以根据公式   音频帧的播放时间=一个AAC帧对应的采样样本的个数/采样频率
+一帧 1024个 sample。采样率 Samplerate 44100KHz，每秒44100个AV_SAMPLE_FMT_S16, 所以根据公式
+音频帧的播放时间=一个AAC帧对应的采样样本的个数/采样频率
 当前AAC一帧的播放时间是= 1024*1000000/44100= 22.2ms(单位为ms)
 
 调试发现，对音频重采样后，frame_->format中的格式并不会改变，所以使用av_get_bytes_per_sample获取每个采样的大小的时候需要手动改成outFormat
