@@ -7,10 +7,10 @@
 #include <stdio.h>
 #include "my_open_sl_test.h"
 #include <thread>
-#include <stdio.h>
 #include <SoundTouch.h>
 #include <WavFile.h>
 #include "STTypes.h"
+
 using namespace std;
 /**
  * soundtouch
@@ -29,14 +29,17 @@ SoundTouch *mySoundTouch;
 SLObjectItf engineSL = NULL;
 const char *pcm_path;
 SLPlayItf iplayer = NULL;
-SLEngineItf eng =  NULL;
-SLObjectItf mix =  NULL;
-SLObjectItf  player = NULL;
+SLEngineItf eng = NULL;
+SLObjectItf mix = NULL;
+SLObjectItf player = NULL;
 FILE *fp = NULL;
 char *buf = NULL;
 //是16位的。
 SAMPLETYPE *reciveBuf = NULL;
-SLAndroidSimpleBufferQueueItf  pcmQue = NULL;
+SLAndroidSimpleBufferQueueItf pcmQue = NULL;
+
+//test
+FILE *fileTest;
 
 SLEngineItf createSL() {
     SLresult re = 0;
@@ -59,54 +62,53 @@ SLEngineItf createSL() {
     return en;
 }
 
-void pcmCall(SLAndroidSimpleBufferQueueItf bf , void *context){
+void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
-    if(!buf)
-    {
+    if (!buf) {
         //一帧是1024个sample ，
-        buf = new char[1024 * 16];
+        buf = new char[1024 * 2];
     }
-    if(!reciveBuf){
-        reciveBuf = new SAMPLETYPE[1024 * 16];
+    if (!reciveBuf) {
+        reciveBuf = new SAMPLETYPE[1024];
     }
-    if(!fp)
-    {
-        fp = fopen(pcm_path,"rb");
+    if (!fp) {
+        fp = fopen(pcm_path, "rb");
     }
-    if(!fp){
-        LOGE("file faild ! %s ?" , pcm_path);
+    if (!fp) {
+        LOGE("file faild ! %s ?", pcm_path);
         return;
     }
 
-    if(feof(fp) == 0)
-    {
+    if (feof(fp) == 0) {
         //一个sample 16位，
-        int len = fread(buf, 2 ,1024,fp);
-        if(len > 0){
-            mySoundTouch->putSamples((SAMPLETYPE *)buf, 1024);
-            LOGE(" len %d "  , len);
+        int len = fread(buf, 1, 1024, fp);
+        if (len > 0) {
+            //第二个参数是放入多少个sample ， 16位一个。
+//            mySoundTouch->putSamples((SAMPLETYPE *) buf, 1024);
+            LOGE(" len %d ", len);
+        } else {
+//            mySoundTouch->clear();
         }
-        else{
-            mySoundTouch->clear();
-        }
-        int num = 0 ;
+        int num = 0;
 //        do{
-            num = mySoundTouch->receiveSamples(reciveBuf , 1024 );
-            LOGE("receiveSamples NUM  %d " , num);
+//        num = mySoundTouch->receiveSamples(reciveBuf, 1024);
+//        fwrite(reciveBuf, 2, 1024, fileTest);
+        LOGE("receiveSamples NUM  %d ", num);
 //        }while (num != 0);
-        //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数
-        (*bf)->Enqueue(bf, reciveBuf ,1024 * 2);
+        //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
+        (*bf)->Enqueue(bf, buf, /*1024 * 2*/len);
         LOGE(" ADD BUFFER !");
     }
 }
 
 //暂停或者播放
-int pause(bool flag){
-    if(iplayer != NULL){
+int pause(bool flag) {
+    if (iplayer != NULL) {
 
-        SLresult re = (*iplayer)->SetPlayState(iplayer , flag== true ? SL_PLAYSTATE_PLAYING : SL_PLAYSTATE_PAUSED);
+        SLresult re = (*iplayer)->SetPlayState(iplayer, flag == true ? SL_PLAYSTATE_PLAYING
+                                                                     : SL_PLAYSTATE_PAUSED);
 
-        if(re != SL_RESULT_SUCCESS){
+        if (re != SL_RESULT_SUCCESS) {
             LOGE("SetPlayState pause FAILD ");
             return -1;
         }
@@ -115,13 +117,14 @@ int pause(bool flag){
 
     return 0;
 }
+
 void ThreadSleep2(int mis) {
     chrono::milliseconds du(mis);
     this_thread::sleep_for(du);
 }
 
 
-void playAudioDelay(){
+void playAudioDelay() {
 
 }
 
@@ -129,8 +132,8 @@ void playAudioDelay(){
  * https://blog.csdn.net/ywl5320/article/details/79735943
  * @return
  */
-int init_sound_touch(){
-
+int init_sound_touch() {
+    fileTest = fopen("sdcard/FFmpeg/sttest.pcm", "wb+");
     mySoundTouch = new SoundTouch();
     //采样率
     mySoundTouch->setSampleRate(44100000);
@@ -143,36 +146,36 @@ int init_sound_touch(){
 }
 
 int play_audio(const char *path) {
-    pcm_path =(char*)malloc(1024);
-    LOGE("SIZE OF *CHAR %d " , sizeof(*path));
+    pcm_path = (char *) malloc(1024);
+    LOGE("SIZE OF *CHAR %d ", sizeof(*path));
 //    memcpy(pcm_path , path , 1024);
     pcm_path = path;
     //创建soundtouch
     init_sound_touch();
     //创建引擎
     eng = createSL();
-    if(!eng){
+    if (!eng) {
         LOGE("createSL FAILD ");
     }
 
     //2.创建混音器
     mix = NULL;
     SLresult re = 0;
-    re = (*eng)->CreateOutputMix(eng , &mix , 0 ,0 , 0);
-    if(re != SL_RESULT_SUCCESS){
+    re = (*eng)->CreateOutputMix(eng, &mix, 0, 0, 0);
+    if (re != SL_RESULT_SUCCESS) {
         LOGE("CreateOutputMix FAILD ");
         return -1;
     }
     re = (*mix)->Realize(mix, SL_BOOLEAN_FALSE);
-    if(re != SL_RESULT_SUCCESS){
+    if (re != SL_RESULT_SUCCESS) {
         LOGE("Realize FAILD ");
         return -1;
     }
-    SLDataLocator_OutputMix outmix = {SL_DATALOCATOR_OUTPUTMIX , mix};
-    SLDataSink audioSink = {&outmix , 0};
+    SLDataLocator_OutputMix outmix = {SL_DATALOCATOR_OUTPUTMIX, mix};
+    SLDataSink audioSink = {&outmix, 0};
 
     //配置音频信息
-    SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE , 10};
+    SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 10};
 
 
 
@@ -185,73 +188,75 @@ int play_audio(const char *path) {
 
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
-            SL_SPEAKER_FRONT_LEFT|SL_SPEAKER_FRONT_RIGHT,
+            SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
             SL_BYTEORDER_LITTLEENDIAN //字节序，小端
     };
-    SLDataSource ds = {&que,&pcm};
+    SLDataSource ds = {&que, &pcm};
 
     //创建播放器
     const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
     const SLboolean req[] = {SL_BOOLEAN_TRUE};
-    re = (*eng)->CreateAudioPlayer(eng , &player , &ds , &audioSink , sizeof(ids) / sizeof(SLInterfaceID) , ids , req);
-    if(re != SL_RESULT_SUCCESS){
+    re = (*eng)->CreateAudioPlayer(eng, &player, &ds, &audioSink,
+                                   sizeof(ids) / sizeof(SLInterfaceID), ids, req);
+    if (re != SL_RESULT_SUCCESS) {
         LOGE("CreateAudioPlayer FAILD ");
         return -1;
     }
-    (*player)->Realize(player,SL_BOOLEAN_FALSE);
-    re = (*player)->GetInterface(player , SL_IID_PLAY , &iplayer);
-    if(re != SL_RESULT_SUCCESS){
+    (*player)->Realize(player, SL_BOOLEAN_FALSE);
+    re = (*player)->GetInterface(player, SL_IID_PLAY, &iplayer);
+    if (re != SL_RESULT_SUCCESS) {
         LOGE("GetInterface SL_IID_PLAY FAILD ");
         return -1;
     }
-    re = (*player)->GetInterface(player , SL_IID_BUFFERQUEUE , &pcmQue);
-    if(re != SL_RESULT_SUCCESS){
+    re = (*player)->GetInterface(player, SL_IID_BUFFERQUEUE, &pcmQue);
+    if (re != SL_RESULT_SUCCESS) {
         LOGE("GetInterface SL_IID_BUFFERQUEUE FAILD ");
         return -1;
     }
 
-    (*pcmQue)->RegisterCallback(pcmQue , pcmCall , 0);
-    LOGE("THREAD START %s " , pcm_path);
-    (*iplayer)->SetPlayState(iplayer , SL_PLAYSTATE_PLAYING);
-    (*pcmQue)->Enqueue(pcmQue , "" , 1);
+    (*pcmQue)->RegisterCallback(pcmQue, pcmCall, 0);
+    LOGE("THREAD START %s ", pcm_path);
+    (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
+    (*pcmQue)->Enqueue(pcmQue, "", 1);
     LOGE(" play_audio SUCCESS ");
     return 1;
 }
 
 
-
 // 对象应按照与创建时相反的顺序销毁 ,  例如，请按照此顺序销毁：音频播放器和录制器、输出混合，最后是引擎。
-int openslDestroy(){
+int openslDestroy() {
     if (iplayer && (*iplayer)) {
         (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
     }
-    if (pcmQue  != NULL) {
+    if (pcmQue != NULL) {
         (*pcmQue)->Clear(pcmQue);
     }
-    if(player != NULL){
+    if (player != NULL) {
         (*player)->Destroy(player);
         player = NULL;
         iplayer = NULL;
         pcmQue = NULL;
     }
-    if(mix != NULL){
+    if (mix != NULL) {
         (*mix)->Destroy(mix);
         mix = NULL;
     }
-    if(engineSL != NULL){
+    if (engineSL != NULL) {
         (*engineSL)->Destroy(engineSL);
         engineSL = NULL;
         eng = NULL;
     }
-    if(fp != NULL){
+    if (fp != NULL) {
         fclose(fp);
         fp = NULL;
     }
-    if(mySoundTouch != NULL){
-        delete  mySoundTouch;
+    if (mySoundTouch != NULL) {
+        delete mySoundTouch;
         mySoundTouch = NULL;
     }
-
+    if (fileTest != NULL) {
+        fclose(fileTest);
+    }
     return 1;
 }
 
