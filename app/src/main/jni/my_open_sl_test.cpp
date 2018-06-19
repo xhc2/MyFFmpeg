@@ -17,7 +17,7 @@ using namespace std;
  */
 using namespace soundtouch;
 SoundTouch *mySoundTouch;
-
+int SIZE = 1024;
 
 /**
  * https://developer.android.com/ndk/guides/audio/android-extensions.html?hl=zh-cn#dynamic-interfaces 官方链接
@@ -66,10 +66,10 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     if (!buf) {
         //一帧是1024个sample ，
-        buf = new char[1024 * 2];
+        buf = new char[SIZE * 2];
     }
     if (!reciveBuf) {
-        reciveBuf = new SAMPLETYPE[1024];
+        reciveBuf = new SAMPLETYPE[SIZE * 2];
     }
     if (!fp) {
         fp = fopen(pcm_path, "rb");
@@ -81,22 +81,22 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     if (feof(fp) == 0) {
         //一个sample 16位，
-        int len = fread(buf, 1, 1024, fp);
+        int len = fread(buf, 1, SIZE, fp);
         if (len > 0) {
             //第二个参数是放入多少个sample ， 16位一个。
-//            mySoundTouch->putSamples((SAMPLETYPE *) buf, 1024);
+            mySoundTouch->putSamples((SAMPLETYPE *) buf, 1);
             LOGE(" len %d ", len);
         } else {
-//            mySoundTouch->clear();
+            mySoundTouch->clear();
         }
         int num = 0;
-//        do{
-//        num = mySoundTouch->receiveSamples(reciveBuf, 1024);
-//        fwrite(reciveBuf, 2, 1024, fileTest);
-        LOGE("receiveSamples NUM  %d ", num);
-//        }while (num != 0);
+        do {
+            num = mySoundTouch->receiveSamples(reciveBuf, 1);
+            fwrite(reciveBuf, 1, num, fileTest);
+            LOGE("receiveSamples NUM  %d ", num);
+        } while (num != 0);
         //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
-        (*bf)->Enqueue(bf, buf, /*1024 * 2*/len);
+        (*bf)->Enqueue(bf, buf, num);
         LOGE(" ADD BUFFER !");
     }
 }
@@ -136,7 +136,7 @@ int init_sound_touch() {
     fileTest = fopen("sdcard/FFmpeg/sttest.pcm", "wb+");
     mySoundTouch = new SoundTouch();
     //采样率
-    mySoundTouch->setSampleRate(44100000);
+    mySoundTouch->setSampleRate(44100);
     //声道数
     mySoundTouch->setChannels(2);
     //速度

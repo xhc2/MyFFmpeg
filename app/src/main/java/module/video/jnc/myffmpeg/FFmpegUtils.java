@@ -5,6 +5,7 @@ import android.util.Log;
 
 /**
  * Created by xhc on 2017/11/1.
+ * http://blog.51cto.com/ticktick/1746136
  */
 
 public class FFmpegUtils {
