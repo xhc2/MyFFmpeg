@@ -14,7 +14,7 @@ import java.io.File;
 
 /**
  * http://ffmpeg.org/doxygen/3.4/index.html
- * https://blog.csdn.net/wkw1125/article/details/63807128
+ * https://blog.csdn.net/wkw1125/article/details/63807128 SoundTouch实现音频变速变调
  * ffmpeg展示界面
  * 1.对音视频文件的编解码
  * 2.推流先不搞,等服务器rtmp的服务器先搭个简单的再处理

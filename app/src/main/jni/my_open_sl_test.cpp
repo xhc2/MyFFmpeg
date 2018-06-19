@@ -84,19 +84,19 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
         int len = fread(buf, 1, SIZE, fp);
         if (len > 0) {
             //第二个参数是放入多少个sample ， 16位一个。
-            mySoundTouch->putSamples((SAMPLETYPE *) buf, 1);
+            mySoundTouch->putSamples((SAMPLETYPE *) buf, len / 4);
             LOGE(" len %d ", len);
         } else {
             mySoundTouch->clear();
         }
         int num = 0;
         do {
-            num = mySoundTouch->receiveSamples(reciveBuf, 1);
+            num = mySoundTouch->receiveSamples(reciveBuf,  len / 4);
             fwrite(reciveBuf, 1, num, fileTest);
             LOGE("receiveSamples NUM  %d ", num);
         } while (num != 0);
         //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
-        (*bf)->Enqueue(bf, buf, num);
+        (*bf)->Enqueue(bf, buf, len);
         LOGE(" ADD BUFFER !");
     }
 }
