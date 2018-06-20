@@ -33,8 +33,9 @@ SLEngineItf eng = NULL;
 SLObjectItf mix = NULL;
 SLObjectItf player = NULL;
 FILE *fp = NULL;
-char *buf = NULL;
-//是16位的。
+uint16_t *buf = NULL;
+
+//是16位的。 short 两个字节，16位 ，char 是一个字节。8位
 SAMPLETYPE *reciveBuf = NULL;
 SLAndroidSimpleBufferQueueItf pcmQue = NULL;
 
@@ -42,6 +43,7 @@ SLAndroidSimpleBufferQueueItf pcmQue = NULL;
 FILE *fileTest;
 
 SLEngineItf createSL() {
+//    LOGE(" SIZE OF SHORT %d " , sizeof(short));
     SLresult re = 0;
     SLEngineItf en = NULL;
     re = slCreateEngine(&engineSL, 0, 0, 0, 0, 0);
@@ -62,14 +64,48 @@ SLEngineItf createSL() {
     return en;
 }
 
+bool haveData = true;
+int num2 = 0;
+
+int readPcmData() {
+    int len = 0;
+    while (!feof(fp)) {
+        if (haveData) {
+            haveData = false;
+            //立体声。
+            len = fread(buf, 1, SIZE * 2, fp);
+
+            if (len > 0) {
+                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
+
+                mySoundTouch->putSamples((SAMPLETYPE *) buf, len / 4);
+                LOGE(" len %d ", len);
+            } else {
+                num2 = 0;
+                mySoundTouch->clear();
+            }
+        }
+        num2 = mySoundTouch->receiveSamples(reciveBuf, len / 4);
+        LOGE(" receiveSamples %d ", num2);
+        if (num2 == 0) {
+            haveData = true;
+            continue;
+        }
+//        fwrite(reciveBuf, 1, num2 * 4, fileTest);
+        return num2;
+    }
+    return len;
+}
+
+//声音回调
 void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     if (!buf) {
         //一帧是1024个sample ，
-        buf = new char[SIZE * 2];
+        buf = (uint16_t *) malloc(SIZE * 2 * 2);
     }
     if (!reciveBuf) {
-        reciveBuf = new SAMPLETYPE[SIZE * 2];
+        reciveBuf = (SAMPLETYPE *) malloc(SIZE * 2 * 2);
     }
     if (!fp) {
         fp = fopen(pcm_path, "rb");
@@ -78,27 +114,18 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
         LOGE("file faild ! %s ?", pcm_path);
         return;
     }
+    int size = readPcmData();
 
-    if (feof(fp) == 0) {
-        //一个sample 16位，
-        int len = fread(buf, 1, SIZE, fp);
-        if (len > 0) {
-            //第二个参数是放入多少个sample ， 16位一个。
-            mySoundTouch->putSamples((SAMPLETYPE *) buf, len / 4);
-            LOGE(" len %d ", len);
-        } else {
-            mySoundTouch->clear();
-        }
-        int num = 0;
-        do {
-            num = mySoundTouch->receiveSamples(reciveBuf,  len / 4);
-            fwrite(reciveBuf, 1, num, fileTest);
-            LOGE("receiveSamples NUM  %d ", num);
-        } while (num != 0);
+    if(size > 0){
         //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
-        (*bf)->Enqueue(bf, buf, len);
-        LOGE(" ADD BUFFER !");
+        LOGE(" ADD BUFFER ! %d " , size);
+        (*bf)->Enqueue(bf, reciveBuf, size * 4);
+
+    }else{
+        LOGE(" finish... !");
     }
+
+
 }
 
 //暂停或者播放
@@ -140,14 +167,13 @@ int init_sound_touch() {
     //声道数
     mySoundTouch->setChannels(2);
     //速度
-    mySoundTouch->setTempo(1);
+    mySoundTouch->setTempo(1.5);
     mySoundTouch->setPitch(1);
     return RESULT_SUCCESS;
 }
 
 int play_audio(const char *path) {
     pcm_path = (char *) malloc(1024);
-    LOGE("SIZE OF *CHAR %d ", sizeof(*path));
 //    memcpy(pcm_path , path , 1024);
     pcm_path = path;
     //创建soundtouch
@@ -256,6 +282,10 @@ int openslDestroy() {
     }
     if (fileTest != NULL) {
         fclose(fileTest);
+    }
+    if(pcm_path != NULL){
+//        free(pcm_path);
+//        delete pcm_path;
     }
     return 1;
 }

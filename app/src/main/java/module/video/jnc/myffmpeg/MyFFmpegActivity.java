@@ -56,7 +56,6 @@ public class MyFFmpegActivity extends AppCompatActivity {
                     openSLFlag = !openSLFlag ;
                     FFmpegUtils.openSLPauseOrPlay(openSLFlag);
                 }
-
             }
         });
 
