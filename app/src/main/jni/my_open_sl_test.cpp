@@ -119,7 +119,7 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
     if(size > 0){
         //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
         LOGE(" ADD BUFFER ! %d " , size);
-        (*bf)->Enqueue(bf, reciveBuf, size * 4);
+        (*bf)->Enqueue(bf, reciveBuf, size * 5);
 
     }else{
         LOGE(" finish... !");
