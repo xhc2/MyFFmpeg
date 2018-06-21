@@ -176,3 +176,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getVersionString(JNIEnv *env, jclass 
    verStr = SoundTouch::getVersionString();
    return env->NewStringUTF(verStr);
 }
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_changeSpeedGpu(JNIEnv *env, jclass type, jdouble speed) {
+
+    return changeSpeed(speed);
+}

@@ -18,6 +18,7 @@ int destroy_gpu();
 int seekPos(double pos);
 int clearAllQue();
 int getPlayPosition();
+int changeSpeed(double speed);
 int pause_audio_gpu(bool myPauseFlag);
 void *audioPlayDelay_gpu(void *arg);
 int getConvertPts(int64_t pts , AVRational time_base);

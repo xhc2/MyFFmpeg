@@ -18,12 +18,26 @@
         android:background="#ffffff"
         android:layout_height="30dp">
 
+
+
+        <TextView
+            android:id="@+id/bt_play_speed"
+            android:layout_width="40dp"
+            android:text="倍速"
+            android:textSize="10sp"
+            android:textColor="#ffffff"
+            android:background="#555555"
+            android:gravity="center"
+            android:layout_margin="1dp"
+            android:layout_height="match_parent" />
+
         <TextView
             android:id="@+id/bt_play_button"
             android:layout_width="40dp"
             android:text="暂停"
             android:textSize="10sp"
             android:textColor="#ffffff"
+            android:layout_toRightOf="@id/bt_play_speed"
             android:background="#000000"
             android:gravity="center"
             android:layout_margin="1dp"

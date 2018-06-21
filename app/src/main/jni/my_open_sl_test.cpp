@@ -8,7 +8,6 @@
 #include "my_open_sl_test.h"
 #include <thread>
 #include <SoundTouch.h>
-#include <WavFile.h>
 #include "STTypes.h"
 
 using namespace std;
@@ -33,10 +32,11 @@ SLEngineItf eng = NULL;
 SLObjectItf mix = NULL;
 SLObjectItf player = NULL;
 FILE *fp = NULL;
-uint16_t *buf = NULL;
+char *buf = NULL;
 
 //是16位的。 short 两个字节，16位 ，char 是一个字节。8位
 SAMPLETYPE *reciveBuf = NULL;
+
 SLAndroidSimpleBufferQueueItf pcmQue = NULL;
 
 //test
@@ -102,7 +102,7 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     if (!buf) {
         //一帧是1024个sample ，
-        buf = (uint16_t *) malloc(SIZE * 2 * 2);
+        buf = (char *) malloc(SIZE * 2 * 2);
     }
     if (!reciveBuf) {
         reciveBuf = (SAMPLETYPE *) malloc(SIZE * 2 * 2);
