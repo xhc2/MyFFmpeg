@@ -70,7 +70,7 @@ int64_t vpts_seek_gpu = -1;
 SAMPLETYPE *reciveBuf_gpu = NULL;
 SAMPLETYPE *putbuffer = NULL;
 SAMPLETYPE *buf_play_gpu = NULL;
-unsigned char *play_audio_temp = 0;
+char *play_audio_temp = 0;
 int maxAudioPacket_gpu = 140;
 int maxVideoPacket_gpu = 100;
 pthread_t readFrameThread;
@@ -161,7 +161,7 @@ int init_sound_touch_gpu() {
     reciveBuf_gpu = (SAMPLETYPE *) malloc(1024 * 2);
     putbuffer = (SAMPLETYPE *) malloc(1024 * 2);
     buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
-    play_audio_temp = new unsigned char[2 * 1024];
+    play_audio_temp = (char*)malloc( 2 * 1024);
 
     mySoundTouch_gpu = new SoundTouch();
     //采样率
@@ -172,6 +172,7 @@ int init_sound_touch_gpu() {
     mySoundTouch_gpu->setTempo(1.0);
     //声调
     mySoundTouch_gpu->setPitch(1);
+
     return RESULT_SUCCESS;
 }
 
