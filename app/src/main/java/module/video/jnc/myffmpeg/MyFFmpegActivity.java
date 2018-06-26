@@ -50,7 +50,7 @@ public class MyFFmpegActivity extends AppCompatActivity {
                 if(!openSLCreateFlag){
                     openSLFlag = true;
                     openSLCreateFlag = true;
-                    FFmpegUtils.openSLTest(Constant.rootFile.getAbsolutePath()+"/test_sl.pcm");
+                    FFmpegUtils.openSLTest(Constant.rootFile.getAbsolutePath()+"/testst.pcm");
                 }
                 else{
                     openSLFlag = !openSLFlag ;

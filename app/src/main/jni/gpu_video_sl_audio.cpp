@@ -14,6 +14,7 @@
 #include <queue>
 #include <SoundTouch.h>
 /**
+ * 2
  * https://www.jianshu.com/p/d5a0ed770b3d
  * 倍速播放，只是单单改变采样率音调会变的很难听。应该不能用这个方法。可以用现成的库 ExoPlayer，sonic什么的
  */
@@ -59,15 +60,16 @@ queue<AVPacket *> audioPktQue_gpu;
 queue<AVPacket *> videoPktQue_gpu;
 queue<MyData> audioFrameQue_gpu;
 int64_t apts_gpu = -1;
-//视频pts定位
 int64_t vpts_gpu = -1;
+FILE *testAudio;
+
 
 //用来定位用户定位的位置
 int64_t vpts_seek_gpu = -1;
-//unsigned char *play_audio_buffer = 0;
 //是16位的。 short 两个字节，16位 ，char 是一个字节。8位
 SAMPLETYPE *reciveBuf_gpu = NULL;
-
+SAMPLETYPE *putbuffer = NULL;
+SAMPLETYPE *buf_play_gpu = NULL;
 unsigned char *play_audio_temp = 0;
 int maxAudioPacket_gpu = 140;
 int maxVideoPacket_gpu = 100;
@@ -90,6 +92,8 @@ GLuint texts[3] = {0};
 GLuint apos;
 GLuint atex;
 EGLContext context;
+
+
 //顶点着色器glsl,这是define的单行定义 #x = "x"
 #define GET_STR(x) #x
 static const char *vertexShader_gpu = GET_STR(
@@ -152,7 +156,13 @@ GLuint InitShader_gpu(const char *code, GLint type) {
 }
 
 int init_sound_touch_gpu() {
-    reciveBuf_gpu = (SAMPLETYPE *) malloc(2 * 1024);
+    testAudio = fopen("sdcard/FFmpeg/testst.pcm", "wb+");
+
+    reciveBuf_gpu = (SAMPLETYPE *) malloc(1024 * 2);
+    putbuffer = (SAMPLETYPE *) malloc(1024 * 2);
+    buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
+    play_audio_temp = new unsigned char[2 * 1024];
+
     mySoundTouch_gpu = new SoundTouch();
     //采样率
     mySoundTouch_gpu->setSampleRate(48000);
@@ -160,13 +170,10 @@ int init_sound_touch_gpu() {
     mySoundTouch_gpu->setChannels(1);
     //速度
     mySoundTouch_gpu->setTempo(1.0);
+    //声调
     mySoundTouch_gpu->setPitch(1);
     return RESULT_SUCCESS;
 }
-
-
-
-
 
 int init_opengl() {
     if (outHeight_gpu == 0 || outWidth_gpu == 0) {
@@ -277,8 +284,6 @@ int init_opengl() {
     glUniform1i(glGetUniformLocation(program, "vTexture"), 2); //对于纹理第3层
 
 
-
-
     //创建三个纹理
     glGenTextures(3, texts);
     //设置纹理属性
@@ -336,9 +341,7 @@ int init_opengl() {
 }
 
 
-
 //ffmepg part
-
 int initFFmpeg_gpu(const char *input_path) {
 
     int result = 0;
@@ -358,7 +361,6 @@ int initFFmpeg_gpu(const char *input_path) {
     }
 
     result = avformat_find_stream_info(afc_gpu, 0);
-
 
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
@@ -443,7 +445,7 @@ int initFFmpeg_gpu(const char *input_path) {
                                  ac_gpu->sample_fmt, ac_gpu->sample_rate,
                                  0, 0);
     result = swr_init(swc_gpu);
-    play_audio_temp = new unsigned char[2 * 1024];
+
     if (result < 0) {
         LOGE(" swr_init FAILD !");
         return RESULT_FAILD;
@@ -465,7 +467,6 @@ SLEngineItf createOpenSL_gpu() {
     }
 
     re = (*engineOpenSL_gpu)->Realize(engineOpenSL_gpu, SL_BOOLEAN_FALSE);
-
     if (re != SL_RESULT_SUCCESS) {
         LOGE("Realize FAILD ");
         return NULL;
@@ -483,46 +484,78 @@ SLEngineItf createOpenSL_gpu() {
 bool haveData_gpu = true;
 
 
-int readPcmData_gpu(char *myBuf , int size) {
+int readPcmData_gpu() {
 
     int num_gpu = 0;
-    int result = 0;
     while (true) {
-
+        if (audioFrameQue_gpu.empty()) {
+            return NULL;
+        }
+        MyData myData;
+        myData = audioFrameQue_gpu.front();
+        audioFrameQue_gpu.pop();
+        int size = myData.size;
+        char *myBuf = myData.data;
+        apts_gpu = myData.pts;
         if (haveData_gpu) {
             haveData_gpu = false;
             if (size > 0 && myBuf) {
+                // size 2048 , 1025
+//                for (int i = 0; i < size / 2; i++) {
+//                    putbuffer[i] = (myBuf[i * 2] | ((myBuf[i * 2 + 1]) << 8));
+//                }
                 //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
-                mySoundTouch_gpu->putSamples((SAMPLETYPE *) myBuf, size / 2);
+                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
             } else {
                 num_gpu = 0;
                 mySoundTouch_gpu->clear();
             }
         }
-        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2  );
-//        result += num_gpu;
-        LOGE(" result %d ", result);
+
+        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
+        LOGE(" result %d ", num_gpu);
+
         if (num_gpu == 0) {
             haveData_gpu = true;
             continue;
         }
-        return num_gpu;
+
+//        free(myData.data);
+        return num_gpu * 2;
     }
 }
 
+int getSoundtouchSample() {
+
+    int size = readPcmData_gpu();
+    return size;
+}
+
+//char *playAudioBuffer;
 
 void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
-    if (!audioFrameQue_gpu.empty()) {
-        MyData myData;
-        myData = audioFrameQue_gpu.front();
-        audioFrameQue_gpu.pop();
 
-        //处理速度
-        int size = readPcmData_gpu(myData.data , myData.size );
-//        memcpy(play_audio_buffer, myData.data, myData.size);
-        (*bf)->Enqueue(bf, reciveBuf_gpu, size * 2 );
-        apts_gpu = myData.pts;
-        free(myData.data);
+//    if(playAudioBuffer == NULL){
+//        playAudioBuffer =(char *)malloc(1024 * 2);
+//    }
+//    if(audioFrameQue_gpu.empty()) return ;
+//        //处理速度 , 正常
+//        MyData myData;
+//        myData = audioFrameQue_gpu.front();
+//        audioFrameQue_gpu.pop();
+//        apts_gpu = myData.pts;
+//        memcpy(playAudioBuffer, myData.data, myData.size);
+//       fwrite(playAudioBuffer , 1 , myData.size , testAudio);
+//        (*bf)->Enqueue(bf, myData.data , myData.size);
+//        free(myData.data);
+
+
+    int size = getSoundtouchSample();
+    if (size > 0) {
+        memcpy(buf_play_gpu, reciveBuf_gpu, size);
+        fwrite(buf_play_gpu, 1, size, testAudio);
+        LOGE(" data %d ", size);
+        (*bf)->Enqueue(bf, buf_play_gpu, size);
     }
 }
 
@@ -532,7 +565,6 @@ int initAudio_gpu() {
     if (!eng_gpu) {
         LOGE("createSL FAILD ");
     }
-
     //2.创建混音器
     mix_gpu = NULL;
     SLresult re = 0;
@@ -552,13 +584,12 @@ int initAudio_gpu() {
     //配置音频信息
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 10};
 
-    SLuint32 kz = (SLuint32) (48000000 * 1);
 
     //音频格式
     SLDataFormat_PCM pcm_ = {
             SL_DATAFORMAT_PCM,
             1,//    声道数
-            kz,
+            SL_SAMPLINGRATE_48,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT,
@@ -593,8 +624,9 @@ int initAudio_gpu() {
     return RESULT_SUCCESS;
 }
 
-int changeSpeed(double speed){
-    LOGE("CHANGE SPEED  %lf" , speed);
+int changeSpeed(double speed) {
+    LOGE("CHANGE SPEED  %lf", speed);
+    mySoundTouch_gpu->setTempo(speed);
     return RESULT_SUCCESS;
 }
 
@@ -606,8 +638,6 @@ void ThreadSleep_gpu(int mis) {
 void *readFrame_gpu(void *arg) {
     int result = 0;
     while (readFrameFlag_gpu) {
-//        LOGE(" audioPktQue.size() %d , videoPktQue.size() %d", audioPktQue_gpu.size(),
-//             videoPktQue_gpu.size());
 
         if (pauseFlag) {
             ThreadSleep_gpu(500);
@@ -628,24 +658,9 @@ void *readFrame_gpu(void *arg) {
             av_packet_free(&pkt_);
             continue;
         }
-
-
         if (pkt_->stream_index == audio_index_gpu) {
-//            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
-//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-//            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
-//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-//            LOGE("AUDIO SIZE %d " ,  pkt_->size);
             audioPktQue_gpu.push(pkt_);
         } else if (pkt_->stream_index == video_index_gpu) {
-
-//            pkt_->pts = (int64_t) (pkt_->pts * (1000 *
-//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-//            pkt_->dts = (int64_t) (pkt_->dts * (1000 *
-//                                                av_q2d(afc_gpu->streams[pkt_->stream_index]->time_base)));
-//这边read一直是正确的，问题不知道出在哪里了。视频解码那边偶尔出问题。但是一般会是5帧左右。
-//            LOGE(" READ PTS %lld ", pkt_->pts);
-
             videoPktQue_gpu.push(pkt_);
         } else {
             av_packet_free(&pkt_);
@@ -759,8 +774,6 @@ void *decodeVideo_gpu(void *arg) {
             vframe_gpu->pts = getConvertPts(vframe_gpu->pts,
                                             afc_gpu->streams[video_index_gpu]->time_base);
             vpts_gpu = vframe_gpu->pts;
-//            LOGE(" vpts_gpu pts %lld ", vpts_gpu);
-//            ThreadSleep_gpu(40);
             showYuv(vframe_gpu->data[0], vframe_gpu->data[1], vframe_gpu->data[2]);
         }
     }
@@ -770,7 +783,6 @@ void *decodeVideo_gpu(void *arg) {
 void *decodeAudio_gpu(void *arg) {
 
     int result = 0;
-    int audioCount = 0;
     while (pcmRunFlag_gpu) {
         if (pauseFlag) {
             ThreadSleep_gpu(50);
@@ -801,7 +813,6 @@ void *decodeAudio_gpu(void *arg) {
             if (result < 0) {
                 break;
             }
-            audioCount++;
             uint8_t *out[1] = {0};
             out[0] = (uint8_t *) play_audio_temp;
             MyData myData;
@@ -814,7 +825,6 @@ void *decodeAudio_gpu(void *arg) {
             //size = 一个sample多少个字节 * 有多少个sample。
             myData.size = av_get_bytes_per_sample((AVSampleFormat) outFormat_gpu) *
                           aframe_gpu->nb_samples;
-            LOGE(" data size %d " , myData.size );
             myData.data = (char *) malloc(myData.size);
             memcpy(myData.data, play_audio_temp, myData.size);
             myData.isAudio = true;
@@ -1124,7 +1134,6 @@ int destroy_Audio() {
         eng_gpu = NULL;
         LOGE("audio engineOpenSL_gpu destory ! ");
     }
-//    delete play_audio_buffer;
     delete play_audio_temp;
     return 1;
 }
@@ -1152,6 +1161,17 @@ int destroyShader() {
 
 int destroyOther() {
     pauseFlag = false;
+    if (testAudio != NULL) {
+        fclose(testAudio);
+    }
+    return RESULT_SUCCESS;
+}
+
+int destroySoundTouch() {
+    if (mySoundTouch_gpu != NULL) {
+        delete mySoundTouch_gpu;
+        mySoundTouch_gpu = NULL;
+    }
     return RESULT_SUCCESS;
 }
 
@@ -1161,6 +1181,7 @@ int destroy_gpu() {
     destroy_FFmpeg();
     destroy_Audio();
     destroyShader();
+    destroySoundTouch();
     return 1;
 }
 

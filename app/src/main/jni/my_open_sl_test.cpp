@@ -69,6 +69,7 @@ int num2 = 0;
 
 int readPcmData() {
     int len = 0;
+
     while (!feof(fp)) {
         if (haveData) {
             haveData = false;
@@ -78,20 +79,19 @@ int readPcmData() {
             if (len > 0) {
                 //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
 
-                mySoundTouch->putSamples((SAMPLETYPE *) buf, len / 4);
+                mySoundTouch->putSamples((SAMPLETYPE *) buf, len / 2);
                 LOGE(" len %d ", len);
             } else {
                 num2 = 0;
                 mySoundTouch->clear();
             }
         }
-        num2 = mySoundTouch->receiveSamples(reciveBuf, len / 4);
-        LOGE(" receiveSamples %d ", num2);
+        num2 = mySoundTouch->receiveSamples(reciveBuf, len / 2);
+        LOGE(" num2 %d ", num2);
         if (num2 == 0) {
             haveData = true;
             continue;
         }
-//        fwrite(reciveBuf, 1, num2 * 4, fileTest);
         return num2;
     }
     return len;
@@ -102,10 +102,10 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     if (!buf) {
         //一帧是1024个sample ，
-        buf = (char *) malloc(SIZE * 2 * 2);
+        buf = (char *) malloc(SIZE * 2 );
     }
     if (!reciveBuf) {
-        reciveBuf = (SAMPLETYPE *) malloc(SIZE * 2 * 2);
+        reciveBuf = (SAMPLETYPE *) malloc(SIZE * 2);
     }
     if (!fp) {
         fp = fopen(pcm_path, "rb");
@@ -119,7 +119,7 @@ void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
     if(size > 0){
         //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
         LOGE(" ADD BUFFER ! %d " , size);
-        (*bf)->Enqueue(bf, reciveBuf, size * 5);
+        (*bf)->Enqueue(bf, reciveBuf, size * 2);
 
     }else{
         LOGE(" finish... !");
@@ -163,11 +163,11 @@ int init_sound_touch() {
     fileTest = fopen("sdcard/FFmpeg/sttest.pcm", "wb+");
     mySoundTouch = new SoundTouch();
     //采样率
-    mySoundTouch->setSampleRate(44100);
+    mySoundTouch->setSampleRate(48000);
     //声道数
-    mySoundTouch->setChannels(2);
+    mySoundTouch->setChannels(1);
     //速度
-    mySoundTouch->setTempo(1.5);
+    mySoundTouch->setTempo(1.0);
     mySoundTouch->setPitch(1);
     return RESULT_SUCCESS;
 }
@@ -208,13 +208,13 @@ int play_audio(const char *path) {
     //音频格式
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
-            2,//    声道数
+            1,//    声道数
 
-            SL_SAMPLINGRATE_44_1,
+            SL_SAMPLINGRATE_48,
 
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
-            SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+            SL_SPEAKER_FRONT_LEFT ,
             SL_BYTEORDER_LITTLEENDIAN //字节序，小端
     };
     SLDataSource ds = {&que, &pcm};
