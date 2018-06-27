@@ -49,7 +49,6 @@ SLEngineItf eng_gpu = NULL;
 SLObjectItf mix_gpu = NULL;
 SLObjectItf player_gpu = NULL;
 SLAndroidSimpleBufferQueueItf pcmQue_gpu = NULL;
-int outFormat_gpu = AV_SAMPLE_FMT_S16;
 
 //other
 bool pauseFlag = false;
@@ -157,15 +156,15 @@ GLuint InitShader_gpu(const char *code, GLint type) {
 
 int init_sound_touch_gpu() {
     testAudio = fopen("sdcard/FFmpeg/testst.pcm", "wb+");
-
-    reciveBuf_gpu = (SAMPLETYPE *) malloc(1024 * 2);
-    putbuffer = (SAMPLETYPE *) malloc(1024 * 2);
-    buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
-    play_audio_temp = (char*)malloc( 2 * 1024);
+    int size = 48000;
+    reciveBuf_gpu = (SAMPLETYPE *) malloc(size * 2);
+    putbuffer = (SAMPLETYPE *) malloc(size * 2);
+    buf_play_gpu = (SAMPLETYPE *) malloc(size * 2);
+    play_audio_temp = (char*)malloc( 2 * size);
 
     mySoundTouch_gpu = new SoundTouch();
     //采样率
-    mySoundTouch_gpu->setSampleRate(48000);
+    mySoundTouch_gpu->setSampleRate(size);
     //声道数
     mySoundTouch_gpu->setChannels(1);
     //速度
@@ -485,12 +484,14 @@ SLEngineItf createOpenSL_gpu() {
 bool haveData_gpu = true;
 
 
-int readPcmData_gpu() {
-
+int readPcmData_gpu(){
     int num_gpu = 0;
     while (true) {
         if (audioFrameQue_gpu.empty()) {
-            return NULL;
+//            mySoundTouch_gpu->flush();
+//            num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, 1024);
+//            LOGE(" flush %d ",num_gpu);
+            return num_gpu;
         }
         MyData myData;
         myData = audioFrameQue_gpu.front();
@@ -498,33 +499,86 @@ int readPcmData_gpu() {
         int size = myData.size;
         char *myBuf = myData.data;
         apts_gpu = myData.pts;
+
         if (haveData_gpu) {
             haveData_gpu = false;
-            if (size > 0 && myBuf) {
-                // size 2048 , 1025
-//                for (int i = 0; i < size / 2; i++) {
-//                    putbuffer[i] = (myBuf[i * 2] | ((myBuf[i * 2 + 1]) << 8));
-//                }
-                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
-                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
-            } else {
-                num_gpu = 0;
-                mySoundTouch_gpu->clear();
+            if(size > 0){
+                mySoundTouch_gpu->putSamples((SAMPLETYPE * )myBuf, size / 2 );
+                num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
+            }
+            else{
+                mySoundTouch_gpu->flush();
             }
         }
-
-        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
-        LOGE(" result %d ", num_gpu);
-
-        if (num_gpu == 0) {
+        if(num_gpu == 0){
             haveData_gpu = true;
             continue;
         }
 
-//        free(myData.data);
+
+//        if (haveData_gpu) {
+//            haveData_gpu = false;
+//            if (size > 0 && myBuf) {
+//                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
+//                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
+//            } else {
+//                num_gpu = 0;
+//                mySoundTouch_gpu->clear();
+//            }
+//        }
+//
+//        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
+//        LOGE(" result %d ", num_gpu);
+//
+//        if (num_gpu == 0) {
+//            haveData_gpu = true;
+//            continue;
+//        }
+
         return num_gpu * 2;
     }
 }
+
+//int readPcmData_gpu() {
+//
+//    int num_gpu = 0;
+//    while (true) {
+//        if (audioFrameQue_gpu.empty()) {
+//            return NULL;
+//        }
+//        MyData myData;
+//        myData = audioFrameQue_gpu.front();
+//        audioFrameQue_gpu.pop();
+//        int size = myData.size;
+//        char *myBuf = myData.data;
+//        apts_gpu = myData.pts;
+//        if (haveData_gpu) {
+//            haveData_gpu = false;
+//            if (size > 0 && myBuf) {
+//                // size 2048 , 1025
+////                for (int i = 0; i < size / 2; i++) {
+////                    putbuffer[i] = (myBuf[i * 2] | ((myBuf[i * 2 + 1]) << 8));
+////                }
+//                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
+//                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
+//            } else {
+//                num_gpu = 0;
+//                mySoundTouch_gpu->clear();
+//            }
+//        }
+//
+//        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
+//        LOGE(" result %d ", num_gpu);
+//
+//        if (num_gpu == 0) {
+//            haveData_gpu = true;
+//            continue;
+//        }
+//
+////        free(myData.data);
+//        return num_gpu * 2;
+//    }
+//}
 
 int getSoundtouchSample() {
 
@@ -824,7 +878,7 @@ void *decodeAudio_gpu(void *arg) {
                         aframe_gpu->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
             //size = 一个sample多少个字节 * 有多少个sample。
-            myData.size = av_get_bytes_per_sample((AVSampleFormat) outFormat_gpu) *
+            myData.size = av_get_bytes_per_sample( AV_SAMPLE_FMT_S16) *
                           aframe_gpu->nb_samples;
             myData.data = (char *) malloc(myData.size);
             memcpy(myData.data, play_audio_temp, myData.size);
