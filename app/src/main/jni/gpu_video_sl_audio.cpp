@@ -483,8 +483,15 @@ SLEngineItf createOpenSL_gpu() {
 
 bool haveData_gpu = true;
 
+<<<<<<< Updated upstream
 
 int readPcmData_gpu(){
+=======
+int inSize = 0;
+int outSize= 0;
+int readPcmData_gpu() {
+
+>>>>>>> Stashed changes
     int num_gpu = 0;
     while (true) {
         if (audioFrameQue_gpu.empty()) {
@@ -502,12 +509,23 @@ int readPcmData_gpu(){
 
         if (haveData_gpu) {
             haveData_gpu = false;
+<<<<<<< Updated upstream
             if(size > 0){
                 mySoundTouch_gpu->putSamples((SAMPLETYPE * )myBuf, size / 2 );
                 num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
             }
             else{
                 mySoundTouch_gpu->flush();
+=======
+            if (size > 0 && myBuf) {
+                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
+//                clearMemSAMPLE(&reciveBuf_gpu , size / 2);
+                inSize += size;
+                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
+            } else {
+                num_gpu = 0;
+                mySoundTouch_gpu->clear();
+>>>>>>> Stashed changes
             }
         }
         if(num_gpu == 0){
@@ -515,6 +533,7 @@ int readPcmData_gpu(){
             continue;
         }
 
+<<<<<<< Updated upstream
 
 //        if (haveData_gpu) {
 //            haveData_gpu = false;
@@ -535,6 +554,10 @@ int readPcmData_gpu(){
 //            continue;
 //        }
 
+=======
+//        free(myData.data);
+        outSize += num_gpu * 2;
+>>>>>>> Stashed changes
         return num_gpu * 2;
     }
 }
@@ -586,6 +609,13 @@ int getSoundtouchSample() {
     return size;
 }
 
+
+void clearMemSAMPLE(SAMPLETYPE **mem , int size){
+    if(size <= 0 || mem == NULL)return ;
+    for(int i = 0 ;i < size ; ++ i){
+        (*mem)[i] = 0;
+    }
+}
 //char *playAudioBuffer;
 
 void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
@@ -607,10 +637,12 @@ void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     int size = getSoundtouchSample();
     if (size > 0) {
+//        clearMemSAMPLE(&buf_play_gpu , size / 2);
         memcpy(buf_play_gpu, reciveBuf_gpu, size);
         fwrite(buf_play_gpu, 1, size, testAudio);
         LOGE(" data %d ", size);
         (*bf)->Enqueue(bf, buf_play_gpu, size);
+//        clearMemSAMPLE(&buf_play_gpu , size / 2);
     }
 }
 
@@ -1163,6 +1195,7 @@ int destroy_FFmpeg() {
 }
 
 int destroy_Audio() {
+    LOGE(" insize %d , outSize %d " , inSize , outSize);
     apts_gpu = 0;
     if (iplayer_gpu && (*iplayer_gpu)) {
         (*iplayer_gpu)->SetPlayState(iplayer_gpu, SL_PLAYSTATE_STOPPED);

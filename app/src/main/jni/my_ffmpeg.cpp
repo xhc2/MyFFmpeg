@@ -168,6 +168,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getPlayPosition(JNIEnv *env, jclass t
     return getPlayPosition();
 }
 
+
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_getVersionString(JNIEnv *env, jclass type) {
