@@ -493,6 +493,7 @@ int readPcmData_gpu(){
 //            LOGE(" flush %d ",num_gpu);
             return num_gpu;
         }
+
         MyData myData;
         myData = audioFrameQue_gpu.front();
         audioFrameQue_gpu.pop();
