@@ -603,7 +603,7 @@ void clearMemSAMPLE(SAMPLETYPE **mem , int size){
 }
 //char *playAudioBuffer;
 
-void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
+static void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
 //    if(playAudioBuffer == NULL){
 //        playAudioBuffer =(char *)malloc(1024 * 2);

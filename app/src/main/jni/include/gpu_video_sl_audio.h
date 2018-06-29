@@ -7,7 +7,7 @@
 #include <jni.h>
 #include <SoundTouch.h>
 extern "C"{
-
+#include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
 };
 

@@ -11,6 +11,7 @@
 #include <decode_show_gl.h>
 #include <my_c_plus_plus_thread.h>
 #include <gpu_video_sl_audio.h>
+#include <mysoundtouch.h>
 #include "decode_encode_test.h"
 #include "my_open_sl_test.h"
 #include "video_audio_decode_show.h"
@@ -32,7 +33,7 @@
 // using namespace soundtouch;
 
 using namespace soundtouch;
-
+mySoundTouch *mySoundTouchInstance;
 JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative(JNIEnv *env, jclass clazz) {
 
@@ -184,6 +185,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_changeSpeedGpu(JNIEnv *env, jclass ty
     return changeSpeed(speed);
 }
 
+
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_soundtouchStart(JNIEnv *env, jclass type) {
@@ -198,5 +201,28 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_soundtouchSpeed(JNIEnv *env, jclass type,
                                                            jdouble speed) {
 
+    return 1;
+}
+
+//extern "C"
+//JNIEXPORT jint JNICALL
+//Java_module_video_jnc_myffmpeg_FFmpegUtils_initsoundtouch(JNIEnv *env, jclass type , jstring path_) {
+//    const char *path = env->GetStringUTFChars(path_, 0);
+//    mySoundTouchInstance = new mySoundTouch();
+//    mySoundTouchInstance->init(path);
+//    env->ReleaseStringUTFChars(path_, path);
+//    return 1;
+//}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initsoundtouch(JNIEnv *env, jclass type, jstring path_) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+
+    mySoundTouchInstance = new mySoundTouch();
+    LOGE("input paht %s" , path);
+    mySoundTouchInstance->init(path);
+
+    env->ReleaseStringUTFChars(path_, path);
     return 1;
 }

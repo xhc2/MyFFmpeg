@@ -57,7 +57,7 @@ public class FFmpegUtils {
 
     public static native int soundtouchStart();
     public static native int soundtouchSpeed(double speed);
-
+    public static native int initsoundtouch(String path);
 
     private void printMsgFromJni(String str){
         Log.e("xhc_jni" ,str);
