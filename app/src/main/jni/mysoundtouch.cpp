@@ -222,9 +222,8 @@ void mySoundTouch::init(const char *st) {
     readFrameThread = new ReadFrame(&audioPktQue , afc , audioindex);
     readFrameThread->start();
 
-    decodeAudioThread = new DecodeAudioThread();
+    decodeAudioThread = new DecodeAudioThread(&audioFrameQue , &audioPktQue , ac , afc , audioindex , swc , aframe);
     decodeAudioThread->start();
-
 
 }
 

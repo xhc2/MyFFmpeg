@@ -5,6 +5,7 @@
 
 
 #include <my_log.h>
+
 #include "DecodeAudioThread.h"
 #include "Utils.h"
 
@@ -62,7 +63,15 @@ void DecodeAudioThread::run() {
         }
     }
 }
-DecodeAudioThread::DecodeAudioThread(){
+DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
+                                     AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  , SwrContext *swc, AVFrame *aframe){
+    this->audioFrameQue = audioFrameQue;
+    this->audioPktQue = audioPktQue;
+    this->ac = ac;
+    this->afc = afc;
+    this->audioIndex = audioIndex;
+    this->swc = swc;
+    this->aframe = aframe;
 
 }
 

@@ -10,7 +10,7 @@ extern "C"{
 };
 
 
-static class Utils{
+class Utils{
 
 public :
    static int getConvertPts(int64_t pts , AVRational time_base);

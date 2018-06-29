@@ -14,7 +14,7 @@
 extern "C"{
 #include <libavcodec/avcodec.h>
 #include <libswresample/swresample.h>
-#include <libswresample/swresample.h>
+#include <libavformat/avformat.h>
 }
 
 
@@ -23,7 +23,7 @@ class DecodeAudioThread : public MyThread{
 public :
     void run();
     DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
-    AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex );
+    AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  , SwrContext *swc ,AVFrame *aframe);
     ~DecodeAudioThread();
 private :
     queue<MyData> *audioFrameQue;
