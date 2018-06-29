@@ -63,7 +63,9 @@
                 android:id="@+id/bt_sound_touch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="soundtouch_test" />
+                android:text="ffmepg+opensles+soundtouch" />
+
+
             <!--<Button-->
                 <!--android:id="@+id/camera_ffmpeg"-->
                 <!--android:layout_width="match_parent"-->

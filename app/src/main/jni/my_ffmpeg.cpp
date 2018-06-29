@@ -183,3 +183,20 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_changeSpeedGpu(JNIEnv *env, jclass ty
 
     return changeSpeed(speed);
 }
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_soundtouchStart(JNIEnv *env, jclass type) {
+
+    // TODO
+    return 1;
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_soundtouchSpeed(JNIEnv *env, jclass type,
+                                                           jdouble speed) {
+
+    return 1;
+}

@@ -55,7 +55,8 @@ public class FFmpegUtils {
     public static native int getPlayPosition();
     public static native String getVersionString();
 
-
+    public static native int soundtouchStart();
+    public static native int soundtouchSpeed(double speed);
 
 
     private void printMsgFromJni(String str){
