@@ -2,38 +2,19 @@
 // Created by dugang on 2018/6/29.
 //
 
+#include <soundTouchDeal.h>
 #include "mysoundtouch.h"
 #include "my_log.h"
 
 
-int mySoundTouch::init_sound_touch(int sampleRate) {
 
-//    int size = 48000;
-//    reciveBuf = (SAMPLETYPE *) malloc(size * 2);
-//    putbuffer = (SAMPLETYPE *) malloc(size * 2);
-//    buf_play = (SAMPLETYPE *) malloc(size * 2);
-//    play_audio_temp = (char*)malloc( 2 * size);
-
-    soundTouch = new SoundTouch();
-    //采样率
-    soundTouch->setSampleRate(sampleRate);
-    //声道数
-    soundTouch->setChannels(1);
-    //速度
-    soundTouch->setTempo(1.0);
-    //声调
-    soundTouch->setPitch(1);
-
-    return RESULT_SUCCESS;
-}
-
-int mySoundTouch::initFFmpeg(const char *input_path){
+int mySoundTouch::initFFmpeg(const char *input_path) {
 
     int result = 0;
     av_register_all();
     avcodec_register_all();
 
-    LOGE("input path %s " , input_path);
+    LOGE("input path %s ", input_path);
     aframe = av_frame_alloc();
     result = avformat_open_input(&afc, input_path, 0, 0);
     if (result != 0) {
@@ -54,12 +35,13 @@ int mySoundTouch::initFFmpeg(const char *input_path){
 
     for (int i = 0; i < afc->nb_streams; ++i) {
         AVStream *avStream = afc->streams[i];
-         if (avStream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+        if (avStream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             //音频
             audioindex = i;
             LOGE("audio samplerate %d ", avStream->codecpar->sample_rate);
+            sampleRate = avStream->codecpar->sample_rate;
             audioCode = avcodec_find_decoder(avStream->codecpar->codec_id);
-            init_sound_touch(avStream->codecpar->sample_rate);
+
             if (!audioCode) {
                 LOGE("audio avcodec_find_decoder FAILD!");
                 return RESULT_FAILD;
@@ -90,11 +72,11 @@ int mySoundTouch::initFFmpeg(const char *input_path){
 
     //音频重采样上下文初始化 , AV_SAMPLE_FMT_S16 格式的单声道
     swc = swr_alloc_set_opts(NULL,
-                                 av_get_default_channel_layout(1),
-                                 AV_SAMPLE_FMT_S16, ac->sample_rate,
-                                 av_get_default_channel_layout(ac->channels),
+                             av_get_default_channel_layout(1),
+                             AV_SAMPLE_FMT_S16, ac->sample_rate,
+                             av_get_default_channel_layout(ac->channels),
                              ac->sample_fmt, ac->sample_rate,
-                                 0, 0);
+                             0, 0);
     result = swr_init(swc);
 
     if (result < 0) {
@@ -132,7 +114,38 @@ SLEngineItf mySoundTouch::createOpenSL() {
     return en;
 }
 
-int mySoundTouch::initOpenSl(){
+
+void audioCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
+    mySoundTouch *ms = (mySoundTouch *) context;
+
+    if (ms->audioFrameQue.empty()) return;
+    //处理速度 , 正常
+    MyData myData;
+    myData = ms->audioFrameQue.front();
+    ms->audioFrameQue.pop();
+//    memcpy(ms->playAudioBuffer, myData.data, myData.size);
+//       fwrite(ms->playAudioBuffer , 1 , myData.size , testAudio);
+
+
+
+    int size = ms->soundTouchDeal->dealPcm((SAMPLETYPE *)myData.data ,myData.size , &ms->buf_play_gpu);
+    (*bf)->Enqueue(bf, ms->buf_play_gpu , size);
+    free(myData.data);
+
+//    int size = getSoundtouchSample();
+//    if (size > 0) {
+////        clearMemSAMPLE(&buf_play_gpu , size / 2);
+//        memcpy(buf_play_gpu, reciveBuf_gpu, size);
+//
+//        LOGE("play data %d ", size);
+//        (*bf)->Enqueue(bf, buf_play_gpu, size);
+////        clearMemSAMPLE(&buf_play_gpu , size / 2);
+//    }
+
+}
+
+
+int mySoundTouch::initOpenSl() {
     //创建引擎
     eng = createOpenSL();
     if (!eng) {
@@ -174,7 +187,7 @@ int mySoundTouch::initOpenSl(){
     const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
     const SLboolean req[] = {SL_BOOLEAN_TRUE};
     re = (*eng)->CreateAudioPlayer(eng, &player, &ds, &audioSink,
-                                       sizeof(ids) / sizeof(SLInterfaceID), ids, req);
+                                   sizeof(ids) / sizeof(SLInterfaceID), ids, req);
     if (re != SL_RESULT_SUCCESS) {
         LOGE("CreateAudioPlayer FAILD ");
         return RESULT_FAILD;
@@ -191,7 +204,7 @@ int mySoundTouch::initOpenSl(){
         return -1;
     }
 
-    (*pcmQue)->RegisterCallback(pcmQue, pcmCallBack, 0);
+    (*pcmQue)->RegisterCallback(pcmQue, audioCallBack, this);
 
     LOGE(" OpenSles init SUCCESS ");
     return RESULT_SUCCESS;
@@ -199,36 +212,46 @@ int mySoundTouch::initOpenSl(){
 }
 
 
-
-
-
-void mySoundTouch::pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context){
-
+void mySoundTouch::audioPlayDelay() {
+    //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
+    pthread_mutex_lock(&mutex_pthread);
+    threadSleep(300);
+    (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
+    (*pcmQue)->Enqueue(pcmQue, "", 1);
+    pthread_mutex_unlock(&mutex_pthread);
 }
 
+
 void mySoundTouch::init(const char *st) {
-    int result ;
+    int result;
     result = initFFmpeg(st);
     if (RESULT_FAILD == result) {
         LOGE(" initFFmpeg_gpu faild");
-        return ;
+        return;
     }
     result = initOpenSl();
     if (RESULT_FAILD == result) {
         LOGE(" initAudio_gpu faild");
-        return  ;
+        return;
     }
 
-    readFrameThread = new ReadFrame(&audioPktQue , afc , audioindex);
+     soundTouchDeal = new SoundTouchDeal(sampleRate);
+
+    playAudioBuffer = (char *) malloc(1024 * 2);
+    buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
+
+    readFrameThread = new ReadFrame(&audioPktQue, afc, audioindex);
     readFrameThread->start();
 
-    decodeAudioThread = new DecodeAudioThread(&audioFrameQue , &audioPktQue , ac , afc , audioindex , swc , aframe);
+    decodeAudioThread = new DecodeAudioThread(&audioFrameQue, &audioPktQue, ac, afc, audioindex , swc, aframe);
     decodeAudioThread->start();
+
+    this->start();
 
 }
 
 void mySoundTouch::run() {
     LOGE(" RUN ING ");
-
+    audioPlayDelay();
 
 }

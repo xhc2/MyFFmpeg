@@ -16,7 +16,6 @@ void DecodeAudioThread::run() {
             threadSleep(50);
             continue;
         }
-
         if (audioFrameQue->size() >= maxFrame || audioPktQue->empty()) {
             threadSleep(2);
             continue;
@@ -63,6 +62,7 @@ void DecodeAudioThread::run() {
         }
     }
 }
+
 DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
                                      AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  , SwrContext *swc, AVFrame *aframe){
     this->audioFrameQue = audioFrameQue;
@@ -72,6 +72,7 @@ DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPack
     this->audioIndex = audioIndex;
     this->swc = swc;
     this->aframe = aframe;
+    play_audio_temp = (char *)malloc(1024 * 2);
 
 }
 

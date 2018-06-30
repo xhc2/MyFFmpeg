@@ -48,17 +48,21 @@ public :
     queue<AVPacket *> audioPktQue;
     queue<MyData> audioFrameQue;
     SAMPLETYPE *buf_play_gpu = NULL;
-    int64_t apts = -1;
-    int init_sound_touch(int sampleRate);
-
     void init(const char *soucetouch);
+    char *playAudioBuffer;
+    SoundTouchDeal *soundTouchDeal;
+
 private :
     int initFFmpeg(const char *inputPath);
     int initOpenSl();
     SLEngineItf createOpenSL();
-    static void pcmCallBack(SLAndroidSimpleBufferQueueItf bf, void *context);
+    void audioPlayDelay();
     ReadFrame *readFrameThread;
     DecodeAudioThread *decodeAudioThread;
+    pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
+    int sampleRate ;
+
+
 };
 
 #endif //MYFFMPEG_MYSOUNDTOUCH_H

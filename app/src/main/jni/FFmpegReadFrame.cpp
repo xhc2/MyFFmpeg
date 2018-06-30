@@ -34,7 +34,6 @@ void ReadFrame::run(){
             continue;
         }
         if (pkt_->stream_index == audioIndex) {
-            LOGE("PUSH AUDIO %d " , audioPktQue->size());
             audioPktQue->push(pkt_);
         }   else {
             av_packet_free(&pkt_);
