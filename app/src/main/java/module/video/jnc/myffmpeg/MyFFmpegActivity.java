@@ -23,6 +23,8 @@ import java.io.File;
  * 5.打水印
  * 6.音频录制
  * 7.相机录制，然后将视频打水印
+ *
+ * https://blog.csdn.net/abcsunl/article/details/77196788
  * https://github.com/waywardgeek/sonic-ndk
  */
 public class MyFFmpegActivity extends AppCompatActivity {
