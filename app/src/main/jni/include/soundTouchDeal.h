@@ -6,7 +6,10 @@
 #define MYFFMPEG_SOUNDTOUCHDEAL_H
 
 #include "SoundTouch.h"
+#include "my_data.h"
+#include <queue>
 
+using namespace std;
 using namespace soundtouch;
 
 class SoundTouchDeal{
@@ -14,10 +17,14 @@ class SoundTouchDeal{
 private :
     SoundTouch *soundTouch;
     bool finish = true;
+    queue<MyData> *audioFrameQue;
+    char *putBuf;
+    FILE *fFile;
+
 public :
-    SoundTouchDeal(int sampleRate);
+    SoundTouchDeal(int sampleRate , queue<MyData> *audioFrameQue);
     ~SoundTouchDeal();
-    int dealPcm(SAMPLETYPE *putBuf ,int bufSize, SAMPLETYPE **getBuf);
+    int dealPcm( SAMPLETYPE **getBuf);
 
 };
 

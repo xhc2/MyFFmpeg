@@ -38,6 +38,7 @@ void DecodeAudioThread::run() {
             result = avcodec_receive_frame(ac, aframe);
 
             if (result < 0) {
+                threadSleep(2);
                 break;
             }
             uint8_t *out[1] = {0};

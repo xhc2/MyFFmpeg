@@ -11,6 +11,7 @@
 #include "MyThread.h"
 #include "FFmpegReadFrame.h"
 #include "DecodeAudioThread.h"
+#include "soundTouchDeal.h"
 #include <queue>
 #include <SoundTouch.h>
 
@@ -51,6 +52,7 @@ public :
     void init(const char *soucetouch);
     char *playAudioBuffer;
     SoundTouchDeal *soundTouchDeal;
+    ~mySoundTouch();
 
 private :
     int initFFmpeg(const char *inputPath);

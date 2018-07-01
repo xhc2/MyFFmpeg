@@ -117,30 +117,10 @@ SLEngineItf mySoundTouch::createOpenSL() {
 
 void audioCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     mySoundTouch *ms = (mySoundTouch *) context;
-
-    if (ms->audioFrameQue.empty()) return;
-    //处理速度 , 正常
-    MyData myData;
-    myData = ms->audioFrameQue.front();
-    ms->audioFrameQue.pop();
-//    memcpy(ms->playAudioBuffer, myData.data, myData.size);
-//       fwrite(ms->playAudioBuffer , 1 , myData.size , testAudio);
+    int size = ms->soundTouchDeal->dealPcm(&ms->buf_play_gpu);
+    (*bf)->Enqueue(bf, ms->buf_play_gpu , size );
 
 
-
-    int size = ms->soundTouchDeal->dealPcm((SAMPLETYPE *)myData.data ,myData.size , &ms->buf_play_gpu);
-    (*bf)->Enqueue(bf, ms->buf_play_gpu , size);
-    free(myData.data);
-
-//    int size = getSoundtouchSample();
-//    if (size > 0) {
-////        clearMemSAMPLE(&buf_play_gpu , size / 2);
-//        memcpy(buf_play_gpu, reciveBuf_gpu, size);
-//
-//        LOGE("play data %d ", size);
-//        (*bf)->Enqueue(bf, buf_play_gpu, size);
-////        clearMemSAMPLE(&buf_play_gpu , size / 2);
-//    }
 
 }
 
@@ -235,7 +215,7 @@ void mySoundTouch::init(const char *st) {
         return;
     }
 
-     soundTouchDeal = new SoundTouchDeal(sampleRate);
+     soundTouchDeal = new SoundTouchDeal(sampleRate , &audioFrameQue);
 
     playAudioBuffer = (char *) malloc(1024 * 2);
     buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
@@ -254,4 +234,10 @@ void mySoundTouch::run() {
     LOGE(" RUN ING ");
     audioPlayDelay();
 
+}
+
+mySoundTouch::~mySoundTouch(){
+    readFrameThread->stop();
+    decodeAudioThread->stop();
+    this->stop();
 }

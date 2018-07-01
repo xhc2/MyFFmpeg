@@ -2,10 +2,11 @@
 // Created by Administrator on 2018/6/30/030.
 //
 
+#include <my_log.h>
 #include "soundTouchDeal.h"
 
 
-SoundTouchDeal::SoundTouchDeal(int sampleRate){
+SoundTouchDeal::SoundTouchDeal(int sampleRate , queue<MyData> *audioFrameQue){
     soundTouch = new SoundTouch();
     //采样率
     soundTouch->setSampleRate(sampleRate);
@@ -15,29 +16,51 @@ SoundTouchDeal::SoundTouchDeal(int sampleRate){
     soundTouch->setTempo(1.0);
     //声调
     soundTouch->setPitch(1);
+    this->audioFrameQue = audioFrameQue;
+    fFile = fopen("sdcard/FFmpeg/fbfore.pcm" ,"wb+");
 }
 
-int SoundTouchDeal::dealPcm(SAMPLETYPE *buf,int bufSize ,  SAMPLETYPE **getBuf ){
-    int size;
 
+
+int SoundTouchDeal::dealPcm(SAMPLETYPE **getBuf ){
+    int size = 0;
+    int returnSize = 0;
     while (true){
-        if(buf == NULL){
-            return 0;
+        putBuf = NULL;
+        if(!audioFrameQue->empty()){
+            MyData myData = audioFrameQue->front();
+            audioFrameQue->pop();
+            size = myData.size;
+            putBuf = myData.data;
+            fwrite(putBuf , 1 , size , fFile);
+            free(myData.data);
         }
+
+
         if(finish){
             finish = false;
-            if(bufSize > 0){
-                soundTouch->putSamples(buf , bufSize / 2);
-                size = soundTouch->receiveSamples(*getBuf, bufSize / 2);
+            if(size > 0){
+                soundTouch->putSamples((SAMPLETYPE *)putBuf , size / 2);
+                returnSize = soundTouch->receiveSamples(*getBuf, size / 2);
             }else{
                 soundTouch->flush();
             }
         }
-        if(size == 0){
+        if(returnSize == 0){
             finish = true;
             continue;
         }
-
+        else {
+            if(putBuf == NULL){
+                returnSize = soundTouch->receiveSamples(*getBuf, size / 2);
+                if(returnSize == 0){
+                    finish = true;
+                    continue;
+                }
+            }
+            LOGE(" returnSize %d " ,returnSize );
+            return returnSize * 2;
+        }
     }
 
     return 1;

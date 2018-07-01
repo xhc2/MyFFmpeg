@@ -22,6 +22,7 @@ public:
     bool pause = false;
     bool isExit = false;
     int start();
+    void stop();
     void  threadSleep(int mis);
     virtual void run() = 0;//基类中的虚函数要么实现，要么是纯虚函数（绝对不允许声明不实现，也不纯虚）
 };

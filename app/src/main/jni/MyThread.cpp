@@ -15,6 +15,10 @@ int MyThread::start()
     return 0;
 }
 
+void MyThread::stop(){
+    isExit = true;
+}
+
 void MyThread::threadSleep(int mis) {
     chrono::milliseconds du(mis);
     this_thread::sleep_for(du);
