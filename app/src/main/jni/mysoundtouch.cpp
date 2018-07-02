@@ -117,11 +117,11 @@ SLEngineItf mySoundTouch::createOpenSL() {
 
 void audioCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     mySoundTouch *ms = (mySoundTouch *) context;
-    int size = ms->soundTouchDeal->dealPcm(&ms->buf_play_gpu);
-    (*bf)->Enqueue(bf, ms->buf_play_gpu , size );
-
-
-
+    int size = ms->sonicRead->dealAudio( &ms->getBuf);
+    LOGE(" size %d  " , size);
+    if(size > 0 &&  ms->getBuf != NULL){
+        (*bf)->Enqueue(bf, ms->getBuf , size );
+    }
 }
 
 
@@ -199,6 +199,14 @@ void mySoundTouch::audioPlayDelay() {
     (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
     (*pcmQue)->Enqueue(pcmQue, "", 1);
     pthread_mutex_unlock(&mutex_pthread);
+//    while(true){
+//        int size = sonicRead->dealAudio( &getBuf);
+//        if(size == 0){
+//            break;
+//        }
+//        fwrite(getBuf , 1 ,size ,after );
+//    }
+
 }
 
 
@@ -215,10 +223,14 @@ void mySoundTouch::init(const char *st) {
         return;
     }
 
-     soundTouchDeal = new SoundTouchDeal(sampleRate , &audioFrameQue);
+    sonicRead = new SonicRead(48000 , 1 , 1.1f , &audioFrameQue);
 
-    playAudioBuffer = (char *) malloc(1024 * 2);
-    buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
+
+//    soundTouchDeal = new SoundTouchDeal(sampleRate , &audioFrameQue);
+//    buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
+    after = fopen("sdcard/FFmpeg/after.pcm" , "wb+");
+    playAudioBuffer = (short *) malloc(1024 * 2 * 2);
+
 
     readFrameThread = new ReadFrame(&audioPktQue, afc, audioindex);
     readFrameThread->start();
@@ -231,7 +243,6 @@ void mySoundTouch::init(const char *st) {
 }
 
 void mySoundTouch::run() {
-    LOGE(" RUN ING ");
     audioPlayDelay();
 
 }

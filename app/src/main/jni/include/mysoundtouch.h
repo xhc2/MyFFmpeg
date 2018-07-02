@@ -12,9 +12,10 @@
 #include "FFmpegReadFrame.h"
 #include "DecodeAudioThread.h"
 #include "soundTouchDeal.h"
+#include "sonic.h"
 #include <queue>
 #include <SoundTouch.h>
-
+#include <SonicRead.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -48,12 +49,13 @@ public :
 
     queue<AVPacket *> audioPktQue;
     queue<MyData> audioFrameQue;
-    SAMPLETYPE *buf_play_gpu = NULL;
+//    SAMPLETYPE *buf_play_gpu = NULL;
     void init(const char *soucetouch);
-    char *playAudioBuffer;
-    SoundTouchDeal *soundTouchDeal;
+    short *playAudioBuffer;
+//    SoundTouchDeal *soundTouchDeal;
     ~mySoundTouch();
-
+    SonicRead *sonicRead;
+    short *getBuf;
 private :
     int initFFmpeg(const char *inputPath);
     int initOpenSl();
@@ -63,7 +65,7 @@ private :
     DecodeAudioThread *decodeAudioThread;
     pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
     int sampleRate ;
-
+    FILE *after ;
 
 };
 
