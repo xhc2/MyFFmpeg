@@ -56,6 +56,7 @@ public :
     ~mySoundTouch();
     SonicRead *sonicRead;
     short *getBuf;
+    FILE *after ;
 private :
     int initFFmpeg(const char *inputPath);
     int initOpenSl();
@@ -65,7 +66,7 @@ private :
     DecodeAudioThread *decodeAudioThread;
     pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
     int sampleRate ;
-    FILE *after ;
+
 
 };
 

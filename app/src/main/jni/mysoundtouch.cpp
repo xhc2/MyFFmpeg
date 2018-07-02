@@ -6,6 +6,12 @@
 #include "mysoundtouch.h"
 #include "my_log.h"
 
+/**
+ * 先用sonic加速普通pcm文件，然后用opengles播放。
+ * 然后再用同样的代码来加速MP4文件。
+ * @param input_path
+ * @return
+ */
 
 
 int mySoundTouch::initFFmpeg(const char *input_path) {
@@ -118,9 +124,11 @@ SLEngineItf mySoundTouch::createOpenSL() {
 void audioCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     mySoundTouch *ms = (mySoundTouch *) context;
     int size = ms->sonicRead->dealAudio( &ms->getBuf);
-    LOGE(" size %d  " , size);
     if(size > 0 &&  ms->getBuf != NULL){
-        (*bf)->Enqueue(bf, ms->getBuf , size );
+        memcpy(ms->playAudioBuffer ,ms->getBuf , size );
+        fwrite(ms->playAudioBuffer  , 1 ,size ,ms->after );
+        (*bf)->Enqueue(bf, ms->playAudioBuffer  , size );
+        free(ms->getBuf);
     }
 }
 
@@ -223,8 +231,8 @@ void mySoundTouch::init(const char *st) {
         return;
     }
 
+    //1.0是26秒
     sonicRead = new SonicRead(48000 , 1 , 1.1f , &audioFrameQue);
-
 
 //    soundTouchDeal = new SoundTouchDeal(sampleRate , &audioFrameQue);
 //    buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);

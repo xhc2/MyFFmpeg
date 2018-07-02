@@ -10,7 +10,7 @@ SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData> *au
     sonicSetSpeed(tempoStream, speed);
     this->audioFrameQue = audioFrameQue;
     playAudioBuffer = (short *) malloc(1024 * 2 * 2);
-    getAudioBuffer = (short *) malloc(1024 * 2 * 2);
+//    getAudioBuffer = (short *) malloc(1024 * 2 * 2);
 }
 
 
@@ -27,7 +27,7 @@ int SonicRead::dealAudio(short **getBuf) {
 
         memcpy(playAudioBuffer, myData.data, myData.size);
 
-        free(myData.data);
+
         int numSamples = size / (sizeof(short) * sonicGetNumChannels(tempoStream));
         LOGE(" PUT SAMPLE %d ", numSamples);
         sonicWriteShortToStream(tempoStream, playAudioBuffer, numSamples);
@@ -35,6 +35,8 @@ int SonicRead::dealAudio(short **getBuf) {
                         sonicGetNumChannels(tempoStream);
         LOGE(" available SAMPLE %d ", availableSize);
         if (availableSize > 0) {
+            getAudioBuffer = (short *) malloc(availableSize);
+
             int getSample = sonicReadShortFromStream(tempoStream, getAudioBuffer,
                                                      availableSize / (sizeof(short) *
                                                                   sonicGetNumChannels(
@@ -43,8 +45,9 @@ int SonicRead::dealAudio(short **getBuf) {
             LOGE("getSample = %d , size = %d " , getSample , (getSample * (sizeof(short) *   sonicGetNumChannels(tempoStream))));
             return getSample * (sizeof(short) * sonicGetNumChannels(tempoStream));
         }
+        free(myData.data);
     } while (size > 0);
-    return 1;
+    return 0;
 }
 
 SonicRead::~SonicRead() {
