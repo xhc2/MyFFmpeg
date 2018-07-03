@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+   >
+
+    <module.video.jnc.myffmpeg.MyVideoGpuShow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!--seekbar-->
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:background="#ffffff"
+        android:layout_height="30dp">
+
+
+
+        <TextView
+            android:id="@+id/bt_play_speed"
+            android:layout_width="40dp"
+            android:text="倍速"
+            android:textSize="10sp"
+            android:textColor="#ffffff"
+            android:background="#555555"
+            android:gravity="center"
+            android:layout_margin="1dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/bt_play_button"
+            android:layout_width="40dp"
+            android:text="暂停"
+            android:textSize="10sp"
+            android:textColor="#ffffff"
+            android:layout_toRightOf="@id/bt_play_speed"
+            android:background="#000000"
+            android:gravity="center"
+            android:layout_margin="1dp"
+            android:layout_height="match_parent" />
+
+        <SeekBar
+            android:id="@+id/seek_bar"
+            android:layout_width="match_parent"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/bt_play_button"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="60dp"
+            android:max="100"
+            android:layout_height="10dp" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="60dp"
+            android:layout_height="30dp"
+            android:text="00:12/23:32"
+            android:textSize="8sp"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:layout_alignParentRight="true"/>
+    </RelativeLayout>
+
+</RelativeLayout>

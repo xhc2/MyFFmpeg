@@ -21,7 +21,7 @@ public class MyVideoGpuShow extends GLSurfaceView implements SurfaceHolder.Callb
 
     @Override
     public void surfaceCreated(SurfaceHolder var1) {
-        new MyThread().start();
+//        new MyThread().start();
     }
 
     @Override
