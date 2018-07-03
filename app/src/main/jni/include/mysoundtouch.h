@@ -11,10 +11,8 @@
 #include "MyThread.h"
 #include "FFmpegReadFrame.h"
 #include "DecodeAudioThread.h"
-#include "soundTouchDeal.h"
 #include "sonic.h"
 #include <queue>
-#include <SoundTouch.h>
 #include <SonicRead.h>
 
 extern "C" {
@@ -23,13 +21,11 @@ extern "C" {
 }
 
 using namespace std;
-using namespace soundtouch;
 
 class mySoundTouch : public MyThread{
 
 public :
     void run();
-    SoundTouch *soundTouch;
     //ffmepg
     AVFrame *aframe;
     AVFormatContext *afc;
@@ -57,6 +53,8 @@ public :
     SonicRead *sonicRead;
     short *getBuf;
     FILE *after ;
+    FILE *fReadPcm ;
+    int bufferSize;
 private :
     int initFFmpeg(const char *inputPath);
     int initOpenSl();

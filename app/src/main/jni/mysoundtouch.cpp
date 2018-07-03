@@ -2,7 +2,6 @@
 // Created by dugang on 2018/6/29.
 //
 
-#include <soundTouchDeal.h>
 #include "mysoundtouch.h"
 #include "my_log.h"
 
@@ -68,13 +67,11 @@ int mySoundTouch::initFFmpeg(const char *input_path) {
 
     ac->thread_count = 4;
 
-
     result = avcodec_open2(ac, NULL, NULL);
     if (result != 0) {
         LOGE("ac avcodec_open2 Faild !");
         return RESULT_FAILD;
     }
-
 
     //音频重采样上下文初始化 , AV_SAMPLE_FMT_S16 格式的单声道
     swc = swr_alloc_set_opts(NULL,
@@ -125,12 +122,58 @@ void audioCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     mySoundTouch *ms = (mySoundTouch *) context;
     int size = ms->sonicRead->dealAudio( &ms->getBuf);
     if(size > 0 &&  ms->getBuf != NULL){
+        if(size > ms->bufferSize ){
+            ms->playAudioBuffer = (short *)realloc(ms->playAudioBuffer , size);
+            ms->bufferSize = size;
+        }
         memcpy(ms->playAudioBuffer ,ms->getBuf , size );
         fwrite(ms->playAudioBuffer  , 1 ,size ,ms->after );
         (*bf)->Enqueue(bf, ms->playAudioBuffer  , size );
-        free(ms->getBuf);
     }
+
+//    if(!ms->audioFrameQue.empty()){
+//        MyData myData = ms->audioFrameQue.front();
+//        ms->audioFrameQue.pop();
+//        memcpy(ms->playAudioBuffer ,myData.data , myData.size );
+//        fwrite(ms->playAudioBuffer , 1 , myData.size , ms->after );
+//        (*bf)->Enqueue(bf, ms->playAudioBuffer  , myData.size );
+//        free(myData.data);
+//    }
+
+
+//    直接读取pcm文件，是正常的
+//    int len = 0;
+//    int samplesReadBytes = 0;
+//    do{
+//        len = fread(ms->playAudioBuffer , 1 , 2048 , ms->fReadPcm);
+//
+//
+//        if(len > 0){
+//            ms->sonicRead->putSample(ms->playAudioBuffer , len);
+//        }
+//        else{
+//            ms->sonicRead->sonicFlush();
+//        }
+//        int availiableByte =  ms->sonicRead->availableBytes();
+//        LOGE( " availiableByte %d " ,availiableByte );
+//        if(availiableByte > 0){
+//            if(availiableByte >  ms->bufferSize){
+//                //重新分配空间大小
+//                ms->playAudioBuffer =  (short *)realloc( ms->playAudioBuffer , ms->bufferSize); bufferSize =
+//            }
+//            samplesReadBytes = ms->sonicRead->reciveSample(ms->playAudioBuffer ,availiableByte );
+//            LOGE( " samplesReadBytes %d " ,samplesReadBytes );
+//        }
+//        if(samplesReadBytes > 0){
+//            fwrite( ms->playAudioBuffer ,1 , samplesReadBytes , ms->after);
+//            break;
+//        }
+//    }while(len > 0);
+//
+//    (*bf)->Enqueue(bf, ms->playAudioBuffer  , samplesReadBytes );
 }
+
+
 
 
 int mySoundTouch::initOpenSl() {
@@ -207,13 +250,6 @@ void mySoundTouch::audioPlayDelay() {
     (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
     (*pcmQue)->Enqueue(pcmQue, "", 1);
     pthread_mutex_unlock(&mutex_pthread);
-//    while(true){
-//        int size = sonicRead->dealAudio( &getBuf);
-//        if(size == 0){
-//            break;
-//        }
-//        fwrite(getBuf , 1 ,size ,after );
-//    }
 
 }
 
@@ -232,11 +268,12 @@ void mySoundTouch::init(const char *st) {
     }
 
     //1.0是26秒
-    sonicRead = new SonicRead(48000 , 1 , 1.1f , &audioFrameQue);
+    sonicRead = new SonicRead(48000 , 1 , 0.5 , &audioFrameQue);
 
-//    soundTouchDeal = new SoundTouchDeal(sampleRate , &audioFrameQue);
-//    buf_play_gpu = (SAMPLETYPE *) malloc(1024 * 2);
     after = fopen("sdcard/FFmpeg/after.pcm" , "wb+");
+    fReadPcm = fopen("sdcard/FFmpeg/aaaa.pcm" , "r");
+
+    bufferSize = 1024 * 2 * 2;
     playAudioBuffer = (short *) malloc(1024 * 2 * 2);
 
 
@@ -252,7 +289,6 @@ void mySoundTouch::init(const char *st) {
 
 void mySoundTouch::run() {
     audioPlayDelay();
-
 }
 
 mySoundTouch::~mySoundTouch(){

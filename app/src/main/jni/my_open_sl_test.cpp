@@ -7,15 +7,11 @@
 #include <stdio.h>
 #include "my_open_sl_test.h"
 #include <thread>
-#include <SoundTouch.h>
-#include "STTypes.h"
 
 using namespace std;
 /**
  * soundtouch
  */
-using namespace soundtouch;
-SoundTouch *mySoundTouch;
 int SIZE = 1024;
 
 /**
@@ -34,8 +30,6 @@ SLObjectItf player = NULL;
 FILE *fp = NULL;
 char *buf = NULL;
 
-//是16位的。 short 两个字节，16位 ，char 是一个字节。8位
-SAMPLETYPE *reciveBuf = NULL;
 
 SLAndroidSimpleBufferQueueItf pcmQue = NULL;
 
@@ -70,60 +64,60 @@ int num2 = 0;
 int readPcmData() {
     int len = 0;
 
-    while (!feof(fp)) {
-        if (haveData) {
-            haveData = false;
-            //立体声。
-            len = fread(buf, 1, SIZE * 2, fp);
-
-            if (len > 0) {
-                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
-
-                mySoundTouch->putSamples((SAMPLETYPE *) buf, len / 2);
-                LOGE(" len %d ", len);
-            } else {
-                num2 = 0;
-                mySoundTouch->clear();
-            }
-        }
-        num2 = mySoundTouch->receiveSamples(reciveBuf, len / 2);
-        LOGE(" num2 %d ", num2);
-        if (num2 == 0) {
-            haveData = true;
-            continue;
-        }
-        return num2;
-    }
+//    while (!feof(fp)) {
+//        if (haveData) {
+//            haveData = false;
+//            //立体声。
+//            len = fread(buf, 1, SIZE * 2, fp);
+//
+//            if (len > 0) {
+//                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
+//
+//                mySoundTouch->putSamples((SAMPLETYPE *) buf, len / 2);
+//                LOGE(" len %d ", len);
+//            } else {
+//                num2 = 0;
+//                mySoundTouch->clear();
+//            }
+//        }
+//        num2 = mySoundTouch->receiveSamples(reciveBuf, len / 2);
+//        LOGE(" num2 %d ", num2);
+//        if (num2 == 0) {
+//            haveData = true;
+//            continue;
+//        }
+//        return num2;
+//    }
     return len;
 }
 
 //声音回调
 void pcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
-    if (!buf) {
-        //一帧是1024个sample ，
-        buf = (char *) malloc(SIZE * 2 );
-    }
-    if (!reciveBuf) {
-        reciveBuf = (SAMPLETYPE *) malloc(SIZE * 2);
-    }
-    if (!fp) {
-        fp = fopen(pcm_path, "rb");
-    }
-    if (!fp) {
-        LOGE("file faild ! %s ?", pcm_path);
-        return;
-    }
-    int size = readPcmData();
-
-    if(size > 0){
-        //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
-        LOGE(" ADD BUFFER ! %d " , size);
-        (*bf)->Enqueue(bf, reciveBuf, size * 2);
-
-    }else{
-        LOGE(" finish... !");
-    }
+//    if (!buf) {
+//        //一帧是1024个sample ，
+//        buf = (char *) malloc(SIZE * 2 );
+//    }
+//    if (!reciveBuf) {
+//        reciveBuf = (SAMPLETYPE *) malloc(SIZE * 2);
+//    }
+//    if (!fp) {
+//        fp = fopen(pcm_path, "rb");
+//    }
+//    if (!fp) {
+//        LOGE("file faild ! %s ?", pcm_path);
+//        return;
+//    }
+//    int size = readPcmData();
+//
+//    if(size > 0){
+//        //往缓冲区中丢数据，有数据他就播放。没有数据就进入回调函数 ， 第三个参数应该是字节数
+//        LOGE(" ADD BUFFER ! %d " , size);
+//        (*bf)->Enqueue(bf, reciveBuf, size * 2);
+//
+//    }else{
+//        LOGE(" finish... !");
+//    }
 
 
 }
@@ -161,14 +155,14 @@ void playAudioDelay() {
  */
 int init_sound_touch() {
     fileTest = fopen("sdcard/FFmpeg/sttest.pcm", "wb+");
-    mySoundTouch = new SoundTouch();
-    //采样率
-    mySoundTouch->setSampleRate(48000);
-    //声道数
-    mySoundTouch->setChannels(1);
-    //速度
-    mySoundTouch->setTempo(1.0);
-    mySoundTouch->setPitch(1);
+//    mySoundTouch = new SoundTouch();
+//    //采样率
+//    mySoundTouch->setSampleRate(48000);
+//    //声道数
+//    mySoundTouch->setChannels(1);
+//    //速度
+//    mySoundTouch->setTempo(1.0);
+//    mySoundTouch->setPitch(1);
     return RESULT_SUCCESS;
 }
 
@@ -276,10 +270,10 @@ int openslDestroy() {
         fclose(fp);
         fp = NULL;
     }
-    if (mySoundTouch != NULL) {
-        delete mySoundTouch;
-        mySoundTouch = NULL;
-    }
+//    if (mySoundTouch != NULL) {
+//        delete mySoundTouch;
+//        mySoundTouch = NULL;
+//    }
     if (fileTest != NULL) {
         fclose(fileTest);
     }

@@ -5,13 +5,11 @@
 #ifndef MYFFMPEG_GPU_VIDEO_SL_AUDIO_H
 #define MYFFMPEG_GPU_VIDEO_SL_AUDIO_H
 #include <jni.h>
-#include <SoundTouch.h>
 extern "C"{
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
 };
 
-void clearMemSAMPLE(soundtouch::SAMPLETYPE **mem , int size);
 int open_gpu(JNIEnv *env , const char*path , jobject win);
 int playOrPause_gpu();
 //就是暂停

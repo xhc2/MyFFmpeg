@@ -104,6 +104,9 @@ public class MyFFmpegActivity extends AppCompatActivity {
         findViewById(R.id.bt_sound_touch).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String hello = "helloworld";
+                Log.e("xhc_jni" , hello);
+
                 FFmpegUtils.initsoundtouch("sdcard/FFmpeg/test.mp4");
             }
         });

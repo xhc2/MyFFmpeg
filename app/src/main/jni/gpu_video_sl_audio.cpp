@@ -12,7 +12,6 @@
 #include "gpu_video_sl_audio.h"
 #include <thread>
 #include <queue>
-#include <SoundTouch.h>
 /**
  * 2
  * https://www.jianshu.com/p/d5a0ed770b3d
@@ -25,8 +24,6 @@ extern "C" {
 }
 using namespace std;
 //soundtouch
-using namespace soundtouch;
-SoundTouch *mySoundTouch_gpu;
 
 //ffmepg
 AVFrame *aframe_gpu;
@@ -65,9 +62,6 @@ int64_t vpts_gpu = -1;
 //用来定位用户定位的位置
 int64_t vpts_seek_gpu = -1;
 //是16位的。 short 两个字节，16位 ，char 是一个字节。8位
-SAMPLETYPE *reciveBuf_gpu = NULL;
-SAMPLETYPE *putbuffer = NULL;
-SAMPLETYPE *buf_play_gpu = NULL;
 char *play_audio_temp = 0;
 int maxAudioPacket_gpu = 140;
 int maxVideoPacket_gpu = 100;
@@ -157,23 +151,11 @@ GLuint InitShader_gpu(const char *code, GLint type) {
 }
 
 int init_sound_touch_gpu(int sampleRate) {
+
     fBefore = fopen("sdcard/FFmpeg/before.pcm", "wb+");
     fAfter = fopen("sdcard/FFmpeg/after.pcm", "wb+");
-    int size = 48000;
-    reciveBuf_gpu = (SAMPLETYPE *) malloc(size * 2);
-    putbuffer = (SAMPLETYPE *) malloc(size * 2);
-    buf_play_gpu = (SAMPLETYPE *) malloc(size * 2);
-    play_audio_temp = (char*)malloc( 2 * size);
 
-    mySoundTouch_gpu = new SoundTouch();
-    //采样率
-    mySoundTouch_gpu->setSampleRate(sampleRate);
-    //声道数
-    mySoundTouch_gpu->setChannels(1);
-    //速度
-    mySoundTouch_gpu->setTempo(1.0);
-    //声调
-    mySoundTouch_gpu->setPitch(1);
+//    int size = 48000;
 
     return RESULT_SUCCESS;
 }
@@ -487,61 +469,6 @@ SLEngineItf createOpenSL_gpu() {
 bool haveData_gpu = true;
 
 
-//int readPcmData_gpu(){
-//    int num_gpu = 0;
-//    while (true) {
-//        if (audioFrameQue_gpu.empty()) {
-////            mySoundTouch_gpu->flush();
-////            num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, 1024);
-////            LOGE(" flush %d ",num_gpu);
-//            return num_gpu;
-//        }
-//
-//        MyData myData;
-//        myData = audioFrameQue_gpu.front();
-//        audioFrameQue_gpu.pop();
-//        int size = myData.size;
-//        char *myBuf = myData.data;
-//        apts_gpu = myData.pts;
-//
-//        if (haveData_gpu) {
-//            haveData_gpu = false;
-//            if(size > 0){
-//                mySoundTouch_gpu->putSamples((SAMPLETYPE * )myBuf, size / 2 );
-//                num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
-//            }
-//            else{
-//                mySoundTouch_gpu->flush();
-//            }
-//        }
-//        if(num_gpu == 0){
-//            haveData_gpu = true;
-//            continue;
-//        }
-//
-//
-////        if (haveData_gpu) {
-////            haveData_gpu = false;
-////            if (size > 0 && myBuf) {
-////                //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
-////                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
-////            } else {
-////                num_gpu = 0;
-////                mySoundTouch_gpu->clear();
-////            }
-////        }
-////
-////        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
-////        LOGE(" result %d ", num_gpu);
-////
-////        if (num_gpu == 0) {
-////            haveData_gpu = true;
-////            continue;
-////        }
-//
-//        return num_gpu * 2;
-//    }
-//}
 
 
 int addFrame = 0 ;
@@ -552,7 +479,7 @@ int readPcmData_gpu() {
     int num_gpu = 0;
     while (true) {
         if (audioFrameQue_gpu.empty()) {
-            num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, 1024);
+//            num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, 1024);
             LOGE(" flush %d ",num_gpu);
             return num_gpu;
         }
@@ -569,20 +496,20 @@ int readPcmData_gpu() {
             if (size > 0 && myBuf) {
                 //第二个参数是放入多少个sample ， 16位一个。双声道，16位 , 加起来就/4
 
-                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
+//                mySoundTouch_gpu->putSamples( (SAMPLETYPE * )myBuf, size / 2);
             } else {
                 num_gpu = 0;
-                mySoundTouch_gpu->clear();
+//                mySoundTouch_gpu->clear();
             }
         }
 
-        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
+//        num_gpu = mySoundTouch_gpu->receiveSamples(reciveBuf_gpu, size / 2);
 
         if (num_gpu == 0) {
             haveData_gpu = true;
             continue;
         }
-        fwrite(reciveBuf_gpu, 1, num_gpu * 2, fAfter);
+//        fwrite(reciveBuf_gpu, 1, num_gpu * 2, fAfter);
 //        free(myData.data);
         return num_gpu * 2;
     }
@@ -595,12 +522,12 @@ int getSoundtouchSample() {
 }
 
 
-void clearMemSAMPLE(SAMPLETYPE **mem , int size){
-    if(size <= 0 || mem == NULL)return ;
-    for(int i = 0 ;i < size ; ++ i){
-        (*mem)[i] = 0;
-    }
-}
+//void clearMemSAMPLE(SAMPLETYPE **mem , int size){
+//    if(size <= 0 || mem == NULL)return ;
+//    for(int i = 0 ;i < size ; ++ i){
+//        (*mem)[i] = 0;
+//    }
+//}
 //char *playAudioBuffer;
 
 static void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
@@ -623,10 +550,10 @@ static void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
     int size = getSoundtouchSample();
     if (size > 0) {
 //        clearMemSAMPLE(&buf_play_gpu , size / 2);
-        memcpy(buf_play_gpu, reciveBuf_gpu, size);
+//        memcpy(buf_play_gpu, reciveBuf_gpu, size);
 
         LOGE("play data %d ", size);
-        (*bf)->Enqueue(bf, buf_play_gpu, size);
+//        (*bf)->Enqueue(bf, buf_play_gpu, size);
 //        clearMemSAMPLE(&buf_play_gpu , size / 2);
     }
 }
@@ -698,7 +625,7 @@ int initAudio_gpu() {
 
 int changeSpeed(double speed) {
     LOGE("CHANGE SPEED  %lf", speed);
-    mySoundTouch_gpu->setTempo(speed);
+//    mySoundTouch_gpu->setTempo(speed);
     return RESULT_SUCCESS;
 }
 
@@ -1239,10 +1166,10 @@ int destroyOther() {
 }
 
 int destroySoundTouch() {
-    if (mySoundTouch_gpu != NULL) {
-        delete mySoundTouch_gpu;
-        mySoundTouch_gpu = NULL;
-    }
+//    if (mySoundTouch_gpu != NULL) {
+//        delete mySoundTouch_gpu;
+//        mySoundTouch_gpu = NULL;
+//    }
     return RESULT_SUCCESS;
 }
 

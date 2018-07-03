@@ -19,10 +19,17 @@ private :
     queue<MyData> *audioFrameQue;
     short *playAudioBuffer;
     short *getAudioBuffer ;
+    bool isExit = false;
+    int putBufferSize;
+    int getBufferSize;
 
 public :
     SonicRead(int samplerate , int channel , float speed , queue<MyData> *audioFrameQue);
     ~SonicRead();
+    void putSample(short *buf , int size);
+    void sonicFlush();
+    int availableBytes();
+    int reciveSample(short *getBuf , int lenByte);
     int dealAudio(short **getBuf);
 };
 

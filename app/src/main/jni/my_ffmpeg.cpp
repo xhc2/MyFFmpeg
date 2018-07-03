@@ -16,8 +16,6 @@
 #include "my_open_sl_test.h"
 #include "video_audio_decode_show.h"
 #include "my_thread.h"
-#include "SoundTouch.h"
-#include "WavFile.h"
 //void testPointer(char* test){
 //    test = (char *)malloc(sizeof(char) * 6);
 //    LOGE("TEST HANSHU %d " , test);
@@ -32,7 +30,6 @@
  */
 // using namespace soundtouch;
 
-using namespace soundtouch;
 mySoundTouch *mySoundTouchInstance;
 JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative(JNIEnv *env, jclass clazz) {
@@ -175,7 +172,7 @@ JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_getVersionString(JNIEnv *env, jclass type) {
 
    const char *verStr;
-   verStr = SoundTouch::getVersionString();
+   verStr = "soundtouch 已移除";
    return env->NewStringUTF(verStr);
 }
 extern "C"

@@ -30,11 +30,6 @@ LOCAL_MODULE := swscale
 LOCAL_SRC_FILES := prebuilt/libswscale.so
 include $(PREBUILT_SHARED_LIBRARY)
 
-#soundtouch
-include $(CLEAR_VARS)
-LOCAL_MODULE := soundtouch
-LOCAL_SRC_FILES := prebuilt/libsoundtouch.so
-include $(PREBUILT_SHARED_LIBRARY)
 
 # Program FFmpeg
 
@@ -42,15 +37,15 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := my_ffmpeg
 LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp my_open_sl_test.cpp \
                     decode_show_gl.cpp video_audio_decode_show.cpp my_thread.cpp \
-                    my_c_plus_plus_thread.cpp gpu_video_sl_audio.cpp mysoundtouch.cpp \
+                    my_c_plus_plus_thread.cpp  mysoundtouch.cpp \
                     MyThread.cpp FFmpegReadFrame.cpp Utils.cpp DecodeAudioThread.cpp \
-                    soundTouchDeal.cpp sonic.cpp SonicRead.cpp
+                    sonic.cpp SonicRead.cpp gpu_video_sl_audio.cpp
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 
 NDK_TOOLCHAIN_VERSION=4.8
 LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES -lGLESv2 -lEGL
-LOCAL_SHARED_LIBRARIES := soundtouch avfilter avformat avutil swresample swscale avcodec my_ffmpeg
+LOCAL_SHARED_LIBRARIES := avfilter avformat avutil swresample swscale avcodec my_ffmpeg
 
 
 #LOCAL_SANITIZE:=unsigned-integer-overflow signed-integer-overflow
