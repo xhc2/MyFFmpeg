@@ -12,6 +12,12 @@ private :
 
 public :
     Mp4Player(const char* playPath);
+
+    //初始化
+    int init(const char* playPath);
+
+
+
     ~Mp4Player();
 
 };

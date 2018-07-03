@@ -222,4 +222,15 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initsoundtouch(JNIEnv *env, jclass ty
 
     env->ReleaseStringUTFChars(path_, path);
     return 1;
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type, jstring path_,
+                                                       jobject glSurfaceView) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+
+
+    env->ReleaseStringUTFChars(path_, path);
+
+    return 1;
+
 }

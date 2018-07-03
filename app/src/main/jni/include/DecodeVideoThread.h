@@ -1,0 +1,8 @@
+//
+// Created by Administrator on 2018/7/3/003.
+//
+
+#ifndef MYFFMPEG_DECODEVIDEOTHREAD_H
+#define MYFFMPEG_DECODEVIDEOTHREAD_H
+
+#endif //MYFFMPEG_DECODEVIDEOTHREAD_H

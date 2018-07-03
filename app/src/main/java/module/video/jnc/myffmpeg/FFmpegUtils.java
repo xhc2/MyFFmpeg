@@ -49,6 +49,9 @@ public class FFmpegUtils {
     public static native int soundtouchSpeed(double speed);
     public static native int initsoundtouch(String path);
 
+    //下面是做音视频播放器的
+    public static native int initMp4Play(String path ,  Object glSurfaceView);
+
     private void printMsgFromJni(String str){
         Log.e("xhc_jni" ,str);
 //        return "x";

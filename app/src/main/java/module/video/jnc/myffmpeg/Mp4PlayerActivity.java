@@ -34,7 +34,6 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
         setContentView(R.layout.activity_mp4_player);
 
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
