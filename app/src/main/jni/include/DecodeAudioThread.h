@@ -24,10 +24,13 @@ public :
     void run();
     DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
                       AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  , SwrContext *swc, AVFrame *aframe);
+    DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
+                      AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  );
     ~DecodeAudioThread();
 private :
     queue<MyData> *audioFrameQue;
     queue<AVPacket *> *audioPktQue;
+
     int maxFrame = 100;
     AVCodecContext *ac;
     AVFormatContext *afc;

@@ -75,7 +75,32 @@ DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPack
     this->aframe = aframe;
     play_audio_temp = (char *)malloc(1024 * 2);
 
+
+
 }
+
+DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
+                                     AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  ){
+
+    this->audioFrameQue = audioFrameQue;
+    this->audioPktQue = audioPktQue;
+    this->ac = ac;
+    this->afc = afc;
+    this->audioIndex = audioIndex;
+    play_audio_temp = (char *)malloc(1024 * 2);
+
+    this->aframe = av_frame_alloc();
+
+    swc = swr_alloc_set_opts(NULL,
+                             av_get_default_channel_layout(1),
+                             AV_SAMPLE_FMT_S16, ac->sample_rate,
+                             av_get_default_channel_layout(ac->channels),
+                             ac->sample_fmt, ac->sample_rate,
+                             0, 0);
+    if (swr_init(swc) < 0) {
+        LOGE(" swr_init FAILD !");
+    }
+};
 
 DecodeAudioThread::~DecodeAudioThread(){
 

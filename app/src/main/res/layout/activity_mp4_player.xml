@@ -8,6 +8,7 @@
    >
 
     <module.video.jnc.myffmpeg.MyVideoGpuShow
+        android:id="@+id/play_gl_surfaceview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

@@ -4,3 +4,13 @@
 
 #include "MyWindow.h"
 
+
+MyWindow::MyWindow(ANativeWindow *nwin, int outWidth , int outHeight){
+    this->outWidth = outWidth;
+    this->outHeight = outHeight;
+    this->nwin = nwin;
+}
+
+MyWindow::~MyWindow(){
+
+}

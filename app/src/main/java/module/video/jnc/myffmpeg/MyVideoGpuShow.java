@@ -19,9 +19,12 @@ public class MyVideoGpuShow extends GLSurfaceView implements SurfaceHolder.Callb
         super(context, attrs);
     }
 
+    public void setPlayPath(String path){
+        new MyThread(path).start();
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder var1) {
-//        new MyThread().start();
     }
 
     @Override
@@ -35,10 +38,15 @@ public class MyVideoGpuShow extends GLSurfaceView implements SurfaceHolder.Callb
     }
 
     class MyThread extends Thread {
+        String path ;
+        MyThread(String path){
+            this.path = path;
+        }
+
         @Override
         public void run() {
             super.run();
-            FFmpegUtils.showVideoGpuAudioOpensl(Constant.rootFile.getAbsolutePath() + "/test.MP4", getHolder().getSurface());
+            FFmpegUtils.initMp4Play(path, getHolder().getSurface());
         }
     }
 }

@@ -1086,6 +1086,7 @@ int destroy_FFmpeg() {
     }
     if (vc_gpu != NULL) {
         LOGE(" avcodec_close vc_gpu ");
+
         avcodec_close(vc_gpu);
     }
     if (ac_gpu != NULL) {

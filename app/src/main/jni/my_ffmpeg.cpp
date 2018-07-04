@@ -12,14 +12,12 @@
 #include <my_c_plus_plus_thread.h>
 #include <gpu_video_sl_audio.h>
 #include <mysoundtouch.h>
+#include <Mp4Player.h>
 #include "decode_encode_test.h"
 #include "my_open_sl_test.h"
 #include "video_audio_decode_show.h"
 #include "my_thread.h"
-//void testPointer(char* test){
-//    test = (char *)malloc(sizeof(char) * 6);
-//    LOGE("TEST HANSHU %d " , test);
-//}
+
 
 /**
  * 返回 >=0 表示成功
@@ -31,6 +29,8 @@
 // using namespace soundtouch;
 
 mySoundTouch *mySoundTouchInstance;
+Mp4Player *mp4Player ;
+
 JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative(JNIEnv *env, jclass clazz) {
 
@@ -222,15 +222,16 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initsoundtouch(JNIEnv *env, jclass ty
 
     env->ReleaseStringUTFChars(path_, path);
     return 1;
-}extern "C"
+}
+
+extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type, jstring path_,
                                                        jobject glSurfaceView) {
     const char *path = env->GetStringUTFChars(path_, 0);
-
-
+    ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
+    mp4Player = new Mp4Player(path , win);
     env->ReleaseStringUTFChars(path_, path);
-
     return 1;
 
 }

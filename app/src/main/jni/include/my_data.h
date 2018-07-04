@@ -4,14 +4,18 @@
 #ifndef MYFFMPEG_MY_DATA_H
 #define MYFFMPEG_MY_DATA_H
 
+#include <libavcodec/avcodec.h>
+
 class MyData{
 
 public :
     char* data;
+    AVPacket *pkt;
     //audio true ， video false
     bool isAudio = false;
     int size = 0;
     int pts;
+    void drop();
 };
 
 #endif //MYFFMPEG_MY_DATA_H
