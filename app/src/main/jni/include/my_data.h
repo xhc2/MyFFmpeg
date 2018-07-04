@@ -4,7 +4,10 @@
 #ifndef MYFFMPEG_MY_DATA_H
 #define MYFFMPEG_MY_DATA_H
 
+extern "C"{
 #include <libavcodec/avcodec.h>
+};
+
 
 class MyData{
 

@@ -40,8 +40,8 @@ LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp my_open_sl_test.cpp \
                     my_c_plus_plus_thread.cpp  mysoundtouch.cpp \
                     MyThread.cpp FFmpegReadFrame.cpp Utils.cpp DecodeAudioThread.cpp \
                     sonic.cpp SonicRead.cpp gpu_video_sl_audio.cpp Mp4Player.cpp MyWindow.cpp \
-                    MyAudio.cpp ReadAvPacket.cpp DecodeVideoThread.cpp DecodeMyAudioThread.cpp \
-                    MyData.cpp Notify.cpp
+                    MyAudio.cpp ReadAvPacket.cpp DecodeVideoThread.cpp DecodeMyAudioThread.cpp MyData.cpp Notify.cpp
+
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 

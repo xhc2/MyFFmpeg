@@ -11,7 +11,7 @@ import android.util.Log;
 public class FFmpegUtils {
 
     static {
-        System.loadLibrary("soundtouch");
+//        System.loadLibrary("soundtouch");
         System.loadLibrary("avutil");
         System.loadLibrary("avcodec");
         System.loadLibrary("avformat");

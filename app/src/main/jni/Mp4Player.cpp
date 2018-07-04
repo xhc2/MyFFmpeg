@@ -21,7 +21,6 @@
 Mp4Player::Mp4Player(const char* playPath ,ANativeWindow* win){
     this->playPath = playPath;
     initFFmpeg();
-//
     myAudio = new MyAudio();
     myWindow = new MyWindow(win , outWidth , outHeight);
     readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
