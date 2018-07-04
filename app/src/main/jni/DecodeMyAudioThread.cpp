@@ -11,16 +11,24 @@ void DeocdeMyAudioThread::run(){
 }
 
 void DeocdeMyAudioThread::update(MyData mydata){
-    if(mydata.isAudio){
-        pthread_mutex_lock(&mutex_pthread);
-        LOGE(" audioPktQue.size() %d " , audioPktQue.size());
+    if(!mydata.isAudio)return ;
+    while(true){
 
-        if(audioPktQue.size() < maxPackage){
-            audioPktQue.push(mydata.pkt);
-            pthread_mutex_unlock(&mutex_pthread);
-        }
-        pthread_mutex_unlock(&mutex_pthread);
+            pthread_mutex_lock(&mutex_pthread);
+            LOGE(" audioPktQue.size() %d " , audioPktQue.size());
+            if(audioPktQue.size() < maxPackage){
+                audioPktQue.push(mydata.pkt);
+                pthread_mutex_unlock(&mutex_pthread);
+                break;
+            }
+            else{
+                threadSleep(2);
+                pthread_mutex_unlock(&mutex_pthread);
+            }
+
     }
+
+
 }
 
 DeocdeMyAudioThread::DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  ){
