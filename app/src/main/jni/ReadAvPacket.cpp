@@ -45,6 +45,7 @@ void ReadAVPackage::run(){
         }
     }
 }
+//不需要被通知。只是实现一个抽象方法
 void ReadAVPackage::update(MyData mydata){
 
 }
