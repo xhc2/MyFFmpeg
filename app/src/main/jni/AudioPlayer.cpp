@@ -1,35 +1,74 @@
 //
-// Created by Administrator on 2018/7/3/003.
+// Created by dugang on 2018/7/5.
 //
 
-
 #include <my_log.h>
-#include "MyAudio.h"
+#include "AudioPlayer.h"
 
-MyAudio::MyAudio(){
+
+AudioPlayer::AudioPlayer(int simpleRate , int channel){
+    this->simpleRate = simpleRate ;
+    this->channel = channel;
+    playAudioTemp = (char *)malloc(1024 * 2 * channel);
     initAudio();
 }
 
-MyAudio::~MyAudio(){
+void AudioPlayer::run(){
+    audioPlayDelay();
+}
+
+void AudioPlayer::audioPlayDelay() {
+    //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
+    pthread_mutex_lock(&mutex_pthread);
+    threadSleep(300);
+    (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
+    (*pcmQue)->Enqueue(pcmQue, "", 1);
+    pthread_mutex_unlock(&mutex_pthread);
+}
+
+void AudioPlayer::update(MyData mydata){
+    if(mydata.data == NULL || mydata.size <= 0 || !mydata.isAudio){
+        return ;
+    }
+    while(true){
+        pthread_mutex_lock(&mutex_pthread);
+        if(audioFrameQue.size() < maxFrame){
+            audioFrameQue.push(mydata);
+            pthread_mutex_unlock(&mutex_pthread);
+            break;
+        }
+        else{
+            threadSleep(1);
+            pthread_mutex_unlock(&mutex_pthread);
+            continue;
+        }
+    }
+}
+
+AudioPlayer::~AudioPlayer(){
 
 }
 
-void myAudioCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
-//    MyAudio * ma = (MyAudio *) context;
-//    int size = ms->sonicRead->dealAudio( &ms->getBuf);
-//    if(size > 0 &&  ms->getBuf != NULL){
-//        if(size > ms->bufferSize ){
-//            ms->playAudioBuffer = (short *)realloc(ms->playAudioBuffer , size);
-//            ms->bufferSize = size;
-//        }
-//        memcpy(ms->playAudioBuffer ,ms->getBuf , size );
-//        fwrite(ms->playAudioBuffer  , 1 ,size ,ms->after );
-//        (*bf)->Enqueue(bf, ms->playAudioBuffer  , size );
-//    }
+void AudioPlayer::changeSpeed(float speed){
 
 }
 
-int MyAudio::initAudio() {
+void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
+    AudioPlayer *ap = (AudioPlayer *)context;
+    if(!ap->audioFrameQue.empty()){
+        LOGE(" frame size %d " , ap->audioFrameQue.size());
+        MyData myData = ap->audioFrameQue.front();
+        ap->audioFrameQue.pop();
+        ap->pts = myData.pts;
+        int size = myData.size;
+        memcpy(ap->playAudioTemp ,myData.data , size );
+        (*bf)->Enqueue(bf, ap->playAudioTemp, size);
+        myData.drop();
+    }
+
+}
+
+int AudioPlayer::initAudio() {
     //创建引擎
     eng = createOpenSL();
     if (!eng) {
@@ -54,12 +93,11 @@ int MyAudio::initAudio() {
     //配置音频信息
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 10};
 
-
     //音频格式
     SLDataFormat_PCM pcm_ = {
             SL_DATAFORMAT_PCM,
-            1,//    声道数
-            SL_SAMPLINGRATE_48,
+            1,
+            SL_SAMPLINGRATE_48 ,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT,
@@ -88,17 +126,14 @@ int MyAudio::initAudio() {
         return -1;
     }
 
-    (*pcmQue)->RegisterCallback(pcmQue, myAudioCallBack, 0);
+    (*pcmQue)->RegisterCallback(pcmQue, audioPlayerCallBack, this);
 
     LOGE(" OpenSles init SUCCESS ");
     return RESULT_SUCCESS;
 }
 
-
-
-
 // audio part
-SLEngineItf MyAudio::createOpenSL() {
+SLEngineItf AudioPlayer::createOpenSL() {
     SLresult re = 0;
     SLEngineItf en = NULL;
 
@@ -120,6 +155,5 @@ SLEngineItf MyAudio::createOpenSL() {
         LOGE("GetInterface FAILD ");
         return NULL;
     }
-
     return en;
 }

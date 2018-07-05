@@ -24,7 +24,6 @@ void ReadAVPackage::run(){
 
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc, pkt_);
-        LOGE("XHC READFREAME %d " , result);
         if (result < 0) {
             threadSleep(2);
             av_packet_free(&pkt_);

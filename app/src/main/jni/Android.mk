@@ -39,8 +39,9 @@ LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp my_open_sl_test.cpp \
                     decode_show_gl.cpp video_audio_decode_show.cpp my_thread.cpp \
                     my_c_plus_plus_thread.cpp  mysoundtouch.cpp \
                     MyThread.cpp FFmpegReadFrame.cpp Utils.cpp DecodeAudioThread.cpp \
-                    sonic.cpp SonicRead.cpp gpu_video_sl_audio.cpp Mp4Player.cpp MyWindow.cpp \
-                    MyAudio.cpp ReadAvPacket.cpp DecodeVideoThread.cpp DecodeMyAudioThread.cpp MyData.cpp Notify.cpp
+                    sonic.cpp SonicRead.cpp gpu_video_sl_audio.cpp Mp4Player.cpp  \
+                    ReadAvPacket.cpp DecodeVideoThread.cpp DecodeMyAudioThread.cpp \
+                    MyData.cpp Notify.cpp YuvPlayer.cpp AudioPlayer.cpp
 
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
@@ -50,11 +51,7 @@ LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES -lGLESv2 -lEGL
 LOCAL_SHARED_LIBRARIES := avfilter avformat avutil swresample swscale avcodec my_ffmpeg
 
 
-#LOCAL_SANITIZE:=unsigned-integer-overflow signed-integer-overflow
-#LOCAL_SANITIZE_DIAG:=unsigned-integer-overflow signed-integer-overflow
-#LOCAL_CLANG:=true
-#LOCAL_SANITIZE:=address
-#LOCAL_MODULE_RELATIVE_PATH := asan
+
 
 #LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS := -std=c++11 -Wall -Werror -O0

@@ -16,35 +16,38 @@
 #include <my_log.h>
 #include <ReadAvPacket.h>
 #include <DecodeVideoThread.h>
+#include <android/native_window.h>
+#include <YuvPlayer.h>
 
 
 Mp4Player::Mp4Player(const char* playPath ,ANativeWindow* win){
     this->playPath = playPath;
     initFFmpeg();
-    myAudio = new MyAudio();
-    myWindow = new MyWindow(win , outWidth , outHeight);
     readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
-    decodeVideo = new DecodeVideoThread();
-    decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
-    readAVPackage->addNotify(decodeVideo);
-    readAVPackage->addNotify(decodeAudio);
+//    decodeVideo = new DecodeVideoThread(afc ,vc , video_index);
+//    decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
+//    audioPlayer = new AudioPlayer(simpleRate , outChannel);
+//    LOGE(" OUT WIDTH %d , OUTHEIGHT %d " , outWidth , outHeight);
+//    yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
 
-    readAVPackage->start();
+
+//    readAVPackage->addNotify(decodeVideo);
+//    readAVPackage->addNotify(decodeAudio);
+//    decodeAudio->addNotify(audioPlayer);
+//    decodeVideo->addNotify(yuvPlayer);
+//
+//    readAVPackage->start();
+//    decodeAudio->start();
+//    decodeVideo->start();
+//    audioPlayer->start();
+//    this->start();
 }
-
-
-
 
 
 int Mp4Player::initFFmpeg() {
     int result = 0;
     av_register_all();
     avcodec_register_all();
-
-
-    aframe = av_frame_alloc();
-    vframe = av_frame_alloc();
-    vframe_seek = av_frame_alloc();
     LOGE(" input path %s ", playPath);
     result = avformat_open_input(&afc, playPath, 0, 0);
     if (result != 0) {
@@ -72,8 +75,6 @@ int Mp4Player::initFFmpeg() {
             LOGE("VIDEO WIDTH %d , HEIGHT %d , format %d , fps %f ", avStream->codecpar->width,
                  avStream->codecpar->height, avStream->codecpar->format,
                  av_q2d(avStream->avg_frame_rate));
-            outWidth = avStream->codecpar->width;
-            outHeight = avStream->codecpar->height;
 
             videoCode = avcodec_find_decoder(avStream->codecpar->codec_id);
 
@@ -84,6 +85,8 @@ int Mp4Player::initFFmpeg() {
         } else if (avStream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             //音频
             audio_index = i;
+
+            this->simpleRate = avStream->codecpar->sample_rate;
             LOGE("audio samplerate %d ", avStream->codecpar->sample_rate);
             audioCode = avcodec_find_decoder(avStream->codecpar->codec_id);
             if (!audioCode) {
@@ -136,7 +139,18 @@ int Mp4Player::initFFmpeg() {
     return RESULT_SUCCESS;
 }
 
-
+void Mp4Player::run(){
+    while(!isExit){
+        if(pause){
+            threadSleep(2);
+            continue;
+        }
+        //在外面把同步处理了。
+        if(audioPlayer != NULL && decodeVideo != NULL){
+            decodeVideo->apts = audioPlayer->pts;
+        }
+    }
+}
 
 Mp4Player::~Mp4Player(){
 

@@ -13,11 +13,14 @@ class MyData{
 
 public :
     char* data;
+    uint8_t *datas[8];
     AVPacket *pkt;
     //audio true ， video false
     bool isAudio = false;
     int size = 0;
-    int pts;
+    int vWidth ;
+    int vHeight ;
+    int64_t pts;
     void drop();
 };
 

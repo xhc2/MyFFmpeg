@@ -6,44 +6,40 @@
 #define MYFFMPEG_MP4PLAYER_H
 
 #include <jni.h>
-#include "MyWindow.h"
-#include "MyAudio.h"
 #include "ReadAvPacket.h"
 #include "DecodeVideoThread.h"
 #include "DecodeMyAudioThread.h"
+#include "AudioPlayer.h"
+#include "YuvPlayer.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-class Mp4Player{
+class Mp4Player : public MyThread{
 
 private :
     const char* playPath;
     //用于显示yuv图像
-    MyWindow *myWindow ;
-    AVFrame *aframe;
-    AVFrame *vframe;
-    AVFrame *vframe_seek;
     AVFormatContext *afc;
     int video_index = -1;
     int audio_index = -1;
     AVCodec *videoCode, *audioCode;
     AVCodecContext *ac, *vc;
     int outWidth , outHeight ;
-//视频总长度
+    int simpleRate ;
+//    int outChannel = 1;
     int64_t videoDuration;
-    MyAudio *myAudio;
     int initFFmpeg();
     ReadAVPackage *readAVPackage;
     DecodeVideoThread *decodeVideo;
-    DeocdeMyAudioThread *decodeAudio;
-
+//    DeocdeMyAudioThread *decodeAudio;
+    AudioPlayer *audioPlayer;
+//    YuvPlayer *yuvPlayer;
 public :
     Mp4Player(const char* playPath , ANativeWindow* win);
-
     ~Mp4Player();
-
+    void run();
 };
 
 #endif //MYFFMPEG_MP4PLAYER_H

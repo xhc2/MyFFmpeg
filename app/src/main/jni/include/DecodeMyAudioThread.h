@@ -27,9 +27,12 @@ private:
     int audioIndex;
     SwrContext *swc;
     AVCodecContext *ac ;
-    pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
+    AVFrame *aframe;
+    uint8_t *play_audio_temp;
+    Utils utils;
+
 public :
-    DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  );
+    DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex );
     ~DeocdeMyAudioThread();
     void update(MyData myData);
 
