@@ -2,32 +2,32 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avcodec
-LOCAL_SRC_FILES := prebuilt/libavcodec.so
+LOCAL_SRC_FILES := prebuilt/$(TARGET_ARCH_ABI)/libavcodec-57.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avfilter
-LOCAL_SRC_FILES := prebuilt/libavfilter.so
+LOCAL_SRC_FILES := prebuilt/$(TARGET_ARCH_ABI)/libavfilter-6.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avformat
-LOCAL_SRC_FILES := prebuilt/libavformat.so
+LOCAL_SRC_FILES := prebuilt/$(TARGET_ARCH_ABI)/libavformat-57.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := avutil
-LOCAL_SRC_FILES := prebuilt/libavutil.so
+LOCAL_SRC_FILES := prebuilt/$(TARGET_ARCH_ABI)/libavutil-55.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := swresample
-LOCAL_SRC_FILES := prebuilt/libswresample.so
+LOCAL_SRC_FILES := prebuilt/$(TARGET_ARCH_ABI)/libswresample-2.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := swscale
-LOCAL_SRC_FILES := prebuilt/libswscale.so
+LOCAL_SRC_FILES := prebuilt/$(TARGET_ARCH_ABI)/libswscale-4.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 
@@ -47,14 +47,14 @@ LOCAL_SRC_FILES := my_ffmpeg.cpp decode_encode_test.cpp my_open_sl_test.cpp \
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 
 NDK_TOOLCHAIN_VERSION=4.8
-LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES -lGLESv2 -lEGL
+LOCAL_LDLIBS := -llog -lz -landroid -lOpenSLES -lGLESv2 -lEGL -latomic
 LOCAL_SHARED_LIBRARIES := avfilter avformat avutil swresample swscale avcodec my_ffmpeg
 
 
 
 
 #LOCAL_CFLAGS += -std=c++11
-LOCAL_CFLAGS := -std=c++11 -Wall -Werror -O0
+LOCAL_CPPFLAGS := -std=c++11 -Wall -Werror -O0
 LOCAL_SANITIZE := address
 LOCAL_MODULE_RELATIVE_PATH := asan
 LOCAL_CLANG:=true

@@ -12,7 +12,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters 'armeabi-v7a'
+//            abiFilters 'armeabi'
+            abiFilters 'x86'
         }
     }
 
@@ -25,6 +26,7 @@ android {
         debug {
             minifyEnabled false
             jniDebuggable true
+            debuggable true
         }
     }
     //利用gradle来编译jni，不然就用cmd中自己去编译
@@ -34,6 +36,7 @@ android {
         }
     }
 }
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:design:26.1.0'

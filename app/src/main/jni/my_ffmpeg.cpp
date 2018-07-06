@@ -3,6 +3,7 @@
 //
 
 //adb logcat | ndk-stack -sym obj/local/armeabi 查看底层错误栈
+//NDK 使用 addr2line 调试工具
 #include "my_ffmpeg.h"
 #include <jni.h>
 #include <string.h>
