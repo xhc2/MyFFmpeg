@@ -84,7 +84,6 @@ set_target_properties( swscale-4
 
 target_link_libraries( # Specifies the target library.
                        my_ffmpeg
-
                        avcodec-57
                        avdevice-57
                        avfilter-6
@@ -94,5 +93,4 @@ target_link_libraries( # Specifies the target library.
                        swresample-2
                        swscale-4
                        OpenSLES
-
-                      log )
+                       log )
