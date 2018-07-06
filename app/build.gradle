@@ -12,8 +12,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         ndk {
-//            abiFilters 'armeabi'
-            abiFilters 'x86'
+            abiFilters "armeabi", "x86"
         }
     }
 
