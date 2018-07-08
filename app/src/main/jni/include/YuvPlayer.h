@@ -5,9 +5,13 @@
 #ifndef MYFFMPEG_YUVPLAYER_H
 #define MYFFMPEG_YUVPLAYER_H
 #include <android/native_window_jni.h>
+#include "Notify.h"
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
-#include "Notify.h"
+extern "C"{
+
+};
+
 
 //顶点着色器glsl,这是define的单行定义 #x = "x"
 #define GET_STR(x) #x
@@ -58,13 +62,13 @@ private :
     int init_opengl();
     GLuint InitShader(const char *code, GLint type);
     int showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v);
-    bool initOpenglFlag = false;
+    bool initOpenglFlag;
     EGLSurface winsurface;
     EGLDisplay display;
     GLuint vsh;
     GLuint fsh;
     GLuint program;
-    GLuint texts[3] = {0};
+    GLuint texts[3] ;
     GLuint apos;
     GLuint atex;
     EGLContext context;

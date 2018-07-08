@@ -26,22 +26,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".EncodeActivity" />
-        <activity android:name=".opengl.OpenglActivity" />
-        <activity android:name=".EGLCamera.EGLCameraActivity" />
-        <activity android:name=".PlayVideoActivity" />
-        <activity android:name=".MyFFmpegActivity" />
-        <activity android:name=".PlayAudioActivity" />
-        <activity android:name=".DecodeEncodeActivity" />
+        <!--<activity android:name=".EncodeActivity" />-->
+        <!--<activity android:name=".opengl.OpenglActivity" />-->
+        <!--<activity android:name=".EGLCamera.EGLCameraActivity" />-->
+        <!--<activity android:name=".PlayVideoActivity" />-->
+        <!--<activity android:name=".MyFFmpegActivity" />-->
+        <!--<activity android:name=".PlayAudioActivity" />-->
+        <!--<activity android:name=".DecodeEncodeActivity" />-->
         <!-- android:screenOrientation="landscape" -->
-        <activity
-            android:name=".ShowVideoAndAudioActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
-        <activity
-            android:name=".ShowVideoShaderActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+        <!--<activity-->
+            <!--android:name=".ShowVideoAndAudioActivity"-->
+            <!--android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />-->
+        <!--<activity-->
+            <!--android:name=".ShowVideoShaderActivity"-->
+            <!--android:configChanges="keyboardHidden|orientation|screenSize"-->
+            <!--android:screenOrientation="landscape"-->
+            <!--android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />-->
 
     </application>
 

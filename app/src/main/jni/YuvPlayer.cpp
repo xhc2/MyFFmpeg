@@ -9,6 +9,11 @@ YuvPlayer::YuvPlayer(ANativeWindow *nwin, int outWidth , int outHeight){
     this->outWidth = outWidth;
     this->outHeight = outHeight;
     this->nwin = nwin;
+    texts[0] = 0;
+    texts[1] = 0;
+    texts[2] = 0;
+
+    initOpenglFlag = false;
 }
 
 YuvPlayer::~YuvPlayer(){

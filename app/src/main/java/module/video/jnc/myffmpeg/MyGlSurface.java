@@ -38,7 +38,7 @@ public class MyGlSurface extends GLSurfaceView implements SurfaceHolder.Callback
         @Override
         public void run() {
             super.run();
-            FFmpegUtils.decodeMp4ToYuv(Constant.rootFile.getAbsolutePath()+"/test.MP4" , getHolder().getSurface());
+//            FFmpegUtils.decodeMp4ToYuv(Constant.rootFile.getAbsolutePath()+"/test.MP4" , getHolder().getSurface());
         }
     }
 

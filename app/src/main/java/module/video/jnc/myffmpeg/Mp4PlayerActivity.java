@@ -57,12 +57,11 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
         btPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int flag = FFmpegUtils.showVideoGpuPlayOrPause();
-                if (flag == 1) {
-                    btPlay.setText("播放");
-                } else {
-                    btPlay.setText("暂停");
-                }
+//                if (flag == 1) {
+//                    btPlay.setText("播放");
+//                } else {
+//                    btPlay.setText("暂停");
+//                }
             }
         });
 
@@ -73,13 +72,11 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                FFmpegUtils.showVideoGpuJustPause();
                 pauseFlag = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                FFmpegUtils.showVideoGpuSeek((double) seekBar.getProgress() / (double) seekBar.getMax());
                 pauseFlag = false;
             }
         });
@@ -89,25 +86,18 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_0_5:
-                FFmpegUtils.changeSpeedGpu(0.5f);
                 break;
             case R.id.tv_0_7:
-                FFmpegUtils.changeSpeedGpu(0.7f);
                 break;
             case R.id.tv_1_0:
-                FFmpegUtils.changeSpeedGpu(1.0f);
                 break;
             case R.id.tv_1_2:
-                FFmpegUtils.changeSpeedGpu(1.2f);
                 break;
             case R.id.tv_1_5:
-                FFmpegUtils.changeSpeedGpu(1.5f);
                 break;
             case R.id.tv_1_7:
-                FFmpegUtils.changeSpeedGpu(1.7f);
                 break;
             case R.id.tv_2_0:
-                FFmpegUtils.changeSpeedGpu(2.0f);
                 break;
         }
         if (popupWindow != null && popupWindow.isShowing()) {
@@ -164,8 +154,7 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
                 if (pauseFlag) {
                     continue;
                 }
-                int position = FFmpegUtils.getPlayPosition();
-                seekBar.setProgress(position);
+//                seekBar.setProgress(position);
             }
         }
     }
@@ -181,6 +170,5 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
         super.onDestroy();
         Log.e("xhc", " ondestroy ");
         stopThread();
-        FFmpegUtils.showVideoGpuDestroy();
     }
 }

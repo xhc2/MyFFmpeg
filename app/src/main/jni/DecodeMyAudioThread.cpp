@@ -82,7 +82,7 @@ void DeocdeMyAudioThread::update(MyData mydata){
 }
 
 DeocdeMyAudioThread::DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  ){
-
+    maxPackage = 130;
     this->ac = ac;
     this->afc = afc;
     this->audioIndex = audioIndex;

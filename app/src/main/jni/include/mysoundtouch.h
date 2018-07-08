@@ -29,18 +29,18 @@ public :
     //ffmepg
     AVFrame *aframe;
     AVFormatContext *afc;
-    int audioindex = -1;
+    int audioindex ;
     AVCodec *audioCode;
     AVCodecContext *ac;
     SwrContext *swc;
     int64_t duration;
     //audio_sl
-    SLObjectItf engineOpenSL = NULL;
-    SLPlayItf iplayer = NULL;
-    SLEngineItf eng = NULL;
-    SLObjectItf mix = NULL;
-    SLObjectItf player = NULL;
-    SLAndroidSimpleBufferQueueItf pcmQue = NULL;
+    SLObjectItf engineOpenSL ;
+    SLPlayItf iplayer ;
+    SLEngineItf eng ;
+    SLObjectItf mix ;
+    SLObjectItf player ;
+    SLAndroidSimpleBufferQueueItf pcmQue ;
 
 
     queue<AVPacket *> audioPktQue;
@@ -62,7 +62,7 @@ private :
     void audioPlayDelay();
     ReadFrame *readFrameThread;
     DecodeAudioThread *decodeAudioThread;
-    pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t mutex_pthread ;
     int sampleRate ;
 
 

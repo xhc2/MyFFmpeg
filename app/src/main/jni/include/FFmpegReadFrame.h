@@ -14,12 +14,12 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
-
+using namespace std;
 class ReadFrame : public MyThread {
 
 private :
     queue<AVPacket *> *audioPktQue;
-    int maxAudioPacket = 140;
+    int maxAudioPacket ;
     AVFormatContext *afc;
     int audioIndex;
 public :

@@ -15,6 +15,7 @@ SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData> *au
     getBufferSize = 1024 * 2 * 2;
     playAudioBuffer = (short *) malloc(putBufferSize);
     getAudioBuffer = (short *) malloc(getBufferSize);
+    isExit = false;
 }
 
 

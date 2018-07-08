@@ -17,7 +17,7 @@ extern "C"{
 #include <libavformat/avformat.h>
 }
 
-
+using namespace std;
 class DecodeAudioThread : public MyThread{
 
 public :
@@ -31,7 +31,7 @@ private :
     queue<MyData> *audioFrameQue;
     queue<AVPacket *> *audioPktQue;
 
-    int maxFrame = 100;
+    int maxFrame;
     AVCodecContext *ac;
     AVFormatContext *afc;
     int audioIndex;

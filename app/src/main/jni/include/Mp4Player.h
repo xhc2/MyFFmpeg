@@ -22,8 +22,8 @@ private :
     const char* playPath;
     //用于显示yuv图像
     AVFormatContext *afc;
-    int video_index = -1;
-    int audio_index = -1;
+    int video_index ;
+    int audio_index ;
     AVCodec *videoCode, *audioCode;
     AVCodecContext *ac, *vc;
     int outWidth , outHeight ;

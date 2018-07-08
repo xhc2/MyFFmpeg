@@ -24,7 +24,7 @@ private :
     int initAudio();
     int simpleRate ;
     int channel;
-    int maxFrame = 100;
+    int maxFrame;
     void audioPlayDelay();
 public :
     std::queue<MyData> audioFrameQue;

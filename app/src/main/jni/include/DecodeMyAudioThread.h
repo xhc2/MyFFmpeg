@@ -22,7 +22,7 @@ class DeocdeMyAudioThread : public MyThread ,public Notify {
 private:
     void run();
     queue<AVPacket *> audioPktQue;
-    int maxPackage = 130;
+    int maxPackage ;
     AVFormatContext *afc;
     int audioIndex;
     SwrContext *swc;

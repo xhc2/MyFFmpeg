@@ -10,6 +10,7 @@ AudioPlayer::AudioPlayer(int simpleRate , int channel){
     this->simpleRate = simpleRate ;
     this->channel = channel;
     playAudioTemp = (char *)malloc(1024 * 2 * channel);
+    maxFrame = 100;
     initAudio();
 }
 

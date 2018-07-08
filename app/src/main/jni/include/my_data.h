@@ -16,12 +16,13 @@ public :
     uint8_t *datas[8];
     AVPacket *pkt;
     //audio true ， video false
-    bool isAudio = false;
-    int size = 0;
+    bool isAudio ;
+    int size ;
     int vWidth ;
     int vHeight ;
     int64_t pts;
     void drop();
+    MyData();
 };
 
 #endif //MYFFMPEG_MY_DATA_H

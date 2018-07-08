@@ -3,6 +3,10 @@
 //
 #include "my_data.h"
 
+MyData::MyData(){
+    isAudio = false;
+};
+
 void MyData::drop() {
 
     if(data != NULL){

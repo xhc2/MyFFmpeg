@@ -16,9 +16,9 @@ extern "C" {
 class DecodeVideoThread : public MyThread  , public Notify{
 
 private:
-    int maxPackage = 100;
+    int maxPackage ;
     queue<AVPacket *> videoPktQue;
-    pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t mutex_pthread ;
     Utils util;
     AVFrame *vframe;
 

@@ -6,6 +6,8 @@
 #include "DecodeVideoThread.h"
 
 DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc  ,int videoIndex){
+    pthread_mutex_init(&mutex_pthread , NULL);
+    maxPackage = 100;
     this->afc = afc;
     this->vc = vc;
     this->videoIndex = videoIndex;

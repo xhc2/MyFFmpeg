@@ -14,7 +14,7 @@
 
 
 int mySoundTouch::initFFmpeg(const char *input_path) {
-
+    mutex_pthread =
     int result = 0;
     av_register_all();
     avcodec_register_all();

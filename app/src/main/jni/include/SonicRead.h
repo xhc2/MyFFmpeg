@@ -19,7 +19,7 @@ private :
     queue<MyData> *audioFrameQue;
     short *playAudioBuffer;
     short *getAudioBuffer ;
-    bool isExit = false;
+    bool isExit;
     int putBufferSize;
     int getBufferSize;
 

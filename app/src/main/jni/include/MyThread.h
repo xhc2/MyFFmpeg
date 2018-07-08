@@ -7,9 +7,10 @@
 
 
 #include <pthread.h>
-#include <thread>
 
-using namespace std;
+extern "C"{
+#include <libavutil/time.h>
+};
 
 class MyThread
 {
@@ -19,12 +20,13 @@ private:
 private:
     static void * start_thread(void *arg);                                                       //静态成员函数
 public:
-    bool pause = false;
-    bool isExit = false;
+    bool pause ;
+    bool isExit ;
     int start();
     void stop();
+    MyThread();
     void  threadSleep(int mis);
-    pthread_mutex_t mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t mutex_pthread ;
     virtual void run() = 0;//基类中的虚函数要么实现，要么是纯虚函数（绝对不允许声明不实现，也不纯虚）
 };
 

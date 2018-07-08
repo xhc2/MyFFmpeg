@@ -9,45 +9,45 @@ import android.util.Log;
  */
 
 public class FFmpegUtils {
-
+//${ANDROID_ABI}
     static {
-//        System.loadLibrary("soundtouch");
-        System.loadLibrary("avutil");
-        System.loadLibrary("avcodec");
-        System.loadLibrary("avformat");
-        System.loadLibrary("swresample");
-        System.loadLibrary("swscale");
-        System.loadLibrary("avfilter");
         System.loadLibrary("my_ffmpeg");
+        System.loadLibrary("avcodec-57");
+        System.loadLibrary("avfilter-6");
+        System.loadLibrary("avformat-57");
+        System.loadLibrary("avutil-55");
+        System.loadLibrary("swresample-2");
+        System.loadLibrary("swscale-4");
+
 
     }
-    public static native String stringNative();
-    //将MP4解码成yuv，和pcm
-    public static native int decodeMp4ToYuv(String path , Object glSurfaceView);
-    public static native int openSLTest(String path);
-    //播放或者暂停 false暂停，true播放
-    public static native int openSLPauseOrPlay(boolean flag);
-    public static native int openSLDestroy();
-    public static native int decodeMp4ToYuvShowShader(String path , Object glSurfaceView);
-    public static native int videoAudioDecodeShow(String path , Object glSurfaceView);
-    public static native int testMyShow();
-    public static native int testNativeThread();
-    public static native int testNativeThreadFree();
-    public static native int testNativeThreadRun();
-    public static native int testCPlusPlusThread();
-    public static native int showVideoGpuAudioOpensl(String path ,  Object glSurfaceView);
-    public static native int showVideoGpuDestroy();
-    public static native int showVideoGpuJustPause();
-    public static native int showVideoGpuPlayOrPause();
-    public static native int showVideoGpuSeek(double seek);
-    public static native int changeSpeedGpu(double speed);
-    //最大值一百，分别按比例处理
-    public static native int getPlayPosition();
-    public static native String getVersionString();
-
-    public static native int soundtouchStart();
-    public static native int soundtouchSpeed(double speed);
-    public static native int initsoundtouch(String path);
+//    public static native String stringNative();
+//    //将MP4解码成yuv，和pcm
+//    public static native int decodeMp4ToYuv(String path , Object glSurfaceView);
+//    public static native int openSLTest(String path);
+//    //播放或者暂停 false暂停，true播放
+//    public static native int openSLPauseOrPlay(boolean flag);
+//    public static native int openSLDestroy();
+//    public static native int decodeMp4ToYuvShowShader(String path , Object glSurfaceView);
+//    public static native int videoAudioDecodeShow(String path , Object glSurfaceView);
+//    public static native int testMyShow();
+//    public static native int testNativeThread();
+//    public static native int testNativeThreadFree();
+//    public static native int testNativeThreadRun();
+//    public static native int testCPlusPlusThread();
+//    public static native int showVideoGpuAudioOpensl(String path ,  Object glSurfaceView);
+//    public static native int showVideoGpuDestroy();
+//    public static native int showVideoGpuJustPause();
+//    public static native int showVideoGpuPlayOrPause();
+//    public static native int showVideoGpuSeek(double seek);
+//    public static native int changeSpeedGpu(double speed);
+//    //最大值一百，分别按比例处理
+//    public static native int getPlayPosition();
+//    public static native String getVersionString();
+//
+//    public static native int soundtouchStart();
+//    public static native int soundtouchSpeed(double speed);
+//    public static native int initsoundtouch(String path);
 
     //下面是做音视频播放器的
     public static native int initMp4Play(String path ,  Object glSurfaceView);

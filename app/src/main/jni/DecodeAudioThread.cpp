@@ -66,6 +66,7 @@ void DecodeAudioThread::run() {
 
 DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
                                      AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  , SwrContext *swc, AVFrame *aframe){
+    maxFrame = 100;
     this->audioFrameQue = audioFrameQue;
     this->audioPktQue = audioPktQue;
     this->ac = ac;
@@ -81,7 +82,7 @@ DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPack
 
 DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPacket *> *audioPktQue ,
                                      AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  ){
-
+    maxFrame = 100;
     this->audioFrameQue = audioFrameQue;
     this->audioPktQue = audioPktQue;
     this->ac = ac;
