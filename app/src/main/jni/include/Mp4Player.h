@@ -31,7 +31,7 @@ private :
 //    int outChannel = 1;
     int64_t videoDuration;
     int initFFmpeg();
-    ReadAVPackage *readAVPackage;
+//    ReadAVPackage *readAVPackage;
     DecodeVideoThread *decodeVideo;
 //    DeocdeMyAudioThread *decodeAudio;
     AudioPlayer *audioPlayer;
