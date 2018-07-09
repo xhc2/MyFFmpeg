@@ -31,8 +31,6 @@ set_target_properties( avcodec-57
                        ${CMAKE_SOURCE_DIR}/prebuilt/x86/libavcodec-57.so)
 
 
-
-
 add_library( avfilter-6 SHARED IMPORTED)
 set_target_properties( avfilter-6
                        PROPERTIES IMPORTED_LOCATION
@@ -63,6 +61,17 @@ set_target_properties( swscale-4
                        ${CMAKE_SOURCE_DIR}/prebuilt/x86/libswscale-4.so)
 
 
+add_library( avdevice-57 SHARED IMPORTED)
+set_target_properties( avdevice-57
+                       PROPERTIES IMPORTED_LOCATION
+                       ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libavdevice-57.so)
+
+
+add_library( postproc-54 SHARED IMPORTED)
+set_target_properties( postproc-54
+                       PROPERTIES IMPORTED_LOCATION
+                       ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libpostproc-54.so)
+
 target_link_libraries( # Specifies the target library.
                        my_ffmpeg
                        avcodec-57
@@ -71,6 +80,8 @@ target_link_libraries( # Specifies the target library.
                        avutil-55
                        swresample-2
                        swscale-4
+                       avdevice-57
+                       postproc-54
                        OpenSLES
                        EGL
                        GLESv2
