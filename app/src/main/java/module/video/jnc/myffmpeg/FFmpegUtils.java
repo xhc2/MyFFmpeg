@@ -11,13 +11,17 @@ import android.util.Log;
 public class FFmpegUtils {
 //${ANDROID_ABI}
     static {
-        System.loadLibrary("my_ffmpeg");
-        System.loadLibrary("avcodec-57");
-        System.loadLibrary("avfilter-6");
-        System.loadLibrary("avformat-57");
-        System.loadLibrary("avutil-55");
-        System.loadLibrary("swresample-2");
-        System.loadLibrary("swscale-4");
+    System.loadLibrary("postproc");
+    System.loadLibrary("avcodec");
+    System.loadLibrary("avdevice");
+    System.loadLibrary("avfilter");
+    System.loadLibrary("avformat");
+    System.loadLibrary("avutil");
+    System.loadLibrary("swresample");
+    System.loadLibrary("swscale");
+    System.loadLibrary("my_ffmpeg");
+
+
 
 
     }
