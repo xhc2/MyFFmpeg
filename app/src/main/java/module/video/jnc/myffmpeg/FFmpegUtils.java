@@ -11,9 +11,7 @@ import android.util.Log;
 public class FFmpegUtils {
 //${ANDROID_ABI}
     static {
-    System.loadLibrary("postproc");
     System.loadLibrary("avcodec");
-    System.loadLibrary("avdevice");
     System.loadLibrary("avfilter");
     System.loadLibrary("avformat");
     System.loadLibrary("avutil");

@@ -23,17 +23,6 @@ add_library( my_ffmpeg
             )
 
 
-
-add_library( avdevice SHARED IMPORTED)
-set_target_properties( avdevice
-                       PROPERTIES IMPORTED_LOCATION
-                       ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libavdevice.so)
-
-add_library( postproc SHARED IMPORTED)
-set_target_properties( postproc
-                      PROPERTIES IMPORTED_LOCATION
-                      ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libpostproc.so)
-
 add_library( avcodec SHARED IMPORTED)
 set_target_properties( avcodec
                        PROPERTIES IMPORTED_LOCATION
@@ -58,6 +47,7 @@ set_target_properties( avutil
                        ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libavutil.so)
 
 
+
 add_library( swresample SHARED IMPORTED)
 set_target_properties( swresample
                        PROPERTIES IMPORTED_LOCATION
@@ -72,14 +62,13 @@ set_target_properties( swscale
 
 target_link_libraries( # Specifies the target library.
                        my_ffmpeg
-                       avcodec
-                       avfilter
-                       avformat
-                       avutil
-                       swresample
-                       swscale
-                        avdevice
-                        postproc
+                        avcodec
+                        avfilter
+                        avformat
+                        avutil
+                        swresample
+                        swscale
+
                        OpenSLES
                        EGL
                        GLESv2

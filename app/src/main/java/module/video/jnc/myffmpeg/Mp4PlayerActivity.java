@@ -1,5 +1,6 @@
 package module.video.jnc.myffmpeg;
 
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +35,8 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        String str = Build.CPU_ABI;
+        Log.e("xhc" , " str "+str);//armeabi-v7a 华为
         setContentView(R.layout.activity_mp4_player);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         btPlay = (TextView) findViewById(R.id.bt_play_button);

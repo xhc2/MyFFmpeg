@@ -134,9 +134,6 @@ int Mp4Player::initFFmpeg() {
 
     LOGE("outwidth %d , outheight %d ", outWidth, outHeight);
 
-
-
-
     LOGE(" init ffmpeg success ! ");
     return RESULT_SUCCESS;
 }
