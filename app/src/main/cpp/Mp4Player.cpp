@@ -23,7 +23,7 @@
 Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
      video_index = -1;
      audio_index = -1;
-
+    outChannel = 1 ;
     initFFmpeg(path);
 //    readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
 //    decodeVideo = new DecodeVideoThread(afc ,vc , video_index);

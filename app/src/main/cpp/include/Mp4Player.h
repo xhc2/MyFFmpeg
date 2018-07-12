@@ -22,13 +22,13 @@ private :
 
     //用于显示yuv图像
     AVFormatContext *afc;
-    int video_index  = 0;
+    int video_index  ;
     int audio_index ;
     AVCodec *videoCode, *audioCode;
     AVCodecContext *ac, *vc;
     int outWidth , outHeight ;
     int simpleRate ;
-    int outChannel = 1;
+    int outChannel ;
     int64_t videoDuration;
     int initFFmpeg(const char* path);
     ReadAVPackage *readAVPackage;
