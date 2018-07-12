@@ -12,7 +12,7 @@ YuvPlayer::YuvPlayer(ANativeWindow *nwin, int outWidth , int outHeight){
     texts[0] = 0;
     texts[1] = 0;
     texts[2] = 0;
-
+    ANativeWindow_setBuffersGeometry(this->nwin, outWidth, outWidth, WINDOW_FORMAT_RGBA_8888);
     initOpenglFlag = false;
 }
 

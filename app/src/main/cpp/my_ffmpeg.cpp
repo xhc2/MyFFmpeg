@@ -7,6 +7,7 @@
 #include <jni.h>
 #include <my_log.h>
 #include <Mp4Player.h>
+#include <gpu_video_sl_audio.h>
 
 
 /**
@@ -220,7 +221,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type,
     const char *path = env->GetStringUTFChars(path_, 0);
     LOGE("XHC path %s" , path);
     ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
-    mp4Player = new Mp4Player(path , win);
+//    open_gpu(env  ,path , glSurfaceView);
+    mp4Player = new Mp4Player(path ,win);
     env->ReleaseStringUTFChars(path_, path);
     return 1;
 

@@ -28,7 +28,7 @@ void MyThread::stop(){
 }
 
 void MyThread::threadSleep(int mis) {
-    av_usleep(1000 * 10);
+    av_usleep(1000 * mis);
 }
 
 void* MyThread::start_thread(void *arg) //静态成员函数只能访问静态变量或静态函数，通过传递this指针进行调用

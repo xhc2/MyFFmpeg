@@ -7,7 +7,7 @@ include_directories(src/main/cpp/include)
 add_library( my_ffmpeg
 
             SHARED
-              src/main/cpp/my_ffmpeg.cpp
+             src/main/cpp/my_ffmpeg.cpp
              src/main/cpp/sonic.cpp
              src/main/cpp/SonicRead.cpp
              src/main/cpp/Utils.cpp
@@ -20,6 +20,7 @@ add_library( my_ffmpeg
             src/main/cpp/Notify.cpp
             src/main/cpp/YuvPlayer.cpp
             src/main/cpp/AudioPlayer.cpp
+            src/main/cpp/gpu_video_sl_audio.cpp
             )
 
 

@@ -21,7 +21,7 @@ void ReadAVPackage::run(){
             threadSleep (500);
             continue;
         }
-
+        LOGE(" ReadAVPackage ");
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc, pkt_);
         if (result < 0) {

@@ -10,8 +10,9 @@
 #include <EGL/egl.h>
 #include <my_data.h>
 #include "gpu_video_sl_audio.h"
-#include <thread>
+#include <pthread.h>
 #include <queue>
+
 /**
  * 2
  * https://www.jianshu.com/p/d5a0ed770b3d
@@ -21,9 +22,9 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
+#include <libavutil/time.h>
 }
 using namespace std;
-//soundtouch
 
 //ffmepg
 AVFrame *aframe_gpu;
@@ -84,6 +85,8 @@ GLuint texts[3] = {0};
 GLuint apos;
 GLuint atex;
 EGLContext context;
+
+char *playAudioBuffer;
 
 
 FILE *fBefore ;
@@ -532,30 +535,20 @@ int getSoundtouchSample() {
 
 static void pcmCallBack_gpu(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
-//    if(playAudioBuffer == NULL){
-//        playAudioBuffer =(char *)malloc(1024 * 2);
-//    }
-//    if(audioFrameQue_gpu.empty()) return ;
-//        //处理速度 , 正常
-//        MyData myData;
-//        myData = audioFrameQue_gpu.front();
-//        audioFrameQue_gpu.pop();
-//        apts_gpu = myData.pts;
-//        memcpy(playAudioBuffer, myData.data, myData.size);
-//       fwrite(playAudioBuffer , 1 , myData.size , testAudio);
-//        (*bf)->Enqueue(bf, myData.data , myData.size);
-//        free(myData.data);
-
-
-    int size = getSoundtouchSample();
-    if (size > 0) {
-//        clearMemSAMPLE(&buf_play_gpu , size / 2);
-//        memcpy(buf_play_gpu, reciveBuf_gpu, size);
-
-        LOGE("play data %d ", size);
-//        (*bf)->Enqueue(bf, buf_play_gpu, size);
-//        clearMemSAMPLE(&buf_play_gpu , size / 2);
+    if(playAudioBuffer == NULL){
+        playAudioBuffer =(char *)malloc(1024 * 2);
     }
+    if(audioFrameQue_gpu.empty()) return ;
+        //处理速度 , 正常
+        MyData myData;
+        myData = audioFrameQue_gpu.front();
+        audioFrameQue_gpu.pop();
+        apts_gpu = myData.pts;
+        memcpy(playAudioBuffer, myData.data, myData.size);
+        (*bf)->Enqueue(bf, myData.data , myData.size);
+        free(myData.data);
+
+
 }
 
 int initAudio_gpu() {
@@ -630,8 +623,9 @@ int changeSpeed(double speed) {
 }
 
 void ThreadSleep_gpu(int mis) {
-    chrono::milliseconds du(mis);
-    this_thread::sleep_for(du);
+//    chrono::milliseconds du(mis);
+//    this_thread::sleep_for(du);
+    av_usleep(1000 * mis);
 }
 
 void *readFrame_gpu(void *arg) {
@@ -657,6 +651,7 @@ void *readFrame_gpu(void *arg) {
             av_packet_free(&pkt_);
             continue;
         }
+        LOGE(" read frame ");
         if (pkt_->stream_index == audio_index_gpu) {
             audioPktQue_gpu.push(pkt_);
         } else if (pkt_->stream_index == video_index_gpu) {
@@ -812,6 +807,9 @@ void *decodeAudio_gpu(void *arg) {
             if (result < 0) {
                 break;
             }
+            if(play_audio_temp == NULL){
+                play_audio_temp = (char *)malloc( 1024 * 2);
+            }
             uint8_t *out[1] = {0};
             out[0] = (uint8_t *) play_audio_temp;
             MyData myData;
@@ -830,7 +828,6 @@ void *decodeAudio_gpu(void *arg) {
             myData.pts = getConvertPts(aframe_gpu->pts,
                                        afc_gpu->streams[audio_index_gpu]->time_base);
 
-//            fwrite(myData.data, 1, myData.size , fBefore);
             audioFrameQue_gpu.push(myData);
             addFrame ++;
         }

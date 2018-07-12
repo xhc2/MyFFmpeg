@@ -20,16 +20,16 @@
 #include <YuvPlayer.h>
 
 
-Mp4Player::Mp4Player(const char* playPath ,ANativeWindow* win){
+Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
      video_index = -1;
      audio_index = -1;
-    this->playPath = playPath;
-    initFFmpeg();
+
+    initFFmpeg(path);
 //    readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
 //    decodeVideo = new DecodeVideoThread(afc ,vc , video_index);
 //    decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
 //    audioPlayer = new AudioPlayer(simpleRate , outChannel);
-//    LOGE(" OUT WIDTH %d , OUTHEIGHT %d " , outWidth , outHeight);
+    LOGE(" OUT WIDTH %d , OUTHEIGHT %d " , outWidth , outHeight);
 //    yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
 
 
@@ -43,15 +43,17 @@ Mp4Player::Mp4Player(const char* playPath ,ANativeWindow* win){
 //    decodeVideo->start();
 //    audioPlayer->start();
 //    this->start();
+
+    LOGE("init Mp4Player SUCCESS ");
 }
 
 
-int Mp4Player::initFFmpeg() {
+int Mp4Player::initFFmpeg(const char* path) {
     int result = 0;
     av_register_all();
     avcodec_register_all();
-    LOGE(" input path %s ", playPath);
-    result = avformat_open_input(&afc, playPath, 0, 0);
+    //avformat_open_input 必须用传递过来的局部变量path，来传递进去。如果用全局变量，将会崩溃异常。
+    result = avformat_open_input(&afc, path , 0, 0);
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
         return RESULT_FAILD;

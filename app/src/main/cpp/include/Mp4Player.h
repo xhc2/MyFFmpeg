@@ -19,21 +19,21 @@ extern "C" {
 class Mp4Player : public MyThread{
 
 private :
-    const char* playPath;
+
     //用于显示yuv图像
     AVFormatContext *afc;
-    int video_index ;
+    int video_index  = 0;
     int audio_index ;
     AVCodec *videoCode, *audioCode;
     AVCodecContext *ac, *vc;
     int outWidth , outHeight ;
     int simpleRate ;
-//    int outChannel = 1;
+    int outChannel = 1;
     int64_t videoDuration;
-    int initFFmpeg();
-//    ReadAVPackage *readAVPackage;
+    int initFFmpeg(const char* path);
+    ReadAVPackage *readAVPackage;
     DecodeVideoThread *decodeVideo;
-//    DeocdeMyAudioThread *decodeAudio;
+    DeocdeMyAudioThread *decodeAudio;
     AudioPlayer *audioPlayer;
 //    YuvPlayer *yuvPlayer;
 public :

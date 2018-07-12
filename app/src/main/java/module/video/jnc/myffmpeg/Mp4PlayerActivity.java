@@ -36,19 +36,20 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         String str = Build.CPU_ABI;
-        Log.e("xhc" , " str "+str);//armeabi-v7a 华为
         setContentView(R.layout.activity_mp4_player);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         btPlay = (TextView) findViewById(R.id.bt_play_button);
         tvSpeed = (TextView) findViewById(R.id.bt_play_speed);
         myVideoGpuShow = (MyVideoGpuShow)findViewById(R.id.play_gl_surfaceview);
-        myVideoGpuShow.setPlayPath(Constant.rootFile.getAbsolutePath() + "/test.MP4");
+
+
 
 //        startThread();
 
         tvSpeed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                myVideoGpuShow.setPlayPath(Constant.rootFile.getAbsolutePath() + "/test.MP4");
                 if (popupWindow == null || !popupWindow.isShowing()) {
                     popWindowShow();
                 } else {
