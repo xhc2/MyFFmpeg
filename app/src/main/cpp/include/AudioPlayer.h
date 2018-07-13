@@ -27,12 +27,12 @@ private :
     int maxFrame;
     void audioPlayDelay();
 public :
-    std::queue<MyData> audioFrameQue;
+    std::queue<MyData *> audioFrameQue;
     char *playAudioTemp;
     AudioPlayer(int simpleRate , int channel);
     ~AudioPlayer();
     void changeSpeed(float speed);
-    void update(MyData mydata);
+    void update(MyData *mydata);
     void run();
     int64_t pts;
 };

@@ -21,7 +21,6 @@ void ReadAVPackage::run(){
             threadSleep (500);
             continue;
         }
-        LOGE(" ReadAVPackage ");
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc, pkt_);
         if (result < 0) {
@@ -29,16 +28,16 @@ void ReadAVPackage::run(){
             av_packet_free(&pkt_);
             continue;
         }
-        MyData myData;
-        myData.pkt = pkt_ ;
+        MyData *myData = new MyData();
+        myData->pkt = pkt_ ;
         if (pkt_->stream_index == audioIndex) {
-            myData.isAudio = true;
+            myData->isAudio = true;
         } else if (pkt_->stream_index == videoIndex) {
-            myData.isAudio = false;
+            myData->isAudio = false;
         } else {
             av_packet_free(&pkt_);
             pkt_ =  NULL;
-            myData.drop();
+            delete myData;
         }
         if(pkt_ != NULL){
             notify(myData);
@@ -46,7 +45,7 @@ void ReadAVPackage::run(){
     }
 }
 //不需要被通知。只是实现一个抽象方法
-void ReadAVPackage::update(MyData mydata){
+void ReadAVPackage::update(MyData *mydata){
 
 }
 

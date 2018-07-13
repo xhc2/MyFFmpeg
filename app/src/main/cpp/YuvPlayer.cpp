@@ -9,10 +9,10 @@ YuvPlayer::YuvPlayer(ANativeWindow *nwin, int outWidth , int outHeight){
     this->outWidth = outWidth;
     this->outHeight = outHeight;
     this->nwin = nwin;
+//    ANativeWindow_setBuffersGeometry(this->nwin, outWidth, outHeight, WINDOW_FORMAT_RGBA_8888);
     texts[0] = 0;
     texts[1] = 0;
     texts[2] = 0;
-    ANativeWindow_setBuffersGeometry(this->nwin, outWidth, outWidth, WINDOW_FORMAT_RGBA_8888);
     initOpenglFlag = false;
 }
 
@@ -20,17 +20,19 @@ YuvPlayer::~YuvPlayer(){
 
 }
 
-void YuvPlayer::update(MyData mydata){
+void YuvPlayer::update(MyData *mydata){
     if(!initOpenglFlag){
         initOpenglFlag = true;
         init_opengl();
     }
-    if(mydata.isAudio || mydata.data == NULL || mydata.size <= 0){
+    if(mydata->isAudio   || mydata->size <= 0){
         return ;
     }
-    uint8_t *buf_y = mydata.datas[0] ;
-    uint8_t *buf_u  = mydata.datas[1];
-    uint8_t *buf_v = mydata.datas[2] ;
+    LOGE(" PLAY VIDEO ");
+
+    uint8_t *buf_y = mydata->datas[0] ;
+    uint8_t *buf_u  = mydata->datas[1];
+    uint8_t *buf_v = mydata->datas[2] ;
     showYuv(buf_y , buf_u, buf_v);
 }
 

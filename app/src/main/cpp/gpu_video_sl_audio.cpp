@@ -335,8 +335,6 @@ int initFFmpeg_gpu(const char *input_path) {
     int result = 0;
     av_register_all();
     avcodec_register_all();
-
-
     aframe_gpu = av_frame_alloc();
     vframe_gpu = av_frame_alloc();
     vframe_gpu_seek = av_frame_alloc();

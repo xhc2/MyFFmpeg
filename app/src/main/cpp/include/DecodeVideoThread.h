@@ -21,12 +21,12 @@ private:
     pthread_mutex_t mutex_pthread ;
     Utils util;
     AVFrame *vframe;
-
+    FILE *fileYuv;
     AVCodecContext  *vc;
     AVFormatContext *afc;
     int videoIndex;
 public :
-    void update(MyData mydata);
+    void update(MyData *mydata);
     DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc  ,int videoIndex);
     ~DecodeVideoThread();
     void run();

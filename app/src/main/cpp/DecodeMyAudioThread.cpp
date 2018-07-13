@@ -38,7 +38,7 @@ void DeocdeMyAudioThread::run(){
             }
             uint8_t *out[1] = {0};
             out[0] = (uint8_t *) play_audio_temp;
-            MyData myData;
+            MyData *myData = new MyData();
             //音频重采样
             swr_convert(swc, out,
                         aframe->nb_samples,
@@ -46,28 +46,27 @@ void DeocdeMyAudioThread::run(){
                         aframe->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
             //size = 一个sample多少个字节 * 有多少个sample。
-            myData.size = av_get_bytes_per_sample( AV_SAMPLE_FMT_S16) *
+            myData->size = av_get_bytes_per_sample( AV_SAMPLE_FMT_S16) *
                           aframe->nb_samples;
-            myData.data = (char *) malloc(myData.size);
-            memcpy(myData.data, play_audio_temp, myData.size);
-            myData.isAudio = true;
-            myData.pts = utils.getConvertPts(aframe->pts,
+            myData->data = (char *) malloc(myData->size);
+            memcpy(myData->data, play_audio_temp, myData->size);
+            myData->isAudio = true;
+            myData->pts = utils.getConvertPts(aframe->pts,
                                        afc->streams[audioIndex]->time_base);
-            LOGE("DECODE AUDIO");
             this->notify(myData);
         }
     }
 
 }
 
-void DeocdeMyAudioThread::update(MyData mydata){
-    if(!mydata.isAudio)return ;
+void DeocdeMyAudioThread::update(MyData *mydata){
+    if(!mydata->isAudio)return ;
     while(true){
 
             pthread_mutex_lock(&mutex_pthread);
 //            LOGE(" audioPktQue.size() %d " , audioPktQue.size());
             if(audioPktQue.size() < maxPackage){
-                audioPktQue.push(mydata.pkt);
+                audioPktQue.push(mydata->pkt);
                 pthread_mutex_unlock(&mutex_pthread);
                 break;
             }

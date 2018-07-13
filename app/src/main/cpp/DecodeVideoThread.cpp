@@ -10,7 +10,9 @@ DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc 
     maxPackage = 100;
     this->afc = afc;
     this->vc = vc;
+    vframe = av_frame_alloc();
     this->videoIndex = videoIndex;
+//    fileYuv = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
 }
 
 void DecodeVideoThread::run() {
@@ -28,21 +30,20 @@ void DecodeVideoThread::run() {
             continue;
         }
         AVPacket *pck = videoPktQue.front();
-//        LOGE(" pop pck %lld " , pck->pts);
+        if (!pck) {
+            LOGE(" video packet null !");
+            videoPktQue.pop();
+            continue;
+        }
         //音视频同步处理
-        int64_t pts = util.getConvertPts(pck->pts, afc->streams[pck->stream_index]->time_base);
+        int64_t pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
 //        LOGE("tong bu apts %lld , vpts %lld ", apts, pts);
-        if (pts > apts) {
+        if (pts >= apts) {
             threadSleep(1);
             continue;
         }
 
         videoPktQue.pop();
-        if (!pck) {
-            LOGE(" video packet null !");
-            continue;
-        }
-
         result = avcodec_send_packet(vc, pck);
         av_packet_free(&pck);
         if (result < 0) {
@@ -63,29 +64,43 @@ void DecodeVideoThread::run() {
             vframe->pts = util.getConvertPts(vframe->pts,
                                             afc->streams[videoIndex]->time_base);
             pts = vframe->pts;
-            MyData myData ;
-            myData.pts = pts;
-            myData.vWidth = vc->width ;
-            myData.vHeight = vc->height;
-            memcpy(myData.datas ,vframe->data , sizeof(myData.datas) );
+            MyData *myData = new MyData();
+            myData->pts = pts;
+            myData->vWidth = vc->width ;
+            myData->vHeight = vc->height;
+            int size = vc->width *  vc->height;
+            //y
+            myData->datas[0] = (uint8_t *)malloc(size);
+            //u
+            myData->datas[1] = (uint8_t *)malloc(size / 4);
+            //v
+            myData->datas[2] = (uint8_t *)malloc(size / 4);
+
+            memcpy(myData->datas[0] ,vframe->data[0] , size );
+            memcpy(myData->datas[1] ,vframe->data[1] , size / 4 );
+            memcpy(myData->datas[2] ,vframe->data[2] , size / 4);
+
+//            fwrite(myData->datas[0] ,1 ,size , fileYuv);
+//            fwrite(myData->datas[1] ,1 ,size / 4  , fileYuv);
+//            fwrite(myData->datas[2] ,1 ,size / 4  , fileYuv);
+
             this->notify(myData);
         }
     }
-
 }
 
-void DecodeVideoThread::update(MyData mydata) {
-    if (mydata.isAudio) return ;
+void DecodeVideoThread::update(MyData *mydata) {
+    if (mydata->isAudio) return ;
     while (true) {
             pthread_mutex_lock(&mutex_pthread);
             if (videoPktQue.size() < maxPackage) {
-                videoPktQue.push(mydata.pkt);
+                videoPktQue.push(mydata->pkt);
                 pthread_mutex_unlock(&mutex_pthread);
                 break;
             }
             else{
-                pthread_mutex_unlock(&mutex_pthread);
                 threadSleep(2);
+                pthread_mutex_unlock(&mutex_pthread);
             }
     }
 }

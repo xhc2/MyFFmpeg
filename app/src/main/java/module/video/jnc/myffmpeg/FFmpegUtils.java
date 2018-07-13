@@ -18,10 +18,6 @@ public class FFmpegUtils {
     System.loadLibrary("swresample");
     System.loadLibrary("swscale");
     System.loadLibrary("my_ffmpeg");
-
-
-
-
     }
 //    public static native String stringNative();
 //    //将MP4解码成yuv，和pcm

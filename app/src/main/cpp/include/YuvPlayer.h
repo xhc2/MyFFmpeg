@@ -79,7 +79,7 @@ private :
 public :
     YuvPlayer(ANativeWindow *nwin , int outWidth , int outHeight);
     ~YuvPlayer();
-    void update(MyData mydata);
+    void update(MyData *mydata);
 
 };
 #endif //MYFFMPEG_YUVPLAYER_H

@@ -22,27 +22,28 @@
 
 Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
      video_index = -1;
-     audio_index = -1;
+    audio_index = -1;
     outChannel = 1 ;
+    //必须显式的置null，不然avformat_open_input要报错。
+    afc = NULL;
     initFFmpeg(path);
-//    readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
-//    decodeVideo = new DecodeVideoThread(afc ,vc , video_index);
-//    decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
-//    audioPlayer = new AudioPlayer(simpleRate , outChannel);
-    LOGE(" OUT WIDTH %d , OUTHEIGHT %d " , outWidth , outHeight);
-//    yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
+    readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
+    decodeVideo = new DecodeVideoThread(afc ,vc , video_index);
+    decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
+    audioPlayer = new AudioPlayer(simpleRate , outChannel);
+    yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
 
 
-//    readAVPackage->addNotify(decodeVideo);
-//    readAVPackage->addNotify(decodeAudio);
-//    decodeAudio->addNotify(audioPlayer);
-//    decodeVideo->addNotify(yuvPlayer);
-//
-//    readAVPackage->start();
-//    decodeAudio->start();
-//    decodeVideo->start();
-//    audioPlayer->start();
-//    this->start();
+    readAVPackage->addNotify(decodeVideo);
+    readAVPackage->addNotify(decodeAudio);
+    decodeAudio->addNotify(audioPlayer);
+    decodeVideo->addNotify(yuvPlayer);
+
+    readAVPackage->start();
+    decodeAudio->start();
+    audioPlayer->start();
+    decodeVideo->start();
+    this->start();
 
     LOGE("init Mp4Player SUCCESS ");
 }
@@ -52,7 +53,6 @@ int Mp4Player::initFFmpeg(const char* path) {
     int result = 0;
     av_register_all();
     avcodec_register_all();
-    //avformat_open_input 必须用传递过来的局部变量path，来传递进去。如果用全局变量，将会崩溃异常。
     result = avformat_open_input(&afc, path , 0, 0);
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
@@ -148,6 +148,7 @@ void Mp4Player::run(){
         }
         //在外面把同步处理了。
         if(audioPlayer != NULL && decodeVideo != NULL){
+//            LOGE(" sync pts audio %lld , video %lld "  , audioPlayer->pts  , decodeVideo->apts);
             decodeVideo->apts = audioPlayer->pts;
         }
     }

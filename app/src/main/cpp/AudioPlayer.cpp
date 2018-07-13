@@ -27,8 +27,8 @@ void AudioPlayer::audioPlayDelay() {
     pthread_mutex_unlock(&mutex_pthread);
 }
 
-void AudioPlayer::update(MyData mydata){
-    if(mydata.data == NULL || mydata.size <= 0 || !mydata.isAudio){
+void AudioPlayer::update(MyData *mydata){
+    if(mydata->data == NULL || mydata->size <= 0 || !mydata->isAudio){
         return ;
     }
     while(true){
@@ -57,16 +57,14 @@ void AudioPlayer::changeSpeed(float speed){
 void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     AudioPlayer *ap = (AudioPlayer *)context;
     if(!ap->audioFrameQue.empty()){
-        LOGE(" frame size %d " , ap->audioFrameQue.size());
-        MyData myData = ap->audioFrameQue.front();
+        MyData *myData = ap->audioFrameQue.front();
         ap->audioFrameQue.pop();
-        ap->pts = myData.pts;
-        int size = myData.size;
-        memcpy(ap->playAudioTemp ,myData.data , size );
+        ap->pts = myData->pts;
+        int size = myData->size;
+        memcpy(ap->playAudioTemp ,myData->data , size );
         (*bf)->Enqueue(bf, ap->playAudioTemp, size);
-        myData.drop();
+        delete myData;
     }
-
 }
 
 int AudioPlayer::initAudio() {

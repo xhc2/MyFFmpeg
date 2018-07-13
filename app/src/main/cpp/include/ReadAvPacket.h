@@ -27,7 +27,7 @@ private :
 public :
     ReadAVPackage(AVFormatContext *afc  , int audioIndex , int videoIndex);
     ~ReadAVPackage();
-    void update(MyData mydata);
+    void update(MyData *mydata);
 };
 
 #endif //MYFFMPEG_READAVPACKET_H

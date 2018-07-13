@@ -35,7 +35,7 @@ private :
     DecodeVideoThread *decodeVideo;
     DeocdeMyAudioThread *decodeAudio;
     AudioPlayer *audioPlayer;
-//    YuvPlayer *yuvPlayer;
+    YuvPlayer *yuvPlayer;
 public :
     Mp4Player(const char* playPath , ANativeWindow* win);
     ~Mp4Player();

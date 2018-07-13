@@ -8,7 +8,7 @@ void Notify::addNotify(Notify *n){
     listN.push_back(n);
 }
 
-void Notify::notify(MyData mydata) {
+void Notify::notify(MyData *mydata) {
     for(int i = 0 ;i < listN.size() ; ++ i){
         listN.at(i)->update(mydata);
     }

@@ -23,6 +23,7 @@ public :
     int64_t pts;
     void drop();
     MyData();
+    ~MyData();
 };
 
 #endif //MYFFMPEG_MY_DATA_H

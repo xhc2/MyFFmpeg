@@ -16,9 +16,9 @@ private :
     vector<Notify*> listN;
 
 public :
-    void notify(MyData mydata);
+    void notify(MyData *mydata);
     void addNotify(Notify *n);
-    virtual void update(MyData mydata) = 0;
+    virtual void update(MyData *mydata) = 0;
 };
 
 #endif //MYFFMPEG_NOTIFY_H

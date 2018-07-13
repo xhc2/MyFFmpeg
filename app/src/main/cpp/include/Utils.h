@@ -13,7 +13,7 @@ extern "C"{
 class Utils{
 
 public :
-   static int getConvertPts(int64_t pts , AVRational time_base);
+   static int64_t getConvertPts(int64_t pts , AVRational time_base);
 
 };
 #endif //MYFFMPEG_UTILS_H
