@@ -41,8 +41,8 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
 
     readAVPackage->start();
     decodeAudio->start();
-    audioPlayer->start();
     decodeVideo->start();
+    audioPlayer->start();
     this->start();
 
     LOGE("init Mp4Player SUCCESS ");
@@ -154,7 +154,76 @@ void Mp4Player::run(){
     }
 }
 
-Mp4Player::~Mp4Player(){
+void Mp4Player::pauseVA(){
+    if(audioPlayer != NULL){
+        audioPlayer->pauseAudio();
+         audioPlayer->setPause();
+    }
+    if(decodeAudio != NULL){
+        decodeAudio->setPause();
+    }
+    if(decodeVideo != NULL){
+        decodeVideo->setPause();
+    }
+    if(readAVPackage != NULL){
+        readAVPackage->setPause();
+    }
+}
 
+int Mp4Player::getProgress(){
+    LOGE("videoDuration %lld , audioPlayer->pts %lld " , videoDuration ,audioPlayer->pts);
+    return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
+}
+
+void Mp4Player::playVA(){
+    if(audioPlayer != NULL){
+        audioPlayer->start();
+        audioPlayer->setPlay();
+    }
+    if(decodeAudio != NULL){
+        decodeAudio->setPlay();
+    }
+    if(decodeVideo != NULL){
+        decodeVideo->setPlay();
+    }
+    if(readAVPackage != NULL){
+        readAVPackage->setPlay();
+    }
+}
+
+Mp4Player::~Mp4Player(){
+    //    ReadAVPackage *readAVPackage;
+    if(yuvPlayer != NULL){
+        delete yuvPlayer;
+    }
+    if(audioPlayer != NULL){
+        audioPlayer->stop();
+        delete audioPlayer;
+    }
+    if(decodeAudio != NULL){
+        decodeAudio->stop();
+        delete decodeAudio;
+    }
+    if(decodeVideo != NULL){
+        decodeVideo->stop();
+        delete decodeVideo;
+    }
+    if(readAVPackage != NULL){
+        readAVPackage->stop();
+        delete readAVPackage;
+    }
+
+
+    if (vc != NULL) {
+        avcodec_close(vc);
+    }
+    if (ac != NULL) {
+        avcodec_close(ac);
+    }
+    if (afc != NULL) {
+        avformat_close_input(&afc);
+    }
+
+    LOGE("destroy Mp4Player");
 }
 

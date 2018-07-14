@@ -22,10 +22,11 @@ private :
 
     //用于显示yuv图像
     AVFormatContext *afc;
+    AVCodecContext *ac, *vc;
     int video_index  ;
     int audio_index ;
     AVCodec *videoCode, *audioCode;
-    AVCodecContext *ac, *vc;
+
     int outWidth , outHeight ;
     int simpleRate ;
     int outChannel ;
@@ -36,10 +37,14 @@ private :
     DeocdeMyAudioThread *decodeAudio;
     AudioPlayer *audioPlayer;
     YuvPlayer *yuvPlayer;
+    void run();
+
 public :
     Mp4Player(const char* playPath , ANativeWindow* win);
+    void pauseVA();
+    void playVA();
     ~Mp4Player();
-    void run();
+    int getProgress();
 };
 
 #endif //MYFFMPEG_MP4PLAYER_H

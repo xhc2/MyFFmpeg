@@ -10,20 +10,47 @@ AudioPlayer::AudioPlayer(int simpleRate , int channel){
     this->simpleRate = simpleRate ;
     this->channel = channel;
     playAudioTemp = (char *)malloc(1024 * 2 * channel);
-    maxFrame = 100;
+    maxFrame = 140;
     initAudio();
 }
 
 void AudioPlayer::run(){
     audioPlayDelay();
 }
+//暂停或者播放
+int AudioPlayer::pause_audio(bool myPauseFlag) {
+    if (iplayer != NULL) {
+        SLresult re = (*iplayer)->SetPlayState(iplayer, myPauseFlag ? SL_PLAYSTATE_PAUSED
+                                                                            : SL_PLAYSTATE_PLAYING);
+        if (re != SL_RESULT_SUCCESS) {
+            LOGE("SetPlayState pause FAILD ");
+            return -1;
+        }
+        LOGE("SetPlayState pause success ");
+    }
+    return 0;
+}
+
+void AudioPlayer::pauseAudio(){
+    pause_audio(true);
+}
+
+void AudioPlayer::playAudio(){
+    pause_audio(false);
+}
 
 void AudioPlayer::audioPlayDelay() {
     //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
     pthread_mutex_lock(&mutex_pthread);
-    threadSleep(300);
-    (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
-    (*pcmQue)->Enqueue(pcmQue, "", 1);
+    while(!isExit && !pause){
+        LOGE(" PLAY DELAY %d " , audioFrameQue.size());
+        if(!audioFrameQue.empty()){
+            (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
+            (*pcmQue)->Enqueue(pcmQue, "", 1);
+            break;
+        }
+        threadSleep(2);
+    }
     pthread_mutex_unlock(&mutex_pthread);
 }
 
@@ -32,22 +59,45 @@ void AudioPlayer::update(MyData *mydata){
         return ;
     }
     while(true){
-        pthread_mutex_lock(&mutex_pthread);
         if(audioFrameQue.size() < maxFrame){
             audioFrameQue.push(mydata);
-            pthread_mutex_unlock(&mutex_pthread);
             break;
         }
         else{
             threadSleep(1);
-            pthread_mutex_unlock(&mutex_pthread);
             continue;
         }
     }
 }
 
 AudioPlayer::~AudioPlayer(){
+    if(playAudioTemp != NULL){
+        free(playAudioTemp);
+    }
+    pts = 0;
+    if (iplayer && (*iplayer)) {
+        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
+    }
+    if (pcmQue != NULL) {
+        (*pcmQue)->Clear(pcmQue);
+    }
+    if (player != NULL) {
+        (*player)->Destroy(player);
+        player = NULL;
+        iplayer = NULL;
+        pcmQue = NULL;
+    }
 
+    if (mix != NULL) {
+        (*mix)->Destroy(mix);
+        mix = NULL;
+    }
+    if (engineOpenSL != NULL) {
+        (*engineOpenSL)->Destroy(engineOpenSL);
+        engineOpenSL = NULL;
+        eng = NULL;
+    }
+    LOGE("AudioPlayer destory ! ");
 }
 
 void AudioPlayer::changeSpeed(float speed){
@@ -56,14 +106,23 @@ void AudioPlayer::changeSpeed(float speed){
 
 void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     AudioPlayer *ap = (AudioPlayer *)context;
+    LOGE("AUDIO PLAY size %d " ,ap->audioFrameQue.size());
     if(!ap->audioFrameQue.empty()){
-        MyData *myData = ap->audioFrameQue.front();
-        ap->audioFrameQue.pop();
-        ap->pts = myData->pts;
-        int size = myData->size;
-        memcpy(ap->playAudioTemp ,myData->data , size );
-        (*bf)->Enqueue(bf, ap->playAudioTemp, size);
-        delete myData;
+        MyData *myData = NULL;
+        while(true && !ap->audioFrameQue.empty()){
+            myData = ap->audioFrameQue.front();
+            ap->audioFrameQue.pop();
+            if(myData != NULL){
+                break;
+            }
+        }
+        if(myData != NULL){
+            ap->pts = myData->pts;
+            int size = myData->size;
+            memcpy(ap->playAudioTemp ,myData->data , size );
+            (*bf)->Enqueue(bf, ap->playAudioTemp, size);
+            delete myData;
+        }
     }
 }
 
@@ -156,3 +215,4 @@ SLEngineItf AudioPlayer::createOpenSL() {
     }
     return en;
 }
+

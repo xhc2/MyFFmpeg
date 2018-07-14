@@ -26,9 +26,12 @@ private :
     int channel;
     int maxFrame;
     void audioPlayDelay();
+    int pause_audio(bool myPauseFlag);
 public :
     std::queue<MyData *> audioFrameQue;
     char *playAudioTemp;
+    void pauseAudio();
+    void playAudio();
     AudioPlayer(int simpleRate , int channel);
     ~AudioPlayer();
     void changeSpeed(float speed);

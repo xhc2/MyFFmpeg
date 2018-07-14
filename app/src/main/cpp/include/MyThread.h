@@ -24,7 +24,10 @@ public:
     bool isExit ;
     int start();
     void stop();
+    void setPause();
+    void setPlay();
     MyThread();
+    ~MyThread();
     void  threadSleep(int mis);
     pthread_mutex_t mutex_pthread ;
     virtual void run() = 0;//基类中的虚函数要么实现，要么是纯虚函数（绝对不允许声明不实现，也不纯虚）

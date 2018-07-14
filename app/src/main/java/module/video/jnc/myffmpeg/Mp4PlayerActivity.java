@@ -1,6 +1,8 @@
 package module.video.jnc.myffmpeg;
 
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +11,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -22,6 +25,9 @@ import android.widget.TextView;
 
 public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final int PLAY = 1;
+    private static final int PAUSE = 2;
+
     private SeekBar seekBar;
     private TextView btPlay;
     private TextView tvSpeed;
@@ -29,27 +35,50 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
     private boolean pauseFlag = false;
     private PopupWindow popupWindow;
     private MyVideoGpuShow myVideoGpuShow;
+    private int flag = PAUSE ;
+    private RelativeLayout rlTopBar;
+    private RelativeLayout rlBottomBar;
+    private int progress;
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what){
+                case 1:
+                    rlTopBar.setVisibility(View.GONE);
+                    rlBottomBar.setVisibility(View.GONE);
+                    break;
+            }
+            return false;
+        }
+    });
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        String str = Build.CPU_ABI;
         setContentView(R.layout.activity_mp4_player);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         btPlay = (TextView) findViewById(R.id.bt_play_button);
         tvSpeed = (TextView) findViewById(R.id.bt_play_speed);
         myVideoGpuShow = (MyVideoGpuShow)findViewById(R.id.play_gl_surfaceview);
+        rlTopBar = (RelativeLayout)findViewById(R.id.rl_topbar);
+        rlBottomBar =  (RelativeLayout)findViewById(R.id.rl_bottom_bar);
 
-
-
-//        startThread();
-
+        startThread();
+        myVideoGpuShow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rlTopBar.setVisibility(View.VISIBLE);
+                rlBottomBar.setVisibility(View.VISIBLE);
+                handler.removeCallbacksAndMessages(null);
+                handler.sendEmptyMessageDelayed(1 , 2000);
+            }
+        });
         tvSpeed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                myVideoGpuShow.setPlayPath(Constant.rootFile.getAbsolutePath() + "/test.MP4");
+
                 if (popupWindow == null || !popupWindow.isShowing()) {
                     popWindowShow();
                 } else {
@@ -58,14 +87,24 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
             }
         });
 
+        findViewById(R.id.ib_more).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myVideoGpuShow.setPlayPath(Constant.rootFile.getAbsolutePath() + "/test.MP4");
+            }
+        });
+
         btPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                if (flag == 1) {
-//                    btPlay.setText("播放");
-//                } else {
-//                    btPlay.setText("暂停");
-//                }
+                flag = PLAY == flag ? PAUSE : PLAY;
+                if (flag == PLAY) {
+                    btPlay.setText("暂停");
+                    FFmpegUtils.mp4Play();
+                } else {
+                    btPlay.setText("播放");
+                    FFmpegUtils.mp4Pause();
+                }
             }
         });
 
@@ -155,10 +194,12 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (pauseFlag) {
-                    continue;
-                }
-//                seekBar.setProgress(position);
+//                if (pauseFlag) {
+//                    continue;
+//                }
+                progress = FFmpegUtils.getProgress();
+                Log.e("xhc" ," progress "+progress);
+                seekBar.setProgress(progress);
             }
         }
     }
@@ -172,7 +213,7 @@ public class Mp4PlayerActivity extends AppCompatActivity implements View.OnClick
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("xhc", " ondestroy ");
         stopThread();
+        FFmpegUtils.destroyMp4Play();
     }
 }

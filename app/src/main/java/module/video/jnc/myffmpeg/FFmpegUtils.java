@@ -49,7 +49,10 @@ public class FFmpegUtils {
 
     //下面是做音视频播放器的
     public static native int initMp4Play(String path ,  Object glSurfaceView);
-
+    public static native int destroyMp4Play();
+    public static native int mp4Pause();
+    public static native int mp4Play();
+    public static native int getProgress();
     private void printMsgFromJni(String str){
         Log.e("xhc_jni" ,str);
 //        return "x";

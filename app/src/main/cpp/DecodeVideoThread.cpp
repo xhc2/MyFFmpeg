@@ -4,16 +4,18 @@
 
 #include <my_log.h>
 #include "DecodeVideoThread.h"
-
+int count ;
 DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc  ,int videoIndex){
-    pthread_mutex_init(&mutex_pthread , NULL);
     maxPackage = 100;
     this->afc = afc;
     this->vc = vc;
+    count = 0;
     vframe = av_frame_alloc();
     this->videoIndex = videoIndex;
 //    fileYuv = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
 }
+
+
 
 void DecodeVideoThread::run() {
     int result;
@@ -36,8 +38,7 @@ void DecodeVideoThread::run() {
             continue;
         }
         //音视频同步处理
-        int64_t pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
-//        LOGE("tong bu apts %lld , vpts %lld ", apts, pts);
+        pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
         if (pts >= apts) {
             threadSleep(1);
             continue;
@@ -66,9 +67,11 @@ void DecodeVideoThread::run() {
             pts = vframe->pts;
             MyData *myData = new MyData();
             myData->pts = pts;
+            myData->isAudio = false;
             myData->vWidth = vc->width ;
             myData->vHeight = vc->height;
             int size = vc->width *  vc->height;
+            myData->size = (int)(size + size * 0.5f);
             //y
             myData->datas[0] = (uint8_t *)malloc(size);
             //u
@@ -79,11 +82,6 @@ void DecodeVideoThread::run() {
             memcpy(myData->datas[0] ,vframe->data[0] , size );
             memcpy(myData->datas[1] ,vframe->data[1] , size / 4 );
             memcpy(myData->datas[2] ,vframe->data[2] , size / 4);
-
-//            fwrite(myData->datas[0] ,1 ,size , fileYuv);
-//            fwrite(myData->datas[1] ,1 ,size / 4  , fileYuv);
-//            fwrite(myData->datas[2] ,1 ,size / 4  , fileYuv);
-
             this->notify(myData);
         }
     }
@@ -106,5 +104,5 @@ void DecodeVideoThread::update(MyData *mydata) {
 }
 
 DecodeVideoThread::~DecodeVideoThread(){
-
+    av_frame_free(&vframe);
 }

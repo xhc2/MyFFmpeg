@@ -12,12 +12,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!--seekbar-->
 
     <RelativeLayout
+        android:id="@+id/rl_topbar"
+        android:layout_width="match_parent"
+        android:background="#33333333"
+        android:paddingRight="10dp"
+        android:visibility="gone"
+        android:layout_height="30dp">
+        <ImageButton
+            android:id="@+id/ib_more"
+            android:background="@null"
+            android:src="@mipmap/more"
+            android:layout_width="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_height="match_parent" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_bottom_bar"
         android:layout_width="match_parent"
         android:layout_alignParentBottom="true"
         android:background="#ffffff"
+        android:visibility="gone"
         android:layout_height="30dp">
 
 

@@ -5,14 +5,15 @@
 
 
 #include <MyThread.h>
+#include <my_log.h>
 
 
 MyThread::MyThread() {
     pthread_mutex_init(&mutex_pthread , NULL);
-//    mutex_pthread = PTHREAD_MUTEX_INITIALIZER;
     pause = false;
     isExit = false;
 }
+
 
 int MyThread::start()
 {
@@ -31,9 +32,22 @@ void MyThread::threadSleep(int mis) {
     av_usleep(1000 * mis);
 }
 
+void MyThread::setPause(){
+    pause = true;
+}
+void MyThread::setPlay(){
+    pause = false;
+}
+
+
 void* MyThread::start_thread(void *arg) //静态成员函数只能访问静态变量或静态函数，通过传递this指针进行调用
 {
     MyThread *ptr = (MyThread *)arg;
     ptr->run();
     return 0;                                                                                             //线程的实体是run
+}
+
+MyThread::~MyThread(){
+    LOGE(" DESTROY THREAD ");
+    pthread_mutex_destroy(&mutex_pthread);
 }

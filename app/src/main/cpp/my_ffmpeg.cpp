@@ -218,12 +218,49 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type, jstring path_,
                                                        jobject glSurfaceView) {
-    const char *path = env->GetStringUTFChars(path_, 0);
-    LOGE("XHC path %s" , path);
-    ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
-//    open_gpu(env  ,path , glSurfaceView);
-    mp4Player = new Mp4Player(path ,win);
-    env->ReleaseStringUTFChars(path_, path);
+    if(mp4Player == NULL){
+        const char *path = env->GetStringUTFChars(path_, 0);
+        LOGE("XHC path %s" , path);
+        ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
+        mp4Player = new Mp4Player(path ,win);
+        env->ReleaseStringUTFChars(path_, path);
+    }
     return 1;
 
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyMp4Play(JNIEnv *env, jclass type) {
+    delete mp4Player;
+    mp4Player = NULL;
+    return 1;
+
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_mp4Pause(JNIEnv *env, jclass type) {
+    if(mp4Player != NULL){
+        mp4Player->pauseVA();
+    }
+
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_mp4Play(JNIEnv *env, jclass type) {
+    if(mp4Player != NULL){
+        mp4Player->playVA();
+    }
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getProgress(JNIEnv *env, jclass type) {
+    if(mp4Player != NULL){
+        return mp4Player->getProgress();
+    }
+    return 0;
 }

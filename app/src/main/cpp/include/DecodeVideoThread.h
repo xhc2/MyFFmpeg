@@ -30,8 +30,8 @@ public :
     DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc  ,int videoIndex);
     ~DecodeVideoThread();
     void run();
-    int pts ;
-    int apts;
+    int64_t pts ;
+    int64_t apts;
 };
 
 #endif //MYFFMPEG_DECODEVIDEOTHREAD_H

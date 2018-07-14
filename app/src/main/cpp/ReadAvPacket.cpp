@@ -30,6 +30,7 @@ void ReadAVPackage::run(){
         }
         MyData *myData = new MyData();
         myData->pkt = pkt_ ;
+        myData->size = pkt_->size;
         if (pkt_->stream_index == audioIndex) {
             myData->isAudio = true;
         } else if (pkt_->stream_index == videoIndex) {

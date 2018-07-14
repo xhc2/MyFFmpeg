@@ -53,6 +53,7 @@ void DeocdeMyAudioThread::run(){
             myData->isAudio = true;
             myData->pts = utils.getConvertPts(aframe->pts,
                                        afc->streams[audioIndex]->time_base);
+            LOGE(" DECODE AUDIO ");
             this->notify(myData);
         }
     }
@@ -64,7 +65,6 @@ void DeocdeMyAudioThread::update(MyData *mydata){
     while(true){
 
             pthread_mutex_lock(&mutex_pthread);
-//            LOGE(" audioPktQue.size() %d " , audioPktQue.size());
             if(audioPktQue.size() < maxPackage){
                 audioPktQue.push(mydata->pkt);
                 pthread_mutex_unlock(&mutex_pthread);
@@ -100,5 +100,13 @@ DeocdeMyAudioThread::DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *a
 }
 
 DeocdeMyAudioThread::~DeocdeMyAudioThread(){
+
+    if(aframe != NULL){
+        av_frame_free(&aframe);
+    }
+    if(swc != NULL){
+        swr_free(&swc);
+    }
+
 
 }

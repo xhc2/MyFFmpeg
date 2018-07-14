@@ -9,15 +9,32 @@ YuvPlayer::YuvPlayer(ANativeWindow *nwin, int outWidth , int outHeight){
     this->outWidth = outWidth;
     this->outHeight = outHeight;
     this->nwin = nwin;
-//    ANativeWindow_setBuffersGeometry(this->nwin, outWidth, outHeight, WINDOW_FORMAT_RGBA_8888);
     texts[0] = 0;
     texts[1] = 0;
     texts[2] = 0;
+    buf_y = (uint8_t *)malloc(outWidth * outHeight);
+    buf_u = (uint8_t *)malloc(outWidth * outHeight / 4 );
+    buf_v = (uint8_t *)malloc(outWidth * outHeight / 4);
     initOpenglFlag = false;
 }
 
 YuvPlayer::~YuvPlayer(){
-
+    initOpenglFlag = false;
+    glDisableVertexAttribArray(apos);
+    glDisableVertexAttribArray(atex);
+    glDetachShader(vsh, program);
+    glDetachShader(fsh, program);
+    glDeleteShader(vsh);
+    glDeleteShader(fsh);
+    glDeleteProgram(program);
+    glDeleteTextures(3, texts);
+    eglDestroyContext(display, context);
+    eglDestroySurface(display, winsurface);
+    eglTerminate(display);
+    if (nwin != NULL) {
+        ANativeWindow_release(nwin);
+    }
+    LOGE(" destroyShader ");
 }
 
 void YuvPlayer::update(MyData *mydata){
@@ -28,12 +45,12 @@ void YuvPlayer::update(MyData *mydata){
     if(mydata->isAudio   || mydata->size <= 0){
         return ;
     }
-    LOGE(" PLAY VIDEO ");
 
-    uint8_t *buf_y = mydata->datas[0] ;
-    uint8_t *buf_u  = mydata->datas[1];
-    uint8_t *buf_v = mydata->datas[2] ;
+    memcpy(buf_y , mydata->datas[0] , outWidth * outHeight);
+    memcpy(buf_u , mydata->datas[1] , outWidth * outHeight / 4);
+    memcpy(buf_v , mydata->datas[2] , outWidth * outHeight / 4);
     showYuv(buf_y , buf_u, buf_v);
+    delete mydata;
 }
 
 GLuint YuvPlayer::InitShader(const char *code, GLint type) {
@@ -86,6 +103,7 @@ int YuvPlayer::showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
     //窗口显示
     eglSwapBuffers(display, winsurface);
     ////纹理的修改和显示
+
 
 
     return RESULT_SUCCESS;

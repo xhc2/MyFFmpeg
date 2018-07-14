@@ -73,7 +73,9 @@ private :
     GLuint atex;
     EGLContext context;
 
-
+    uint8_t *buf_y;
+    uint8_t *buf_u;
+    uint8_t *buf_v;
 
 
 public :
