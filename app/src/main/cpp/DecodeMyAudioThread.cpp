@@ -53,7 +53,6 @@ void DeocdeMyAudioThread::run(){
             myData->isAudio = true;
             myData->pts = utils.getConvertPts(aframe->pts,
                                        afc->streams[audioIndex]->time_base);
-            LOGE(" DECODE AUDIO ");
             this->notify(myData);
         }
     }

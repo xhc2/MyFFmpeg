@@ -4,14 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
    >
 
     <module.video.jnc.myffmpeg.MyVideoGpuShow
         android:id="@+id/play_gl_surfaceview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 
     <RelativeLayout
         android:id="@+id/rl_topbar"
@@ -20,6 +18,7 @@
         android:paddingRight="10dp"
         android:visibility="gone"
         android:layout_height="30dp">
+
         <ImageButton
             android:id="@+id/ib_more"
             android:background="@null"
@@ -34,8 +33,8 @@
         android:id="@+id/rl_bottom_bar"
         android:layout_width="match_parent"
         android:layout_alignParentBottom="true"
-        android:background="#ffffff"
         android:visibility="gone"
+        android:background="#ffffff"
         android:layout_height="30dp">
 
 
@@ -54,7 +53,7 @@
         <TextView
             android:id="@+id/bt_play_button"
             android:layout_width="40dp"
-            android:text="暂停"
+            android:text="播放"
             android:textSize="10sp"
             android:textColor="#ffffff"
             android:layout_toRightOf="@id/bt_play_speed"
@@ -83,5 +82,6 @@
             android:gravity="center"
             android:layout_alignParentRight="true"/>
     </RelativeLayout>
+
 
 </RelativeLayout>

@@ -10,4 +10,5 @@ import java.io.File;
 
 public class Constant {
     public static File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/");
+    public static File rootVideoFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/video");
 }

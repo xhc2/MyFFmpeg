@@ -12,6 +12,7 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
+#include <libavutil/imgutils.h>
 }
 class DecodeVideoThread : public MyThread  , public Notify{
 

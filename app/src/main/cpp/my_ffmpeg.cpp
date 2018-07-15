@@ -214,6 +214,7 @@ Mp4Player *mp4Player ;
 //    return 1;
 //}
 
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type, jstring path_,
@@ -232,8 +233,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type,
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyMp4Play(JNIEnv *env, jclass type) {
-    delete mp4Player;
-    mp4Player = NULL;
+    if(mp4Player != NULL){
+        delete mp4Player;
+        mp4Player = NULL;
+    }
     return 1;
 
 }
@@ -242,9 +245,10 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_mp4Pause(JNIEnv *env, jclass type) {
     if(mp4Player != NULL){
         mp4Player->pauseVA();
+        return 1;
     }
 
-    return 1;
+    return -1;
 }
 
 extern "C"
@@ -252,8 +256,20 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_mp4Play(JNIEnv *env, jclass type) {
     if(mp4Player != NULL){
         mp4Player->playVA();
+        return 1;
     }
-    return 1;
+    return -1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_changeSpeed(JNIEnv *env, jclass type, jfloat speed) {
+    // TODO
+    if(mp4Player != NULL){
+        mp4Player->changeSpeed(speed);
+        return 1;
+    }
+    return -1;
 }
 
 extern "C"

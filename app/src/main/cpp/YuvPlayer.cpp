@@ -12,10 +12,12 @@ YuvPlayer::YuvPlayer(ANativeWindow *nwin, int outWidth , int outHeight){
     texts[0] = 0;
     texts[1] = 0;
     texts[2] = 0;
-    buf_y = (uint8_t *)malloc(outWidth * outHeight);
-    buf_u = (uint8_t *)malloc(outWidth * outHeight / 4 );
-    buf_v = (uint8_t *)malloc(outWidth * outHeight / 4);
+    pixSize = outWidth * outHeight;
+    buf_y = (uint8_t *)malloc(pixSize);
+    buf_u = (uint8_t *)malloc(pixSize / 4 );
+    buf_v = (uint8_t *)malloc(pixSize / 4);
     initOpenglFlag = false;
+    fileYuv = fopen("sdcard/FFmpeg/fileyuv.pcm" , "wb+");
 }
 
 YuvPlayer::~YuvPlayer(){
@@ -46,10 +48,26 @@ void YuvPlayer::update(MyData *mydata){
         return ;
     }
 
+//    fwrite(buf_y , 1 , outWidth * outHeight  , fileYuv);
+//    fwrite(buf_u , 1 , outWidth * outHeight / 4  , fileYuv);
+//    fwrite(buf_v , 1 , outWidth * outHeight / 4  , fileYuv);
+
+
+//    if(mydata->linesize[0] != 0 && pixSize < mydata->linesize[0]){
+//        buf_y = (uint8_t *)realloc(buf_y , mydata->linesize[0] * outHeight);
+//    }
+//    if(mydata->linesize[1] != 0 &&pixSize / 4 < mydata->linesize[1]){
+//        buf_u = (uint8_t *)realloc(buf_u , mydata->linesize[1]* outHeight /2 );
+//    }
+//    if(mydata->linesize[2] != 0 && pixSize / 4 < mydata->linesize[2]){
+//        buf_v = (uint8_t *)realloc(buf_v , mydata->linesize[2] / 2);
+//    }
+
     memcpy(buf_y , mydata->datas[0] , outWidth * outHeight);
     memcpy(buf_u , mydata->datas[1] , outWidth * outHeight / 4);
     memcpy(buf_v , mydata->datas[2] , outWidth * outHeight / 4);
     showYuv(buf_y , buf_u, buf_v);
+
     delete mydata;
 }
 

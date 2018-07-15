@@ -42,6 +42,7 @@ private :
 public :
     Mp4Player(const char* playPath , ANativeWindow* win);
     void pauseVA();
+    void changeSpeed(float speed);
     void playVA();
     ~Mp4Player();
     int getProgress();

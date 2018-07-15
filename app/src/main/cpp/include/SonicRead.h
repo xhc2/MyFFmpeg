@@ -16,7 +16,7 @@ class SonicRead{
 
 private :
     sonicStream tempoStream;
-    queue<MyData> *audioFrameQue;
+    queue<MyData *> *audioFrameQue;
     short *playAudioBuffer;
     short *getAudioBuffer ;
     bool isExit;
@@ -24,13 +24,14 @@ private :
     int getBufferSize;
 
 public :
-    SonicRead(int samplerate , int channel , float speed , queue<MyData> *audioFrameQue);
+    SonicRead(int samplerate , int channel , float speed , queue<MyData *> *audioFrameQue);
     ~SonicRead();
     void putSample(short *buf , int size);
     void sonicFlush();
     int availableBytes();
+    void changeSpeed(float speed);
     int reciveSample(short *getBuf , int lenByte);
-    int dealAudio(short **getBuf);
+    int dealAudio(short **getBuf , int64_t  &pts);
 };
 
 #endif //MYFFMPEG_SONICREAD_H

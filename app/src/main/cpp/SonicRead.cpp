@@ -5,7 +5,7 @@
 #include <SonicRead.h>
 #include <my_log.h>
 
-SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData> *audioFrameQue) {
+SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *audioFrameQue) {
     tempoStream = sonicCreateStream(samplerate, channel);
     sonicSetSpeed(tempoStream, speed);
     sonicSetPitch(tempoStream, 1.0);
@@ -18,23 +18,28 @@ SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData> *au
     isExit = false;
 }
 
+void SonicRead::changeSpeed(float speed){
+    sonicSetSpeed(tempoStream, speed);
+}
 
-int SonicRead::dealAudio(short **getBuf) {
+int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
 
     while (!isExit) {
         if (audioFrameQue->empty()) {
             sonicFlush();
         } else {
-            MyData myData = audioFrameQue->front();
+            MyData *myData = audioFrameQue->front();
             audioFrameQue->pop();
-            int size = myData.size;
+            pts = myData->pts;
+            int size = myData->size;
             if (size > putBufferSize) {
                 playAudioBuffer = (short *) realloc(playAudioBuffer, size);
                 putBufferSize = size;
             }
-            memcpy(playAudioBuffer, myData.data, size);
+            memcpy(playAudioBuffer, myData->data, size);
             putSample(playAudioBuffer, size);
-            free(myData.data);
+            delete myData;
+//            free(myData->data);
         }
 
         int availiableByte = availableBytes();
@@ -45,7 +50,6 @@ int SonicRead::dealAudio(short **getBuf) {
                 getBufferSize = availiableByte;
             }
             int samplesReadBytes = reciveSample(getAudioBuffer, availiableByte);
-            LOGE(" samplesReadBytes %d ", samplesReadBytes);
             if(samplesReadBytes > 0){
                 *getBuf = getAudioBuffer;
                 return samplesReadBytes;
@@ -90,7 +94,6 @@ int SonicRead::dealAudio(short **getBuf) {
 
 void SonicRead::putSample(short *buf, int lenBytes) {
     int samples = lenBytes / (sizeof(short) * sonicGetNumChannels(tempoStream));
-    LOGE(" putSample %d ", samples);
     sonicWriteShortToStream(tempoStream, buf, samples);
 }
 
@@ -108,14 +111,12 @@ int SonicRead::reciveSample(short *getBuf, int lenByte) {
             sonicSamplesAvailable(tempoStream) * sizeof(short) * sonicGetNumChannels(tempoStream);
 
     if (lenByte > available) {
-        LOGE(" reciveSample  lenByte > available ");
         lenByte = available;
     }
 
     int samplesRead = sonicReadShortFromStream(tempoStream, getBuf,
                                                lenByte /
                                                (sizeof(short) * sonicGetNumChannels(tempoStream)));
-    LOGE("reciveSample samplesRead %d ", samplesRead);
     int bytesRead = samplesRead * sizeof(short) * sonicGetNumChannels(tempoStream);
     return bytesRead;
 }

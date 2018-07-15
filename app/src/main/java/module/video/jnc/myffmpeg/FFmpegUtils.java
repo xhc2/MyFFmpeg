@@ -9,15 +9,14 @@ import android.util.Log;
  */
 
 public class FFmpegUtils {
-//${ANDROID_ABI}
     static {
-    System.loadLibrary("avcodec");
-    System.loadLibrary("avfilter");
-    System.loadLibrary("avformat");
-    System.loadLibrary("avutil");
-    System.loadLibrary("swresample");
-    System.loadLibrary("swscale");
-    System.loadLibrary("my_ffmpeg");
+        System.loadLibrary("avcodec");
+        System.loadLibrary("avformat");
+        System.loadLibrary("avutil");
+        System.loadLibrary("swresample");
+        System.loadLibrary("swscale");
+        System.loadLibrary("avfilter");
+        System.loadLibrary("my_ffmpeg");
     }
 //    public static native String stringNative();
 //    //将MP4解码成yuv，和pcm
@@ -48,13 +47,20 @@ public class FFmpegUtils {
 //    public static native int initsoundtouch(String path);
 
     //下面是做音视频播放器的
-    public static native int initMp4Play(String path ,  Object glSurfaceView);
+    public static native int initMp4Play(String path, Object glSurfaceView);
+
     public static native int destroyMp4Play();
+
     public static native int mp4Pause();
+
     public static native int mp4Play();
+
     public static native int getProgress();
-    private void printMsgFromJni(String str){
-        Log.e("xhc_jni" ,str);
+
+    public static native int changeSpeed(float speed);
+
+    private void printMsgFromJni(String str) {
+        Log.e("xhc_jni", str);
 //        return "x";
     }
 }

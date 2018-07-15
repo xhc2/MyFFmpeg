@@ -268,7 +268,7 @@ void mySoundTouch::init(const char *st) {
     }
 
     //1.0是26秒
-    sonicRead = new SonicRead(48000 , 1 , 0.5 , &audioFrameQue);
+//    sonicRead = new SonicRead(48000 , 1 , 0.5 , &audioFrameQue);
 
     after = fopen("sdcard/FFmpeg/after.pcm" , "wb+");
     fReadPcm = fopen("sdcard/FFmpeg/aaaa.pcm" , "r");

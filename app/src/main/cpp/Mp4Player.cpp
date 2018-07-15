@@ -20,6 +20,7 @@
 #include <YuvPlayer.h>
 
 
+
 Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
      video_index = -1;
     audio_index = -1;
@@ -49,6 +50,8 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
 }
 
 
+
+
 int Mp4Player::initFFmpeg(const char* path) {
     int result = 0;
     av_register_all();
@@ -76,7 +79,7 @@ int Mp4Player::initFFmpeg(const char* path) {
             //视频
             video_index = i;
 
-            LOGE("VIDEO WIDTH %d , HEIGHT %d , format %d , fps %f ", avStream->codecpar->width,
+            LOGE("VIDEO WIDTH %d , HEIGHT %d ,pix format %d , fps %f ", avStream->codecpar->width,
                  avStream->codecpar->height, avStream->codecpar->format,
                  av_q2d(avStream->avg_frame_rate));
 
@@ -151,6 +154,12 @@ void Mp4Player::run(){
 //            LOGE(" sync pts audio %lld , video %lld "  , audioPlayer->pts  , decodeVideo->apts);
             decodeVideo->apts = audioPlayer->pts;
         }
+    }
+}
+
+void Mp4Player::changeSpeed(float speed){
+    if(audioPlayer != NULL){
+        audioPlayer->changeSpeed(speed);
     }
 }
 

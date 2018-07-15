@@ -23,7 +23,10 @@ void ReadAVPackage::run(){
         }
         AVPacket *pkt_ = av_packet_alloc();
         result = av_read_frame(afc, pkt_);
+
         if (result < 0) {
+            LOGE(" READ PACKAGE FAILD ");
+            stop();//停止线程
             threadSleep(2);
             av_packet_free(&pkt_);
             continue;

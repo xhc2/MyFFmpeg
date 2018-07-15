@@ -76,7 +76,8 @@ private :
     uint8_t *buf_y;
     uint8_t *buf_u;
     uint8_t *buf_v;
-
+    int pixSize ;
+    FILE *fileYuv;
 
 public :
     YuvPlayer(ANativeWindow *nwin , int outWidth , int outHeight);

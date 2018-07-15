@@ -18,6 +18,7 @@ android {
             cmake {
                 cppFlags "-frtti -fexceptions"
                 abiFilters "armeabi-v7a"
+//                abiFilters "armeabi", "x86"
             }
         }
         sourceSets {

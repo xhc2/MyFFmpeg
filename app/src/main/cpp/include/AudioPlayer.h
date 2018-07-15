@@ -9,6 +9,7 @@
 #include "my_data.h"
 #include "Notify.h"
 #include "MyThread.h"
+#include "SonicRead.h"
 #include <queue>
 
 class AudioPlayer : public Notify , public MyThread{
@@ -27,6 +28,7 @@ private :
     int maxFrame;
     void audioPlayDelay();
     int pause_audio(bool myPauseFlag);
+
 public :
     std::queue<MyData *> audioFrameQue;
     char *playAudioTemp;
@@ -38,6 +40,8 @@ public :
     void update(MyData *mydata);
     void run();
     int64_t pts;
+    short *getBuf;
+    SonicRead *sonicRead;
 };
 
 #endif //MYFFMPEG_AUDIOPLAYER_H
