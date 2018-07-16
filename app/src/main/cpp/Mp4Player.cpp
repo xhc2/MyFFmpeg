@@ -72,7 +72,7 @@ int Mp4Player::initFFmpeg(const char* path) {
         return RESULT_FAILD;
     }
 
-    videoDuration = afc->duration / (AV_TIME_BASE / 1000);
+    videoDuration = afc->duration / (AV_TIME_BASE / 1000);//毫秒
 
     LOGE(" video duration %lld ", videoDuration);
 
@@ -193,6 +193,10 @@ int Mp4Player::getProgress(){
     return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
 }
 
+float Mp4Player::getDuration(){
+    return videoDuration / 1000;
+}
+
 void Mp4Player::playVA(){
     if(audioPlayer != NULL){
         audioPlayer->start();
@@ -211,23 +215,28 @@ void Mp4Player::playVA(){
 
 Mp4Player::~Mp4Player(){
     //    ReadAVPackage *readAVPackage;
+    videoDuration = -1;
     if(yuvPlayer != NULL){
         delete yuvPlayer;
     }
     if(audioPlayer != NULL){
         audioPlayer->stop();
+        audioPlayer->join();
         delete audioPlayer;
     }
     if(decodeAudio != NULL){
         decodeAudio->stop();
+        decodeAudio->join();
         delete decodeAudio;
     }
     if(decodeVideo != NULL){
         decodeVideo->stop();
+        decodeVideo->join();
         delete decodeVideo;
     }
     if(readAVPackage != NULL){
         readAVPackage->stop();
+        readAVPackage->join();
         delete readAVPackage;
     }
 

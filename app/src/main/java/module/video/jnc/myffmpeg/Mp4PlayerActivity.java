@@ -36,7 +36,7 @@ import java.util.List;
  * 4.其他功能 (视频拼接，比如两个1s的视频拼接成2s的视频。又或者将画面拼接成一个画面的视频，水印等。)
  */
 
-public class Mp4PlayerActivity extends Activity implements View.OnClickListener , AdapterView.OnItemClickListener{
+public class Mp4PlayerActivity extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
     private static final int PLAY = 1;
     private static final int PAUSE = 2;
@@ -44,6 +44,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
     private SeekBar seekBar;
     private TextView btPlay;
     private TextView tvSpeed;
+    private TextView tvTime;
     private boolean runFlag = false;
     private boolean pauseFlag = false;
     private PopupWindow popupWindow;
@@ -54,13 +55,20 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
     private int progress;
     private FileAdater adater;
     private List<File> listFile = new ArrayList<>();
+    private float videoDuration;
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
-                    rlTopBar.setVisibility(View.GONE);
-                    rlBottomBar.setVisibility(View.GONE);
+                    if (flag == PLAY) {
+                        rlTopBar.setVisibility(View.GONE);
+                        rlBottomBar.setVisibility(View.GONE);
+                    }
+                    break;
+                case 2:
+                    setTime(progress);
+                    seekBar.setProgress(progress);
                     break;
             }
             return false;
@@ -82,6 +90,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
         tvSpeed = (TextView) findViewById(R.id.bt_play_speed);
         myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
         rlTopBar = (RelativeLayout) findViewById(R.id.rl_topbar);
+        tvTime = (TextView) findViewById(R.id.time);
         rlBottomBar = (RelativeLayout) findViewById(R.id.rl_bottom_bar);
 
         myVideoGpuShow.setOnClickListener(new View.OnClickListener() {
@@ -154,11 +163,27 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
         });
     }
 
-    private void playVideo(String path){
-        startThread();//Constant.rootFile.getAbsolutePath() + "/test.MP4"
+    private void playVideo(String path) {
         myVideoGpuShow.setPlayPath(path);
+        startThread();
         btPlay.setText("暂停");
         flag = PLAY;
+
+        setTime(0);
+    }
+
+    private void setTime(int curProgress) {
+        videoDuration = FFmpegUtils.getDuration();
+        if (videoDuration <= 0 || curProgress < 0) {
+            tvTime.setText(String.format(getString(R.string.time), "00:00", "00:00"));
+            return;
+        }
+
+        String vd = videoDuration +"";
+        double curD = Math.ceil(curProgress * 1.0 / 100 * videoDuration);
+        String cur = String.valueOf(curD);
+        Log.e("xhc" , " vd "+vd +" cur "+cur);
+        tvTime.setText(String.format(getString(R.string.time), cur, vd));
     }
 
     @Override
@@ -206,7 +231,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
 
     private void createDialog() {
         if (dialog == null) {
-            dialog = new Dialog(this  , R.style.dialog);
+            dialog = new Dialog(this, R.style.dialog);
             dialog.setContentView(R.layout.dialog_listview_layout);
             getFileList();
             adater = new FileAdater();
@@ -259,6 +284,11 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
 
     private void stopThread() {
         runFlag = false;
+        try {
+            thread.join();
+        } catch (Exception e) {
+
+        }
         thread = null;
     }
 
@@ -275,7 +305,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
                     e.printStackTrace();
                 }
                 progress = FFmpegUtils.getProgress();
-                seekBar.setProgress(progress);
+
+                handler.sendEmptyMessage(2);
             }
         }
     }
@@ -299,9 +330,9 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
 
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
-             ViewHolder holder;
+            ViewHolder holder;
             if (view == null) {
-                holder = new  ViewHolder();
+                holder = new ViewHolder();
                 holder.tv = new TextView(Mp4PlayerActivity.this);
                 holder.tv.setPadding(10, 10, 10, 10);
                 ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -309,7 +340,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
                 view = holder.tv;
                 view.setTag(holder);
             } else {
-                holder = ( ViewHolder) view.getTag();
+                holder = (ViewHolder) view.getTag();
             }
             holder.tv.setText(listFile.get(i).getName());
             return view;
@@ -322,8 +353,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener 
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        FFmpegUtils.destroyMp4Play();
         stopThread();
+        FFmpegUtils.destroyMp4Play();
         File file = listFile.get(position);
         playVideo(file.getAbsolutePath());
         dismissDialog();

@@ -46,6 +46,7 @@ public :
     void playVA();
     ~Mp4Player();
     int getProgress();
+    float getDuration();
 };
 
 #endif //MYFFMPEG_MP4PLAYER_H

@@ -31,7 +31,10 @@ void MyThread::stop(){
 void MyThread::threadSleep(int mis) {
     av_usleep(1000 * mis);
 }
-
+void MyThread::join(){
+    void *t;
+    pthread_join(pid , &t);
+}
 void MyThread::setPause(){
     pause = true;
 }

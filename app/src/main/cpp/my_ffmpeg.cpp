@@ -280,3 +280,12 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getProgress(JNIEnv *env, jclass type)
     }
     return 0;
 }
+
+extern "C"
+JNIEXPORT jfloat JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getDuration(JNIEnv *env, jclass type) {
+    if(mp4Player != NULL){
+        return mp4Player->getDuration();
+    }
+    return -1;
+}

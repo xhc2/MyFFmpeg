@@ -26,6 +26,7 @@ public:
     void stop();
     void setPause();
     void setPlay();
+    void join();
     MyThread();
     ~MyThread();
     void  threadSleep(int mis);

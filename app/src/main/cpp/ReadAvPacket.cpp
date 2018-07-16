@@ -25,8 +25,13 @@ void ReadAVPackage::run(){
         result = av_read_frame(afc, pkt_);
 
         if (result < 0) {
-            LOGE(" READ PACKAGE FAILD ");
-            stop();//停止线程
+
+
+            if(strcmp("End of file"  , av_err2str(result)) == 0){
+                //文件结尾
+                LOGE(" READ PACKAGE FAILD %s " , av_err2str(result));
+                stop();//停止线程
+            }
             threadSleep(2);
             av_packet_free(&pkt_);
             continue;
