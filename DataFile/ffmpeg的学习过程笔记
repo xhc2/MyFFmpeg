@@ -106,7 +106,8 @@ for(int i = 0 ;i < vc->height / 2 ; ++i){
 for(int i = 0 ;i < vc->height / 2 ; ++i){
     memcpy(myData->datas[2]  + vc->width / 2 * i,vframe->data[2] + vframe->linesize[2] * i ,  vc->width / 2);
 }
-linesize 可能会比width大，因为是为了读取效率，根据不同的cpu有不同的对齐方式。按这个算法反推是应该是右边有内存舍弃
+linesize 可能会比width大，因为是为了读取效率，根据不同的cpu有不同的对齐方式。
+按这个算法反推是应该是右边有内存舍弃（就是每一行的右边有舍弃部分）
 
 
 
