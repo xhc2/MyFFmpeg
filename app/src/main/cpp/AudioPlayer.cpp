@@ -97,6 +97,9 @@ AudioPlayer::~AudioPlayer(){
         engineOpenSL = NULL;
         eng = NULL;
     }
+    if(sonicRead != NULL){
+        delete sonicRead;
+    }
     LOGE("AudioPlayer destory ! ");
 }
 

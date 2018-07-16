@@ -72,12 +72,7 @@ void DecodeVideoThread::run() {
             myData->vWidth = vc->width ;
             myData->vHeight = vc->height;
             int size = vc->width *  vc->height;
-            LOGE(" VFRAME HEIGHT %d "  , vframe->height);
             myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) * vframe->height;
-
-            fwrite(vframe->data[0] , 1 , vframe->linesize[0] * vc->height, fileYuv);
-            fwrite(vframe->data[1], 1, vframe->linesize[1] * vc->height / 4, fileYuv);
-            fwrite(vframe->data[2], 1, vframe->linesize[2] * vc->height / 4, fileYuv);
 
             //y
             myData->datas[0] = (uint8_t *)malloc(size);
@@ -86,21 +81,19 @@ void DecodeVideoThread::run() {
             //v
             myData->datas[2] = (uint8_t *)malloc(size / 4);
 
-            memcpy(myData->datas[0] ,vframe->data[0] , size );
-            memcpy(myData->datas[1] ,vframe->data[1] , size / 4 );
-            memcpy(myData->datas[2] ,vframe->data[2] , size / 4);
-            for(int i = 0 ;i < 8 ; ++ i){
-                if(vframe->linesize[i] != 0){
-                    myData->linesize[i] = vframe->linesize[i];
-                }
+
+            //把yuv数据读取出来
+            for(int i = 0 ;i < vc->height ; ++i){
+                memcpy(myData->datas[0] + vc->width * i,vframe->data[0] + vframe->linesize[0] * i ,  vc->width );
             }
 
-            av_image_copy(video_dst_data, video_dst_linesize,
-                          (const uint8_t **)(frame->data), frame->linesize,
-                          pix_fmt, width, height);
+            for(int i = 0 ;i < vc->height / 2 ; ++i){
+                memcpy(myData->datas[1] + vc->width / 2 * i ,vframe->data[1] + vframe->linesize[1] * i ,  vc->width / 2 );
+            }
 
-//            LOGE(" LINE SIZE %d , w * h %d " , vframe->linesize[0] * myData->vHeight , size);
-
+            for(int i = 0 ;i < vc->height / 2 ; ++i){
+                memcpy(myData->datas[2]  + vc->width / 2 * i,vframe->data[2] + vframe->linesize[2] * i ,  vc->width / 2);
+            }
             this->notify(myData);
         }
     }

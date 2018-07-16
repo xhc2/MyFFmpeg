@@ -27,7 +27,10 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
     outChannel = 1 ;
     //必须显式的置null，不然avformat_open_input要报错。
     afc = NULL;
-    initFFmpeg(path);
+    int result = initFFmpeg(path);
+//    if(result < 0){
+//        return ;
+//    }
     readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
     decodeVideo = new DecodeVideoThread(afc ,vc , video_index);
     decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
@@ -84,6 +87,12 @@ int Mp4Player::initFFmpeg(const char* path) {
                  av_q2d(avStream->avg_frame_rate));
 
             videoCode = avcodec_find_decoder(avStream->codecpar->codec_id);
+            LOGE("videoCode->name %s" , videoCode->name);
+
+            if(avStream->codecpar->format != AV_PIX_FMT_YUV420P){
+                //先暂时不支持 yuv420p以外的格式
+                return RESULT_WRONG_PIX;
+            }
 
             if (!videoCode) {
                 LOGE("VIDEO avcodec_find_decoder FAILD!");

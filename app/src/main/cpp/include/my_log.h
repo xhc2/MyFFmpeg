@@ -12,7 +12,8 @@
 #define LOGE2(...)  __android_log_print(ANDROID_LOG_ERROR,"xhc_jni2",__VA_ARGS__)
 const static int RESULT_SUCCESS = 1;
 const static int RESULT_FAILD = -1;
-
+//目前不支持的像素格式
+const static int RESULT_WRONG_PIX = -100;
 #ifndef MYANDROIDRTMP_MYLOG_H
 #define MYANDROIDRTMP_MYLOG_H
 

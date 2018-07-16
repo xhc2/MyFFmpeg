@@ -122,5 +122,12 @@ int SonicRead::reciveSample(short *getBuf, int lenByte) {
 }
 
 SonicRead::~SonicRead() {
+    if(playAudioBuffer != NULL){
+        free(playAudioBuffer);
+    }
+    if(getAudioBuffer != NULL){
+        free(getAudioBuffer);
+    }
 
+    sonicDestroyStream(tempoStream);
 }

@@ -95,7 +95,19 @@ opensl中的的缓冲播放完毕后会回调pcmcallback，
 老师回答：有这个可能，音视频交替存放的，一般不会出现一个满一个空，控制好缓冲大小应该能解决
 
 
-//frame_->linesize[0]是根据不同的cpu来对其的，保证读写效率。可能比width大
+yuv420p中把yuv数据读取出来的方法
+frame_->linesize[0]是根据不同的cpu来对其的，保证读写效率。可能比width大
+for(int i = 0 ;i < vc->height ; ++i){
+    memcpy(myData->datas[0] + vc->width * i,vframe->data[0] + vframe->linesize[0] * i ,  vc->width );
+}
+for(int i = 0 ;i < vc->height / 2 ; ++i){
+    memcpy(myData->datas[1] + vc->width / 2 * i ,vframe->data[1] + vframe->linesize[1] * i ,  vc->width / 2 );
+}
+for(int i = 0 ;i < vc->height / 2 ; ++i){
+    memcpy(myData->datas[2]  + vc->width / 2 * i,vframe->data[2] + vframe->linesize[2] * i ,  vc->width / 2);
+}
+linesize 可能会比width大，因为是为了读取效率，根据不同的cpu有不同的对齐方式。按这个算法反推是应该是右边有内存舍弃
+
 
 
 
