@@ -61,7 +61,7 @@ void DeocdeMyAudioThread::run(){
 
 void DeocdeMyAudioThread::update(MyData *mydata){
     if(!mydata->isAudio)return ;
-    while(true){
+    while(!isExit){
 
             pthread_mutex_lock(&mutex_pthread);
             if(audioPktQue.size() < maxPackage){

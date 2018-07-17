@@ -54,7 +54,7 @@ void DecodeVideoThread::run() {
         }
 
 
-        while (true) {
+        while (!isExit) {
             result = avcodec_receive_frame(vc, vframe);
             if (result == AVERROR(EAGAIN) || result == AVERROR_EOF) {
                 break;
@@ -101,7 +101,7 @@ void DecodeVideoThread::run() {
 
 void DecodeVideoThread::update(MyData *mydata) {
     if (mydata->isAudio) return ;
-    while (true) {
+    while (!isExit) {
             pthread_mutex_lock(&mutex_pthread);
             if (videoPktQue.size() < maxPackage) {
                 videoPktQue.push(mydata->pkt);

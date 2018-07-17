@@ -33,6 +33,10 @@ void MyThread::threadSleep(int mis) {
 }
 void MyThread::join(){
     void *t;
+    if(pid == NULL){
+        LOGE("join thread faild !");
+        return ;
+    }
     pthread_join(pid , &t);
 }
 void MyThread::setPause(){
@@ -51,6 +55,6 @@ void* MyThread::start_thread(void *arg) //静态成员函数只能访问静态�
 }
 
 MyThread::~MyThread(){
-    LOGE(" DESTROY THREAD ");
     pthread_mutex_destroy(&mutex_pthread);
+    LOGE(" DESTROY THREAD ");
 }

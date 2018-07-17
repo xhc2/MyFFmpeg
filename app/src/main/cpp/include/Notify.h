@@ -16,8 +16,11 @@ private :
     vector<Notify*> listN;
 
 public :
+
     void notify(MyData *mydata);
     void addNotify(Notify *n);
+    void removeNotify();
+    ~Notify();
     virtual void update(MyData *mydata) = 0;
 };
 

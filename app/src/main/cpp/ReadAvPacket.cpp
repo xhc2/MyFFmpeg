@@ -22,6 +22,10 @@ void ReadAVPackage::run(){
             continue;
         }
         AVPacket *pkt_ = av_packet_alloc();
+        if(pkt_ == NULL){
+            LOGE("READ FRAME av_packet_alloc FAILD !");
+            continue;
+        }
         result = av_read_frame(afc, pkt_);
 
         if (result < 0) {

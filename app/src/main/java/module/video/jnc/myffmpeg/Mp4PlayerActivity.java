@@ -70,6 +70,10 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                     setTime(progress);
                     seekBar.setProgress(progress);
                     break;
+                case 3:
+                    File file = listFile.get(msg.arg1);
+                    playVideo(file.getAbsolutePath());
+                    break;
             }
             return false;
         }
@@ -182,7 +186,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         String vd = videoDuration +"";
         double curD = Math.ceil(curProgress * 1.0 / 100 * videoDuration);
         String cur = String.valueOf(curD);
-        Log.e("xhc" , " vd "+vd +" cur "+cur);
         tvTime.setText(String.format(getString(R.string.time), cur, vd));
     }
 
@@ -352,18 +355,30 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        stopThread();
-        FFmpegUtils.destroyMp4Play();
-        File file = listFile.get(position);
-        playVideo(file.getAbsolutePath());
+    public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
         dismissDialog();
+        stopThread();
+        new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                FFmpegUtils.destroyMp4Play();
+                Message msg = new Message();
+                msg.what = 3;
+                msg.arg1 = position;
+                handler.sendMessage(msg);
+            }
+        }.start();
+
+
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopThread();
+
         FFmpegUtils.destroyMp4Play();
     }
 }

@@ -58,7 +58,8 @@ void AudioPlayer::update(MyData *mydata){
     if(mydata->data == NULL || mydata->size <= 0 || !mydata->isAudio){
         return ;
     }
-    while(true){
+    while(!isExit){
+//        LOGE(" 这里阻塞了？%d " ,audioFrameQue.size() );
         if(audioFrameQue.size() < maxFrame){
             audioFrameQue.push(mydata);
             break;
@@ -71,10 +72,11 @@ void AudioPlayer::update(MyData *mydata){
 }
 
 AudioPlayer::~AudioPlayer(){
-    pts = 0;
+
     if(playAudioTemp != NULL){
         free(playAudioTemp);
     }
+    pts = 0;
     if (iplayer && (*iplayer)) {
         (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
     }
