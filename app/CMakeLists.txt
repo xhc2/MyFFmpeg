@@ -20,6 +20,7 @@ add_library( my_ffmpeg
             src/main/cpp/Notify.cpp
             src/main/cpp/YuvPlayer.cpp
             src/main/cpp/AudioPlayer.cpp
+            src/main/cpp/SeekVideo.cpp
             )
 
 
