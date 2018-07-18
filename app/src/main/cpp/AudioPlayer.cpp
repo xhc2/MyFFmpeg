@@ -3,6 +3,7 @@
 //
 
 #include <my_log.h>
+#include <unistd.h>
 #include "AudioPlayer.h"
 
 
@@ -11,7 +12,7 @@ AudioPlayer::AudioPlayer(int simpleRate , int channel){
     this->channel = channel;
     playAudioTemp = (char *)malloc(1024 * 2 * channel);
     maxFrame = 140;
-    sonicRead = new SonicRead(simpleRate , channel , 1.0f, &audioFrameQue );
+    sonicRead = new SonicRead(simpleRate , channel , 1.0f, &audioFrameQue , &mutex_pthread);
     initAudio();
 }
 
@@ -107,9 +108,12 @@ AudioPlayer::~AudioPlayer(){
 
 
 void AudioPlayer::clearQue(){
+    LOGE(" AudioPlayer::clearQue ");
     while(!isExit){
 
         if(!audioFrameQue.empty()){
+            MyData *myData = audioFrameQue.front();
+            myData->drop();
             audioFrameQue.pop();
             continue;
         }

@@ -9,6 +9,7 @@
 #include "sonic.h"
 #include "my_data.h"
 #include <queue>
+#include <pthread.h>
 using namespace std;
 class SonicRead{
 
@@ -22,9 +23,9 @@ private :
     bool isExit;
     int putBufferSize;
     int getBufferSize;
-
+    pthread_mutex_t *mutex_pthread;
 public :
-    SonicRead(int samplerate , int channel , float speed , queue<MyData *> *audioFrameQue);
+    SonicRead(int samplerate , int channel , float speed , queue<MyData *> *audioFrameQue ,pthread_mutex_t *mutex_pthread);
     ~SonicRead();
     void putSample(short *buf , int size);
     void sonicFlush();

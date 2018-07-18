@@ -63,6 +63,8 @@ void DeocdeMyAudioThread::clearQue(){
     while(!isExit){
 
         if(!audioPktQue.empty()){
+            AVPacket *pkt = audioPktQue.front();
+            av_packet_free(&pkt);
             audioPktQue.pop();
             continue;
         }

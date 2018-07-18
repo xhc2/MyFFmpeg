@@ -106,6 +106,8 @@ void DecodeVideoThread::clearQue(){
     while(!isExit){
 
         if(!videoPktQue.empty()){
+            AVPacket *pkt = videoPktQue.front();
+            av_packet_free(&pkt);
             videoPktQue.pop();
             continue;
         }

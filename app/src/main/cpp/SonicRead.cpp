@@ -4,8 +4,10 @@
 
 #include <SonicRead.h>
 #include <my_log.h>
+#include "unistd.h"
 
-SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *audioFrameQue) {
+SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *audioFrameQue , pthread_mutex_t *mutex_pthread) {
+    this->mutex_pthread = mutex_pthread;
     tempoStream = sonicCreateStream(samplerate, channel);
     sonicSetSpeed(tempoStream, speed);
     sonicSetPitch(tempoStream, 1.0);
@@ -23,13 +25,13 @@ void SonicRead::changeSpeed(float speed){
 }
 
 int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
-
     while (!isExit) {
         if (audioFrameQue->empty()) {
             sonicFlush();
         } else {
             MyData *myData = audioFrameQue->front();
             audioFrameQue->pop();
+            LOGE(" SonicRead::dealAudio ");
             pts = myData->pts;
             int size = myData->size;
             if (size > putBufferSize) {
@@ -39,7 +41,6 @@ int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
             memcpy(playAudioBuffer, myData->data, size);
             putSample(playAudioBuffer, size);
             delete myData;
-//            free(myData->data);
         }
 
         int availiableByte = availableBytes();
@@ -56,39 +57,6 @@ int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
             }
         }
     }
-
-//    LOGE(" audioFrameQue->size %d  "  , audioFrameQue->size());
-//    if (audioFrameQue->empty()) {
-//
-//        return 0;
-//    }
-//    MyData myData = audioFrameQue->front();
-//    audioFrameQue->pop();
-//    int size = myData.size;
-//    do {
-//
-//        memcpy(playAudioBuffer, myData.data, myData.size);
-//
-//
-//        int numSamples = size / (sizeof(short) * sonicGetNumChannels(tempoStream));
-//        LOGE(" PUT SAMPLE %d ", numSamples);
-//        sonicWriteShortToStream(tempoStream, playAudioBuffer, numSamples);
-//        int availableSize = sonicSamplesAvailable(tempoStream) * sizeof(short) *
-//                        sonicGetNumChannels(tempoStream);
-//        LOGE(" available SAMPLE %d ", availableSize);
-//        if (availableSize > 0) {
-//            getAudioBuffer = (short *) malloc(availableSize);
-//
-//            int getSample = sonicReadShortFromStream(tempoStream, getAudioBuffer,
-//                                                     availableSize / (sizeof(short) *
-//                                                                  sonicGetNumChannels(
-//                                                                          tempoStream)));
-//            *getBuf = getAudioBuffer;
-//            LOGE("getSample = %d , size = %d " , getSample , (getSample * (sizeof(short) *   sonicGetNumChannels(tempoStream))));
-//            return getSample * (sizeof(short) * sonicGetNumChannels(tempoStream));
-//        }
-//        free(myData.data);
-//    } while (size > 0);
     return 0;
 }
 

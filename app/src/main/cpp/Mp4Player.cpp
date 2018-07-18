@@ -40,14 +40,14 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
     seekFile = new SeekFile(afc);
 
     readAVPackage->addNotify(decodeVideo);
-//    readAVPackage->addNotify(decodeAudio);
-//    decodeAudio->addNotify(audioPlayer);
+    readAVPackage->addNotify(decodeAudio);
+    decodeAudio->addNotify(audioPlayer);
     decodeVideo->addNotify(yuvPlayer);
 
     readAVPackage->start();
-//    decodeAudio->start();
+    decodeAudio->start();
     decodeVideo->start();
-//    audioPlayer->start();
+    audioPlayer->start();
 //    this->start();
 
     LOGE("init Mp4Player SUCCESS ");
@@ -212,8 +212,8 @@ void Mp4Player::pauseVA(){
 }
 
 int Mp4Player::getProgress(){
-//    return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
-    return (int)((float)decodeVideo->pts / (float)videoDuration * 100);
+    return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
+//    return (int)((float)decodeVideo->pts / (float)videoDuration * 100);
 }
 
 float Mp4Player::getDuration(){
