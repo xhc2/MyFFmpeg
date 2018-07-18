@@ -59,6 +59,17 @@ void DeocdeMyAudioThread::run(){
 
 }
 
+void DeocdeMyAudioThread::clearQue(){
+    while(!isExit){
+
+        if(!audioPktQue.empty()){
+            audioPktQue.pop();
+            continue;
+        }
+        break;
+    }
+}
+
 void DeocdeMyAudioThread::update(MyData *mydata){
     if(!mydata->isAudio)return ;
     while(!isExit){

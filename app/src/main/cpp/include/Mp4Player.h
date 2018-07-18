@@ -11,6 +11,7 @@
 #include "DecodeMyAudioThread.h"
 #include "AudioPlayer.h"
 #include "YuvPlayer.h"
+#include "SeekFile.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -38,12 +39,15 @@ private :
     AudioPlayer *audioPlayer;
     YuvPlayer *yuvPlayer;
     void run();
-
+    SeekFile *seekFile;
 public :
     Mp4Player(const char* playPath , ANativeWindow* win);
     void pauseVA();
+    void clearAllQue();
     void changeSpeed(float speed);
     void playVA();
+    void seekStart();
+    void seek(float progress);
     ~Mp4Player();
     int getProgress();
     float getDuration();

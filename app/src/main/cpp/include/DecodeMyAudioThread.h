@@ -35,7 +35,7 @@ public :
     DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex );
     ~DeocdeMyAudioThread();
     void update(MyData *myData);
-
+    void clearQue();
 };
 
 #endif //MYFFMPEG_DECODEMYAUDIOTHREAD_H

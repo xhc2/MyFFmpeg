@@ -13,7 +13,7 @@ DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc 
     count = 0;
     vframe = av_frame_alloc();
     this->videoIndex = videoIndex;
-    fileYuv = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
+    file = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
 }
 
 
@@ -22,7 +22,6 @@ void DecodeVideoThread::run() {
     int result;
 
     while (!isExit) {
-        //测试代码
         if (pause) {
             threadSleep(50);
             continue;
@@ -33,17 +32,17 @@ void DecodeVideoThread::run() {
             continue;
         }
         AVPacket *pck = videoPktQue.front();
-        if (!pck) {
+        if (pck == NULL) {
             LOGE(" video packet null !");
             videoPktQue.pop();
             continue;
         }
         //音视频同步处理
         pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
-        if (pts >= apts) {
-            threadSleep(1);
-            continue;
-        }
+//        if (pts >= apts) {
+//            threadSleep(1);
+//            continue;
+//        }
 
         videoPktQue.pop();
         result = avcodec_send_packet(vc, pck);
@@ -94,10 +93,27 @@ void DecodeVideoThread::run() {
             for(int i = 0 ;i < vc->height / 2 ; ++i){
                 memcpy(myData->datas[2]  + vc->width / 2 * i,vframe->data[2] + vframe->linesize[2] * i ,  vc->width / 2);
             }
+//            fwrite(myData->datas[0] , 1, size , file);
+//            fwrite(myData->datas[1] , 1, size / 4 , file);
+//            fwrite(myData->datas[2] , 1, size / 4, file);
+            threadSleep(40);
             this->notify(myData);
         }
     }
 }
+
+void DecodeVideoThread::clearQue(){
+    while(!isExit){
+
+        if(!videoPktQue.empty()){
+            videoPktQue.pop();
+            continue;
+        }
+        break;
+    }
+}
+
+
 
 void DecodeVideoThread::update(MyData *mydata) {
     if (mydata->isAudio) return ;

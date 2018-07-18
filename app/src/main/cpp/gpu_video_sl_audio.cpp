@@ -1031,7 +1031,9 @@ int seekPos(double pos) {
     vpts_gpu = (int64_t) (pos * 1000 * afc_gpu->streams[video_index_gpu]->duration *
                           av_q2d(afc_gpu->streams[video_index_gpu]->time_base));
 
+
     vpts_seek_gpu = afc_gpu->streams[video_index_gpu]->duration * pos;
+
     LOGE("*************      vpts_seek_gpu %lld , after %d  ", vpts_seek_gpu,
          getConvertPts(vpts_seek_gpu, afc_gpu->streams[video_index_gpu]->time_base));
     avio_flush(afc_gpu->pb);

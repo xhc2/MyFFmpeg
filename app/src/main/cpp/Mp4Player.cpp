@@ -37,24 +37,36 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
     decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
     audioPlayer = new AudioPlayer(simpleRate , outChannel);
     yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
-
+    seekFile = new SeekFile(afc);
 
     readAVPackage->addNotify(decodeVideo);
-    readAVPackage->addNotify(decodeAudio);
-    decodeAudio->addNotify(audioPlayer);
+//    readAVPackage->addNotify(decodeAudio);
+//    decodeAudio->addNotify(audioPlayer);
     decodeVideo->addNotify(yuvPlayer);
 
     readAVPackage->start();
-    decodeAudio->start();
+//    decodeAudio->start();
     decodeVideo->start();
-    audioPlayer->start();
-    this->start();
+//    audioPlayer->start();
+//    this->start();
 
     LOGE("init Mp4Player SUCCESS ");
 }
 
+void Mp4Player::seekStart(){
+    pauseVA();
+}
 
-
+void Mp4Player::seek(float progress){
+    int result = avformat_flush(afc);
+    if (result < 0) {
+        LOGE(" avformat_flush result %d ", result);
+        return;
+    }
+    clearAllQue();
+    seekFile->seek(progress , video_index , false);
+    playVA();
+}
 
 int Mp4Player::initFFmpeg(const char* path) {
 
@@ -172,7 +184,15 @@ void Mp4Player::changeSpeed(float speed){
     }
 }
 
+void Mp4Player::clearAllQue(){
+    decodeVideo->clearQue();
+    decodeAudio->clearQue();
+    audioPlayer->clearQue();
+}
+
 void Mp4Player::pauseVA(){
+
+    this->setPause();
     if(audioPlayer != NULL){
         audioPlayer->pauseAudio();
          audioPlayer->setPause();
@@ -186,10 +206,12 @@ void Mp4Player::pauseVA(){
     if(readAVPackage != NULL){
         readAVPackage->setPause();
     }
+
 }
 
 int Mp4Player::getProgress(){
-    return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
+//    return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
+    return (int)((float)decodeVideo->pts / (float)videoDuration * 100);
 }
 
 float Mp4Player::getDuration(){
@@ -210,10 +232,12 @@ void Mp4Player::playVA(){
     if(readAVPackage != NULL){
         readAVPackage->setPlay();
     }
+    this->setPlay();
 }
 
 Mp4Player::~Mp4Player(){
     videoDuration = -1;
+    seekFile->stop();
     this->stop();
     if(audioPlayer != NULL){
         audioPlayer->stop();
@@ -239,13 +263,14 @@ Mp4Player::~Mp4Player(){
     decodeAudio->join();
     decodeVideo->join();
     readAVPackage->join();
+    seekFile->join();
 
     delete yuvPlayer;
-
     delete audioPlayer;
     delete decodeAudio;
     delete decodeVideo;
     delete readAVPackage;
+    delete seekFile;
 
     if (vc != NULL) {
         avcodec_close(vc);

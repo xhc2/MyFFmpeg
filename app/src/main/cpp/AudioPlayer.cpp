@@ -105,6 +105,19 @@ AudioPlayer::~AudioPlayer(){
     LOGE("AudioPlayer destory ! ");
 }
 
+
+void AudioPlayer::clearQue(){
+    while(!isExit){
+
+        if(!audioFrameQue.empty()){
+            audioFrameQue.pop();
+            continue;
+        }
+        break;
+    }
+}
+
+
 void AudioPlayer::changeSpeed(float speed){
     sonicRead->changeSpeed(speed);
 }

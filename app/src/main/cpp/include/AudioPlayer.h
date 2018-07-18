@@ -42,6 +42,7 @@ public :
     int64_t pts;
     short *getBuf;
     SonicRead *sonicRead;
+    void clearQue();
 };
 
 #endif //MYFFMPEG_AUDIOPLAYER_H

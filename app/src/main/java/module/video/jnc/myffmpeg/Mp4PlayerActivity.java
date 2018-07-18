@@ -62,8 +62,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             switch (msg.what) {
                 case 1:
                     if (flag == PLAY) {
-                        rlTopBar.setVisibility(View.GONE);
-                        rlBottomBar.setVisibility(View.GONE);
+//                        rlTopBar.setVisibility(View.GONE);
+//                        rlBottomBar.setVisibility(View.GONE);
                     }
                     break;
                 case 2:
@@ -158,10 +158,14 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 pauseFlag = true;
+                FFmpegUtils.seekStart();
+
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                float pro = (float) (seekBar.getProgress() * 1.0 / 100);
+                FFmpegUtils.seek(pro);
                 pauseFlag = false;
             }
         });
@@ -183,7 +187,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             return;
         }
 
-        String vd = videoDuration +"";
+        String vd = videoDuration + "";
         double curD = Math.ceil(curProgress * 1.0 / 100 * videoDuration);
         String cur = String.valueOf(curD);
         tvTime.setText(String.format(getString(R.string.time), cur, vd));
@@ -302,13 +306,20 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             super.run();
 
             while (runFlag) {
+                if (pauseFlag) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    continue;
+                }
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 progress = FFmpegUtils.getProgress();
-
                 handler.sendEmptyMessage(2);
             }
         }
@@ -358,7 +369,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
         dismissDialog();
         stopThread();
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 super.run();
@@ -369,7 +380,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 handler.sendMessage(msg);
             }
         }.start();
-
 
 
     }

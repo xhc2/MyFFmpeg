@@ -289,3 +289,21 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getDuration(JNIEnv *env, jclass type)
     }
     return -1;
 }
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_seekStart(JNIEnv *env, jclass type) {
+    if(mp4Player != NULL){
+        mp4Player->seekStart();
+    }
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_seek(JNIEnv *env, jclass type  , jfloat progress) {
+    if(mp4Player != NULL){
+        mp4Player->seek(progress);
+    }
+    return 1;
+}

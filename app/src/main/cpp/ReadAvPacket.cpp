@@ -34,7 +34,6 @@ void ReadAVPackage::run(){
             if(strcmp("End of file"  , av_err2str(result)) == 0){
                 //文件结尾
                 LOGE(" READ PACKAGE FAILD %s " , av_err2str(result));
-                stop();//停止线程
             }
             threadSleep(2);
             av_packet_free(&pkt_);
@@ -43,20 +42,22 @@ void ReadAVPackage::run(){
         MyData *myData = new MyData();
         myData->pkt = pkt_ ;
         myData->size = pkt_->size;
-        if (pkt_->stream_index == audioIndex) {
+       /* if (pkt_->stream_index == audioIndex) {
             myData->isAudio = true;
-        } else if (pkt_->stream_index == videoIndex) {
+        } else*/ if (pkt_->stream_index == videoIndex) {
+
             myData->isAudio = false;
         } else {
-            av_packet_free(&pkt_);
-            pkt_ =  NULL;
             delete myData;
+            myData = NULL;
         }
-        if(pkt_ != NULL){
+        if(myData != NULL){
             notify(myData);
         }
     }
 }
+
+
 //不需要被通知。只是实现一个抽象方法
 void ReadAVPackage::update(MyData *mydata){
 

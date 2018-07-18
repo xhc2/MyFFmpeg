@@ -5,13 +5,24 @@
 #ifndef MYFFMPEG_SEEKFILE_H
 #define MYFFMPEG_SEEKFILE_H
 
-class SeekFile{
+#include "MyThread.h"
+#include "Utils.h"
+extern "C"{
+    #include <libavformat/avformat.h>
+};
+class SeekFile : public MyThread{
 
 private:
-
+    AVFormatContext *afc;
+    int64_t seekPts;
+    Utils utils;
 public :
-    SeekFile();
+    SeekFile(AVFormatContext *afc);
     ~SeekFile();
+    void seekStart();
+    void seek(float progress , int streamIndex, bool isAudio);
+    void findFrame(int64_t pts, int streamIndex);
+    void run();
 
 };
 

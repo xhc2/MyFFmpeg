@@ -51,8 +51,6 @@ public class FFmpegUtils {
 
     public static native float getDuration();
 
-
-
     public static native int destroyMp4Play();
 
     public static native int mp4Pause();
@@ -63,6 +61,8 @@ public class FFmpegUtils {
 
     public static native int changeSpeed(float speed);
 
+    public static native int seekStart();
+    public static native int seek(float progress);
     private void printMsgFromJni(String str) {
         Log.e("xhc_jni", str);
 //        return "x";
