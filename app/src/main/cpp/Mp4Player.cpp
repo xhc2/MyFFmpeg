@@ -58,11 +58,13 @@ void Mp4Player::seekStart(){
 }
 
 void Mp4Player::seek(float progress){
+
     int result = avformat_flush(afc);
     if (result < 0) {
         LOGE(" avformat_flush result %d ", result);
         return;
     }
+    avcodec_flush_buffers(vc);
     clearAllQue();
     seekFile->seek(progress , video_index , false);
     playVA();

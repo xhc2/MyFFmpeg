@@ -33,7 +33,7 @@ void ReadAVPackage::run(){
 
             if(strcmp("End of file"  , av_err2str(result)) == 0){
                 //文件结尾
-                LOGE(" READ PACKAGE FAILD %s " , av_err2str(result));
+//                LOGE(" READ PACKAGE FAILD %s " , av_err2str(result));
             }
             threadSleep(2);
             av_packet_free(&pkt_);
