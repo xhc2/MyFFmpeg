@@ -29,7 +29,6 @@ void ReadAVPackage::run(){
             continue;
         }
         result = av_read_frame(afc, pkt_);
-        LOGE(" av_read_frame %d " , result  );
         if (result < 0) {
             LOGE(" READ FRAME faild %s ", av_err2str(result));
             if(strcmp("End of file"  , av_err2str(result)) == 0){

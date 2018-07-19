@@ -110,7 +110,6 @@ void DecodeVideoThread::clearQue(){
             if(pkt != NULL){
                 av_packet_free(&pkt);
             }
-
             videoPktQue.pop();
             continue;
         }
@@ -124,7 +123,7 @@ void DecodeVideoThread::update(MyData *mydata) {
     if (mydata->isAudio) return ;
 //    pthread_mutex_lock(&mutex_pthread);
     while (!isExit) {
-//            LOGE(" VIDEO 阻塞 ");
+            LOGE(" VIDEO 阻塞 %d pts %lld " , videoPktQue.size() , mydata->pts);
             if (videoPktQue.size() < maxPackage) {
                 videoPktQue.push(mydata->pkt);
                 break;

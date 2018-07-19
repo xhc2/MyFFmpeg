@@ -34,6 +34,7 @@ private:
 public :
     DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex );
     ~DeocdeMyAudioThread();
+    void setQueue(queue<AVPacket *> aq);
     void update(MyData *myData);
     void clearQue();
 };

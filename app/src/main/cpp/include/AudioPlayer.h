@@ -39,6 +39,7 @@ public :
     void changeSpeed(float speed);
     void update(MyData *mydata);
     void run();
+
     int64_t pts;
     short *getBuf;
     SonicRead *sonicRead;

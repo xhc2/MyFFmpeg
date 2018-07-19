@@ -7,21 +7,29 @@
 
 #include "MyThread.h"
 #include "Utils.h"
+#include <queue>
 extern "C"{
     #include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswresample/swresample.h>
+#include <libavformat/avformat.h>
 };
+using namespace std;
 class SeekFile : public MyThread{
 
 private:
     AVFormatContext *afc;
     int64_t seekPts;
     Utils utils;
+    int audioIndex;
+    int videoIndex;
+//    queue<AVPacket *> audioTemp ;
 public :
-    SeekFile(AVFormatContext *afc);
+    SeekFile(AVFormatContext *afc, int audioIndex , int videoIndex);
     ~SeekFile();
     void seekStart();
-    void seek(float progress , int streamIndex, bool isAudio);
-    void findFrame(int64_t pts, int streamIndex);
+    void seek(float progress );
+    void  findFrame(int64_t pts );
     void run();
 
 };

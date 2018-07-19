@@ -37,7 +37,7 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
     decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
     audioPlayer = new AudioPlayer(simpleRate , outChannel);
     yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
-    seekFile = new SeekFile(afc);
+    seekFile = new SeekFile(afc  , audio_index , video_index );
 
     readAVPackage->addNotify(decodeVideo);
     readAVPackage->addNotify(decodeAudio);
@@ -63,11 +63,14 @@ void Mp4Player::seek(float progress){
         LOGE(" avformat_flush result %d ", result);
         return;
     }
-//    audioPlayer->pts = 0;
-//    decodeVideo->pts = 0;
+    audioPlayer->pts = 0;
+    decodeVideo->pts = 0;
+    decodeVideo->apts = 0;
     avcodec_flush_buffers(vc);
+    avcodec_flush_buffers(ac);
     clearAllQue();
-    seekFile->seek(progress , video_index , false);
+    seekFile->seek(progress);
+//    decodeAudio->setQueue(que);
     playVA();
 }
 
@@ -174,7 +177,6 @@ void Mp4Player::run(){
             threadSleep(2);
             continue;
         }
-        LOGE("  ");
         //在外面把同步处理了。
         if(audioPlayer != NULL && decodeVideo != NULL){
             decodeVideo->apts = audioPlayer->pts;
@@ -197,6 +199,9 @@ void Mp4Player::clearAllQue(){
 void Mp4Player::pauseVA(){
 
     this->setPause();
+    if(readAVPackage != NULL){
+        readAVPackage->setPause();
+    }
     if(audioPlayer != NULL){
         audioPlayer->pauseAudio();
          audioPlayer->setPause();
@@ -207,9 +212,7 @@ void Mp4Player::pauseVA(){
     if(decodeVideo != NULL){
         decodeVideo->setPause();
     }
-    if(readAVPackage != NULL){
-        readAVPackage->setPause();
-    }
+
 
 }
 

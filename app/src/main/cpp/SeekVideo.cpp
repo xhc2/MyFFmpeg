@@ -7,42 +7,45 @@
 #include <my_log.h>
 
 
-SeekFile::SeekFile(AVFormatContext *afc) {
+SeekFile::SeekFile(AVFormatContext *afc , int audioIndex , int videoIndex) {
     this->afc = afc;
     seekPts = 0;
-
+    this->audioIndex = audioIndex;
+    this->videoIndex = videoIndex;
 }
 
 void SeekFile::seekStart(){
 
 }
 
-void SeekFile::seek(float progress , int streamIndex , bool isAudio){
-    seekPts = progress *  afc->streams[streamIndex]->duration;
+void  SeekFile::seek(float progress){
+    seekPts = progress *  afc->streams[videoIndex]->duration;
 
     LOGE("SEEK PRO %f  , PTS %lld , convert_pts %lld " , progress , seekPts ,
-         utils.getConvertPts(seekPts, afc->streams[streamIndex]->time_base));
+         utils.getConvertPts(seekPts, afc->streams[videoIndex]->time_base));
     int result = 0;
-    if(isAudio){
-        //是音频类的
-
-    }
-    else{
         //是视频，还需要自己解码到用户指定位置
 
-        result = av_seek_frame(afc ,streamIndex , seekPts ,  AVSEEK_FLAG_BACKWARD  );
+        result = av_seek_frame(afc ,videoIndex , seekPts ,  AVSEEK_FLAG_BACKWARD  );
         if(result < 0){
             LOGE("av_seek_frame faild %s " , av_err2str(result));
             return ;
         }
-        int64_t realPts =  utils.getConvertPts(seekPts, afc->streams[streamIndex]->time_base);
-        //还是直接放在主线程中。子线程不太容易通知其他线程启动。
-        findFrame(realPts , streamIndex);
+//    seekPts = progress *  afc->streams[audioIndex]->duration;
+    result = av_seek_frame(afc ,audioIndex , seekPts ,  AVSEEK_FLAG_BACKWARD  );
+    if(result < 0){
+        LOGE("av_seek_frame faild %s " , av_err2str(result));
+            return ;
     }
+        int64_t realPts =  utils.getConvertPts(seekPts, afc->streams[videoIndex]->time_base);
+        //还是直接放在主线程中。子线程不太容易通知其他线程启动。
+//        return findFrame(realPts );
 }
 
-void SeekFile::findFrame(int64_t pts , int streamIndex){
+void   SeekFile::findFrame(int64_t pts  ){
     pthread_mutex_lock(&mutex_pthread);
+    //把中间的音频数据放进去
+
     int result = 0 ;
     int64_t tempPts = 0;
     while (!isExit) {
@@ -67,16 +70,20 @@ void SeekFile::findFrame(int64_t pts , int streamIndex){
             av_packet_free(&pkt_);
             continue;
         }
-        tempPts = utils.getConvertPts(pkt_->pts ,afc->streams[streamIndex]->time_base);
 
-        if (pkt_->stream_index == streamIndex && pts <= tempPts) {
-            LOGE(" TEMP PTS %lld , real pts %lld " , tempPts , pts);
-            LOGE(" FIND REAL FRAME !");
-            av_packet_free(&pkt_);
-            pkt_= NULL;
-            pthread_mutex_unlock(&mutex_pthread);
-           return ;
-        } else {
+
+        if (pkt_->stream_index == videoIndex) {
+            tempPts = utils.getConvertPts(pkt_->pts ,afc->streams[videoIndex]->time_base);
+            if( pts <= tempPts){
+                LOGE(" FIND REAL FRAME TEMP PTS %lld , real pts %lld " , tempPts , pts);
+
+                av_packet_free(&pkt_);
+                pkt_= NULL;
+                pthread_mutex_unlock(&mutex_pthread);
+
+            }
+        }
+        else {
             av_packet_free(&pkt_);
             pkt_= NULL;
         }
@@ -91,6 +98,12 @@ void SeekFile::run() {
 }
 
 SeekFile::~SeekFile() {
-
+//    for(int i = 0 ;i < audioTemp.size() ; ++i){
+//        AVPacket *packet = audioTemp.front();
+//        audioTemp.pop();
+//        if(packet != NULL){
+//            av_packet_free(&packet);
+//        }
+//    }
 }
 

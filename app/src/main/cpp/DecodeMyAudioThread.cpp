@@ -94,6 +94,13 @@ void DeocdeMyAudioThread::update(MyData *mydata){
 
 }
 
+void DeocdeMyAudioThread::setQueue(queue<AVPacket *> aq){
+    for(int i = 0 ; i < aq.size() ; ++i){
+        audioPktQue.push(aq.front());
+        aq.pop();
+    }
+}
+
 DeocdeMyAudioThread::DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  ){
     maxPackage = 130;
     this->ac = ac;
