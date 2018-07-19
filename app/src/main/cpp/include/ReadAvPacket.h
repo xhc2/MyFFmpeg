@@ -19,8 +19,6 @@ class ReadAVPackage : public MyThread ,public Notify{
 private :
     void run();
 
-//    int maxAudioPacket = 140;
-//    int maxVideoPacket = 100;
     int audioIndex;
     int videoIndex;
     AVFormatContext *afc;

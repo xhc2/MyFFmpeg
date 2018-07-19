@@ -28,7 +28,7 @@ public :
     SonicRead(int samplerate , int channel , float speed , queue<MyData *> *audioFrameQue ,pthread_mutex_t *mutex_pthread);
     ~SonicRead();
     void putSample(short *buf , int size);
-    void sonicFlush();
+    int sonicFlush();
     int availableBytes();
     void changeSpeed(float speed);
     int reciveSample(short *getBuf , int lenByte);

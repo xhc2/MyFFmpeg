@@ -45,6 +45,7 @@ void AudioPlayer::audioPlayDelay() {
     //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
     pthread_mutex_lock(&mutex_pthread);
     while(!isExit && !pause){
+        LOGE(" AUDIO PLAY %d " , audioFrameQue.size());
         if(!audioFrameQue.empty()){
             (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
             (*pcmQue)->Enqueue(pcmQue, "", 1);
@@ -60,7 +61,6 @@ void AudioPlayer::update(MyData *mydata){
         return ;
     }
     while(!isExit){
-//        LOGE(" 这里阻塞了？%d " ,audioFrameQue.size() );
         if(audioFrameQue.size() < maxFrame){
             audioFrameQue.push(mydata);
             break;
@@ -113,7 +113,9 @@ void AudioPlayer::clearQue(){
 
         if(!audioFrameQue.empty()){
             MyData *myData = audioFrameQue.front();
-            myData->drop();
+            if(myData !=NULL){
+                myData->drop();
+            }
             audioFrameQue.pop();
             continue;
         }
@@ -128,10 +130,21 @@ void AudioPlayer::changeSpeed(float speed){
 
 void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     AudioPlayer *ap = (AudioPlayer *)context;
-    int size = ap->sonicRead->dealAudio( &ap->getBuf ,  ap->pts);
-    if(size > 0 &&  ap->getBuf != NULL){
-        (*bf)->Enqueue(bf, ap->getBuf  , size );
+    if(!ap->audioFrameQue.empty()){
+        MyData *myData = ap->audioFrameQue.front();
+        ap->audioFrameQue.pop();
+        ap->pts = myData->pts;
+        memcpy(ap->playAudioTemp , myData->data , myData->size);
+        if(myData->size > 0){
+            (*bf)->Enqueue(bf,ap->playAudioTemp , myData->size );
+        }
+        delete  myData;
     }
+
+//    int size = ap->sonicRead->dealAudio( &ap->getBuf ,  ap->pts);
+//    if(size > 0 &&  ap->getBuf != NULL){
+//        (*bf)->Enqueue(bf, ap->getBuf  , size );
+//    }
 }
 
 int AudioPlayer::initAudio() {

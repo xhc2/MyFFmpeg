@@ -14,6 +14,7 @@ void DeocdeMyAudioThread::run(){
             continue;
         }
         if(audioPktQue.empty()){
+            LOGE(" AUDIO PACKAGE NULL ");
             threadSleep(2);
             continue;
         }
@@ -32,7 +33,7 @@ void DeocdeMyAudioThread::run(){
         av_packet_free(&pck);
         while (true) {
             result = avcodec_receive_frame(ac, aframe);
-
+//            LOGE(" avcodec_receive_frame ");
             if (result < 0) {
                 break;
             }
@@ -53,6 +54,7 @@ void DeocdeMyAudioThread::run(){
             myData->isAudio = true;
             myData->pts = utils.getConvertPts(aframe->pts,
                                        afc->streams[audioIndex]->time_base);
+
             this->notify(myData);
         }
     }
@@ -64,7 +66,9 @@ void DeocdeMyAudioThread::clearQue(){
 
         if(!audioPktQue.empty()){
             AVPacket *pkt = audioPktQue.front();
-            av_packet_free(&pkt);
+            if(pkt != NULL){
+                av_packet_free(&pkt);
+            }
             audioPktQue.pop();
             continue;
         }
@@ -74,21 +78,19 @@ void DeocdeMyAudioThread::clearQue(){
 
 void DeocdeMyAudioThread::update(MyData *mydata){
     if(!mydata->isAudio)return ;
+//    pthread_mutex_lock(&mutex_pthread);
     while(!isExit){
-
-            pthread_mutex_lock(&mutex_pthread);
+//        LOGE(" AUDIO 阻塞 ");
             if(audioPktQue.size() < maxPackage){
                 audioPktQue.push(mydata->pkt);
-                pthread_mutex_unlock(&mutex_pthread);
                 break;
             }
             else{
                 threadSleep(2);
-                pthread_mutex_unlock(&mutex_pthread);
             }
 
     }
-
+//    pthread_mutex_unlock(&mutex_pthread);
 
 }
 

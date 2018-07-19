@@ -48,7 +48,7 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
     decodeAudio->start();
     decodeVideo->start();
     audioPlayer->start();
-//    this->start();
+    this->start();
 
     LOGE("init Mp4Player SUCCESS ");
 }
@@ -58,12 +58,13 @@ void Mp4Player::seekStart(){
 }
 
 void Mp4Player::seek(float progress){
-
     int result = avformat_flush(afc);
     if (result < 0) {
         LOGE(" avformat_flush result %d ", result);
         return;
     }
+//    audioPlayer->pts = 0;
+//    decodeVideo->pts = 0;
     avcodec_flush_buffers(vc);
     clearAllQue();
     seekFile->seek(progress , video_index , false);
@@ -173,6 +174,7 @@ void Mp4Player::run(){
             threadSleep(2);
             continue;
         }
+        LOGE("  ");
         //在外面把同步处理了。
         if(audioPlayer != NULL && decodeVideo != NULL){
             decodeVideo->apts = audioPlayer->pts;
@@ -213,7 +215,6 @@ void Mp4Player::pauseVA(){
 
 int Mp4Player::getProgress(){
     return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
-//    return (int)((float)decodeVideo->pts / (float)videoDuration * 100);
 }
 
 float Mp4Player::getDuration(){
@@ -221,18 +222,19 @@ float Mp4Player::getDuration(){
 }
 
 void Mp4Player::playVA(){
-    if(audioPlayer != NULL){
-        audioPlayer->start();
-        audioPlayer->setPlay();
-    }
-    if(decodeAudio != NULL){
-        decodeAudio->setPlay();
+    LOGE(" PLAY NOW ");
+    if(readAVPackage != NULL){
+        readAVPackage->setPlay();
     }
     if(decodeVideo != NULL){
         decodeVideo->setPlay();
     }
-    if(readAVPackage != NULL){
-        readAVPackage->setPlay();
+    if(decodeAudio != NULL){
+        decodeAudio->setPlay();
+    }
+    if(audioPlayer != NULL){
+        audioPlayer->start();
+        audioPlayer->setPlay();
     }
     this->setPlay();
 }

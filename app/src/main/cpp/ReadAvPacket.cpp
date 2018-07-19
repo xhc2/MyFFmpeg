@@ -18,19 +18,20 @@ void ReadAVPackage::run(){
     while (!isExit) {
 
         if (pause) {
-            threadSleep (500);
+            threadSleep (4);
+            LOGE(" AV READ PAUSE "  );
             continue;
         }
+
         AVPacket *pkt_ = av_packet_alloc();
         if(pkt_ == NULL){
             LOGE("READ FRAME av_packet_alloc FAILD !");
             continue;
         }
         result = av_read_frame(afc, pkt_);
-
+        LOGE(" av_read_frame %d " , result  );
         if (result < 0) {
-
-
+            LOGE(" READ FRAME faild %s ", av_err2str(result));
             if(strcmp("End of file"  , av_err2str(result)) == 0){
                 //文件结尾
 //                LOGE(" READ PACKAGE FAILD %s " , av_err2str(result));
@@ -42,10 +43,10 @@ void ReadAVPackage::run(){
         MyData *myData = new MyData();
         myData->pkt = pkt_ ;
         myData->size = pkt_->size;
+
         if (pkt_->stream_index == audioIndex) {
             myData->isAudio = true;
         } else if (pkt_->stream_index == videoIndex) {
-
             myData->isAudio = false;
         } else {
             delete myData;
@@ -55,6 +56,7 @@ void ReadAVPackage::run(){
             notify(myData);
         }
     }
+    LOGE(" READ FRAME END !!!!!!!!!!!!!!!");
 }
 
 

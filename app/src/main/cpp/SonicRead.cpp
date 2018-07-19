@@ -27,7 +27,9 @@ void SonicRead::changeSpeed(float speed){
 int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
     while (!isExit) {
         if (audioFrameQue->empty()) {
-            sonicFlush();
+            if(sonicFlush() <= 0){
+                break;
+            };
         } else {
             MyData *myData = audioFrameQue->front();
             audioFrameQue->pop();
@@ -65,8 +67,8 @@ void SonicRead::putSample(short *buf, int lenBytes) {
     sonicWriteShortToStream(tempoStream, buf, samples);
 }
 
-void SonicRead::sonicFlush() {
-    sonicFlushStream(tempoStream);
+int SonicRead::sonicFlush() {
+   return sonicFlushStream(tempoStream);
 }
 
 int SonicRead::availableBytes() {

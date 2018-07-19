@@ -5,12 +5,10 @@
 #include <my_log.h>
 
 #include "DecodeVideoThread.h"
-int count ;
 DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc  ,int videoIndex){
     maxPackage = 100;
     this->afc = afc;
     this->vc = vc;
-    count = 0;
     vframe = av_frame_alloc();
     this->videoIndex = videoIndex;
     file = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
@@ -28,6 +26,7 @@ void DecodeVideoThread::run() {
         }
 
         if (videoPktQue.empty()) {
+            LOGE(" VIDEO PACKAGE NULL ");
             threadSleep(2);
             continue;
         }
@@ -39,10 +38,10 @@ void DecodeVideoThread::run() {
         }
         //音视频同步处理
         pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
-//        if (pts >= apts) {
-//            threadSleep(1);
-//            continue;
-//        }
+        if (pts >= apts) {
+            threadSleep(1);
+            continue;
+        }
 
         videoPktQue.pop();
         result = avcodec_send_packet(vc, pck);
@@ -93,10 +92,11 @@ void DecodeVideoThread::run() {
             for(int i = 0 ;i < vc->height / 2 ; ++i){
                 memcpy(myData->datas[2]  + vc->width / 2 * i,vframe->data[2] + vframe->linesize[2] * i ,  vc->width / 2);
             }
+//            LOGE(" DECODE VIDEO ");
 //            fwrite(myData->datas[0] , 1, size , file);
 //            fwrite(myData->datas[1] , 1, size / 4 , file);
 //            fwrite(myData->datas[2] , 1, size / 4, file);
-            threadSleep(40);
+//            threadSleep(40);
             this->notify(myData);
         }
     }
@@ -107,7 +107,10 @@ void DecodeVideoThread::clearQue(){
 
         if(!videoPktQue.empty()){
             AVPacket *pkt = videoPktQue.front();
-            av_packet_free(&pkt);
+            if(pkt != NULL){
+                av_packet_free(&pkt);
+            }
+
             videoPktQue.pop();
             continue;
         }
@@ -119,18 +122,18 @@ void DecodeVideoThread::clearQue(){
 
 void DecodeVideoThread::update(MyData *mydata) {
     if (mydata->isAudio) return ;
+//    pthread_mutex_lock(&mutex_pthread);
     while (!isExit) {
-            pthread_mutex_lock(&mutex_pthread);
+//            LOGE(" VIDEO 阻塞 ");
             if (videoPktQue.size() < maxPackage) {
                 videoPktQue.push(mydata->pkt);
-                pthread_mutex_unlock(&mutex_pthread);
                 break;
             }
             else{
                 threadSleep(2);
-                pthread_mutex_unlock(&mutex_pthread);
             }
     }
+//    pthread_mutex_unlock(&mutex_pthread);
 }
 
 DecodeVideoThread::~DecodeVideoThread(){
