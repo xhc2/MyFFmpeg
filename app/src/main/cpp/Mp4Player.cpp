@@ -55,6 +55,7 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
 
 void Mp4Player::seekStart(){
     pauseVA();
+
 }
 
 void Mp4Player::seek(float progress){
@@ -66,11 +67,12 @@ void Mp4Player::seek(float progress){
     audioPlayer->pts = 0;
     decodeVideo->pts = 0;
     decodeVideo->apts = 0;
+    audioPlayer->sonicFlush();
     avcodec_flush_buffers(vc);
     avcodec_flush_buffers(ac);
     clearAllQue();
-    seekFile->seek(progress);
-//    decodeAudio->setQueue(que);
+    seekFile->seek(progress , audioPlayer->pts ,  decodeVideo->pts);
+    decodeVideo->apts = audioPlayer->pts;
     playVA();
 }
 
@@ -102,9 +104,9 @@ int Mp4Player::initFFmpeg(const char* path) {
             //视频
             video_index = i;
 
-//            LOGE("VIDEO WIDTH %d , HEIGHT %d ,pix format %d , fps %f ", avStream->codecpar->width,
-//                 avStream->codecpar->height, avStream->codecpar->format,
-//                 av_q2d(avStream->avg_frame_rate));
+            LOGE("VIDEO WIDTH %d , HEIGHT %d ,pix format %d , fps %f ", avStream->codecpar->width,
+                 avStream->codecpar->height, avStream->codecpar->format,
+                 av_q2d(avStream->avg_frame_rate));
 
             videoCode = avcodec_find_decoder(avStream->codecpar->codec_id);
 
@@ -174,7 +176,7 @@ int Mp4Player::initFFmpeg(const char* path) {
 void Mp4Player::run(){
     while(!isExit){
         if(pause){
-            threadSleep(2);
+            threadSleep(1);
             continue;
         }
         //在外面把同步处理了。
@@ -236,8 +238,9 @@ void Mp4Player::playVA(){
         decodeAudio->setPlay();
     }
     if(audioPlayer != NULL){
-        audioPlayer->start();
+        audioPlayer->stop();
         audioPlayer->setPlay();
+        audioPlayer->start();
     }
     this->setPlay();
 }

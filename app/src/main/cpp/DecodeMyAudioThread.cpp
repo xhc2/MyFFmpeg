@@ -14,7 +14,7 @@ void DeocdeMyAudioThread::run(){
             continue;
         }
         if(audioPktQue.empty()){
-            LOGE(" AUDIO PACKAGE NULL ");
+//            LOGE(" AUDIO PACKAGE NULL ");
             threadSleep(2);
             continue;
         }
@@ -81,6 +81,11 @@ void DeocdeMyAudioThread::update(MyData *mydata){
 //    pthread_mutex_lock(&mutex_pthread);
     while(!isExit){
 //        LOGE(" AUDIO 阻塞 ");
+        if(pause){
+            //目前有两种暂停情况。用户手动暂停视频，和用户seek暂停视频。丢掉一帧问题不大，但是可以解决掉
+            //暂停时可以阻塞的情况
+            break;
+        }
             if(audioPktQue.size() < maxPackage){
                 audioPktQue.push(mydata->pkt);
                 break;

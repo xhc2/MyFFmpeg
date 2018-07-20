@@ -28,8 +28,9 @@ public :
     SeekFile(AVFormatContext *afc, int audioIndex , int videoIndex);
     ~SeekFile();
     void seekStart();
-    void seek(float progress );
-    void  findFrame(int64_t pts );
+    void seek(float progress  , int64_t &audioPts , int64_t &videoPts);
+    int64_t  findVideoFrame(int64_t pts );
+    int64_t  findAudioFrame(int64_t pts );
     void run();
 
 };

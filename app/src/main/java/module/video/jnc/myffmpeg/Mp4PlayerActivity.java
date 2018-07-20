@@ -195,33 +195,36 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
 
     @Override
     public void onClick(View v) {
+        float speed = 0;
         switch (v.getId()) {
             case R.id.tv_0_5:
-                FFmpegUtils.changeSpeed(0.5f);
+                speed = 0.5f;
                 break;
             case R.id.tv_0_7:
-                FFmpegUtils.changeSpeed(0.7f);
+                speed = 0.5f;
                 break;
             case R.id.tv_1_0:
-                FFmpegUtils.changeSpeed(1.0f);
+                speed = 1.0f;
                 break;
             case R.id.tv_1_2:
-                FFmpegUtils.changeSpeed(1.2f);
+                speed = 1.2f;
                 break;
             case R.id.tv_1_5:
-                FFmpegUtils.changeSpeed(1.5f);
+                speed = 1.5f;
                 break;
             case R.id.tv_1_7:
-                FFmpegUtils.changeSpeed(1.7f);
+                speed = 1.7f;
                 break;
             case R.id.tv_2_0:
-                FFmpegUtils.changeSpeed(2.0f);
+                speed = 2.0f;
+
                 break;
         }
         if (popupWindow != null && popupWindow.isShowing()) {
             popupWindow.dismiss();
         }
-
+        FFmpegUtils.changeSpeed(speed);
+        tvSpeed.setText(speed+"X");
     }
 
     private Dialog dialog;

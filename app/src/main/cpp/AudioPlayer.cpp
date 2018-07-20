@@ -123,6 +123,9 @@ void AudioPlayer::clearQue(){
     }
 }
 
+int AudioPlayer::sonicFlush(){
+    return sonicRead->sonicFlush();
+}
 
 void AudioPlayer::changeSpeed(float speed){
     sonicRead->changeSpeed(speed);
@@ -130,21 +133,21 @@ void AudioPlayer::changeSpeed(float speed){
 
 void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     AudioPlayer *ap = (AudioPlayer *)context;
-    if(!ap->audioFrameQue.empty()){
-        MyData *myData = ap->audioFrameQue.front();
-        ap->audioFrameQue.pop();
-        ap->pts = myData->pts;
-        memcpy(ap->playAudioTemp , myData->data , myData->size);
-        if(myData->size > 0){
-            (*bf)->Enqueue(bf,ap->playAudioTemp , myData->size );
-        }
-        delete  myData;
-    }
-
-//    int size = ap->sonicRead->dealAudio( &ap->getBuf ,  ap->pts);
-//    if(size > 0 &&  ap->getBuf != NULL){
-//        (*bf)->Enqueue(bf, ap->getBuf  , size );
+//    if(!ap->audioFrameQue.empty()){
+//        MyData *myData = ap->audioFrameQue.front();
+//        ap->audioFrameQue.pop();
+//        ap->pts = myData->pts;
+//        memcpy(ap->playAudioTemp , myData->data , myData->size);
+//        if(myData->size > 0){
+//            (*bf)->Enqueue(bf,ap->playAudioTemp , myData->size );
+//        }
+//        delete  myData;
 //    }
+
+    int size = ap->sonicRead->dealAudio( &ap->getBuf ,  ap->pts);
+    if(size > 0 &&  ap->getBuf != NULL){
+        (*bf)->Enqueue(bf, ap->getBuf  , size );
+    }
 }
 
 int AudioPlayer::initAudio() {

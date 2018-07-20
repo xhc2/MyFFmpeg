@@ -26,7 +26,7 @@ void DecodeVideoThread::run() {
         }
 
         if (videoPktQue.empty()) {
-            LOGE(" VIDEO PACKAGE NULL ");
+//            LOGE(" VIDEO PACKAGE NULL ");
             threadSleep(2);
             continue;
         }
@@ -38,11 +38,13 @@ void DecodeVideoThread::run() {
         }
         //音视频同步处理
         pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
+//
         if (pts >= apts) {
+            LOGE(" sync video pts %lld , audio pts %lld , 视频等待 " , pts , apts);
             threadSleep(1);
             continue;
         }
-
+        LOGE(" sync video pts %lld , audio pts %lld , 播放 " , pts , apts);
         videoPktQue.pop();
         result = avcodec_send_packet(vc, pck);
         av_packet_free(&pck);
@@ -123,7 +125,12 @@ void DecodeVideoThread::update(MyData *mydata) {
     if (mydata->isAudio) return ;
 //    pthread_mutex_lock(&mutex_pthread);
     while (!isExit) {
-            LOGE(" VIDEO 阻塞 %d pts %lld " , videoPktQue.size() , mydata->pts);
+//            LOGE(" VIDEO 阻塞 %d pts %lld " , videoPktQue.size() , mydata->pts);
+        if(pause){
+            //目前有两种暂停情况。用户手动暂停视频，和用户seek暂停视频。丢掉一帧问题不大，但是可以解决掉
+            //暂停时可以阻塞的情况
+            break;
+        }
             if (videoPktQue.size() < maxPackage) {
                 videoPktQue.push(mydata->pkt);
                 break;

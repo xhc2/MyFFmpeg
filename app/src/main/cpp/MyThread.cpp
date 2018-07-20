@@ -17,6 +17,7 @@ MyThread::MyThread() {
 
 int MyThread::start()
 {
+    isExit = false;
     if(pthread_create(&pid,NULL,start_thread,(void *)this) != 0)                 //创建一个线程(必须是全局函数)
     {
         return -1;
