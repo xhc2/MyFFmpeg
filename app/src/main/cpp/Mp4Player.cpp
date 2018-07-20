@@ -55,7 +55,7 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
 
 void Mp4Player::seekStart(){
     pauseVA();
-
+//    audioPlayer->seekStart();
 }
 
 void Mp4Player::seek(float progress){
@@ -67,12 +67,13 @@ void Mp4Player::seek(float progress){
     audioPlayer->pts = 0;
     decodeVideo->pts = 0;
     decodeVideo->apts = 0;
-    audioPlayer->sonicFlush();
+
     avcodec_flush_buffers(vc);
     avcodec_flush_buffers(ac);
     clearAllQue();
     seekFile->seek(progress , audioPlayer->pts ,  decodeVideo->pts);
     decodeVideo->apts = audioPlayer->pts;
+    audioPlayer->sonicFlush();
     playVA();
 }
 

@@ -28,7 +28,7 @@ private :
     int maxFrame;
     void audioPlayDelay();
     int pause_audio(bool myPauseFlag);
-
+    SLuint32 getSimpleRate(int sampleRate);
 public :
     std::queue<MyData *> audioFrameQue;
     char *playAudioTemp;
@@ -40,6 +40,8 @@ public :
     void update(MyData *mydata);
     void run();
     int sonicFlush();
+    void seekStart();
+    void seekFinish();
     int64_t pts;
     short *getBuf;
     SonicRead *sonicRead;

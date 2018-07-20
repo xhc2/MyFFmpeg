@@ -9,6 +9,8 @@
 SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *audioFrameQue , pthread_mutex_t *mutex_pthread) {
     this->mutex_pthread = mutex_pthread;
     tempoStream = sonicCreateStream(samplerate, channel);
+    this->sampleRate = samplerate ;
+    this->channel = channel;
     sonicSetSpeed(tempoStream, speed);
     sonicSetPitch(tempoStream, 1.0);
     sonicSetRate(tempoStream, 1.0);
@@ -18,6 +20,7 @@ SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *
     playAudioBuffer = (short *) malloc(putBufferSize);
     getAudioBuffer = (short *) malloc(getBufferSize);
     isExit = false;
+//    filePcm = fopen("sdcard/FFmpeg/filepcm.pcm" , "wb+");
 }
 
 void SonicRead::changeSpeed(float speed){
@@ -34,9 +37,12 @@ int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
         } else {
             MyData *myData = audioFrameQue->front();
             audioFrameQue->pop();
-//            LOGE(" SonicRead::dealAudio ");
+            if(myData == NULL || myData->data == NULL){
+                break;
+            }
             pts = myData->pts;
             int size = myData->size;
+            LOGE(" pcm size %d " , size );
             if (size > putBufferSize) {
                 playAudioBuffer = (short *) realloc(playAudioBuffer, size);
                 putBufferSize = size;
@@ -56,6 +62,7 @@ int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
             int samplesReadBytes = reciveSample(getAudioBuffer, availiableByte);
             if(samplesReadBytes > 0){
                 *getBuf = getAudioBuffer;
+//                fwrite(getAudioBuffer , 1 , samplesReadBytes , filePcm);
                 return samplesReadBytes;
             }
         }
@@ -92,6 +99,17 @@ int SonicRead::reciveSample(short *getBuf, int lenByte) {
     return bytesRead;
 }
 
+void SonicRead::destroySonicRead(){
+    sonicDestroyStream(tempoStream);
+    tempoStream = NULL;
+}
+void SonicRead::createSonicRead(){
+    tempoStream = sonicCreateStream(sampleRate, channel);
+    LOGE(" SONIC CREATE SUCCESS ? %d " , (tempoStream == NULL));
+    sonicSetSpeed(tempoStream, 1.0);
+    sonicSetPitch(tempoStream, 1.0);
+    sonicSetRate(tempoStream, 1.0);
+}
 SonicRead::~SonicRead() {
     if(playAudioBuffer != NULL){
         free(playAudioBuffer);
@@ -99,6 +117,6 @@ SonicRead::~SonicRead() {
     if(getAudioBuffer != NULL){
         free(getAudioBuffer);
     }
-
     sonicDestroyStream(tempoStream);
+    tempoStream = NULL;
 }

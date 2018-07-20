@@ -17,6 +17,7 @@ AudioPlayer::AudioPlayer(int simpleRate , int channel){
 }
 
 void AudioPlayer::run(){
+    LOGE(" RUN 启动两次 ！");
     audioPlayDelay();
 }
 //暂停或者播放
@@ -123,6 +124,12 @@ void AudioPlayer::clearQue(){
     }
 }
 
+void AudioPlayer::seekStart() {
+    sonicRead->destroySonicRead();
+}
+void AudioPlayer::seekFinish() {
+    sonicRead->createSonicRead();
+}
 int AudioPlayer::sonicFlush(){
     return sonicRead->sonicFlush();
 }
@@ -179,7 +186,7 @@ int AudioPlayer::initAudio() {
     SLDataFormat_PCM pcm_ = {
             SL_DATAFORMAT_PCM,
             1,
-            SL_SAMPLINGRATE_48 ,
+            getSimpleRate(simpleRate) ,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT,
@@ -212,6 +219,19 @@ int AudioPlayer::initAudio() {
 
     LOGE(" OpenSles init SUCCESS ");
     return RESULT_SUCCESS;
+}
+
+SLuint32 AudioPlayer::getSimpleRate(int sampleRate){
+
+    switch (sampleRate){
+        case 44100:
+            return SL_SAMPLINGRATE_44_1;
+        case 48000:
+            return SL_SAMPLINGRATE_48;
+
+    }
+
+    return SL_SAMPLINGRATE_48;
 }
 
 // audio part

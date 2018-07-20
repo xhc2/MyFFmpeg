@@ -23,6 +23,8 @@ private :
     bool isExit;
     int putBufferSize;
     int getBufferSize;
+    int sampleRate ;
+    int channel;
     pthread_mutex_t *mutex_pthread;
 public :
     SonicRead(int samplerate , int channel , float speed , queue<MyData *> *audioFrameQue ,pthread_mutex_t *mutex_pthread);
@@ -33,6 +35,8 @@ public :
     void changeSpeed(float speed);
     int reciveSample(short *getBuf , int lenByte);
     int dealAudio(short **getBuf , int64_t  &pts);
+    void destroySonicRead();
+    void createSonicRead();
 };
 
 #endif //MYFFMPEG_SONICREAD_H

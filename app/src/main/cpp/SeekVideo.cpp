@@ -36,11 +36,6 @@ void SeekFile::seek(float progress , int64_t &audioPts , int64_t &videoPts) {
         LOGE("av_seek_frame faild %s ", av_err2str(result));
         return;
     }
-//    result = av_seek_frame(afc ,audioIndex , seekPts ,  AVSEEK_FLAG_BACKWARD  );
-//    if(result < 0){
-//        LOGE("av_seek_frame faild %s " , av_err2str(result));
-//            return ;
-//    }
     int64_t realPts = utils.getConvertPts(seekPts, afc->streams[videoIndex]->time_base);
     //还是直接放在主线程中。子线程不太容易通知其他线程启动。
     videoPts = findVideoFrame(realPts);

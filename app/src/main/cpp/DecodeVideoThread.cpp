@@ -40,11 +40,11 @@ void DecodeVideoThread::run() {
         pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
 //
         if (pts >= apts) {
-            LOGE(" sync video pts %lld , audio pts %lld , 视频等待 " , pts , apts);
+//            LOGE(" sync video pts %lld , audio pts %lld , 视频等待 " , pts , apts);
             threadSleep(1);
             continue;
         }
-        LOGE(" sync video pts %lld , audio pts %lld , 播放 " , pts , apts);
+//        LOGE(" sync video pts %lld , audio pts %lld , 播放 " , pts , apts);
         videoPktQue.pop();
         result = avcodec_send_packet(vc, pck);
         av_packet_free(&pck);
