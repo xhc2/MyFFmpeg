@@ -66,7 +66,6 @@ void Mp4Player::seek(float progress){
     audioPlayer->pts = 0;
     decodeVideo->pts = 0;
     decodeVideo->apts = 0;
-
     avcodec_flush_buffers(vc);
     avcodec_flush_buffers(ac);
     clearAllQue();
@@ -266,11 +265,18 @@ Mp4Player::~Mp4Player(){
 
 
     this->join();
+    LOGE(" THIS JOIN ");
     audioPlayer->join();
+    LOGE(" audioPlayer JOIN ");
     decodeAudio->join();
+    LOGE(" decodeAudio JOIN ");
     decodeVideo->join();
+    LOGE(" decodeVideo JOIN ");
     readAVPackage->join();
+    LOGE(" readAVPackage JOIN ");
     seekFile->join();
+    LOGE(" seekFile JOIN ");
+
 
     delete yuvPlayer;
     delete audioPlayer;

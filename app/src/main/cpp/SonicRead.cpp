@@ -29,7 +29,6 @@ void SonicRead::changeSpeed(float speed){
 
 int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
     while (!isExit) {
-        LOGE(" SONIC READ %d "  ,audioFrameQue->size());
         if (audioFrameQue->empty()) {
             if(sonicFlush() <= 0){
                 break;
@@ -61,7 +60,6 @@ int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
             int samplesReadBytes = reciveSample(getAudioBuffer, availiableByte);
             if(samplesReadBytes > 0){
                 *getBuf = getAudioBuffer;
-//                fwrite(getAudioBuffer , 1 , samplesReadBytes , filePcm);
                 return samplesReadBytes;
             }
         }

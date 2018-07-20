@@ -38,13 +38,13 @@ void DecodeVideoThread::run() {
         }
         //音视频同步处理
         pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
-//
+        LOGE(" PTS %lld , DTS %lld " , pts ,util.getConvertPts(pck->dts , afc->streams[videoIndex]->time_base) );
         if (pts >= apts) {
-//            LOGE(" sync video pts %lld , audio pts %lld , 视频等待 " , pts , apts);
+            LOGE(" sync video pts %lld , audio pts %lld , 视频等待 " , pts , apts);
             threadSleep(1);
             continue;
         }
-//        LOGE(" sync video pts %lld , audio pts %lld , 播放 " , pts , apts);
+        LOGE(" sync video pts %lld , audio pts %lld , 播放 " , pts , apts);
         videoPktQue.pop();
         result = avcodec_send_packet(vc, pck);
         av_packet_free(&pck);
@@ -73,6 +73,15 @@ void DecodeVideoThread::run() {
             myData->vHeight = vc->height;
             int size = vc->width *  vc->height;
             myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) * vframe->height;
+            if(vframe->pict_type == AV_PICTURE_TYPE_I){
+                LOGE(" PIC TYPE I");
+            }
+            else if(vframe->pict_type == AV_PICTURE_TYPE_B){
+                LOGE(" PIC TYPE B");
+            }
+            else if(vframe->pict_type == AV_PICTURE_TYPE_P){
+                LOGE(" PIC TYPE P");
+            }
 
             //y
             myData->datas[0] = (uint8_t *)malloc(size);

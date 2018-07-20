@@ -12,6 +12,7 @@ MyThread::MyThread() {
     pthread_mutex_init(&mutex_pthread , NULL);
     pause = false;
     isExit = false;
+    pid = NULL;
 }
 
 
@@ -33,11 +34,11 @@ void MyThread::threadSleep(int mis) {
     av_usleep(1000 * mis);
 }
 void MyThread::join(){
-    void *t;
     if(pid == NULL){
         LOGE("join thread faild !");
         return ;
     }
+    void *t;
     pthread_join(pid , &t);
 }
 void MyThread::setPause(){

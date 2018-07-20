@@ -143,12 +143,5 @@ void SeekFile::run() {
 }
 
 SeekFile::~SeekFile() {
-//    for(int i = 0 ;i < audioTemp.size() ; ++i){
-//        AVPacket *packet = audioTemp.front();
-//        audioTemp.pop();
-//        if(packet != NULL){
-//            av_packet_free(&packet);
-//        }
-//    }
 }
 
