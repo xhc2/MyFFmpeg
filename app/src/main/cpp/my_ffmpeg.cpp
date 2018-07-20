@@ -221,7 +221,6 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type,
                                                        jobject glSurfaceView) {
     if(mp4Player == NULL){
         const char *path = env->GetStringUTFChars(path_, 0);
-        LOGE("XHC path %s" , path);
         ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
         mp4Player = new Mp4Player(path ,win);
         env->ReleaseStringUTFChars(path_, path);

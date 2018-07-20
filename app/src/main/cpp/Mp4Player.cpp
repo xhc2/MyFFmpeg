@@ -55,7 +55,6 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win){
 
 void Mp4Player::seekStart(){
     pauseVA();
-//    audioPlayer->seekStart();
 }
 
 void Mp4Player::seek(float progress){
@@ -73,7 +72,6 @@ void Mp4Player::seek(float progress){
     clearAllQue();
     seekFile->seek(progress , audioPlayer->pts ,  decodeVideo->pts);
     decodeVideo->apts = audioPlayer->pts;
-    audioPlayer->sonicFlush();
     playVA();
 }
 
@@ -215,8 +213,6 @@ void Mp4Player::pauseVA(){
     if(decodeVideo != NULL){
         decodeVideo->setPause();
     }
-
-
 }
 
 int Mp4Player::getProgress(){
@@ -239,7 +235,7 @@ void Mp4Player::playVA(){
         decodeAudio->setPlay();
     }
     if(audioPlayer != NULL){
-        audioPlayer->stop();
+//        audioPlayer->stop();
         audioPlayer->setPlay();
         audioPlayer->start();
     }

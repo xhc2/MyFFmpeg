@@ -128,7 +128,7 @@ void DecodeVideoThread::update(MyData *mydata) {
 //            LOGE(" VIDEO 阻塞 %d pts %lld " , videoPktQue.size() , mydata->pts);
         if(pause){
             //目前有两种暂停情况。用户手动暂停视频，和用户seek暂停视频。丢掉一帧问题不大，但是可以解决掉
-            //暂停时可以阻塞的情况
+            //暂停时阻塞的情况
             break;
         }
             if (videoPktQue.size() < maxPackage) {

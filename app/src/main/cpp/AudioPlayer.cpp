@@ -17,7 +17,6 @@ AudioPlayer::AudioPlayer(int simpleRate , int channel){
 }
 
 void AudioPlayer::run(){
-    LOGE(" RUN 启动两次 ！");
     audioPlayDelay();
 }
 //暂停或者播放
@@ -35,6 +34,7 @@ int AudioPlayer::pause_audio(bool myPauseFlag) {
 }
 
 void AudioPlayer::pauseAudio(){
+    (*pcmQue)->Clear(pcmQue);
     pause_audio(true);
 }
 
@@ -45,11 +45,11 @@ void AudioPlayer::playAudio(){
 void AudioPlayer::audioPlayDelay() {
     //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
     pthread_mutex_lock(&mutex_pthread);
+    int a = 1;
     while(!isExit && !pause){
-        LOGE(" AUDIO PLAY %d " , audioFrameQue.size());
         if(!audioFrameQue.empty()){
             (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
-            (*pcmQue)->Enqueue(pcmQue, "", 1);
+            (*pcmQue)->Enqueue(pcmQue, &a, 1);
             break;
         }
         threadSleep(2);
@@ -62,6 +62,10 @@ void AudioPlayer::update(MyData *mydata){
         return ;
     }
     while(!isExit){
+        if(pause){
+            break;
+        }
+
         if(audioFrameQue.size() < maxFrame){
             audioFrameQue.push(mydata);
             break;
@@ -125,10 +129,10 @@ void AudioPlayer::clearQue(){
 }
 
 void AudioPlayer::seekStart() {
-    sonicRead->destroySonicRead();
+
 }
 void AudioPlayer::seekFinish() {
-    sonicRead->createSonicRead();
+
 }
 int AudioPlayer::sonicFlush(){
     return sonicRead->sonicFlush();
@@ -152,6 +156,8 @@ void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 //    }
 
     int size = ap->sonicRead->dealAudio( &ap->getBuf ,  ap->pts);
+
+
     if(size > 0 &&  ap->getBuf != NULL){
         (*bf)->Enqueue(bf, ap->getBuf  , size );
     }
@@ -234,7 +240,6 @@ SLuint32 AudioPlayer::getSimpleRate(int sampleRate){
     return SL_SAMPLINGRATE_48;
 }
 
-// audio part
 SLEngineItf AudioPlayer::createOpenSL() {
     SLresult re = 0;
     SLEngineItf en = NULL;

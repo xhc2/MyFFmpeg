@@ -42,7 +42,6 @@ int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
             }
             pts = myData->pts;
             int size = myData->size;
-            LOGE(" pcm size %d " , size );
             if (size > putBufferSize) {
                 playAudioBuffer = (short *) realloc(playAudioBuffer, size);
                 putBufferSize = size;
