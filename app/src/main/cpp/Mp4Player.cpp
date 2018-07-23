@@ -37,10 +37,10 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win ,  CallJava *cj){
     seekFile = NULL;
     ac = NULL;
     vc = NULL;
-    afc = NULL;
-
-    videoDuration = 0 ;
     //必须显式的置null，不然avformat_open_input要报错。
+    afc = NULL;
+    videoDuration = 0 ;
+
 
     LOGE("------------------------------START-------------------------------");
     int result = initFFmpeg(path);
