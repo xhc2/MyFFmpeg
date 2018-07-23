@@ -70,15 +70,15 @@ void DecodeVideoThread::run() {
             myData->vHeight = vc->height;
             int size = vc->width *  vc->height;
             myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) * vframe->height;
-            if(vframe->pict_type == AV_PICTURE_TYPE_I){
-                LOGE(" PIC TYPE I");
-            }
-            else if(vframe->pict_type == AV_PICTURE_TYPE_B){
-                LOGE(" PIC TYPE B");
-            }
-            else if(vframe->pict_type == AV_PICTURE_TYPE_P){
-                LOGE(" PIC TYPE P");
-            }
+//            if(vframe->pict_type == AV_PICTURE_TYPE_I){
+//                LOGE(" PIC TYPE I");
+//            }
+//            else if(vframe->pict_type == AV_PICTURE_TYPE_B){
+//                LOGE(" PIC TYPE B");
+//            }
+//            else if(vframe->pict_type == AV_PICTURE_TYPE_P){
+//                LOGE(" PIC TYPE P");
+//            }
 
             //y
             myData->datas[0] = (uint8_t *)malloc(size);

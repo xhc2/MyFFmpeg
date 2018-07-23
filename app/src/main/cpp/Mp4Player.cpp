@@ -94,6 +94,8 @@ int Mp4Player::initFFmpeg(const char* path) {
     int result = 0;
     av_register_all();
     avcodec_register_all();
+    avformat_network_init();
+    LOGE(" play path %s " , path);
     result = avformat_open_input(&afc, path , 0, 0);
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
@@ -113,10 +115,10 @@ int Mp4Player::initFFmpeg(const char* path) {
 
     LOGE(" video duration %lld ", videoDuration);
 
-    if(videoDuration <= 0){
-        cj->callStr("请检查文件是否被损坏");
-        return RESULT_FAILD;
-    }
+//    if(videoDuration <= 0){
+//        cj->callStr("请检查文件是否被损坏");
+//        return RESULT_FAILD;
+//    }
 
     for (int i = 0; i < afc->nb_streams; ++i) {
         AVStream *avStream = afc->streams[i];

@@ -73,8 +73,9 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                     seekBar.setProgress(progress);
                     break;
                 case 3:
-                    File file = listFile.get(msg.arg1);
-                    playVideo(file.getAbsolutePath());
+                    String path = (String)msg.obj;
+//                    File file = listFile.get(msg.arg1);
+                    playVideo(path/*file.getAbsolutePath()*/);
                     break;
                 case 4:
                     String str = (String) msg.obj;
@@ -337,12 +338,12 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
 
         @Override
         public int getCount() {
-            return listFile.size();
+            return listFile.size()+1;
         }
 
         @Override
         public Object getItem(int i) {
-            return listFile.get(i);
+            return null;
         }
 
         @Override
@@ -364,7 +365,13 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             } else {
                 holder = (ViewHolder) view.getTag();
             }
-            holder.tv.setText(listFile.get(i).getName());
+            if(i == 0 ){
+                holder.tv.setText("rtmp 网络流 rtmp://live.hkstv.hk.lxdns.com/live/hks");
+            }
+            else{
+                holder.tv.setText(listFile.get(i - 1).getName());
+            }
+
             return view;
         }
 
@@ -384,7 +391,14 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 FFmpegUtils.destroyMp4Play();
                 Message msg = new Message();
                 msg.what = 3;
-                msg.arg1 = position;
+                if(position == 0){
+                    msg.obj = "rtmp://live.hkstv.hk.lxdns.com/live/hks";
+                }
+                else{
+                    msg.obj = listFile.get(position - 1).getAbsolutePath();
+                }
+//                msg.obj =
+//                msg.arg1 = position;
                 handler.sendMessage(msg);
             }
         }.start();
