@@ -135,7 +135,7 @@ int Mp4Player::initFFmpeg(const char* path) {
             if(avStream->codecpar->format != AV_PIX_FMT_YUV420P){
                 //先暂时不支持 yuv420p以外的格式
                 cj->callStr("目前只支持yuv420p的格式");
-                return RESULT_WRONG_PIX;
+                return RESULT_FAILD;
             }
             if (!videoCode) {
                 LOGE("VIDEO avcodec_find_decoder FAILD!");
