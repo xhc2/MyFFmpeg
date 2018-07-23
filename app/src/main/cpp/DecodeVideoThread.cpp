@@ -11,7 +11,7 @@ DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc 
     this->vc = vc;
     vframe = av_frame_alloc();
     this->videoIndex = videoIndex;
-    file = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
+//    file = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
 }
 
 
@@ -38,13 +38,10 @@ void DecodeVideoThread::run() {
         }
         //音视频同步处理
         pts = util.getConvertPts(pck->pts, afc->streams[videoIndex]->time_base);
-        LOGE(" PTS %lld , DTS %lld " , pts ,util.getConvertPts(pck->dts , afc->streams[videoIndex]->time_base) );
         if (pts >= apts) {
-            LOGE(" sync video pts %lld , audio pts %lld , 视频等待 " , pts , apts);
             threadSleep(1);
             continue;
         }
-        LOGE(" sync video pts %lld , audio pts %lld , 播放 " , pts , apts);
         videoPktQue.pop();
         result = avcodec_send_packet(vc, pck);
         av_packet_free(&pck);

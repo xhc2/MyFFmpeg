@@ -12,6 +12,7 @@
 #include "AudioPlayer.h"
 #include "YuvPlayer.h"
 #include "SeekFile.h"
+#include "CallJava.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -40,8 +41,9 @@ private :
     YuvPlayer *yuvPlayer;
     void run();
     SeekFile *seekFile;
+    CallJava *cj;
 public :
-    Mp4Player(const char* playPath , ANativeWindow* win);
+    Mp4Player(const char* playPath , ANativeWindow* win ,  CallJava *cj);
     void pauseVA();
     void clearAllQue();
     void changeSpeed(float speed);

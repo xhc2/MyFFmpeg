@@ -36,7 +36,7 @@ import java.util.List;
  * 4.其他功能 (视频拼接，比如两个1s的视频拼接成2s的视频。又或者将画面拼接成一个画面的视频，水印等。)
  */
 
-public class Mp4PlayerActivity extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class Mp4PlayerActivity extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener, FFmpegUtils.Lis {
 
     private static final int PLAY = 1;
     private static final int PAUSE = 2;
@@ -56,7 +56,9 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     private FileAdater adater;
     private List<File> listFile = new ArrayList<>();
     private float videoDuration;
+
     private Handler handler = new Handler(new Handler.Callback() {
+
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
@@ -73,6 +75,10 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 case 3:
                     File file = listFile.get(msg.arg1);
                     playVideo(file.getAbsolutePath());
+                    break;
+                case 4:
+                    String str = (String) msg.obj;
+                    Toast.makeText(Mp4PlayerActivity.this, str, Toast.LENGTH_LONG).show();
                     break;
             }
             return false;
@@ -159,7 +165,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             public void onStartTrackingTouch(SeekBar seekBar) {
                 pauseFlag = true;
                 FFmpegUtils.seekStart();
-
             }
 
             @Override
@@ -169,6 +174,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 pauseFlag = false;
             }
         });
+        FFmpegUtils.addNativeNotify(this);
     }
 
     private void playVideo(String path) {
@@ -176,7 +182,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         startThread();
         btPlay.setText("暂停");
         flag = PLAY;
-
         setTime(0);
     }
 
@@ -224,7 +229,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             popupWindow.dismiss();
         }
         FFmpegUtils.changeSpeed(speed);
-        tvSpeed.setText(speed+"X");
+        tvSpeed.setText(speed + "X");
     }
 
     private Dialog dialog;
@@ -387,11 +392,32 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
 
     }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        flag = PAUSE;
+        if (FFmpegUtils.mp4Pause() == 1) {
+            btPlay.setText("播放");
+        } else {
+            flag = PLAY;
+            Toast.makeText(Mp4PlayerActivity.this, "选择文件", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void nativeNotify(String str) {
+        Message msg = new Message();
+        msg.what = 4;
+        msg.obj = str;
+        handler.sendMessage(msg);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopThread();
-
+        FFmpegUtils.removeNotify(this);
         FFmpegUtils.destroyMp4Play();
     }
 }

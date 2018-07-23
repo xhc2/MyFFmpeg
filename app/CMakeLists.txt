@@ -21,6 +21,7 @@ add_library( my_ffmpeg
             src/main/cpp/YuvPlayer.cpp
             src/main/cpp/AudioPlayer.cpp
             src/main/cpp/SeekVideo.cpp
+            src/main/cpp/CallJava.cpp
             )
 
 

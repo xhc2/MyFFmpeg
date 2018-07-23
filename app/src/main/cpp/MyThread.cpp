@@ -35,7 +35,7 @@ void MyThread::threadSleep(int mis) {
 }
 void MyThread::join(){
     if(pid == NULL){
-        LOGE("join thread faild !");
+        LOGE("join thread faild ! may be thread not started !");
         return ;
     }
     void *t;

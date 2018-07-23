@@ -12,6 +12,7 @@ AudioPlayer::AudioPlayer(int simpleRate , int channel){
     this->channel = channel;
     playAudioTemp = (char *)malloc(1024 * 2 * channel);
     maxFrame = 140;
+    pts = 0;
     sonicRead = new SonicRead(simpleRate , channel , 1.0f, &audioFrameQue , &mutex_pthread);
     initAudio();
 }

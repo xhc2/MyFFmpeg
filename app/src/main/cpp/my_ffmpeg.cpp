@@ -8,6 +8,7 @@
 #include <my_log.h>
 #include <Mp4Player.h>
 #include <gpu_video_sl_audio.h>
+#include <CallJava.h>
 
 
 /**
@@ -19,7 +20,7 @@
  */
 // using namespace soundtouch;
 
-Mp4Player *mp4Player ;
+
 
 //JNIEXPORT jstring JNICALL
 //Java_module_video_jnc_myffmpeg_FFmpegUtils_stringNative(JNIEnv *env, jclass clazz) {
@@ -213,16 +214,21 @@ Mp4Player *mp4Player ;
 //    env->ReleaseStringUTFChars(path_, path);
 //    return 1;
 //}
-
+Mp4Player *mp4Player = NULL ;
+CallJava *cj = NULL;
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type, jstring path_,
                                                        jobject glSurfaceView) {
+
     if(mp4Player == NULL){
+        if(cj == NULL){
+            cj = new CallJava(env , type);
+        }
         const char *path = env->GetStringUTFChars(path_, 0);
         ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
-        mp4Player = new Mp4Player(path ,win);
+        mp4Player = new Mp4Player(path ,win  , cj );
         env->ReleaseStringUTFChars(path_, path);
     }
     return 1;
@@ -235,6 +241,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyMp4Play(JNIEnv *env, jclass ty
     if(mp4Player != NULL){
         delete mp4Player;
         mp4Player = NULL;
+    }
+    if(cj != NULL){
+        delete cj;
+        cj = NULL;
     }
     return 1;
 
