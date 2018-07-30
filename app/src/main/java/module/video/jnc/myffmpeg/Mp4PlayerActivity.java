@@ -2,6 +2,7 @@ package module.video.jnc.myffmpeg;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Handler;
@@ -133,6 +134,16 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 showDialog();
             }
         });
+
+        findViewById(R.id.ib_publish).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //跳转到网路流的界面
+                Intent intent = new Intent(Mp4PlayerActivity.this , NetStreamActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
         btPlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -415,7 +426,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             btPlay.setText("播放");
         } else {
             flag = PLAY;
-            Toast.makeText(Mp4PlayerActivity.this, "选择文件", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(Mp4PlayerActivity.this, "选择文件", Toast.LENGTH_SHORT).show();
         }
     }
 
