@@ -9,6 +9,7 @@
 #include <Mp4Player.h>
 #include <gpu_video_sl_audio.h>
 #include <CallJava.h>
+#include <PublishStream.h>
 
 
 /**
@@ -215,6 +216,7 @@
 //    return 1;
 //}
 Mp4Player *mp4Player = NULL ;
+PublishStream *ps = NULL;
 CallJava *cj = NULL;
 
 extern "C"
@@ -315,4 +317,19 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_seek(JNIEnv *env, jclass type  , jflo
         mp4Player->seek(progress);
     }
     return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpInit(JNIEnv *env, jclass type  , jstring path_ , jstring inpath_) {
+
+    const char *path = env->GetStringUTFChars(path_, 0);
+    const char *inPath = env->GetStringUTFChars(inpath_, 0);
+    if(ps == NULL){
+        ps = new PublishStream(path , inPath);
+    }
+    env->ReleaseStringUTFChars(path_, path);
+    env->ReleaseStringUTFChars(inpath_, inPath);
+
+
 }

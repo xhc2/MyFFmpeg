@@ -81,6 +81,11 @@ public class FFmpegUtils {
     public static native int seekStart();
     public static native int seek(float progress);
 
+
+    //rtmp推流部分
+
+    public static native int rtmpInit(String outPath , String inputPath);
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);
