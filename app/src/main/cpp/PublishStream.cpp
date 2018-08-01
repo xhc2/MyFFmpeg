@@ -100,22 +100,19 @@ PublishStream::PublishStream(const char* url , const char* inpath , CallJava *cj
         pkt = av_packet_alloc();
         result = av_read_frame(ifmtCtx , pkt);
         if(result < 0){
-            cj->callStr( " av_read_frame FAILD ");
+//            cj->callStr( " av_read_frame FAILD ");
             LOGE(" av_read_frame FAILD ");
             av_packet_free(&pkt);
             break;
         }
         result = av_interleaved_write_frame(ofmtCtx , pkt);
         if(result < 0){
-            cj->callStr( " av_interleaved_write_frame FAILD  ");
+//            cj->callStr( " av_interleaved_write_frame FAILD  ");
             LOGE(" av_interleaved_write_frame FAILD ");
             break;
         }
     }
-
     av_write_trailer(ofmtCtx);
-
-
     LOGE(" SUCCESS ");
 }
 
