@@ -34,7 +34,9 @@ import java.util.List;
  * 1.播放音视频
  * 2.倍速播放
  * 3.seek功能。
- * 4.其他功能 (视频拼接，比如两个1s的视频拼接成2s的视频。又或者将画面拼接成一个画面的视频，水印等。)
+ * 4.rtmp 推流，服务器先用red5 就可以
+ * 5.其他功能 (视频拼接，比如两个1s的视频拼接成2s的视频。又或者将画面拼接成一个画面的视频，水印等。)
+ * http://ffmpeg.org/doxygen/3.4/index.html
  */
 
 public class Mp4PlayerActivity extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener, FFmpegUtils.Lis {

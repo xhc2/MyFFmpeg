@@ -326,10 +326,24 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpInit(JNIEnv *env, jclass type  , 
     const char *path = env->GetStringUTFChars(path_, 0);
     const char *inPath = env->GetStringUTFChars(inpath_, 0);
     if(ps == NULL){
+
         ps = new PublishStream(path , inPath);
     }
     env->ReleaseStringUTFChars(path_, path);
     env->ReleaseStringUTFChars(inpath_, inPath);
 
+    return 1;
 
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
+
+    // TODO
+    if(ps != NULL){
+        delete ps;
+        ps = NULL;
+    }
+    return 1;
 }

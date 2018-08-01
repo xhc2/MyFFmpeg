@@ -85,7 +85,7 @@ public class FFmpegUtils {
     //rtmp推流部分
 
     public static native int rtmpInit(String outPath , String inputPath);
-
+    public static native int rtmpClose();
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

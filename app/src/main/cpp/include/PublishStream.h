@@ -19,8 +19,9 @@ private :
     AVOutputFormat *ofmt ;
     AVFormatContext *ifmtCtx , *ofmtCtx;
     AVPacket *pkt;
-
-
+    bool isExist ;
+    int audioIndex;
+    int videoIndex;
 
 public :
     PublishStream(const char* url , const char* inpath);
