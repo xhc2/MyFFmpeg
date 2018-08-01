@@ -7,7 +7,7 @@
 #include <my_log.h>
 #include "PublishStream.h"
 
-PublishStream::PublishStream(const char* url , const char* inpath){
+PublishStream::PublishStream(const char* url , const char* inpath , CallJava *cj ){
     this->url = url;
     this->inpath = inpath;
     LOGE("URL %s , inpath %s "  ,url , inpath);
@@ -15,6 +15,7 @@ PublishStream::PublishStream(const char* url , const char* inpath){
     ifmtCtx = NULL;
     ofmtCtx = NULL;
     pkt = NULL;
+    this->cj = cj;
     isExist = false;
     av_register_all();
     avformat_network_init();
@@ -26,16 +27,19 @@ PublishStream::PublishStream(const char* url , const char* inpath){
     }
     result = avformat_find_stream_info(ifmtCtx, 0);
     if (result < 0) {
+        cj->callStr("Failed to retrieve input stream information");
         LOGE( "Failed to retrieve input stream information");
         return ;
     }
     //目前rtmp flv 有点用，其他格式都有点问题。
     result = avformat_alloc_output_context2(&ofmtCtx, NULL, "flv" , url); //RTMP
     if (result < 0) {
+        cj->callStr( "avformat_alloc_output_context2 faild");
         LOGE( "avformat_alloc_output_context2 faild");
         return ;
     }
     if (ofmtCtx == NULL) {
+        cj->callStr( "faild create output context\n");
         LOGE( "faild create output context\n");
         return ;
     }
@@ -58,19 +62,23 @@ PublishStream::PublishStream(const char* url , const char* inpath){
 
         AVStream *os = avformat_new_stream(ofmtCtx , NULL);
         if(os == NULL){
+            cj->callStr( "CREATE NEW STREAM FAILD ");
             LOGE(" CREATE NEW STREAM FAILD ");
             return ;
         }
         result = avcodec_parameters_copy(os->codecpar, as->codecpar);
         if(result <0 ){
+            cj->callStr( " avcodec_parameters_copy faild ");
             LOGE( "avcodec_parameters_copy faild %s " , as->codecpar->format);
             return ;
         }
         as->codecpar->codec_tag = 0 ;
     }
+
     if (!(ofmt->flags & AVFMT_NOFILE)) {
         result = avio_open(&ofmtCtx->pb, url, AVIO_FLAG_WRITE);
         if (result < 0) {
+            cj->callStr( " Could not open output file");
             LOGE("Could not open output file '%s'  , %s ", url , av_err2str(result));
             return ;
         }
@@ -78,10 +86,10 @@ PublishStream::PublishStream(const char* url , const char* inpath){
 
     result = avformat_write_header(ofmtCtx , NULL);
     if(result < 0){
+        cj->callStr( " avformat_write_header faild");
         LOGE( "avformat_write_header faild %s " , av_err2str(result) );
         return ;
     }
-
 
     /**
      * 这个一口气往外写数据，会不会有丢帧的情况。极端情况，你一口气丢了10G出去，
@@ -91,18 +99,18 @@ PublishStream::PublishStream(const char* url , const char* inpath){
 //        av_usleep(1000 * 25);
         pkt = av_packet_alloc();
         result = av_read_frame(ifmtCtx , pkt);
-        LOGE("READ FRAME result %d " , result);
         if(result < 0){
+            cj->callStr( " av_read_frame FAILD ");
             LOGE(" av_read_frame FAILD ");
             av_packet_free(&pkt);
             break;
         }
         result = av_interleaved_write_frame(ofmtCtx , pkt);
         if(result < 0){
+            cj->callStr( " av_interleaved_write_frame FAILD  ");
             LOGE(" av_interleaved_write_frame FAILD ");
             break;
         }
-
     }
 
     av_write_trailer(ofmtCtx);

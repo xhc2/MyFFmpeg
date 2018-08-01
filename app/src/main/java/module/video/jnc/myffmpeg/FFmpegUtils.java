@@ -86,14 +86,11 @@ public class FFmpegUtils {
 
     public static native int rtmpInit(String outPath , String inputPath);
     public static native int rtmpClose();
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);
         }
     }
 
-//    private void printMsgFromJni(String str) {
-//        Log.e("xhc_jni", str);
-////        return "x";
-//    }
 }

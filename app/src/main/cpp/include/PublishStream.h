@@ -10,7 +10,7 @@ extern "C"
 #include "libavutil/mathematics.h"
 #include "libavutil/time.h"
 };
-
+#include <CallJava.h>
 class PublishStream{
 
 private :
@@ -22,9 +22,9 @@ private :
     bool isExist ;
     int audioIndex;
     int videoIndex;
-
+    CallJava *cj;
 public :
-    PublishStream(const char* url , const char* inpath);
+    PublishStream(const char* url , const char* inpath , CallJava *cj );
     ~PublishStream();
 };
 

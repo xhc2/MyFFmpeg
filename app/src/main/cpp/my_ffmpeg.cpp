@@ -326,8 +326,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpInit(JNIEnv *env, jclass type  , 
     const char *path = env->GetStringUTFChars(path_, 0);
     const char *inPath = env->GetStringUTFChars(inpath_, 0);
     if(ps == NULL){
-
-        ps = new PublishStream(path , inPath);
+        if(cj == NULL){
+            cj = new CallJava(env , type);
+        }
+        ps = new PublishStream(path , inPath , cj);
     }
     env->ReleaseStringUTFChars(path_, path);
     env->ReleaseStringUTFChars(inpath_, inPath);
@@ -344,6 +346,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
     if(ps != NULL){
         delete ps;
         ps = NULL;
+    }
+    if(cj != NULL){
+        delete cj;
+        cj = NULL;
     }
     return 1;
 }
