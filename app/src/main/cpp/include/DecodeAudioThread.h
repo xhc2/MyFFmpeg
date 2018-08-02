@@ -6,7 +6,6 @@
 #define MYFFMPEG_DECODEAUDIOTHREAD_H
 
 #include <queue>
-
 #include "MyThread.h"
 #include "my_data.h"
 #include "Utils.h"

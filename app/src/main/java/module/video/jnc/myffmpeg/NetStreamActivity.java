@@ -1,6 +1,7 @@
 package module.video.jnc.myffmpeg;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -31,6 +32,13 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_net_stream);
         FFmpegUtils.addNativeNotify(this);
+
+        findViewById(R.id.bt_camera_stream).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(NetStreamActivity.this , CameraStreamActivity.class));
+            }
+        });
 
         findViewById(R.id.bt_net_work).setOnClickListener(new View.OnClickListener() {
             @Override

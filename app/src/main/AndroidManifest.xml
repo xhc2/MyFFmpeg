@@ -43,7 +43,10 @@
         <!-- android:screenOrientation="landscape" -->
         <!-- android:theme="@android:style/Theme.NoTitleBar.Fullscreen" /> -->
 
-        <activity android:name=".NetStreamActivity"></activity>
+        <activity android:name=".NetStreamActivity" />
+        <activity
+            android:name=".CameraStreamActivity"
+            android:label="@string/title_activity_camera_stream"></activity>
     </application>
 
 </manifest>

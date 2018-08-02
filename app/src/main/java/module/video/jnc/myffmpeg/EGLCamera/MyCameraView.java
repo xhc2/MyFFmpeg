@@ -172,7 +172,6 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
 
             mCameraTexture = new SurfaceTexture(texture[0]);
             mCameraTexture.setOnFrameAvailableListener(MyCameraView.this);
-
         }
 
 
@@ -189,7 +188,6 @@ public class MyCameraView extends GLSurfaceView implements SurfaceTexture.OnFram
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
             // Load the bitmap into the bound texture.
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-
         }
 
     }

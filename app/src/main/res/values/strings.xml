@@ -3,4 +3,5 @@
     <string name="title_activity_add_filter">AddFilterActivity</string>
     <!--其中的1是第一个被替代的，2是第二个被替代的。-->
     <string name="time">%1$s/%2$s</string>
+    <string name="title_activity_camera_stream">CameraStreamActivity</string>
 </resources>

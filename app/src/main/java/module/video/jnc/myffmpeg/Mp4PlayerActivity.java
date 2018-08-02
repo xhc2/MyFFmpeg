@@ -92,7 +92,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.e("xhc" , "activity oncreate ");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -236,7 +236,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 break;
             case R.id.tv_2_0:
                 speed = 2.0f;
-
                 break;
         }
         if (popupWindow != null && popupWindow.isShowing()) {
@@ -302,7 +301,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     }
 
 
-    PositionThread thread;
+    private PositionThread thread;
 
     private void startThread() {
         stopThread();
@@ -410,25 +409,33 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 else{
                     msg.obj = listFile.get(position - 1).getAbsolutePath();
                 }
-//                msg.obj =
-//                msg.arg1 = position;
                 handler.sendMessage(msg);
             }
         }.start();
-
-
     }
 
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e("xhc" , "activity onResume ");
+        if(myVideoGpuShow.isRender()){
+            myVideoGpuShow.onResume();
+        }
+
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
+        if(myVideoGpuShow.isRender()){
+            myVideoGpuShow.onPause();
+        }
+        Log.e("xhc" , "activity onPause ");
         flag = PAUSE;
+        pauseFlag = true;
         if (FFmpegUtils.mp4Pause() == 1) {
             btPlay.setText("播放");
-        } else {
-            flag = PLAY;
-//            Toast.makeText(Mp4PlayerActivity.this, "选择文件", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -443,6 +450,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.e("xhc" , "activity onDestroy ");
+
         stopThread();
         FFmpegUtils.removeNotify(this);
         FFmpegUtils.destroyMp4Play();

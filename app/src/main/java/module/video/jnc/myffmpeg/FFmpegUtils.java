@@ -83,9 +83,12 @@ public class FFmpegUtils {
 
 
     //rtmp推流部分
-
     public static native int rtmpInit(String outPath , String inputPath);
     public static native int rtmpClose();
+
+    //通过手机摄像头推送rtmp
+    public static native int rtmpCameraInit(String outPath , int width , int height );
+    public static native int rtmpCameraStream(byte[] bytes);
 
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){

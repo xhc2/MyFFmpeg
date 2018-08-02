@@ -10,6 +10,7 @@
 #include <gpu_video_sl_audio.h>
 #include <CallJava.h>
 #include <PublishStream.h>
+#include <CameraStream.h>
 
 
 /**
@@ -351,5 +352,36 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
         delete cj;
         cj = NULL;
     }
+    return 1;
+}
+CameraStream *cs = NULL ;
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraInit(JNIEnv *env, jclass type, jstring outPath_ , jint width , jint height) {
+    const char *outPath = env->GetStringUTFChars(outPath_, 0);
+
+    if(cs == NULL){
+        if(cj == NULL){
+            cj = new CallJava(env , type);
+        }
+        cs = new CameraStream(outPath , width , height , cj);
+    }
+
+    env->ReleaseStringUTFChars(outPath_, outPath);
+    return 1;
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraStream(JNIEnv *env, jclass type,
+                                                            jbyteArray bytes_) {
+    jbyte *bytes = env->GetByteArrayElements(bytes_, NULL);
+
+    if(cs != NULL){
+        cs->pushStream(bytes);
+    }
+
+    env->ReleaseByteArrayElements(bytes_, bytes, 0);
     return 1;
 }

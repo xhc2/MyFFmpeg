@@ -25,7 +25,9 @@ PublishStream::PublishStream(const char* url , const char* inpath , CallJava *cj
         LOGE(" input error %s " , av_err2str(result));
         return ;
     }
+
     result = avformat_find_stream_info(ifmtCtx, 0);
+
     if (result < 0) {
         cj->callStr("Failed to retrieve input stream information");
         LOGE( "Failed to retrieve input stream information");

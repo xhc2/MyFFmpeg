@@ -23,6 +23,7 @@ add_library( my_ffmpeg
             src/main/cpp/SeekVideo.cpp
             src/main/cpp/CallJava.cpp
             src/main/cpp/PublishStream.cpp
+            src/main/cpp/CameraStream.cpp
             )
 
 

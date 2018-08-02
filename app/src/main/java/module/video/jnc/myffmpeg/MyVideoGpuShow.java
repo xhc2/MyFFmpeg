@@ -3,6 +3,7 @@ package module.video.jnc.myffmpeg;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -26,9 +27,21 @@ public class MyVideoGpuShow extends GLSurfaceView implements SurfaceHolder.Callb
         new MyThread(path).start();
     }
 
+    private boolean renderSet = false;
+
+    public boolean isRender(){
+        return renderSet;
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder var1) {
+        Log.e("xhc" ,  " MyVideoGpuShow surfaceCreated 1");
+        setEGLContextClientVersion(2);
+        setEGLConfigChooser(8,8,8,8,16,0);
         setRenderer(this);//android 8.0需要设置
+        setRenderMode(RENDERMODE_WHEN_DIRTY);
+        renderSet = true;
+        Log.e("xhc" ,  " MyVideoGpuShow surfaceCreated 2");
     }
 
     @Override
