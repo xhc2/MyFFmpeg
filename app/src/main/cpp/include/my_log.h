@@ -2,6 +2,8 @@
 #include <jni.h>
 #include <Android/log.h>
 #include <string.h>
+#include <stdio.h>
+
 #define   LOG_TAG    "xhc_jni"
 #define LOG "xhc_jni"
 #define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG,__VA_ARGS__)
@@ -16,7 +18,6 @@ const static int RESULT_FAILD = -1;
 const static int RESULT_WRONG_PIX = -100;
 #ifndef MYANDROIDRTMP_MYLOG_H
 #define MYANDROIDRTMP_MYLOG_H
-
 
 
 

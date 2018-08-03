@@ -6,7 +6,13 @@
 #define MYFFMPEG_CAMERASTREAM_H
 
 #include <stdio.h>
+extern "C"
+{
+#include "libavformat/avformat.h"
+#include "libavutil/mathematics.h"
+#include "libavutil/time.h"
 
+};
 class CameraStream{
 
 private :
@@ -18,11 +24,17 @@ private :
     //用来测试使用。
     FILE *file;
     CallJava *cj ;
+    AVFormatContext *afc;
+    AVOutputFormat *afot;
+    AVFrame *framePic;
+    AVPixelFormat pixFmt;
+    AVCodecContext *vCodeCtx;
+    int count   ;
 public :
     CameraStream(const char * url , int width , int height , CallJava *cj);
     ~CameraStream();
+    void initFFmpeg();
     void pushStream(jbyte *yuv);
-
 };
 
 #endif //MYFFMPEG_CAMERASTREAM_H

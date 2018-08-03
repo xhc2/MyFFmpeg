@@ -18,7 +18,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private CameraPreview mPreview;
     private FrameLayout preview;
     private Camera.Parameters params;
-    private byte[] buffer ;
+    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";//"rtmp://192.168.2.109/live/live";
     //默认前置 记录当前的方向
     private int nowCameraDirection = Camera.CameraInfo.CAMERA_FACING_FRONT;
     private int height , width ;
@@ -62,7 +62,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         }
 
         params.setPreviewSize(width, height );
-        FFmpegUtils.rtmpCameraInit("rtmp://192.168.2.109/live/live" ,width  , height);
+        FFmpegUtils.rtmpCameraInit(ouputPath ,width  , height);
 //        buffer = new byte[(int)(width * height * 1.5f)];
         params.setPreviewFormat(ImageFormat.NV21);
         mCamera.setParameters(params);
@@ -95,5 +95,11 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     public void onPreviewFrame(byte[] data, Camera camera) {
 //        System.arraycopy(data , 0 , buffer , 0 , data.length);
         FFmpegUtils.rtmpCameraStream(data);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FFmpegUtils.rtmpDestroy();
     }
 }

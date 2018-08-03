@@ -118,6 +118,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         });
 
         tvSpeed.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
 

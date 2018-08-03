@@ -385,3 +385,16 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraStream(JNIEnv *env, jclass 
     env->ReleaseByteArrayElements(bytes_, bytes, 0);
     return 1;
 }
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpDestroy(JNIEnv *env, jclass type) {
+
+    if(cs != NULL){
+        delete cs ;
+        cs = NULL;
+    }
+
+
+    return 1;
+}
