@@ -123,7 +123,7 @@ void CameraStream::initFFmpeg(){
 void CameraStream::pushStream(jbyte *yuv){
 
     memcpy(this->yuv , yuv ,  size);
-    fwrite(this->yuv  ,size , 1  , file);
+//    fwrite(this->yuv  ,size , 1  , file);
     framePic->data[0] = (uint8_t*) this->yuv ;
     framePic->data[2] = (uint8_t*)(this->yuv - (width * height / 2)) ;
     framePic->data[1] = (uint8_t*)(this->yuv - (width * height / 4)) ;
@@ -131,7 +131,7 @@ void CameraStream::pushStream(jbyte *yuv){
     LOGE(" encode count %d " , count );
     int ret = avcodec_send_frame(vCodeCtx, framePic);
     if ( ret < 0) {
-        LOGE( " Error sending a frame for encoding ");
+        LOGE(" Error sending a frame for encoding ");
         return;
     }
 
@@ -147,6 +147,7 @@ void CameraStream::pushStream(jbyte *yuv){
             return;
         }
         av_write_frame(afc , pkt);
+        av_packet_free(&pkt);
     }
 }
 
