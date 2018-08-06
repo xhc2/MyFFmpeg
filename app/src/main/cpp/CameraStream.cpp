@@ -17,12 +17,12 @@ CameraStream::CameraStream(const char * url , int width , int height , CallJava 
     LOGE(" path %s , width = %d , height = %d " , url , width , height);
     this->size = (int)(width * height * 1.5f);
     this->cj = cj;
-    yuv = (char *) malloc(size);
+    yuv = (char *) malloc(size * sizeof(char));
     if(yuv == NULL){
         cj->callStr("YUV ALLOC FAILD2 !");
         return ;
     }
-    file = fopen("sdcard/FFmpeg/yuv.yuv" , "wb+");
+    file = fopen("sdcard/FFmpeg/yuv.flv" , "wb+");
     initFFmpeg();
     LOGE(" YUV ALLOC success !");
 }
@@ -46,11 +46,13 @@ void CameraStream::initFFmpeg(){
         return ;
     }
     afot = afc->oformat;
-    AVStream *os = avformat_new_stream(afc , NULL);
+    os = avformat_new_stream(afc , NULL);
     if(os == NULL){
         cj->callStr( "CREATE NEW STREAM FAILD ");
         return ;
     }
+
+    LOGE(" VIDEO CODE %d " , afot->video_codec);
 
     if(afot->video_codec == AV_CODEC_ID_NONE){
         cj->callStr( " VIDEO AV_CODEC_ID_NONE ");
@@ -58,6 +60,7 @@ void CameraStream::initFFmpeg(){
     }
 
     AVCodec *vCode = avcodec_find_encoder(afot->video_codec);
+
     if(vCode == NULL ){
         cj->callStr( " avcodec_find_video_encoder faild ! " );
         return ;
@@ -70,16 +73,20 @@ void CameraStream::initFFmpeg(){
     }
     vCodeCtx->width = width;
     vCodeCtx->height = height;
-    vCodeCtx->gop_size = 15;
+    vCodeCtx->gop_size = 50;
     vCodeCtx->pix_fmt = pixFmt;
+    vCodeCtx->codec_id = afot->video_codec;
     vCodeCtx->bit_rate = 400000;
     vCodeCtx->time_base = (AVRational){1, 25};
     vCodeCtx->framerate = (AVRational){25, 1};
     vCodeCtx->thread_count = 4;
-
-    avcodec_parameters_from_context(os->codecpar , vCodeCtx);
-
-    result = avcodec_open2(vCodeCtx , NULL , NULL);
+    os->codec = vCodeCtx;
+    result = avcodec_parameters_from_context(os->codecpar , vCodeCtx);
+    if(result < 0){
+        cj->callStr( " avcodec_parameters_from_context faild " );
+        return ;
+    }
+    result = avcodec_open2(vCodeCtx , vCode , NULL);
 
     if(result < 0){
         cj->callStr( "avcodec_open2 faild ! " );
@@ -99,10 +106,11 @@ void CameraStream::initFFmpeg(){
         cj->callStr( "av_frame_make_writable faild ! " );
         return ;
     }
+    LOGE(" linesize[0] %d , linesize[1] %d , linesize[2] %d " ,
+         framePic->linesize[0] , framePic->linesize[1] , framePic->linesize[2]);
     if (!(afc->flags & AVFMT_NOFILE)) {
 
         result = avio_open(&afc->pb, url, AVIO_FLAG_WRITE);
-        LOGE(" avio_open %d " , result);
         if (result < 0) {
             cj->callStr("Could not open output file  " );
             return ;
@@ -124,12 +132,14 @@ void CameraStream::pushStream(jbyte *yuv){
 
     memcpy(this->yuv , yuv ,  size);
 //    fwrite(this->yuv  ,size , 1  , file);
-    framePic->data[0] = (uint8_t*) this->yuv ;
-    framePic->data[2] = (uint8_t*)(this->yuv - (width * height / 2)) ;
-    framePic->data[1] = (uint8_t*)(this->yuv - (width * height / 4)) ;
+    // w * h * 1.5 = 345600
+    // w * h / 2 = 115200
+    // w * h / 4 = 57600
+    framePic->data[0] = (uint8_t*)(this->yuv);
+    framePic->data[1] = (uint8_t*)(this->yuv - (width * height / 2)) ;
+    framePic->data[2] = (uint8_t*)(this->yuv - (width * height / 4)) ;
     framePic->pts = count ++;
-    LOGE(" encode count %d " , count );
-    int ret = avcodec_send_frame(vCodeCtx, framePic);
+    int ret = avcodec_send_frame(os->codec, framePic);
     if ( ret < 0) {
         LOGE(" Error sending a frame for encoding ");
         return;
@@ -137,16 +147,20 @@ void CameraStream::pushStream(jbyte *yuv){
 
     while (ret >= 0) {
         AVPacket *pkt = av_packet_alloc();
-        ret = avcodec_receive_packet(vCodeCtx, pkt);
+        ret = avcodec_receive_packet(os->codec, pkt);
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
             av_packet_free(&pkt);
             return;
         }
+
         else if (ret < 0) {
             av_packet_free(&pkt);
             return;
         }
-        av_write_frame(afc , pkt);
+
+        av_interleaved_write_frame(afc , pkt);
+        LOGE(" FILE SIZE %d " , size);
+//        fwrite(pkt->data , size , 1  , file);
         av_packet_free(&pkt);
     }
 }

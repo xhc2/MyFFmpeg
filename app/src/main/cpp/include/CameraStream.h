@@ -26,6 +26,7 @@ private :
     CallJava *cj ;
     AVFormatContext *afc;
     AVOutputFormat *afot;
+    AVStream *os;
     AVFrame *framePic;
     AVPixelFormat pixFmt;
     AVCodecContext *vCodeCtx;
