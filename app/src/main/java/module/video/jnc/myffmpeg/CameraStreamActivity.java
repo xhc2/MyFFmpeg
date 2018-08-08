@@ -52,8 +52,8 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         params.set("orientation", "portrait");
         List<Camera.Size> list = params.getSupportedPreviewSizes();
         for(Camera.Size s : list){
-
-            if(s.height < 400 && s.height > 300){
+            Log.e("xhc" , "width "+s.width+" height "+s.height);
+            if(s.height < 500 && s.height > 300){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);
                 width = s.width;
                 height = s.height;

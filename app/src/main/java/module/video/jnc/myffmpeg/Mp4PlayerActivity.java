@@ -2,13 +2,17 @@ package module.video.jnc.myffmpeg;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -26,6 +30,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,7 +103,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
         setContentView(R.layout.activity_mp4_player);
 
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
@@ -457,4 +463,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         FFmpegUtils.removeNotify(this);
         FFmpegUtils.destroyMp4Play();
     }
+
+
+
 }
