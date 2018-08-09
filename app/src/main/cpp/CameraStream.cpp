@@ -1,6 +1,4 @@
-
 #include <malloc.h>
-
 #include <CallJava.h>
 #include "CameraStream.h"
 #include <my_log.h>
@@ -53,11 +51,6 @@ void CameraStream::initFFmpeg(){
         return ;
     }
     os->time_base = (AVRational){1, 25};
-    LOGE(" NB STREAM %d " ,afc->nb_streams );
-    os->id = afc->nb_streams - 1;
-
-    LOGE(" VIDEO CODE %d " , afot->video_codec);
-
     if(afot->video_codec == AV_CODEC_ID_NONE){
         cj->callStr( " VIDEO AV_CODEC_ID_NONE ");
         return ;
@@ -83,7 +76,7 @@ void CameraStream::initFFmpeg(){
     vCodeCtx->bit_rate = 400000;
     vCodeCtx->time_base = (AVRational){1, 25};
     vCodeCtx->framerate = (AVRational){25, 1};
-//    vCodeCtx->thread_count = 4;
+    vCodeCtx->thread_count = 4;
     os->codec = vCodeCtx;
     LOGE(" stream time base den %d , num %d " , os->time_base.den , os->time_base.num);
     result = avcodec_parameters_from_context(os->codecpar , vCodeCtx);
@@ -112,8 +105,6 @@ void CameraStream::initFFmpeg(){
         cj->callStr( "av_frame_make_writable faild ! " );
         return ;
     }
-    LOGE(" linesize[0] %d , linesize[1] %d , linesize[2] %d " ,
-         framePic->linesize[0] , framePic->linesize[1] , framePic->linesize[2]);
 
     if (!(afc->flags & AVFMT_NOFILE)) {
         result = avio_open(&afc->pb, url, AVIO_FLAG_WRITE);
@@ -122,7 +113,7 @@ void CameraStream::initFFmpeg(){
             return ;
         }
     }
-
+    LOGE(" stream time base den %d , num %d " , os->time_base.den , os->time_base.num);
     if (afc->oformat->flags & AVFMT_GLOBALHEADER)
         vCodeCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
@@ -131,7 +122,7 @@ void CameraStream::initFFmpeg(){
         cj->callStr( " avformat_write_header faild ! " );
         return;
     }
-
+    LOGE(" stream time base den %d , num %d " , os->time_base.den , os->time_base.num);
     LOGE(" FFMPEG SUCCESS ! ");
 }
 
@@ -141,15 +132,18 @@ void CameraStream::pushStream(jbyte *yuv){
 
     memcpy(this->yuv , yuv ,  size);
 
+    //这里需要统一分辨率。
     //y
     framePic->data[0] = (uint8_t*)(this->yuv);
     //u
-    framePic->data[1] = (uint8_t*)(this->yuv + width * height * 5 / 4 ) ;
+    framePic->data[1] = (uint8_t*)(this->yuv + width * height * 5 / 4 );
     //v
-    framePic->data[2] = (uint8_t*)(this->yuv + width * height) ;
+    framePic->data[2] = (uint8_t*)(this->yuv + width * height);
+//    framePic->pts = count ++ * 40;
 
-    framePic->pts = count ++;
-
+    framePic->pts = count * ( os->time_base.den ) / (( os->time_base.num ) * 25);
+    LOGE(" PTS %lld ，den %d , num %d " , framePic->pts  ,os->time_base.den ,  os->time_base.num );
+    count ++;
     int ret = avcodec_send_frame(os->codec, framePic);
     if ( ret < 0) {
         LOGE(" Error sending a frame for encoding ");
@@ -163,7 +157,6 @@ void CameraStream::pushStream(jbyte *yuv){
             av_packet_free(&pkt);
             return;
         }
-
         else if (ret < 0) {
             av_packet_free(&pkt);
             return;

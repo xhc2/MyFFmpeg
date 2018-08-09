@@ -7,6 +7,7 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -18,16 +19,22 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private CameraPreview mPreview;
     private FrameLayout preview;
     private Camera.Parameters params;
-    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";//"rtmp://192.168.2.109/live/live";
+    private String ouputPath = "rtmp://192.168.2.15/live/live";//"sdcard/FFmpeg/cameraStream.flv";
     //默认前置 记录当前的方向
-    private int nowCameraDirection = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int nowCameraDirection = Camera.CameraInfo.CAMERA_FACING_BACK;
     private int height , width ;
+    private boolean isRecord = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
         preview = (FrameLayout)findViewById(R.id.camera_preview);
-
+        findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isRecord = !isRecord;
+            }
+        });
     }
 
     @Override
@@ -94,7 +101,10 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
 //        System.arraycopy(data , 0 , buffer , 0 , data.length);
-        FFmpegUtils.rtmpCameraStream(data);
+        if(isRecord){
+            FFmpegUtils.rtmpCameraStream(data);
+        }
+
     }
 
     @Override
