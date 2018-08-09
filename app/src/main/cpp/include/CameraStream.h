@@ -22,7 +22,8 @@ private :
     int width , height;
     int size ;
     //用来测试使用。
-    FILE *file;
+    FILE *fileU;
+    FILE *fileV;
     CallJava *cj ;
     AVFormatContext *afc;
     AVOutputFormat *afot;

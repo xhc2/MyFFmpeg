@@ -22,7 +22,8 @@ CameraStream::CameraStream(const char * url , int width , int height , CallJava 
         cj->callStr("YUV ALLOC FAILD2 !");
         return ;
     }
-    file = fopen("sdcard/FFmpeg/yuv.flv" , "wb+");
+//    fileU = fopen("sdcard/FFmpeg/yuv.u" , "wb+");
+//    fileV = fopen("sdcard/FFmpeg/yuv.v" , "wb+");
     initFFmpeg();
     LOGE(" YUV ALLOC success !");
 }
@@ -139,57 +140,37 @@ void CameraStream::initFFmpeg(){
 void CameraStream::pushStream(jbyte *yuv){
 
     memcpy(this->yuv , yuv ,  size);
-//    fwrite(this->yuv  ,size , 1  , file);
-    // w * h * 1.5 = 345600
-    // w * h / 2 = 115200
-    // w * h / 4 = 57600
+
     //y
     framePic->data[0] = (uint8_t*)(this->yuv);
     //u
-    framePic->data[1] = (uint8_t*)(this->yuv - (width * height / 2)) ;
+    framePic->data[1] = (uint8_t*)(this->yuv + width * height * 5 / 4 ) ;
     //v
-    framePic->data[2] = (uint8_t*)(this->yuv - (width * height / 4)) ;
+    framePic->data[2] = (uint8_t*)(this->yuv + width * height) ;
+
     framePic->pts = count ++;
-    AVPacket *pkt = av_packet_alloc();
-    int got_pic = 0;
-    int result = avcodec_encode_video2(vCodeCtx  , pkt , framePic , &got_pic );
-    if(result < 0){
-        LOGE(" encode video faild !");
-        av_packet_free(&pkt);
-        return ;
-    }
-    if(got_pic != 1){
-        LOGE(" got_pic faild !");
-        av_packet_free(&pkt);
-        return ;
+
+    int ret = avcodec_send_frame(os->codec, framePic);
+    if ( ret < 0) {
+        LOGE(" Error sending a frame for encoding ");
+        return;
     }
 
-    av_write_frame(afc , pkt);
-    av_packet_free(&pkt);
-//    int ret = avcodec_send_frame(os->codec, framePic);
-//    if ( ret < 0) {
-//        LOGE(" Error sending a frame for encoding ");
-//        return;
-//    }
-//
-//    while (ret >= 0) {
-//        AVPacket *pkt = av_packet_alloc();
-//        ret = avcodec_receive_packet(os->codec, pkt);
-//        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
-//            av_packet_free(&pkt);
-//            return;
-//        }
-//
-//        else if (ret < 0) {
-//            av_packet_free(&pkt);
-//            return;
-//        }
-//
-//        av_write_frame(afc , pkt);
-//        LOGE(" FILE SIZE %d " , size);
-////        fwrite(pkt->data , size , 1  , file);
-//        av_packet_free(&pkt);
-//    }
+    while (ret >= 0) {
+        AVPacket *pkt = av_packet_alloc();
+        ret = avcodec_receive_packet(os->codec, pkt);
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
+            av_packet_free(&pkt);
+            return;
+        }
+
+        else if (ret < 0) {
+            av_packet_free(&pkt);
+            return;
+        }
+        av_write_frame(afc , pkt);
+        av_packet_free(&pkt);
+    }
 }
 
 
