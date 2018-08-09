@@ -2,8 +2,8 @@
 #include <CallJava.h>
 #include "CameraStream.h"
 #include <my_log.h>
-
-CameraStream::CameraStream(const char * url , int width , int height , CallJava *cj ){
+//out_width 640 out_height 360
+CameraStream::CameraStream(const char *url , int width , int height , CallJava *cj ){
     afc = NULL;
     afot = NULL;
     yuv = NULL;
@@ -12,18 +12,25 @@ CameraStream::CameraStream(const char * url , int width , int height , CallJava 
     this->url = url;
     this->width = width;
     this->height = height;
+    this->outWidth = 640;
+    this->outHeight = 360;
+    sws = sws_getContext(width, height, pixFmt, outWidth, outHeight,
+                         pixFmt, SWS_BILINEAR, NULL, NULL, NULL);
+    if(sws == NULL){
+        cj->callStr(" sws_getContext FAILD2 !");
+        return ;
+    }
     LOGE(" path %s , width = %d , height = %d " , url , width , height);
     this->size = (int)(width * height * 1.5f);
     this->cj = cj;
     yuv = (char *) malloc(size * sizeof(char));
+    fileU = fopen("sdcard/FFmpeg/yuvbefore.yuv","wb+");
+    fileV = fopen("sdcard/FFmpeg/yuvafter.yuv","wb+");
     if(yuv == NULL){
         cj->callStr("YUV ALLOC FAILD2 !");
         return ;
     }
-//    fileU = fopen("sdcard/FFmpeg/yuv.u" , "wb+");
-//    fileV = fopen("sdcard/FFmpeg/yuv.v" , "wb+");
     initFFmpeg();
-    LOGE(" YUV ALLOC success !");
 }
 
 void custom_log(void *ptr, int level, const char* fmt, va_list vl) {
@@ -34,6 +41,8 @@ void custom_log(void *ptr, int level, const char* fmt, va_list vl) {
         fclose(fp);
     }
 };
+
+
 void CameraStream::initFFmpeg(){
     int result = 0;
     av_register_all();
@@ -68,8 +77,8 @@ void CameraStream::initFFmpeg(){
         cj->callStr( " vcode context faild ! " );
         return ;
     }
-    vCodeCtx->width = width;
-    vCodeCtx->height = height;
+    vCodeCtx->width = outWidth;
+    vCodeCtx->height = outHeight;
     vCodeCtx->gop_size = 20;
     vCodeCtx->pix_fmt = pixFmt;
     vCodeCtx->codec_id = afot->video_codec;
@@ -100,12 +109,28 @@ void CameraStream::initFFmpeg(){
         cj->callStr( "av_frame_get_buffer faild ! " );
         return ;
     }
+
+    outFrame = av_frame_alloc();
+    outFrame->format = pixFmt;
+    outFrame->width = outWidth;
+    outFrame->height = outHeight;
+    result = av_frame_get_buffer(outFrame , 0);
+    if(result < 0){
+        cj->callStr( "av_frame_get_buffer faild ! " );
+        return ;
+    }
     result = av_frame_make_writable(framePic);
     if(result < 0){
         cj->callStr( "av_frame_make_writable faild ! " );
         return ;
     }
-
+    result = av_frame_make_writable(outFrame);
+    if(result < 0){
+        cj->callStr( "av_frame_make_writable faild ! " );
+        return ;
+    }
+    LOGE("src linesize y %d , u %d , v %d , dst y %d , u %d , v %d " , framePic->linesize[0] , framePic->linesize[1] , framePic->linesize[2] ,
+         outFrame->linesize[0] , outFrame->linesize[1] , outFrame->linesize[2]);
     if (!(afc->flags & AVFMT_NOFILE)) {
         result = avio_open(&afc->pb, url, AVIO_FLAG_WRITE);
         if (result < 0) {
@@ -113,7 +138,6 @@ void CameraStream::initFFmpeg(){
             return ;
         }
     }
-    LOGE(" stream time base den %d , num %d " , os->time_base.den , os->time_base.num);
     if (afc->oformat->flags & AVFMT_GLOBALHEADER)
         vCodeCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
@@ -122,7 +146,6 @@ void CameraStream::initFFmpeg(){
         cj->callStr( " avformat_write_header faild ! " );
         return;
     }
-    LOGE(" stream time base den %d , num %d " , os->time_base.den , os->time_base.num);
     LOGE(" FFMPEG SUCCESS ! ");
 }
 
@@ -131,7 +154,6 @@ void CameraStream::initFFmpeg(){
 void CameraStream::pushStream(jbyte *yuv){
 
     memcpy(this->yuv , yuv ,  size);
-
     //这里需要统一分辨率。
     //y
     framePic->data[0] = (uint8_t*)(this->yuv);
@@ -139,12 +161,15 @@ void CameraStream::pushStream(jbyte *yuv){
     framePic->data[1] = (uint8_t*)(this->yuv + width * height * 5 / 4 );
     //v
     framePic->data[2] = (uint8_t*)(this->yuv + width * height);
-//    framePic->pts = count ++ * 40;
-
-    framePic->pts = count * ( os->time_base.den ) / (( os->time_base.num ) * 25);
-    LOGE(" PTS %lld ，den %d , num %d " , framePic->pts  ,os->time_base.den ,  os->time_base.num );
+    fwrite(framePic->data  , height * width , 1   , fileU);
+    //修改分辨率统一输出大小
+    sws_scale(sws,  (const uint8_t *const *)framePic->data, framePic->linesize,
+              0, height ,outFrame->data , outFrame->linesize);
+    //os->time_base 就是将一秒钟分成了多少份，看帧率是多少。然后看一帧占多少份。
+    outFrame->pts = count * ( os->time_base.den ) / (( os->time_base.num ) * 25);
+    fwrite(outFrame->data  , 1 , outHeight * outWidth * 1.5f  , fileV);
     count ++;
-    int ret = avcodec_send_frame(os->codec, framePic);
+    int ret = avcodec_send_frame(os->codec, outFrame);
     if ( ret < 0) {
         LOGE(" Error sending a frame for encoding ");
         return;

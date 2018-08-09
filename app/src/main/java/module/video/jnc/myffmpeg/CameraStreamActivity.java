@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
@@ -19,20 +20,29 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private CameraPreview mPreview;
     private FrameLayout preview;
     private Camera.Parameters params;
-    private String ouputPath = "rtmp://192.168.2.15/live/live";//"sdcard/FFmpeg/cameraStream.flv";
+//    private String ouputPath = "rtmp://192.168.2.15/live/live";
+    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
     //默认前置 记录当前的方向
     private int nowCameraDirection = Camera.CameraInfo.CAMERA_FACING_BACK;
     private int height , width ;
     private boolean isRecord = false;
+    private TextView tv ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
         preview = (FrameLayout)findViewById(R.id.camera_preview);
+        tv = (TextView)findViewById(R.id.bt_record);
         findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 isRecord = !isRecord;
+                if(isRecord){
+                    tv.setText("暂停");
+                }
+                else{
+                    tv.setText("播放");
+                }
             }
         });
     }
@@ -59,6 +69,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         params.set("orientation", "portrait");
         List<Camera.Size> list = params.getSupportedPreviewSizes();
         for(Camera.Size s : list){
+            Log.e("xhc" , "width "+s.width+" height "+s.height);
             if(s.height < 500 && s.height > 300){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);
                 width = s.width;

@@ -11,6 +11,7 @@ extern "C"
 #include "libavformat/avformat.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/time.h"
+#include "libswscale/swscale.h"
 
 };
 class CameraStream{
@@ -20,6 +21,8 @@ private :
     const char *url;
     char *yuv;
     int width , height;
+    int outWidth , outHeight;
+    SwsContext *sws;
     int size ;
     //用来测试使用。
     FILE *fileU;
@@ -29,6 +32,7 @@ private :
     AVOutputFormat *afot;
     AVStream *os;
     AVFrame *framePic;
+    AVFrame *outFrame;
     AVPixelFormat pixFmt;
     AVCodecContext *vCodeCtx;
     int count   ;
