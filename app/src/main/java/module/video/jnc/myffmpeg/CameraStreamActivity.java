@@ -27,6 +27,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private int height , width ;
     private boolean isRecord = false;
     private TextView tv ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +70,6 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         params.set("orientation", "portrait");
         List<Camera.Size> list = params.getSupportedPreviewSizes();
         for(Camera.Size s : list){
-            Log.e("xhc" , "width "+s.width+" height "+s.height);
             if(s.height < 500 && s.height > 300){
                 Log.e("xhc" , "width "+s.width+" height "+s.height);
                 width = s.width;
@@ -80,8 +80,6 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
 
         params.setPreviewSize(width, height );
         FFmpegUtils.rtmpCameraInit(ouputPath ,width  , height);
-//        buffer = new byte[(int)(width * height * 1.5f)];
-        //yv12 yyyy vvuu  , nv21 yyyy vuvu
         params.setPreviewFormat(ImageFormat.YV12);
         mCamera.setParameters(params);
 

@@ -2,7 +2,9 @@
 #include <CallJava.h>
 #include "CameraStream.h"
 #include <my_log.h>
-//out_width 640 out_height 360
+/**
+ * 将视频，和声音录制了，然后再编码处理。
+ */
 CameraStream::CameraStream(const char *url , int width , int height , CallJava *cj ){
     afc = NULL;
     afot = NULL;
@@ -161,7 +163,7 @@ void CameraStream::pushStream(jbyte *yuv){
     framePic->data[1] = (uint8_t*)(this->yuv + width * height * 5 / 4 );
     //v
     framePic->data[2] = (uint8_t*)(this->yuv + width * height);
-    fwrite(framePic->data  , height * width , 1   , fileU);
+    fwrite(framePic->data  , 1 , height * width , fileU);
     //修改分辨率统一输出大小
     sws_scale(sws,  (const uint8_t *const *)framePic->data, framePic->linesize,
               0, height ,outFrame->data , outFrame->linesize);
