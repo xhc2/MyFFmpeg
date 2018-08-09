@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
@@ -12,6 +15,8 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.List;
 
 public class CameraStreamActivity extends Activity implements  Camera.PreviewCallback{
@@ -27,13 +32,38 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private int height , width ;
     private boolean isRecord = false;
     private TextView tv ;
-
+    private AudioRecord audioRecord;
+    private static final int sampleRate = 44100;
+    private static final int pcmFormat = AudioFormat.ENCODING_PCM_16BIT;
+    private static final int channel = AudioFormat.CHANNEL_IN_MONO;
+    private AudioRead audioRead;
+    private boolean audioReadFlag = false;
+    private byte[] bytes ;
+    private int pcmSize ;
+    private File file ;
+    private FileOutputStream fos ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
         preview = (FrameLayout)findViewById(R.id.camera_preview);
         tv = (TextView)findViewById(R.id.bt_record);
+        pcmSize = AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);
+        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC ,sampleRate ,
+                channel , pcmFormat,
+                pcmSize);
+        bytes = new byte[pcmSize];
+        Log.e("xhc" , " pcm size "+pcmSize);
+        file = new File("sdcard/FFmpeg/pcm.pcm" );
+        try{
+            fos = new FileOutputStream(file );
+
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        audioRecord.startRecording();
+        startAudioRead();
         findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -47,6 +77,52 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
             }
         });
     }
+
+    private void startAudioRead(){
+        stopAudioRead();
+        audioReadFlag = true;
+        if(audioRead == null){
+            audioRead = new AudioRead();
+            audioRead.start();
+        }
+    }
+
+    private void stopAudioRead(){
+        audioReadFlag = false;
+        if(audioRead != null){
+            try{
+                audioRead.join();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        audioRead = null;
+    }
+
+    class AudioRead extends Thread{
+
+        int readSize = 0;
+
+        @Override
+        public void run() {
+            super.run();
+            while(audioReadFlag){
+                if(isRecord){
+                    readSize = audioRecord.read(bytes , 0 , pcmSize);
+                    if(AudioRecord.ERROR_INVALID_OPERATION != readSize ){
+                        try{
+                            fos.write(bytes , 0, readSize);
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     @Override
     protected void onResume() {
@@ -120,5 +196,6 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     protected void onDestroy() {
         super.onDestroy();
         FFmpegUtils.rtmpDestroy();
+        stopAudioRead();
     }
 }
