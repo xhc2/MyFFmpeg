@@ -20,27 +20,39 @@ private :
 
     const char *url;
     char *yuv;
+    char *pcm;
     int width , height;
     int outWidth , outHeight;
     SwsContext *sws;
     int size ;
+    int pcmSize ;
     //用来测试使用。
-    FILE *fileU;
-    FILE *fileV;
+//    FILE *fileU;
+//    FILE *fileV;
     CallJava *cj ;
     AVFormatContext *afc;
     AVOutputFormat *afot;
-    AVStream *os;
+    AVStream *videoOS;
+    AVStream *audioOS;
     AVFrame *framePic;
     AVFrame *outFrame;
+    AVFrame *frameAudio;
     AVPixelFormat pixFmt;
     AVCodecContext *vCodeCtx;
+    AVCodecContext *aCodeCtx;
+    int64_t vpts ,apts ;
+    void initFFmpeg();
+    void addVideoStream();
+    void addAudioStream();
+    void writeVideoFrame();
+    void writeAudioFrame();
     int count   ;
 public :
-    CameraStream(const char * url , int width , int height , CallJava *cj);
+    CameraStream(const char * url , int width , int height ,int pcmsize , CallJava *cj);
     ~CameraStream();
-    void initFFmpeg();
-    void pushStream(jbyte *yuv);
+
+    void pushVideoStream(jbyte *yuv);
+    void pushAudioStream(jbyte *pcm , int size);
 };
 
 #endif //MYFFMPEG_CAMERASTREAM_H

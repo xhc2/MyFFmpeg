@@ -357,14 +357,15 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
 CameraStream *cs = NULL ;
 extern "C"
 JNIEXPORT jint JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraInit(JNIEnv *env, jclass type, jstring outPath_ , jint width , jint height) {
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraInit(JNIEnv *env, jclass type, jstring outPath_ ,
+                                                          jint width , jint height , jint pcmSize) {
     const char *outPath = env->GetStringUTFChars(outPath_, 0);
 
     if(cs == NULL){
         if(cj == NULL){
             cj = new CallJava(env , type);
         }
-        cs = new CameraStream(outPath , width , height , cj);
+        cs = new CameraStream(outPath , width , height ,pcmSize, cj);
     }
 
     env->ReleaseStringUTFChars(outPath_, outPath);
@@ -379,7 +380,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraStream(JNIEnv *env, jclass 
     jbyte *bytes = env->GetByteArrayElements(bytes_, NULL);
 
     if(cs != NULL){
-        cs->pushStream(bytes);
+        cs->pushVideoStream(bytes);
     }
 
     env->ReleaseByteArrayElements(bytes_, bytes, 0);
@@ -394,7 +395,16 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpDestroy(JNIEnv *env, jclass type)
         delete cs ;
         cs = NULL;
     }
-
-
     return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpAudioStream(JNIEnv *env, jclass type,
+                                                           jbyteArray bytes_, jint size) {
+    jbyte *bytes = env->GetByteArrayElements(bytes_, NULL);
+    if(cs != NULL){
+        cs->pushAudioStream(bytes , size);
+    }
+    env->ReleaseByteArrayElements(bytes_, bytes, 0);
 }

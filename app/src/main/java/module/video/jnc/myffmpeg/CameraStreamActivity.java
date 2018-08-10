@@ -40,7 +40,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private boolean audioReadFlag = false;
     private byte[] bytes ;
     private int pcmSize ;
-    private File file ;
+//    private File file ;
     private FileOutputStream fos ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,14 +54,14 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
                 pcmSize);
         bytes = new byte[pcmSize];
         Log.e("xhc" , " pcm size "+pcmSize);
-        file = new File("sdcard/FFmpeg/pcm.pcm" );
-        try{
-            fos = new FileOutputStream(file );
-
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+//        file = new File("sdcard/FFmpeg/pcm.pcm" );
+//        try{
+//            fos = new FileOutputStream(file );
+//
+//        }
+//        catch (Exception e){
+//            e.printStackTrace();
+//        }
         audioRecord.startRecording();
         startAudioRead();
         findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
@@ -111,12 +111,13 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
                 if(isRecord){
                     readSize = audioRecord.read(bytes , 0 , pcmSize);
                     if(AudioRecord.ERROR_INVALID_OPERATION != readSize ){
-                        try{
-                            fos.write(bytes , 0, readSize);
-                        }
-                        catch(Exception e){
-                            e.printStackTrace();
-                        }
+                        FFmpegUtils.rtmpAudioStream(bytes ,readSize );
+//                        try{
+//                            fos.write(bytes , 0, readSize);
+//                        }
+//                        catch(Exception e){
+//                            e.printStackTrace();
+//                        }
                     }
                 }
             }
@@ -155,7 +156,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         }
 
         params.setPreviewSize(width, height );
-        FFmpegUtils.rtmpCameraInit(ouputPath ,width  , height);
+        FFmpegUtils.rtmpCameraInit(ouputPath ,width  , height  , pcmSize);
         params.setPreviewFormat(ImageFormat.YV12);
         mCamera.setParameters(params);
 
