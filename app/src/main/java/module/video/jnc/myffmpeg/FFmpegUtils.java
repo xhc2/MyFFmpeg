@@ -91,6 +91,10 @@ public class FFmpegUtils {
     public static native int rtmpCameraStream(byte[] bytes);
     public static native int rtmpAudioStream(byte[] bytes , int size);
     public static native int rtmpDestroy();
+    public static native int startRecord();
+    public static native int pauseRecord();
+
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

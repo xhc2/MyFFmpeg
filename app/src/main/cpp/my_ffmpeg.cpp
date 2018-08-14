@@ -407,4 +407,27 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpAudioStream(JNIEnv *env, jclass t
         cs->pushAudioStream(bytes , size);
     }
     env->ReleaseByteArrayElements(bytes_, bytes, 0);
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_startRecord(JNIEnv *env, jclass type) {
+
+    if(cs != NULL){
+        cs->startRecord();
+    }
+
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_pauseRecord(JNIEnv *env, jclass type) {
+
+    if(cs != NULL){
+        cs->pauseRecord();
+    }
+
+    return 1;
 }

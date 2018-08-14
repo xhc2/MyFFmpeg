@@ -54,14 +54,6 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
                 pcmSize);
         bytes = new byte[pcmSize];
         Log.e("xhc" , " pcm size "+pcmSize);
-//        file = new File("sdcard/FFmpeg/pcm.pcm" );
-//        try{
-//            fos = new FileOutputStream(file );
-//
-//        }
-//        catch (Exception e){
-//            e.printStackTrace();
-//        }
         audioRecord.startRecording();
         startAudioRead();
         findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
@@ -70,9 +62,11 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
                 isRecord = !isRecord;
                 if(isRecord){
                     tv.setText("暂停");
+                    FFmpegUtils.startRecord();
                 }
                 else{
                     tv.setText("播放");
+                    FFmpegUtils.pauseRecord();
                 }
             }
         });
@@ -186,7 +180,6 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-//        System.arraycopy(data , 0 , buffer , 0 , data.length);
         if(isRecord){
             FFmpegUtils.rtmpCameraStream(data);
         }
