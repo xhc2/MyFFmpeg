@@ -31,7 +31,7 @@ private :
     int size;
     int pcmSize;
     //用来测试使用。
-//    FILE *fileU;
+    FILE *filePCM;
 //    FILE *fileV;
     CallJava *cj;
     AVFormatContext *afc;
@@ -45,8 +45,10 @@ private :
     AVCodecContext *vCodeCtx;
     AVCodecContext *aCodeCtx;
     int64_t vpts, apts;
-
+    int64_t vCalDuration , aCalDuration;
+    int nbSample;
     int64_t wvpts , wapts ;
+    AVRational timeBaseFFmpeg;
     void initFFmpeg();
 
     void addVideoStream();

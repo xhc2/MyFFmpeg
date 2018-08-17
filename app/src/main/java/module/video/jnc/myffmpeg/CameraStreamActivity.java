@@ -41,7 +41,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private byte[] bytes ;
     private int pcmSize ;
 //    private File file ;
-    private FileOutputStream fos ;
+//    private FileOutputStream fos ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,11 +49,11 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         preview = (FrameLayout)findViewById(R.id.camera_preview);
         tv = (TextView)findViewById(R.id.bt_record);
         pcmSize = AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);
+        Log.e("xhc_jni" , " pcm size "+pcmSize);
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC ,sampleRate ,
                 channel , pcmFormat,
                 pcmSize);
         bytes = new byte[pcmSize];
-        Log.e("xhc" , " pcm size "+pcmSize);
         audioRecord.startRecording();
         startAudioRead();
         findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
@@ -106,12 +106,6 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
                     readSize = audioRecord.read(bytes , 0 , pcmSize);
                     if(AudioRecord.ERROR_INVALID_OPERATION != readSize ){
                         FFmpegUtils.rtmpAudioStream(bytes ,readSize );
-//                        try{
-//                            fos.write(bytes , 0, readSize);
-//                        }
-//                        catch(Exception e){
-//                            e.printStackTrace();
-//                        }
                     }
                 }
             }
@@ -181,7 +175,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         if(isRecord){
-            FFmpegUtils.rtmpCameraStream(data);
+//            FFmpegUtils.rtmpCameraStream(data);
         }
 
     }

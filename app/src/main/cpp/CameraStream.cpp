@@ -18,10 +18,13 @@ CameraStream::CameraStream(const char *url, int width, int height, int pcmsize, 
     this->height = height;
     this->outWidth = 640;
     this->outHeight = 360;
+    this->nbSample = 0;
     videoIndex = -1;
     audioIndex = -1;
     vpts = 0;
     apts = 0;
+//    filePCM = fopen("sdcard/FFmpeg/pcm.pcm" , "wb+");
+    timeBaseFFmpeg = (AVRational){ 1, AV_TIME_BASE };
     sws = sws_getContext(width, height, pixFmt, outWidth, outHeight,
                          pixFmt, SWS_BILINEAR, NULL, NULL, NULL);
     if (sws == NULL) {
@@ -43,8 +46,8 @@ CameraStream::CameraStream(const char *url, int width, int height, int pcmsize, 
         return;
     }
     initFFmpeg();
-    this->start();
-    this->setPause();
+//    this->start();
+//    this->setPause();
 }
 
 void custom_log(void *ptr, int level, const char *fmt, va_list vl) {
@@ -69,7 +72,7 @@ void CameraStream::initFFmpeg() {
     }
     afot = afc->oformat;
 
-    addVideoStream();
+//    addVideoStream();
     addAudioStream();
 
     if (!(afc->flags & AVFMT_NOFILE)) {
@@ -121,9 +124,11 @@ void CameraStream::addVideoStream() {
     vCodeCtx->bit_rate = 400000;
     vCodeCtx->time_base = (AVRational) {1, 25};
     vCodeCtx->framerate = (AVRational) {25, 1};
+    vCalDuration = (double)(AV_TIME_BASE)*(1 / av_q2d(vCodeCtx->framerate));
+
+    LOGE(" video frame duration %lld " , vCalDuration );
     vCodeCtx->thread_count = 4;
     videoOS->codec = vCodeCtx;
-    LOGE(" stream time base den %d , num %d ", videoOS->time_base.den, videoOS->time_base.num);
     result = avcodec_parameters_from_context(videoOS->codecpar, vCodeCtx);
     if (result < 0) {
         cj->callStr(" avcodec_parameters_from_context faild ");
@@ -176,7 +181,6 @@ void CameraStream::addVideoStream() {
 
 void CameraStream::addAudioStream() {
     int result = 0;
-//    AVCodecID avCodecID = AV_CODEC_ID_AAC;
     audioOS = avformat_new_stream(afc, NULL);
     if (audioOS == NULL) {
         cj->callStr("CREATE NEW AUDIO STREAM FAILD ");
@@ -186,9 +190,7 @@ void CameraStream::addAudioStream() {
         cj->callStr(" AUDIO AV_CODEC_ID_NONE ");
         return;
     }
-//    afot->audio_codec =  avCodecID;
     AVCodec *vCode = avcodec_find_encoder(afot->audio_codec);
-//    LOGE(" AUDIO CODEC %d ， name %s " , afot->audio_codec , vCode->name);//vCode->name = adpcm_swf
 
     if (vCode == NULL) {
         cj->callStr(" avcodec_find_video_encoder faild ! ");
@@ -204,16 +206,23 @@ void CameraStream::addAudioStream() {
     AVSampleFormat audioFormat = AV_SAMPLE_FMT_S16;
     int sampleRate = 44100;
     int channels = av_get_channel_layout_nb_channels(1);
-    int channelLayout = AV_CH_LAYOUT_MONO;
+    int64_t channelLayout = av_get_default_channel_layout(1);
     aCodeCtx->codec_type = AVMEDIA_TYPE_AUDIO;
     aCodeCtx->sample_fmt = audioFormat;
-    aCodeCtx->bit_rate = 64000;
+    aCodeCtx->bit_rate = 32000;
     aCodeCtx->sample_rate = sampleRate;
     aCodeCtx->channels = channels;
     aCodeCtx->channel_layout = (uint64_t) channelLayout;
+    aCodeCtx->time_base =  (AVRational) {1, aCodeCtx->sample_rate};
+
     audioOS->time_base = (AVRational) {1, aCodeCtx->sample_rate};
     audioOS->codecpar->codec_id = afot->audio_codec;
     audioOS->codec = aCodeCtx;
+
+    //两个采样之间的间隙
+    AVRational sampleRateAv = (AVRational){ sampleRate , 1 };
+    aCalDuration = (double)(AV_TIME_BASE)*(1 / av_q2d(sampleRateAv));
+    LOGE("  aCalDuration %lld " , aCalDuration);
     result = avcodec_parameters_from_context(audioOS->codecpar, aCodeCtx);
     if (result < 0) {
         cj->callStr(" audioOS avcodec_parameters_from_context faild ");
@@ -226,13 +235,17 @@ void CameraStream::addAudioStream() {
         cj->callStr("audioOS avcodec_open2 faild ! ");
         return;
     }
+
+
     frameAudio = av_frame_alloc();
     frameAudio->format = audioFormat;
     frameAudio->sample_rate = sampleRate;
     frameAudio->channel_layout = (uint64_t) channelLayout;
     frameAudio->channels = channels;
-    frameAudio->nb_samples = aCodeCtx->frame_size;
+    frameAudio->nb_samples = aCodeCtx->frame_size ;
+
     LOGE(" FRAME SIZE %d ", aCodeCtx->frame_size);
+
     result = av_frame_get_buffer(frameAudio, 0);
     if (result < 0) {
         LOGE(" AUDIO FRAME GET BUFFER FAILD %s ", av_err2str(result));
@@ -247,13 +260,14 @@ void CameraStream::addAudioStream() {
 
     if (afc->oformat->flags & AVFMT_GLOBALHEADER)
         aCodeCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
     audioIndex = audioOS->index;
+
     LOGE(" audioIndex index %d ", audioIndex);
 }
 
 void CameraStream::encodeVideoFrame() {
 
-    LOGE(" ENCODE VIDEO ");
     //y
     framePic->data[0] = (uint8_t *) (this->yuv);
     //u
@@ -264,8 +278,10 @@ void CameraStream::encodeVideoFrame() {
     sws_scale(sws, (const uint8_t *const *) framePic->data, framePic->linesize,
               0, height, outFrame->data, outFrame->linesize);
 //    //os->time_base 就是将一秒钟分成了多少份，看帧率是多少。然后看一帧占多少份。
-    vpts = count * (videoOS->time_base.den) / ((videoOS->time_base.num) * 25);
-    framePic->pts = vpts;
+    vpts = av_rescale_q(count * vCalDuration, timeBaseFFmpeg, videoOS->time_base);//count * (videoOS->time_base.den) / ((videoOS->time_base.num) * 25)  ;
+    LOGE(" SET VIDEO PTS %lld " , vpts );
+    outFrame->pts = vpts;
+//
     count++;
     int ret = avcodec_send_frame(vCodeCtx, outFrame);
     if (ret < 0) {
@@ -276,27 +292,29 @@ void CameraStream::encodeVideoFrame() {
         AVPacket *pkt = av_packet_alloc();
         ret = avcodec_receive_packet(vCodeCtx, pkt);
         pkt->stream_index = videoIndex;
-         if (ret < 0) {
+        if (ret < 0) {
             LOGE("avcodec_receive_packet FAILD %s ", av_err2str(ret));
             av_packet_free(&pkt);
             return;
         }
-        LOGE("video size %d ", pkt->size);
+        LOGE(" RECIVE VIDEO  PTS %lld " , pkt->pts );
         MyData *myData = new MyData();
         myData->pkt = pkt;
         myData->isAudio = false;
         myData->size = pkt->size;
         videoPktQue.push(myData);
-
     }
 }
 
 void CameraStream::encodeAudioFrame(int pcmSize) {
-    LOGE(" ENCODE AUDIO  ");
     frameAudio->data[0] = (uint8_t *) this->pcm;
+    apts += 1.0f * pcmSize / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) / audioOS->time_base.den * 1000;
+//    apts = pcmSize / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) ;
 
-    apts += 1.0f * pcmSize / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) /
-            audioOS->time_base.den * 1000;
+    nbSample += pcmSize / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+    LOGE(" NBSAMPLE %d " , nbSample);
+//    apts = av_rescale_q(nbSample * aCalDuration, timeBaseFFmpeg, audioOS->time_base);
+
     frameAudio->pts = apts;
 
     int ret = avcodec_send_frame(aCodeCtx, frameAudio);
@@ -308,16 +326,18 @@ void CameraStream::encodeAudioFrame(int pcmSize) {
         AVPacket *pkt = av_packet_alloc();
         ret = avcodec_receive_packet(aCodeCtx, pkt);
         pkt->stream_index = audioIndex;
-      if (ret < 0) {
+        if (ret < 0) {
 //            LOGE("avcodec_receive_packet FAILD %s ", av_err2str(ret));
             av_packet_free(&pkt);
             return;
         }
-        MyData *myData = new MyData();
-        myData->isAudio = true;
-        myData->size = pcmSize;
-        myData->pkt = pkt;
-        audioPktQue.push(myData);
+        av_write_frame(afc , pkt);
+        av_packet_free(&pkt);
+//        MyData *myData = new MyData();
+//        myData->isAudio = true;
+//        myData->size = pcmSize;
+//        myData->pkt = pkt;
+//        audioPktQue.push(myData);
     }
 }
 
@@ -330,15 +350,14 @@ void CameraStream::writeVideoPacket() {
         videoPktQue.pop();
         pkt->stream_index = videoIndex;
         wvpts = pkt->pts;
+        LOGE(" WRITE **VIDEO PTS %lld ", wvpts);
         int result;
 
-        if((result = av_interleaved_write_frame(afc, pkt)) < 0){
-            LOGE("writeVideoPacket FAILD %s " , av_err2str(result));
+        if ((result = av_interleaved_write_frame(afc, pkt)) < 0) {
+            LOGE("writeVideoPacket FAILD %s ", av_err2str(result));
         };
         myData->drop();
-
     }
-
 }
 
 
@@ -348,13 +367,23 @@ void CameraStream::writeAudioPacket() {
         MyData *myData = audioPktQue.front();
         AVPacket *pkt = myData->pkt;
         audioPktQue.pop();
+        if(pkt == NULL){
+            LOGE(" AUDIO PKT NULL ");
+            myData->drop();
+            return ;
+        }
+
         pkt->stream_index = audioIndex;
         wapts = pkt->pts;
+        LOGE(" WRITE AUDIO PTS %lld ", wapts);
         int result;
 
-        if((result = av_interleaved_write_frame(afc, pkt)) < 0){
-            LOGE("writeAudioPacket FAILD %s " , av_err2str(result));
-        };
+
+
+        av_write_frame(afc, pkt);
+//        if ((result = av_interleaved_write_frame(afc, pkt)) < 0) {
+//            LOGE("writeAudioPacket FAILD %s ", av_err2str(result));
+//        };
         myData->drop();
     }
 }
@@ -369,17 +398,17 @@ void CameraStream::pauseRecord() {
 }
 
 void CameraStream::pushAudioStream(jbyte *pcm, int size) {
-    if(pause){
-        return ;
+    if (pause) {
+        return;
     }
     this->pcmSize = size;
     memcpy(this->pcm, pcm, pcmSize);
-    encodeAudioFrame(size);
+    encodeAudioFrame(this->pcmSize);
 }
 
 void CameraStream::pushVideoStream(jbyte *yuv) {
-    if(pause){
-        return ;
+    if (pause) {
+        return;
     }
     memcpy(this->yuv, yuv, size);
     encodeVideoFrame();
@@ -393,14 +422,13 @@ void CameraStream::run() {
             threadSleep(3);
             continue;
         }
-
-        if (av_compare_ts(wapts, audioOS->time_base, wvpts, videoOS->time_base) < 0) {
-            LOGE("writeAudioFrame");
-            writeAudioPacket();
-        } else {
-            LOGE("writeVideoFrame");
-            writeVideoPacket();
-        }
+//        writeVideoPacket();
+        writeAudioPacket();
+//        if (av_compare_ts(wapts, audioOS->time_base, wvpts, videoOS->time_base) < 0) {
+//            writeAudioPacket();
+//        } else {
+//            writeVideoPacket();
+//        }
     }
 }
 
