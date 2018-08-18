@@ -307,7 +307,9 @@ void CameraStream::encodeVideoFrame() {
 }
 
 void CameraStream::encodeAudioFrame(int pcmSize) {
+
     frameAudio->data[0] = (uint8_t *) this->pcm;
+
     apts += 1.0f * pcmSize / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) / audioOS->time_base.den * 1000;
 //    apts = pcmSize / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) ;
 
