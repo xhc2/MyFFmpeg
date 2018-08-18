@@ -9,7 +9,7 @@ AVStream 对流的抽象
 AVFrame ：用来存储原始数据 视频的就是yuv，音频的就是pcm
 AVOutputFormat:对输出文件格式的抽象
 
-如果视频原始数据AV_PIX_FMT_YUV420P 就是平面格式的（yyyy uu vv yv12） ,(yyyy uu vv nv21)。
+如果视频原始数据AV_PIX_FMT_YUV420P 就是平面格式的（yyyy uu vv ） ,(yyyy uu vv )。
 但是我的锤子手机使用yv12最后拿到的yuv原始数据是nv12才能正确解析出来。
 当如果发现你解析出来的界面蓝绿色对调了问题就是你的uv数据放反了。
 如果是花屏了就是你的原始数据和解码器对应错了。比如你yv12的原始yuv数据，然后用nv12来解析，就是花屏
@@ -67,7 +67,8 @@ frame->nb_samples，一帧音频（frame）中有多少个采样（一般是1024
 音频帧的播放时间=一个AAC帧对应的采样样本的个数/采样频率
 当前AAC一帧的播放时间是= 1024*1000000/44100= 22.2ms(单位为ms)
 
-调试发现，对音频重采样后，frame_->format中的格式并不会改变，所以使用av_get_bytes_per_sample获取每个采样的大小的时候需要手动改成outFormat
+调试发现，对音频重采样后，frame_->format中的格式并不会改变，
+所以使用av_get_bytes_per_sample获取每个采样的大小的时候需要手动改成outFormat
 
 opensl中的的缓冲播放完毕后会回调pcmcallback，
 询问老师：第一次调用需要延迟个几百毫秒，然后需要保证队列中一直有数据
@@ -95,7 +96,7 @@ opensl中的的缓冲播放完毕后会回调pcmcallback，
 老师回答：有这个可能，音视频交替存放的，一般不会出现一个满一个空，控制好缓冲大小应该能解决
 
 
-yuv420p中把yuv数据读取出来的方法
+从yuv420p中把yuv数据读取出来的方法
 frame_->linesize[0]是根据不同的cpu来对其的，保证读写效率。可能比width大
 for(int i = 0 ;i < vc->height ; ++i){
     memcpy(myData->datas[0] + vc->width * i,vframe->data[0] + vframe->linesize[0] * i ,  vc->width );

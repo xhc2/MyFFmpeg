@@ -24,7 +24,17 @@
             android:src="@mipmap/more"
             android:layout_width="wrap_content"
             android:layout_alignParentRight="true"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/ib_publish"
+            android:background="@null"
+            android:padding="2dp"
+            android:src="@mipmap/network_stream"
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@id/ib_more"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
     </RelativeLayout>
 

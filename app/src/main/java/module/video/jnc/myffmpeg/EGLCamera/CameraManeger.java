@@ -12,7 +12,6 @@ import static android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK;
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 
 /**
- * Created by Administrator on 2017-07-13.
  */
 
 public class CameraManeger {
@@ -33,11 +32,7 @@ public class CameraManeger {
 
             mCamera.setParameters(params);
             mCamera.setPreviewTexture(surfaceTexture);
-
             mCamera.startPreview();
-
-
-
         } catch (IOException e) {
             Log.e("xhc" ," camera exception "+e.getMessage());
             e.printStackTrace();

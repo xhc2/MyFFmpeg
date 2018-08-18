@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <application
         android:allowBackup="true"
         android:hardwareAccelerated="true"
@@ -16,33 +16,37 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
-        <activity android:name=".Mp4PlayerActivity"
+        <activity
+            android:name=".Mp4PlayerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="landscape"
-            >
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--<activity android:name=".EncodeActivity" />-->
-        <!--<activity android:name=".opengl.OpenglActivity" />-->
-        <!--<activity android:name=".EGLCamera.EGLCameraActivity" />-->
-        <!--<activity android:name=".PlayVideoActivity" />-->
-        <!--<activity android:name=".MyFFmpegActivity" />-->
-        <!--<activity android:name=".PlayAudioActivity" />-->
-        <!--<activity android:name=".DecodeEncodeActivity" />-->
+        <!-- <activity android:name=".EncodeActivity" /> -->
+        <!-- <activity android:name=".opengl.OpenglActivity" /> -->
+        <!-- <activity android:name=".EGLCamera.EGLCameraActivity" /> -->
+        <!-- <activity android:name=".PlayVideoActivity" /> -->
+        <!-- <activity android:name=".MyFFmpegActivity" /> -->
+        <!-- <activity android:name=".PlayAudioActivity" /> -->
+        <!-- <activity android:name=".DecodeEncodeActivity" /> -->
         <!-- android:screenOrientation="landscape" -->
-        <!--<activity-->
-            <!--android:name=".ShowVideoAndAudioActivity"-->
-            <!--android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />-->
-        <!--<activity-->
-            <!--android:name=".ShowVideoShaderActivity"-->
-            <!--android:configChanges="keyboardHidden|orientation|screenSize"-->
-            <!--android:screenOrientation="landscape"-->
-            <!--android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />-->
+        <!-- <activity -->
+        <!-- android:name=".ShowVideoAndAudioActivity" -->
+        <!-- android:theme="@android:style/Theme.NoTitleBar.Fullscreen" /> -->
+        <!-- <activity -->
+        <!-- android:name=".ShowVideoShaderActivity" -->
+        <!-- android:configChanges="keyboardHidden|orientation|screenSize" -->
+        <!-- android:screenOrientation="landscape" -->
+        <!-- android:theme="@android:style/Theme.NoTitleBar.Fullscreen" /> -->
 
+        <activity android:name=".NetStreamActivity" />
+        <activity
+            android:name=".CameraStreamActivity"
+            android:label="@string/title_activity_camera_stream"></activity>
     </application>
 
 </manifest>

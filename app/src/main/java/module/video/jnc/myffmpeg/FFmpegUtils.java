@@ -81,14 +81,24 @@ public class FFmpegUtils {
     public static native int seekStart();
     public static native int seek(float progress);
 
+
+    //rtmp推流部分
+    public static native int rtmpInit(String outPath , String inputPath);
+    public static native int rtmpClose();
+
+    //通过手机摄像头推送rtmp
+    public static native int rtmpCameraInit(String outPath , int width , int height , int pcmSize);
+    public static native int rtmpCameraStream(byte[] bytes);
+    public static native int rtmpAudioStream(byte[] bytes , int size);
+    public static native int rtmpDestroy();
+    public static native int startRecord();
+    public static native int pauseRecord();
+
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);
         }
     }
 
-//    private void printMsgFromJni(String str) {
-//        Log.e("xhc_jni", str);
-////        return "x";
-//    }
 }

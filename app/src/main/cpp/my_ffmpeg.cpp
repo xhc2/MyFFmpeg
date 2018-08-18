@@ -9,6 +9,8 @@
 #include <Mp4Player.h>
 #include <gpu_video_sl_audio.h>
 #include <CallJava.h>
+#include <PublishStream.h>
+#include <CameraStream.h>
 
 
 /**
@@ -215,6 +217,7 @@
 //    return 1;
 //}
 Mp4Player *mp4Player = NULL ;
+PublishStream *ps = NULL;
 CallJava *cj = NULL;
 
 extern "C"
@@ -314,5 +317,117 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_seek(JNIEnv *env, jclass type  , jflo
     if(mp4Player != NULL){
         mp4Player->seek(progress);
     }
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpInit(JNIEnv *env, jclass type  , jstring path_ , jstring inpath_) {
+
+    const char *path = env->GetStringUTFChars(path_, 0);
+    const char *inPath = env->GetStringUTFChars(inpath_, 0);
+    if(ps == NULL){
+        if(cj == NULL){
+            cj = new CallJava(env , type);
+        }
+        ps = new PublishStream(path , inPath , cj);
+    }
+    env->ReleaseStringUTFChars(path_, path);
+    env->ReleaseStringUTFChars(inpath_, inPath);
+
+    return 1;
+
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
+
+    // TODO
+    if(ps != NULL){
+        delete ps;
+        ps = NULL;
+    }
+    if(cj != NULL){
+        delete cj;
+        cj = NULL;
+    }
+    return 1;
+}
+CameraStream *cs = NULL ;
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraInit(JNIEnv *env, jclass type, jstring outPath_ ,
+                                                          jint width , jint height , jint pcmSize) {
+    const char *outPath = env->GetStringUTFChars(outPath_, 0);
+
+    if(cs == NULL){
+        if(cj == NULL){
+            cj = new CallJava(env , type);
+        }
+        cs = new CameraStream(outPath , width , height ,pcmSize, cj);
+    }
+
+    env->ReleaseStringUTFChars(outPath_, outPath);
+    return 1;
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraStream(JNIEnv *env, jclass type,
+                                                            jbyteArray bytes_) {
+    jbyte *bytes = env->GetByteArrayElements(bytes_, NULL);
+
+    if(cs != NULL){
+        cs->pushVideoStream(bytes);
+    }
+
+    env->ReleaseByteArrayElements(bytes_, bytes, 0);
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpDestroy(JNIEnv *env, jclass type) {
+
+    if(cs != NULL){
+        delete cs ;
+        cs = NULL;
+    }
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpAudioStream(JNIEnv *env, jclass type,
+                                                           jbyteArray bytes_, jint size) {
+    jbyte *bytes = env->GetByteArrayElements(bytes_, NULL);
+    if(cs != NULL){
+        cs->pushAudioStream(bytes , size);
+    }
+    env->ReleaseByteArrayElements(bytes_, bytes, 0);
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_startRecord(JNIEnv *env, jclass type) {
+
+    if(cs != NULL){
+        cs->startRecord();
+    }
+
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_pauseRecord(JNIEnv *env, jclass type) {
+
+    if(cs != NULL){
+        cs->pauseRecord();
+    }
+
     return 1;
 }

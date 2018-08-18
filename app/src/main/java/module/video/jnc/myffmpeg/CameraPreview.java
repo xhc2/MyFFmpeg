@@ -18,8 +18,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private Camera mCamera;
     private Camera.Parameters params;
     private Context context;
-
-    public CameraPreview(Context context, Camera camera) {
+    private Camera.PreviewCallback callback;
+    public CameraPreview(Context context, Camera camera  ,Camera.PreviewCallback callback) {
         super(context);
         Log.e("xhc", "CameraPreview constron");
         mCamera = camera;
@@ -29,15 +29,19 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // underlying surface is created and destroyed.
         mHolder = getHolder();
         mHolder.addCallback(this);
+        this.callback = callback;
         // deprecated setting, but required on Android versions prior to 3.0
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
-
+//
     public void surfaceCreated(SurfaceHolder holder) {
         Log.e("xhc", "surfaceCreated");
         // The Surface has been created, now tell the camera where to draw the preview.
         try {
             mCamera.setPreviewDisplay(holder);
+            if(this.callback != null){
+                mCamera.setPreviewCallback(this.callback);
+            }
             mCamera.startPreview();
         } catch (IOException e) {
             Log.d("asdf", "Error setting camera preview: " + e.getMessage());
@@ -72,6 +76,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // start preview with new settings
         try {
             mCamera.setPreviewDisplay(mHolder);
+            if(this.callback != null){
+                mCamera.setPreviewCallback(this.callback);
+            }
             mCamera.startPreview();
         } catch (Exception e) {
         }

@@ -7,11 +7,11 @@ include_directories(src/main/cpp/include)
 add_library( my_ffmpeg
 
             SHARED
-             src/main/cpp/my_ffmpeg.cpp
-             src/main/cpp/sonic.cpp
-             src/main/cpp/SonicRead.cpp
-             src/main/cpp/Utils.cpp
-             src/main/cpp/MyThread.cpp
+            src/main/cpp/my_ffmpeg.cpp
+            src/main/cpp/sonic.cpp
+            src/main/cpp/SonicRead.cpp
+            src/main/cpp/Utils.cpp
+            src/main/cpp/MyThread.cpp
             src/main/cpp/Mp4Player.cpp
             src/main/cpp/ReadAvPacket.cpp
             src/main/cpp/DecodeVideoThread.cpp
@@ -22,6 +22,8 @@ add_library( my_ffmpeg
             src/main/cpp/AudioPlayer.cpp
             src/main/cpp/SeekVideo.cpp
             src/main/cpp/CallJava.cpp
+            src/main/cpp/PublishStream.cpp
+            src/main/cpp/CameraStream.cpp
             )
 
 

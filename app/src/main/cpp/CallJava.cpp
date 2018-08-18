@@ -20,6 +20,7 @@ CallJava::~CallJava(){
 
 
 void CallJava::callStr(char *msg){
+    LOGE("error %s " , msg);
     if(jmethodID1 != NULL){
         jstring msgStr = env->NewStringUTF(msg);
         env->CallStaticVoidMethod(type , jmethodID1 , msgStr);

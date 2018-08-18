@@ -2,12 +2,17 @@ package module.video.jnc.myffmpeg;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -25,6 +30,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +41,9 @@ import java.util.List;
  * 1.播放音视频
  * 2.倍速播放
  * 3.seek功能。
- * 4.其他功能 (视频拼接，比如两个1s的视频拼接成2s的视频。又或者将画面拼接成一个画面的视频，水印等。)
+ * 4.rtmp 推流，服务器先用red5 就可以
+ * 5.其他功能 (视频拼接，比如两个1s的视频拼接成2s的视频。又或者将画面拼接成一个画面的视频，水印等。)
+ * http://ffmpeg.org/doxygen/3.4/index.html
  */
 
 public class Mp4PlayerActivity extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener, FFmpegUtils.Lis {
@@ -89,11 +99,10 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.e("xhc" , "activity oncreate ");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
         setContentView(R.layout.activity_mp4_player);
 
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
@@ -115,6 +124,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         });
 
         tvSpeed.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
 
@@ -133,6 +143,16 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 showDialog();
             }
         });
+
+        findViewById(R.id.ib_publish).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //跳转到网路流的界面
+                Intent intent = new Intent(Mp4PlayerActivity.this , NetStreamActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
         btPlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -223,7 +243,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 break;
             case R.id.tv_2_0:
                 speed = 2.0f;
-
                 break;
         }
         if (popupWindow != null && popupWindow.isShowing()) {
@@ -289,7 +308,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     }
 
 
-    PositionThread thread;
+    private PositionThread thread;
 
     private void startThread() {
         stopThread();
@@ -397,25 +416,33 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 else{
                     msg.obj = listFile.get(position - 1).getAbsolutePath();
                 }
-//                msg.obj =
-//                msg.arg1 = position;
                 handler.sendMessage(msg);
             }
         }.start();
-
-
     }
 
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e("xhc" , "activity onResume ");
+        if(myVideoGpuShow.isRender()){
+            myVideoGpuShow.onResume();
+        }
+
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
+        if(myVideoGpuShow.isRender()){
+            myVideoGpuShow.onPause();
+        }
+        Log.e("xhc" , "activity onPause ");
         flag = PAUSE;
+        pauseFlag = true;
         if (FFmpegUtils.mp4Pause() == 1) {
             btPlay.setText("播放");
-        } else {
-            flag = PLAY;
-            Toast.makeText(Mp4PlayerActivity.this, "选择文件", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -430,8 +457,13 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.e("xhc" , "activity onDestroy ");
+
         stopThread();
         FFmpegUtils.removeNotify(this);
         FFmpegUtils.destroyMp4Play();
     }
+
+
+
 }

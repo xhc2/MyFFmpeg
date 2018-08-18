@@ -301,8 +301,8 @@ Mp4Player::~Mp4Player(){
         readAVPackage->removeNotify();
     }
 
-
     this->join();
+
     if(audioPlayer != NULL) {
         audioPlayer->join();
     }
