@@ -16,6 +16,7 @@ extern "C"
 #include "libavutil/mathematics.h"
 #include "libavutil/time.h"
 #include "libswscale/swscale.h"
+#include <libswresample/swresample.h>
 };
 using namespace std;
 class CameraStream : public MyThread{
@@ -30,6 +31,7 @@ private :
     SwsContext *sws;
     int size;
     int pcmSize;
+    int pcmMinSize;
     //用来测试使用。
     FILE *filePCM;
 //    FILE *fileV;
@@ -44,6 +46,8 @@ private :
     AVPixelFormat pixFmt;
     AVCodecContext *vCodeCtx;
     AVCodecContext *aCodeCtx;
+    uint8_t* play_audio_temp;
+    SwrContext *swc;
     int64_t vpts, apts;
     int64_t vCalDuration , aCalDuration;
     int nbSample;

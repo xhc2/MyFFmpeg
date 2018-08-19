@@ -11,6 +11,7 @@
 #include <CallJava.h>
 #include <PublishStream.h>
 #include <CameraStream.h>
+#include <decode_test.h>
 
 
 /**
@@ -428,6 +429,15 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_pauseRecord(JNIEnv *env, jclass type)
     if(cs != NULL){
         cs->pauseRecord();
     }
+
+    return 1;
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
+
+    // TODO
+    DecodeTest *dt = new DecodeTest();
 
     return 1;
 }

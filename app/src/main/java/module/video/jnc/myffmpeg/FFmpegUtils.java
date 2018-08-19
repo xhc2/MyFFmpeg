@@ -21,33 +21,6 @@ public class FFmpegUtils {
         System.loadLibrary("avfilter");
         System.loadLibrary("my_ffmpeg");
     }
-//    public static native String stringNative();
-//    //将MP4解码成yuv，和pcm
-//    public static native int decodeMp4ToYuv(String path , Object glSurfaceView);
-//    public static native int openSLTest(String path);
-//    //播放或者暂停 false暂停，true播放
-//    public static native int openSLPauseOrPlay(boolean flag);
-//    public static native int openSLDestroy();
-//    public static native int decodeMp4ToYuvShowShader(String path , Object glSurfaceView);
-//    public static native int videoAudioDecodeShow(String path , Object glSurfaceView);
-//    public static native int testMyShow();
-//    public static native int testNativeThread();
-//    public static native int testNativeThreadFree();
-//    public static native int testNativeThreadRun();
-//    public static native int testCPlusPlusThread();
-//    public static native int showVideoGpuAudioOpensl(String path ,  Object glSurfaceView);
-//    public static native int showVideoGpuDestroy();
-//    public static native int showVideoGpuJustPause();
-//    public static native int showVideoGpuPlayOrPause();
-//    public static native int showVideoGpuSeek(double seek);
-//    public static native int changeSpeedGpu(double speed);
-//    //最大值一百，分别按比例处理
-//    public static native int getPlayPosition();
-//    public static native String getVersionString();
-//
-//    public static native int soundtouchStart();
-//    public static native int soundtouchSpeed(double speed);
-//    public static native int initsoundtouch(String path);
 
     private static List<Lis> listNativeNotify = new ArrayList<>();
 
@@ -94,7 +67,7 @@ public class FFmpegUtils {
     public static native int startRecord();
     public static native int pauseRecord();
 
-
+    public static native int test();
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

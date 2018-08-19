@@ -48,6 +48,16 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
                         "sdcard/FFmpeg/video/test.flv");
             }
         });
+
+        findViewById(R.id.bt_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //测试代码
+                FFmpegUtils.test();
+            }
+        });
+
+
     }
 
 

@@ -48,9 +48,9 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         setContentView(R.layout.activity_camera_stream);
         preview = (FrameLayout)findViewById(R.id.camera_preview);
         tv = (TextView)findViewById(R.id.bt_record);
-        pcmSize = AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);
+        pcmSize = 4096;//AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);
         Log.e("xhc_jni" , " pcm size "+pcmSize);
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC ,sampleRate ,
+        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC , sampleRate ,
                 channel , pcmFormat,
                 pcmSize);
         bytes = new byte[pcmSize];

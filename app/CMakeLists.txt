@@ -24,6 +24,7 @@ add_library( my_ffmpeg
             src/main/cpp/CallJava.cpp
             src/main/cpp/PublishStream.cpp
             src/main/cpp/CameraStream.cpp
+            src/main/cpp/decode_test.cpp
             )
 
 
