@@ -29,7 +29,7 @@ private :
     int width, height;
     int outWidth, outHeight;
     SwsContext *sws;
-    int size;
+    int yuvSize;
     int pcmSize;
     int pcmMinSize;
     //用来测试使用。
@@ -46,8 +46,8 @@ private :
     AVPixelFormat pixFmt;
     AVCodecContext *vCodeCtx;
     AVCodecContext *aCodeCtx;
-    uint8_t* play_audio_temp;
-    SwrContext *swc;
+//    uint8_t* play_audio_temp;
+//    SwrContext *swc;
     int64_t vpts, apts;
     int64_t vCalDuration , aCalDuration;
     int nbSample;
@@ -60,7 +60,7 @@ private :
     void addAudioStream();
 
     void encodeVideoFrame();
-    void encodeAudioFrame(int pcmSize);
+    void encodeAudioFrame();
 
     void writeVideoPacket();
     void writeAudioPacket();
@@ -70,6 +70,11 @@ private :
     int count;
     queue<MyData *> audioPktQue;
     queue<MyData *> videoPktQue;
+
+
+    queue<MyData *> queYuv;
+    queue<MyData *> quePcm;
+
 
 public :
     CameraStream(const char *url, int width, int height, int pcmsize, CallJava *cj);

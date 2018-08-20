@@ -175,7 +175,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         if(isRecord){
-//            FFmpegUtils.rtmpCameraStream(data);
+            FFmpegUtils.rtmpCameraStream(data);
         }
 
     }
