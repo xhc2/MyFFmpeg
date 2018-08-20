@@ -416,7 +416,7 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_startRecord(JNIEnv *env, jclass type) {
 
     if(cs != NULL){
-        cs->startRecord();
+        return cs->startRecord();
     }
 
     return 1;
@@ -427,7 +427,7 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_pauseRecord(JNIEnv *env, jclass type) {
 
     if(cs != NULL){
-        cs->pauseRecord();
+       return cs->pauseRecord();
     }
 
     return 1;

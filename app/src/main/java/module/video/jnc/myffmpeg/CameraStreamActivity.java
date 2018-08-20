@@ -25,8 +25,8 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private CameraPreview mPreview;
     private FrameLayout preview;
     private Camera.Parameters params;
-//    private String ouputPath = "rtmp://192.168.2.15/live/live";
-    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
+    private String ouputPath = "rtmp://192.168.43.7/live/live";
+//    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
     //默认前置 记录当前的方向
     private int nowCameraDirection = Camera.CameraInfo.CAMERA_FACING_BACK;
     private int height , width ;
@@ -61,8 +61,12 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
             public void onClick(View v) {
                 isRecord = !isRecord;
                 if(isRecord){
-                    tv.setText("暂停");
-                    FFmpegUtils.startRecord();
+                    if(FFmpegUtils.startRecord() >= 0){
+                        tv.setText("暂停");
+                    }
+                    else{
+                        isRecord = !isRecord;
+                    }
                 }
                 else{
                     tv.setText("播放");
@@ -144,7 +148,9 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         }
 
         params.setPreviewSize(width, height );
-        FFmpegUtils.rtmpCameraInit(ouputPath ,width  , height  , pcmSize);
+
+
+
         params.setPreviewFormat(ImageFormat.YV12);
         mCamera.setParameters(params);
 
@@ -157,7 +163,17 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         }
+        new InitClass().start();
     }
+
+    class InitClass extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            FFmpegUtils.rtmpCameraInit(ouputPath ,width  , height  , pcmSize);
+        }
+    }
+
 
     /**
      * Check if this device has a camera
@@ -175,7 +191,7 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         if(isRecord){
-//            FFmpegUtils.rtmpCameraStream(data);
+            FFmpegUtils.rtmpCameraStream(data);
         }
 
     }

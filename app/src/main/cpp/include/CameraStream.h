@@ -46,8 +46,6 @@ private :
     AVPixelFormat pixFmt;
     AVCodecContext *vCodeCtx;
     AVCodecContext *aCodeCtx;
-    uint8_t* play_audio_temp;
-    SwrContext *swc;
     int64_t vpts, apts;
     int64_t vCalDuration , aCalDuration;
     int nbSample;
@@ -68,6 +66,7 @@ private :
     int videoIndex;
     int audioIndex;
     int count;
+    bool initSuccess;
     queue<MyData *> audioPktQue;
     queue<MyData *> videoPktQue;
 
@@ -80,9 +79,9 @@ public :
 
     void pushAudioStream(jbyte *pcm, int size);
 
-    void startRecord();
+    int startRecord();
 
-    void pauseRecord();
+    int pauseRecord();
 
     void run();
 };
