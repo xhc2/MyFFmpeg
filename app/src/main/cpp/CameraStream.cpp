@@ -454,4 +454,15 @@ void CameraStream::run() {
 CameraStream::~CameraStream() {
     LOGE(" DESTROY av_write_trailer ");
     av_write_trailer(afc);
+    this->setPause();
+    this->stop();
+    this->join();
+    av_frame_free(&framePic);
+    av_frame_free(&outFrame);
+    av_frame_free(&frameAudio);
+    avcodec_free_context(&aCodeCtx);
+    avcodec_free_context(&vCodeCtx);
+    sws_freeContext(sws);
+    avformat_free_context(afc);
+
 }

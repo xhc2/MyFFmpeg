@@ -25,8 +25,8 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private CameraPreview mPreview;
     private FrameLayout preview;
     private Camera.Parameters params;
-    private String ouputPath = "rtmp://192.168.43.7/live/live";
-//    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
+//    private String ouputPath = "rtmp://192.168.43.7/live/live";
+    private String ouputPath ;//= "sdcard/FFmpeg/cameraStream.flv";
     //默认前置 记录当前的方向
     private int nowCameraDirection = Camera.CameraInfo.CAMERA_FACING_BACK;
     private int height , width ;
@@ -40,12 +40,11 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private boolean audioReadFlag = false;
     private byte[] bytes ;
     private int pcmSize ;
-//    private File file ;
-//    private FileOutputStream fos ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
+        ouputPath = getIntent().getStringExtra("outputpath");
         preview = (FrameLayout)findViewById(R.id.camera_preview);
         tv = (TextView)findViewById(R.id.bt_record);
         pcmSize = 4096;//AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);

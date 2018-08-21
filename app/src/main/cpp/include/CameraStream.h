@@ -33,16 +33,16 @@ private :
     int pcmSize;
     int pcmMinSize;
     //用来测试使用。
-    FILE *filePCM;
-//    FILE *fileV;
     CallJava *cj;
     AVFormatContext *afc;
     AVOutputFormat *afot;
     AVStream *videoOS;
     AVStream *audioOS;
+
     AVFrame *framePic;
     AVFrame *outFrame;
     AVFrame *frameAudio;
+
     AVPixelFormat pixFmt;
     AVCodecContext *vCodeCtx;
     AVCodecContext *aCodeCtx;
@@ -52,14 +52,10 @@ private :
     int64_t wvpts , wapts ;
     AVRational timeBaseFFmpeg;
     void initFFmpeg();
-
     void addVideoStream();
-
     void addAudioStream();
-
     void encodeVideoFrame();
     void encodeAudioFrame(int pcmSize);
-
     void writeVideoPacket();
     void writeAudioPacket();
 

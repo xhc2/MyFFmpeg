@@ -8,6 +8,11 @@
     android:background="#ffffff"
     >
 
+    <EditText
+        android:id="@+id/et_url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/bt_net_work"
         android:layout_width="match_parent"
@@ -27,7 +32,8 @@
         android:id="@+id/bt_test"
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"
+        android:visibility="invisible"
         android:layout_height="wrap_content"
-        android:text="测试"
+        android:text="简单的解码测试"
         />
 </LinearLayout>
