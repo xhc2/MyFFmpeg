@@ -22,6 +22,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -36,6 +37,11 @@ import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+
+import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
+
 /**
  * 做一个视频播放器。
  * 1.播放音视频
@@ -46,7 +52,8 @@ import java.util.List;
  * http://ffmpeg.org/doxygen/3.4/index.html
  */
 
-public class Mp4PlayerActivity extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener, FFmpegUtils.Lis {
+public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
+        AdapterView.OnItemClickListener, FFmpegUtils.Lis, GLSurfaceView.Renderer {
 
     private static final int PLAY = 1;
     private static final int PAUSE = 2;
@@ -66,7 +73,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     private FileAdater adater;
     private List<File> listFile = new ArrayList<>();
     private float videoDuration;
-
     private Handler handler = new Handler(new Handler.Callback() {
 
         @Override
@@ -83,9 +89,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                     seekBar.setProgress(progress);
                     break;
                 case 3:
-                    String path = (String)msg.obj;
-//                    File file = listFile.get(msg.arg1);
-                    playVideo(path/*file.getAbsolutePath()*/);
+                    String path = (String) msg.obj;
+                    playVideo(path);
                     break;
                 case 4:
                     String str = (String) msg.obj;
@@ -99,16 +104,20 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e("xhc" , "activity oncreate ");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_mp4_player);
+        myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
 
+        myVideoGpuShow.setEGLContextClientVersion(2);
+        myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        myVideoGpuShow.setRenderer(this);//android 8.0需要设置
+        myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         btPlay = (TextView) findViewById(R.id.bt_play_button);
         tvSpeed = (TextView) findViewById(R.id.bt_play_speed);
-        myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
+
         rlTopBar = (RelativeLayout) findViewById(R.id.rl_topbar);
         tvTime = (TextView) findViewById(R.id.time);
         rlBottomBar = (RelativeLayout) findViewById(R.id.rl_bottom_bar);
@@ -148,7 +157,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             @Override
             public void onClick(View v) {
                 //跳转到网路流的界面
-                Intent intent = new Intent(Mp4PlayerActivity.this , NetStreamActivity.class);
+                Intent intent = new Intent(Mp4PlayerActivity.this, NetStreamActivity.class);
                 startActivity(intent);
             }
         });
@@ -357,7 +366,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
 
         @Override
         public int getCount() {
-            return listFile.size()+1;
+            return listFile.size() + 1;
         }
 
         @Override
@@ -384,10 +393,9 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             } else {
                 holder = (ViewHolder) view.getTag();
             }
-            if(i == 0 ){
+            if (i == 0) {
                 holder.tv.setText("rtmp 网络流 rtmp://live.hkstv.hk.lxdns.com/live/hks");
-            }
-            else{
+            } else {
                 holder.tv.setText(listFile.get(i - 1).getName());
             }
 
@@ -410,10 +418,9 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 FFmpegUtils.destroyMp4Play();
                 Message msg = new Message();
                 msg.what = 3;
-                if(position == 0){
+                if (position == 0) {
                     msg.obj = "rtmp://live.hkstv.hk.lxdns.com/live/hks";
-                }
-                else{
+                } else {
                     msg.obj = listFile.get(position - 1).getAbsolutePath();
                 }
                 handler.sendMessage(msg);
@@ -425,20 +432,14 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e("xhc" , "activity onResume ");
-        if(myVideoGpuShow.isRender()){
-            myVideoGpuShow.onResume();
-        }
-
+        myVideoGpuShow.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if(myVideoGpuShow.isRender()){
-            myVideoGpuShow.onPause();
-        }
-        Log.e("xhc" , "activity onPause ");
+        myVideoGpuShow.onPause();
+        Log.e("xhc", "activity onPause ");
         flag = PAUSE;
         pauseFlag = true;
         if (FFmpegUtils.mp4Pause() == 1) {
@@ -457,7 +458,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("xhc" , "activity onDestroy ");
+        Log.e("xhc", "activity onDestroy ");
 
         stopThread();
         FFmpegUtils.removeNotify(this);
@@ -465,5 +466,18 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     }
 
 
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+
+    }
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+
+    }
 }
