@@ -28,6 +28,15 @@
         android:layout_height="wrap_content"
         android:text="推送相机视频"
         />
+
+    <Button
+        android:id="@+id/bt_srs_librtmp"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        android:text="srs_librtmp"
+        />
+
     <Button
         android:id="@+id/bt_test"
         android:layout_width="match_parent"

@@ -26,6 +26,7 @@ add_library( my_ffmpeg
             src/main/cpp/CameraStream.cpp
             src/main/cpp/decode_test.cpp
             src/main/cpp/srs_librtmp.cpp
+            src/main/cpp/SRSLibRtmp.cpp
             )
 
 

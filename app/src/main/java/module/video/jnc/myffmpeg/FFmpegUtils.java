@@ -66,8 +66,12 @@ public class FFmpegUtils {
     public static native int rtmpDestroy();
     public static native int startRecord();
     public static native int pauseRecord();
-
     public static native int test();
+
+    //srs_lib_rtmp
+    public static native int srsTest(String path);
+
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

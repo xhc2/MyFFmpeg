@@ -31,8 +31,8 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
         }
     });
 
-//    private String ouputPath = "rtmp://192.168.2.109/live/live";
-    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
+    private String ouputPath = "rtmp://192.168.0.9/live/live";
+//    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +59,13 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
                 //注意 后面的live 是name
                 FFmpegUtils.rtmpInit(ouputPath ,
                         "sdcard/FFmpeg/video/test.flv");
+            }
+        });
+
+        findViewById(R.id.bt_srs_librtmp).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FFmpegUtils.srsTest(etUrl.getText().toString());
             }
         });
 

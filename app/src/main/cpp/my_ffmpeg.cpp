@@ -12,6 +12,7 @@
 #include <PublishStream.h>
 #include <CameraStream.h>
 #include <decode_test.h>
+#include <SRSLibRtmp.h>
 
 
 /**
@@ -439,5 +440,15 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
     // TODO
     DecodeTest *dt = new DecodeTest();
 
+    return 1;
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_srsTest(JNIEnv *env, jclass type , jstring outPath_) {
+    const char *outPath = env->GetStringUTFChars(outPath_, 0);
+
+    SRSLibRtmp *srs = new SRSLibRtmp();
+    srs->test(outPath);
+    env->ReleaseStringUTFChars(outPath_, outPath);
+    // TODO
     return 1;
 }
