@@ -53,7 +53,7 @@ void* MyThread::start_thread(void *arg) //静态成员函数只能访问静态�
 {
     MyThread *ptr = (MyThread *)arg;
     ptr->run();
-    return 0;                                                                                             //线程的实体是run
+    return 0;   //线程的实体是run
 }
 
 MyThread::~MyThread(){
