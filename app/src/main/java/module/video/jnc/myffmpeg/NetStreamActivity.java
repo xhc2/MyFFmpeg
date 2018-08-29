@@ -31,7 +31,7 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
         }
     });
 
-    private String ouputPath = "rtmp://192.168.2.104/live/live";
+    private String ouputPath = "rtmp://192.168.2.15/live/live";
 //    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
 
     @Override

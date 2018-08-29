@@ -33548,7 +33548,7 @@ int srs_librtmp_context_parse_uri(Context* context)
     // parse uri
     size_t pos = string::npos;
     string uri = context->url;
-    // tcUrl, stream
+    // tcUrl, stream string::npos 用来表示不存在的位置
     if ((pos = uri.rfind("/")) != string::npos) {
         context->stream = uri.substr(pos + 1);
         context->tcUrl = uri = uri.substr(0, pos);

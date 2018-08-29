@@ -447,7 +447,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_srsTest(JNIEnv *env, jclass type , js
     const char *outPath = env->GetStringUTFChars(outPath_, 0);
 
     SRSLibRtmp *srs = new SRSLibRtmp();
-    srs->publish(outPath);
+    srs->publishH264(outPath);
     env->ReleaseStringUTFChars(outPath_, outPath);
     // TODO
     return 1;

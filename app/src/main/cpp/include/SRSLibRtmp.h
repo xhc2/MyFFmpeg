@@ -26,7 +26,11 @@ public :
     void publish(const char* path);
     void rtmpDestroy();
     void test(const char *path);
+    void publishH264(const char* path);
+    int read_h264_frame(char* data, int size, char** pp, int* pnb_start_code, int fps,
+                        char** frame, int* frame_size, int* dts, int* pts);
     void run();
+
 };
 
 #endif //MYFFMPEG_SRSLIBRTMP_H
