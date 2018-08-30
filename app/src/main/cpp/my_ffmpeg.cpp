@@ -441,14 +441,28 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
     DecodeTest *dt = new DecodeTest();
 
     return 1;
-}extern "C"
+
+}
+
+SRSLibRtmp *srs;
+extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_srsTest(JNIEnv *env, jclass type , jstring outPath_) {
     const char *outPath = env->GetStringUTFChars(outPath_, 0);
 
-    SRSLibRtmp *srs = new SRSLibRtmp();
+    srs = new SRSLibRtmp();
     srs->publishH264(outPath);
     env->ReleaseStringUTFChars(outPath_, outPath);
     // TODO
+    return 1;
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_srsDestroy(JNIEnv *env, jclass type) {
+    if(srs != NULL){
+        srs->rtmpDestroy();
+    }
     return 1;
 }

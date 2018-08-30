@@ -21980,6 +21980,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include <stdlib.h>
+#include <my_log.h>
+
 using namespace std;
 
 // FMLE
@@ -24257,7 +24259,7 @@ int SrsRtmpClient::fmle_publish(string stream, int& stream_id)
     if (true) {
         SrsFMLEStartPacket* pkt = SrsFMLEStartPacket::create_release_stream(stream);
         if ((ret = protocol->send_and_free_packet(pkt, 0)) != ERROR_SUCCESS) {
-            srs_error("send FMLE publish "
+            LOGE("send FMLE publish "
                 "release stream failed. stream=%s, ret=%d", stream.c_str(), ret);
             return ret;
         }
@@ -24267,7 +24269,7 @@ int SrsRtmpClient::fmle_publish(string stream, int& stream_id)
     if (true) {
         SrsFMLEStartPacket* pkt = SrsFMLEStartPacket::create_FC_publish(stream);
         if ((ret = protocol->send_and_free_packet(pkt, 0)) != ERROR_SUCCESS) {
-            srs_error("send FMLE publish "
+            LOGE("send FMLE publish "
                 "FCPublish failed. stream=%s, ret=%d", stream.c_str(), ret);
             return ret;
         }
@@ -24278,7 +24280,7 @@ int SrsRtmpClient::fmle_publish(string stream, int& stream_id)
         SrsCreateStreamPacket* pkt = new SrsCreateStreamPacket();
         pkt->transaction_id = 4;
         if ((ret = protocol->send_and_free_packet(pkt, 0)) != ERROR_SUCCESS) {
-            srs_error("send FMLE publish "
+            LOGE("send FMLE publish "
                 "createStream failed. stream=%s, ret=%d", stream.c_str(), ret);
             return ret;
         }
@@ -24289,7 +24291,7 @@ int SrsRtmpClient::fmle_publish(string stream, int& stream_id)
         SrsCommonMessage* msg = NULL;
         SrsCreateStreamResPacket* pkt = NULL;
         if ((ret = expect_message<SrsCreateStreamResPacket>(&msg, &pkt)) != ERROR_SUCCESS) {
-            srs_error("expect create stream response message failed. ret=%d", ret);
+            LOGE("expect create stream response message failed. ret=%d", ret);
             return ret;
         }
         SrsAutoFree(SrsCommonMessage, msg);
@@ -24304,7 +24306,7 @@ int SrsRtmpClient::fmle_publish(string stream, int& stream_id)
         SrsPublishPacket* pkt = new SrsPublishPacket();
         pkt->stream_name = stream;
         if ((ret = protocol->send_and_free_packet(pkt, stream_id)) != ERROR_SUCCESS) {
-            srs_error("send FMLE publish publish failed. "
+            LOGE("send FMLE publish publish failed. "
                 "stream=%s, stream_id=%d, ret=%d", stream.c_str(), stream_id, ret);
             return ret;
         }

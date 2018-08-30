@@ -70,7 +70,7 @@ public class FFmpegUtils {
 
     //srs_lib_rtmp
     public static native int srsTest(String path);
-
+    public static native int srsDestroy();
 
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){

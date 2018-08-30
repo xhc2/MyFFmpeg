@@ -92,6 +92,13 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
         super.onPause();
         FFmpegUtils.rtmpClose();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FFmpegUtils.srsDestroy();
+
+    }
 }
 
 

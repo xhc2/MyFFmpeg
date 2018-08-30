@@ -9,7 +9,7 @@
 
 
 SRSLibRtmp::SRSLibRtmp() {
-
+    rtmp = NULL;
 }
 
 SRSLibRtmp::~SRSLibRtmp() {
@@ -24,14 +24,16 @@ void SRSLibRtmp::test(const char *path) {
 }
 
 void SRSLibRtmp::rtmpDestroy() {
-    srs_rtmp_destroy(rtmp);
+    if(rtmp != NULL){
+        srs_rtmp_destroy(rtmp);
+    }
+
 }
 
 void SRSLibRtmp::publish(const char *path) {
     LOGE("publish rtmp stream to server like FMLE/FFMPEG/Encoder\n");
     LOGE("srs(ossrs) client librtmp library.\n");
     LOGE("version: %d.%d.%d\n", srs_version_major(), srs_version_minor(), srs_version_revision());
-
 
     // @see: https://github.com/ossrs/srs/issues/126
     LOGE("rtmp url: %s", path);
@@ -58,7 +60,7 @@ void SRSLibRtmp::publish(const char *path) {
     }
     LOGE("publish stream success");
 
-    u_int32_t timestamp = 0;
+//    u_int32_t timestamp = 0;
 //    for (;;) {
 //        char type = SRS_RTMP_TYPE_VIDEO;
 //        int size = 4096;
@@ -119,6 +121,7 @@ int SRSLibRtmp::read_h264_frame(char *data, int size, char **pp, int *pnb_start_
 }
 
 void SRSLibRtmp::publishH264(const char *path) {
+
     LOGE("publish raw h.264 as rtmp stream to server like FMLE/FFMPEG/Encoder\n");
     LOGE("SRS(ossrs) client librtmp library.\n");
     LOGE("version: %d.%d.%d\n", srs_version_major(), srs_version_minor(), srs_version_revision());
@@ -126,8 +129,8 @@ void SRSLibRtmp::publishH264(const char *path) {
     LOGE("     h264_raw_file: the h264 raw steam file.\n");
     LOGE("     rtmp_publish_url: the rtmp publish url.\n");
     LOGE("     fps: the video average fps, for example, 25.\n");
-    LOGE("For example:\n");
-    LOGE("Where the file: http://winlinvip.github.io/srs.release/3rdparty/720p.h264.raw\n");
+    LOGE(" For example:\n ");
+    LOGE(" Where the file: http://winlinvip.github.io/srs.release/3rdparty/720p.h264.raw\n ");
     LOGE("     See: https://github.com/ossrs/srs/issues/66\n");
 
 
@@ -167,23 +170,26 @@ void SRSLibRtmp::publishH264(const char *path) {
     }
 
     // connect rtmp context
-    srs_rtmp_t rtmp = srs_rtmp_create(rtmp_url);
+    rtmp = srs_rtmp_create(rtmp_url);
 
     if (srs_rtmp_handshake(rtmp) != 0) {
         LOGE("simple handshake failed.");
         rtmpDestroy();
+        return ;
     }
     LOGE("simple handshake success");
 
     if (srs_rtmp_connect_app(rtmp) != 0) {
         LOGE("connect vhost/app failed.");
         rtmpDestroy();
+        return ;
     }
     LOGE("connect vhost/app success");
 
     if (srs_rtmp_publish_stream(rtmp) != 0) {
         LOGE("publish stream failed.");
         rtmpDestroy();
+        return ;
     }
     LOGE("publish stream success");
 
@@ -201,6 +207,7 @@ void SRSLibRtmp::publishH264(const char *path) {
                             &pts) < 0) {
             LOGE("read a frame from file buffer failed.");
             rtmpDestroy();
+            return ;
         }
 
         // send out the h264 packet over RTMP
@@ -215,6 +222,7 @@ void SRSLibRtmp::publishH264(const char *path) {
             } else {
                 LOGE("send h264 raw data failed. ret=%d", ret);
                 rtmpDestroy();
+                return ;
             }
         }
 
@@ -242,7 +250,6 @@ void SRSLibRtmp::publishH264(const char *path) {
     }
     LOGE("h264 raw data completed");
 
-    rtmp_destroy:
     srs_rtmp_destroy(rtmp);
     close(raw_fd);
     free(h264_raw);
