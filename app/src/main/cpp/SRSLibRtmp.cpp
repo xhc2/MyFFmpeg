@@ -233,18 +233,13 @@ void SRSLibRtmp::publishH264(const char *path) {
         LOGE("sent packet: type=%s, time=%d, size=%d, fps=%.2f, b[%d]=%#x(%s)",
                         srs_human_flv_tag_type2string(SRS_RTMP_TYPE_VIDEO), dts, size, fps,
                         nb_start_code, (char) data[nb_start_code],
-                        (nut == 7 ? "SPS" : (nut == 8 ? "PPS" : (nut == 5 ? "I" : (nut == 1 ? "P"
-                                                                                            : (
-                                                                                           nut == 9
-                                                                                           ? "AUD"
-                                                                                           : (nut ==
-                                                                                              6
+                        (nut == 7 ? "SPS" : (nut == 8 ? "PPS" : (nut == 5 ? "I" : (nut == 1 ? "P" : ( nut == 9 ? "AUD" : (nut == 6
                                                                                               ? "SEI"
                                                                                               : "Unknown")))))));
 
         // @remark, when use encode device, it not need to sleep.
         if (count++ == 9) {
-            av_usleep(1000 * 1000 * count / fps);
+            av_usleep(1000 * count / fps);
             count = 0;
         }
     }
