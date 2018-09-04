@@ -162,6 +162,13 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             }
         });
 
+        findViewById(R.id.ib_flv).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                
+            }
+        });
+
 
         btPlay.setOnClickListener(new View.OnClickListener() {
             @Override

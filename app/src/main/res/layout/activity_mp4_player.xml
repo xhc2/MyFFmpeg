@@ -32,13 +32,24 @@
         <ImageButton
             android:id="@+id/ib_publish"
             android:background="@null"
-            android:padding="2dp"
+            android:padding="5dp"
             android:src="@mipmap/network_stream"
             android:layout_marginRight="10dp"
             android:layout_toLeftOf="@id/ib_more"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
+        <ImageButton
+            android:id="@+id/ib_flv"
+            android:background="@null"
+            android:padding="2dp"
+            android:src="@mipmap/flv"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@id/ib_publish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </RelativeLayout>
 
     <RelativeLayout
