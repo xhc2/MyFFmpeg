@@ -193,7 +193,15 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             }
         });
 
+        findViewById(R.id.ib_flv).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Mp4PlayerActivity.this , FlvParseActivity.class));
+            }
+        });
+
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
             }

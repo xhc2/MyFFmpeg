@@ -72,6 +72,9 @@ public class FFmpegUtils {
     public static native int srsTest(String path);
     public static native int srsDestroy();
 
+    //flv
+    public static native String flvParse(String path);
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

@@ -13,6 +13,9 @@
 #include <CameraStream.h>
 #include <decode_test.h>
 #include <SRSLibRtmp.h>
+#include "FlvParse.h"
+
+
 
 
 /**
@@ -465,4 +468,19 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_srsDestroy(JNIEnv *env, jclass type) 
         srs->rtmpDestroy();
     }
     return 1;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_flvParse(JNIEnv *env, jclass type, jstring path_) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+
+    // TODO
+
+    env->ReleaseStringUTFChars(path_, path);
+
+    FlvParse *fp = new FlvParse(path);
+    const char* result = fp->start();
+
+    return env->NewStringUTF(result);
 }
