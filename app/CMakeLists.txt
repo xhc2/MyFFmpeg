@@ -28,6 +28,8 @@ add_library( my_ffmpeg
             src/main/cpp/srs_librtmp.cpp
             src/main/cpp/SRSLibRtmp.cpp
             src/main/cpp/FlvParse.cpp
+            src/main/cpp/AMF0.cpp
+             src/main/cpp/NumUtils.cpp
             )
 
 

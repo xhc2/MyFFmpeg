@@ -5,29 +5,26 @@
 
 #include <my_log.h>
 #include <stdlib.h>
-#include <sstream>
+
 #include "FlvParse.h"
 
 
-FlvParse::FlvParse(const char *path) {
-    this->path = path;
-    flv = fopen(path, "r");
+FlvParse::FlvParse(const char *p) {
+    int len = strlen(p);
+    this->path = (char *)malloc(len);
+
+    memcpy(this->path , p , len);
+
+    LOGE(" path %s " , this->path);
+    flv = fopen(this->path, "r+");
     if (flv == NULL) {
         resultStr.append("找不到文件！");
         LOGE("cant find file！");
     }
+    numUtils = NumUtils::getInstance();
 }
 
 
-double FlvParse::toDouble(char *bytes , int size){
-    if(size <= 0) return -1;
-    char temp[size] ;
-    for(int i = 0 ; i < size ; ++ i){
-        temp[i] = bytes[i];
-    }
-    return  *(double*)temp;
-
-}
 const char *FlvParse::start() {
     if (flv != NULL) {
         getFlvHeader();
@@ -37,30 +34,23 @@ const char *FlvParse::start() {
             if(tagHeader[0] == 0x12){
                 //script tag
                 resultStr.append("\n---meta_data---\n");
-                resultStr.append("---header---");
-                resultStr.append(" body size : ");
-                int bodySize = array2Int(tagHeader ,1 ,3 );
-                resultStr.append(int2String(bodySize));
-                resultStr.append(" timestamp : ");
-
-                int time = array2Int(tagHeader ,5,3 );
-                resultStr.append(int2String(time));
-
-                int streamId = array2Int(tagHeader ,9 , 3 );
-                resultStr.append(int2String(streamId));
-
+                printTagHeader(tagHeader);
+                readFirstAmf();
+                readSecondAmf();
             }
             else if(tagHeader[0] == 0x08){
                 //audio
                 resultStr.append("---audio_data---");
+                printTagHeader(tagHeader);
+
 
             }
             else if(tagHeader[0] == 0x09){
                 //video
                 resultStr.append("---video_data---");
-
-
+                printTagHeader(tagHeader);
             }
+            free(tagHeader);
             break;//test
         }
     }
@@ -69,22 +59,35 @@ const char *FlvParse::start() {
     return result;
 }
 
+void FlvParse::readFirstAmf(){
+    char *firstAmf = (char *)malloc(3);
 
-int FlvParse::array2Int(char *array , int start , int size){
-    int result = 0;
-    char temp[size] ;
-    for(int i = start ;i < start+size ; ++ i){
-        temp[i - start] = array[i];
-    }
-    memcpy(&result , temp , size);
-    return result;
+    fread(firstAmf, 1 , 3 , flv);
+
+
+    free(firstAmf);
 }
 
-string FlvParse::int2String(int num){
-    stringstream stream;
-    stream<<num;
-    return stream.str();
+void FlvParse::readSecondAmf(){
+
 }
+
+
+void FlvParse::printTagHeader(char *tagHeader){
+    resultStr.append("---header---");
+    resultStr.append(" body size : ");
+    int bodySize = numUtils->array2Int(tagHeader ,1 ,3 );
+    resultStr.append(numUtils->int2String(bodySize));
+
+    resultStr.append(" timestamp : ");
+    int time = numUtils->array2Int(tagHeader ,5,3 );
+    resultStr.append(numUtils->int2String(time));
+
+    resultStr.append(" streamId : ");
+    int streamId = numUtils->array2Int(tagHeader ,9 , 3 );
+    resultStr.append(numUtils->int2String(streamId));
+}
+
 
 void FlvParse::readMetaData() {
 
@@ -109,7 +112,7 @@ void FlvParse::getFlvHeader() {
     }
     int version = temp[3];
     resultStr.append("version : " );
-    resultStr.append(int2String(version));
+    resultStr.append(numUtils->int2String(version));
     free(temp);
 }
 

@@ -7,24 +7,27 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <string>
+#include "NumUtils.h"
 
 using namespace std;
 
 class FlvParse{
 
 private :
-    const char* path;
+    char* path;
     const char* result;
     void getFlvHeader() ;
     void readMetaData();
     void readAudioData();
     void readVideoData();
-    string int2String(int num);
-    double toDouble(char *bytes , int size);
-    int array2Int(char *array , int start , int size);
-    int array2Double(char *array);
+    void printTagHeader(char *bytes);
+
+    NumUtils* numUtils;
+    void readFirstAmf();
+    void readSecondAmf();
     string resultStr;
     FILE *flv;
+
 public :
     FlvParse(const char* path);
     ~FlvParse();

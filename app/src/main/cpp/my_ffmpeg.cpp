@@ -475,12 +475,10 @@ JNIEXPORT jstring JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_flvParse(JNIEnv *env, jclass type, jstring path_) {
     const char *path = env->GetStringUTFChars(path_, 0);
 
-    // TODO
-
-    env->ReleaseStringUTFChars(path_, path);
 
     FlvParse *fp = new FlvParse(path);
     const char* result = fp->start();
 
+    env->ReleaseStringUTFChars(path_, path);
     return env->NewStringUTF(result);
 }
