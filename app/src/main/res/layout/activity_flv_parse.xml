@@ -14,7 +14,7 @@
 
         <EditText
             android:id="@+id/et_path"
-            android:text="sdcard/FFmpeg/flv.flv"
+            android:text="sdcard/FFmpeg/flv2.flv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 

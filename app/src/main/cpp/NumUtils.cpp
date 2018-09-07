@@ -7,19 +7,31 @@
 //初始化
 NumUtils* NumUtils::numUtils = NULL;
 
-int NumUtils::array2Int(char *array , int start , int size){
+int NumUtils::array2Int(char *array ,const int start ,const int size){
+
     char temp[size];
     int tempCount = 0 ;
     int result = 0;
     int copySize = size;
-    for(int i = size + start - 1  ; i >= start  ; -- i){
-        if(array[i] != 0){
-            temp[tempCount] = array[i];
-            tempCount ++ ;
+    int removeSize = 0;
+
+    for(int i = start ;i < size + start ; ++ i){
+        if(array[i] == 0){
+            removeSize++;
         }
         else{
-            copySize -- ;
+            break;
         }
+    }
+    copySize -= removeSize;
+    char newArray[copySize];
+    memcpy(newArray , array + removeSize + start, copySize);
+
+    //高低翻转下
+    for(int i = size - removeSize - 1  ; i >= 0  ; -- i){
+        temp[tempCount] = newArray[i];
+        tempCount ++ ;
+
     }
     memcpy(&result , temp , copySize);
     return result;

@@ -15,6 +15,7 @@ public class FlvParseActivity extends Activity {
     private TextView tvData;
     private EditText etText;
     private ProgressDialog dialog;
+    
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {

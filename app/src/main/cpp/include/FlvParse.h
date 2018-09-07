@@ -36,10 +36,10 @@ private :
     void readFirstAmf();
     void readSecondAmf();
     void logPreviouTagHeader();
-
+    void write2File(string str);
     string resultStr;
     FILE *flv;
-
+    FILE *outFile;
 public :
     FlvParse(const char* path);
     ~FlvParse();

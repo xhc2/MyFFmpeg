@@ -14,13 +14,18 @@ FlvParse::FlvParse(const char *p) {
     memcpy(this->path , p , len);
     flv = fopen(this->path, "r+");
     if (flv == NULL) {
-        resultStr.append("找不到文件！");
+
         LOGE("cant find file！");
     }
+    outFile = fopen( "sdcard/FFmpeg/flvparse.txt" , "wb+");
     numUtils = NumUtils::getInstance();
     amf = AMF0::getInstance();
 }
 
+void FlvParse::write2File(string str){
+    fwrite(str.c_str() , 1, str.length() , outFile);
+    fflush(outFile);
+}
 
 const char *FlvParse::start() {
     if (flv != NULL) {
@@ -29,14 +34,14 @@ const char *FlvParse::start() {
         while(feof(flv) != 1){
             count ++;
             char *tagHeader = (char *)malloc(11);
-            if( fread(tagHeader , 1 , 11 , flv) < 11){
-                LOGE(" READ HEADER FAILD ! %d " , count );
+            if( int len = fread(tagHeader , 1 , 11 , flv) < 11){
+                LOGE(" READ HEADER FAILD ! %d , len %d " , count , len );
                 break;
             }
             if(tagHeader[0] == 0x12){
                 //script tag
                 LOGE(" -- meta_data -- ");
-                resultStr.append("\n------meta_data------\n");
+                write2File("\n------meta_data------\n");
                 printTagHeader(tagHeader);
                 readFirstAmf();
                 readSecondAmf();
@@ -44,26 +49,28 @@ const char *FlvParse::start() {
             else if(tagHeader[0] == 0x08){
                 //audio
                 LOGE(" -- AUDIO -- ");
-                resultStr.append("\n\n--------------audio_data--------------");
+                write2File("\n\n--------------audio_data--------------");
                 int bodySize = printTagHeader(tagHeader);
                 readAudioData(bodySize);
             }
             else if(tagHeader[0] == 0x09){
                 //video
                 LOGE(" -- VIDEO -- ");
-                resultStr.append("\n\n--------------video_data--------------");
+                write2File("\n\n--------------video_data--------------");
                 int bodySize = printTagHeader(tagHeader);
                 readVideoData(bodySize);
             }
             else{
-                LOGE(" FAILD TYPE %x " , tagHeader[0]);
+
+                LOGE(" FAILD TYPE %x  ， count %d " , tagHeader[0] , count);
                 break;
             }
             free(tagHeader);
             logPreviouTagHeader();
-
-
         }
+        resultStr.append(" 解析完成，在文件sdcard/FFmpeg/flvparse.txt ");
+    } else{
+        resultStr.append("找不到文件！");
     }
     result = resultStr.c_str();
     return result;
@@ -82,14 +89,14 @@ void FlvParse::readAudioData(int bodySize){
     soundSize &= 1;
 
     int soundType = audioFlag & 1;
-    resultStr.append("\n");
-    resultStr.append(getSoundFormat(soundFormat));
-    resultStr.append(" | ");
-    resultStr.append(getSoundRate(soundRate));
-    resultStr.append(" | ");
-    resultStr.append(getSoundSize(soundSize));
-    resultStr.append(" | ");
-    resultStr.append(getSoundType(soundType));
+    write2File("\n");
+    write2File(getSoundFormat(soundFormat));
+    write2File(" | ");
+    write2File(getSoundRate(soundRate));
+    write2File(" | ");
+    write2File(getSoundSize(soundSize));
+    write2File(" | ");
+    write2File(getSoundType(soundType));
     fseek(flv , bodySize - 7  , 1);
     free(audioData);
 }
@@ -206,40 +213,40 @@ void FlvParse::readVideoData(int bodySize){
     char type = videoTag[0];
     LOGE(" VIDEO TAG  %x ", type);
     int freameType = type >> 4;
-    resultStr.append("\n");
-    resultStr.append(numUtils->int2String(bodySize));
-    resultStr.append(" | ");
+    write2File("\n");
+    write2File(numUtils->int2String(bodySize));
+    write2File(" | ");
     LOGE("KEY FRAME %d " , freameType);
     switch(freameType)
     {
         case 1:
-            resultStr.append(" key frame ");
+            write2File(" key frame ");
             break;
         case 2:
-            resultStr.append(" inner frame ");
+            write2File(" inner frame ");
             break;
 
         case 3:
-            resultStr.append(" disposable inner frame(h 263 only) ");
+            write2File(" disposable inner frame(h 263 only) ");
             break;
         case 4:
-            resultStr.append(" generated key frame ");
+            write2File(" generated key frame ");
             break;
         default:
-            resultStr.append(" unknow ");
+            write2File(" unknow ");
             break;
     }
-    resultStr.append(" | ");
+    write2File(" | ");
     int codeId = type & 0x0f;
-    resultStr.append(getVideoCodeId(codeId));
-    resultStr.append(" | ");
+    write2File(getVideoCodeId(codeId));
+    write2File(" | ");
     char pckType = videoTag[1];
     switch(pckType){
         case 0:
-            resultStr.append(" sps/pps ");
+            write2File(" sps/pps ");
             break;
         case 1:
-            resultStr.append(" nalu ");
+            write2File(" nalu ");
             break;
     }
     free(videoTag);
@@ -283,31 +290,51 @@ void FlvParse::logPreviouTagHeader(){
     char *tagSize  = (char *)malloc(4);
     fread(tagSize , 1 , 4 , flv);
     int size = numUtils->array2Int(tagSize , 0 , 4);
-    LOGE("PREVIOUS TAG SIZE %d " , size );
+    write2File("\nprevious tag size : ");
+    write2File(numUtils->int2String(size));
+//    LOGE("PREVIOUS TAG SIZE %d " , size );
     free(tagSize);
 }
 
 void FlvParse::readFirstAmf(){
     char *firstAmf = (char *)malloc(3);
-    resultStr.append(" \n ");
+    write2File(" \n ");
     fread(firstAmf, 1 , 3 , flv);
+
+//    string test ;
+//    for(int i = 0 ;i < 3; ++ i){
+//        test.append(numUtils->int2String(firstAmf[i]));
+//        test.append(" ");
+//    }
+//    LOGE(" first amf bit %s " ,test.c_str());
+
+
     int size = amf->readNum(firstAmf , 0 , 3);
+    LOGE(" first amf SIZE %d " ,size );
     char *amfContent = (char *)malloc(size);
+
     fread(amfContent, 1 , size , flv);
     string afmBody = amf->getAMF0(firstAmf[0] , amfContent , 0, size);
     LOGE(" FIRST content %s " , afmBody.c_str());
-    resultStr.append(afmBody);
+    write2File(afmBody);
     free(firstAmf);
     free(amfContent);
 }
 
 void FlvParse::readSecondAmf(){
     char *secondAmf = (char *) malloc(5);
-    resultStr.append(" count : ");
+    write2File(" count : ");
     fread(secondAmf, 1 , 5 , flv);
+//    string test ;
+//    for(int i = 0 ;i < 5; ++ i){
+//        test.append(numUtils->int2String(secondAmf[i]));
+//        test.append(" ");
+//    }
+//    LOGE(" medata bit %s " ,test.c_str());
+
     int size = amf->readNum(secondAmf , 0 , 5);
     LOGE(" MEDATA COUNT %d" ,size);
-    resultStr.append(numUtils->int2String(size));
+    write2File(numUtils->int2String(size));
     free(secondAmf);
     readMetaData(size);
 
@@ -315,35 +342,35 @@ void FlvParse::readSecondAmf(){
 
 
 int FlvParse::printTagHeader(char *tagHeader){
-    resultStr.append("\nbody size : ");
+    write2File("\nbody size : ");
     int bodySize = numUtils->array2Int(tagHeader ,1 ,3 );
-    resultStr.append(numUtils->int2String(bodySize));
+    write2File(numUtils->int2String(bodySize));
 
-    resultStr.append(" timestamp : ");
+    write2File(" timestamp : ");
     int time = numUtils->array2Int(tagHeader ,4,3 );
-    resultStr.append(numUtils->int2String(time));
+    write2File(numUtils->int2String(time));
 
-    resultStr.append(" tExtends : ");
+    write2File(" tExtends : ");
     int extends = numUtils->array2Int(tagHeader ,7,1 );
-    resultStr.append(numUtils->int2String(extends));
+    write2File(numUtils->int2String(extends));
 
-    resultStr.append(" streamId : ");
+    write2File(" streamId : ");
     int streamId = numUtils->array2Int(tagHeader ,8 , 3 );
-    resultStr.append(numUtils->int2String(streamId));
+    write2File(numUtils->int2String(streamId));
     return bodySize;
 }
 
 
 void FlvParse::readMetaData(int count) {
-    resultStr.append("\n");
+    write2File("\n");
     for(int i = 0 ;i < count ; ++ i){
         //开始读取count个属性。
         string key = readMetaDataKey();
-        resultStr.append(key);
-        resultStr.append(" : ");
+        write2File(key);
+        write2File(" : ");
         string value = readMetaDataValue();
-        resultStr.append(value);
-        resultStr.append("\n");
+        write2File(value);
+        write2File("\n");
         LOGE(" KEY %s , value %s " , key.c_str() , value.c_str());
     }
 
@@ -414,17 +441,17 @@ string FlvParse::readMetaDataValue(){
 
 
 void FlvParse::getFlvHeader() {
-    resultStr.append("-------flvheader--------\n");
+    write2File("-------flvheader--------\n");
     char *temp = (char *) malloc(13);
     fread(temp, 1, 13, flv);
     if (temp[0] != 'F' || temp[1] != 'L' || temp[2] != 'V') {
         resultStr.clear();
-        resultStr.append("-------不是flv文件--------");
+        write2File("-------不是flv文件--------");
         return;
     }
     int version = temp[3];
-    resultStr.append("version : " );
-    resultStr.append(numUtils->int2String(version));
+    write2File("version : " );
+    write2File(numUtils->int2String(version));
     free(temp);
 }
 
@@ -433,4 +460,5 @@ void FlvParse::getFlvHeader() {
 
 FlvParse::~FlvParse() {
     free(this->path);
+    fclose(outFile);
 }

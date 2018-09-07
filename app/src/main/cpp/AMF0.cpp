@@ -3,6 +3,7 @@
 //
 
 #include <NumUtils.h>
+#include <my_log.h>
 #include "AMF0.h"
 
 AMF0 *AMF0::instance = NULL;
@@ -54,6 +55,7 @@ AMF0 *AMF0::getInstance() {
 //这个里面byte的第一个字节必须存type
 int AMF0::readNum(char *bytes, int start, int size) {
     char type = bytes[start];
+    LOGE(" TYPE %d " , type);
     switch (type) {
         case kNumber:
             return 8;
