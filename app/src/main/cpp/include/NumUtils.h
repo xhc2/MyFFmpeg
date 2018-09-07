@@ -20,8 +20,9 @@ private :
 public :
     static NumUtils* getInstance();
     int array2Int(char *array , int start , int size);
-    int array2Double(char *array);
+    double array2Double(char *array , int start);
     string int2String(int num);
+    string double2String(double num);
     void bitRead(int result);
 };
 

@@ -25,6 +25,8 @@ int NumUtils::array2Int(char *array , int start , int size){
     return result;
 }
 
+
+
 //这里不加static
 NumUtils* NumUtils::getInstance(){
         if(numUtils == NULL){
@@ -53,6 +55,32 @@ string NumUtils::int2String(int num){
     stream.clear();
     return str;
 }
+
+string NumUtils::double2String(double num){
+    stringstream stream;
+    stream<<num;
+    string str = stream.str();
+    stream.clear();
+    return str;
+}
+
+double NumUtils::array2Double(char *array , int start){
+
+    double result = 0;
+    int doubleSize = 8;
+    char *resultArray = (char *)malloc(doubleSize);
+    int j = start + doubleSize - 1 ;
+    for(int i = 0 ;i < doubleSize ; ++ i ){
+        resultArray[i] = array[j];
+        -- j;
+
+    }
+    memcpy(&result , resultArray , doubleSize);
+
+    return result;
+
+}
+
 
 
 NumUtils::NumUtils(){

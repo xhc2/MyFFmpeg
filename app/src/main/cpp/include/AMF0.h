@@ -5,17 +5,24 @@
 using namespace std;
 #ifndef MYFFMPEG_AMF0_H
 #define MYFFMPEG_AMF0_H
-
+enum amf0{
+    kNumber=0x00 ,
+    kBoolean ,
+    kString ,
+    kObject ,
+    kMovieClip ,
+    kNull ,
+    kUndefined ,
+    kReference ,
+    kEcmaArray ,
+    kEndOfObject ,
+    kArray ,
+    kDate ,
+};
 class AMF0{
 
 private :
-    enum amf0{
-        kNumber=0x00 ,
-        kBoolean ,
-        kString ,
-        kObject ,
-        kMovieClip ,
-    };
+
     static AMF0* instance;
     AMF0();
 public :
@@ -28,5 +35,8 @@ public :
 
 
     ~AMF0();
+
+
+
 };
 #endif //MYFFMPEG_AMF0_H

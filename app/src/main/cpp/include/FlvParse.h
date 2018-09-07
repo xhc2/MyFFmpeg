@@ -8,23 +8,35 @@
 #include <stdio.h>
 #include <string>
 #include "NumUtils.h"
+#include "AMF0.h"
 
 using namespace std;
 
-class FlvParse{
+class FlvParse {
 
 private :
     char* path;
     const char* result;
     void getFlvHeader() ;
-    void readMetaData();
-    void readAudioData();
-    void readVideoData();
-    void printTagHeader(char *bytes);
+    void readMetaData(int count);
+    void readAudioData(int bodySize);
+    void readVideoData(int bodySize);
+    int printTagHeader(char *bytes);
+    string getVideoCodeId(int type);
+    string readMetaDataKey();
+    string readMetaDataValue();
+
+    string getSoundFormat(int type);
+    string getSoundRate(int type);
+    string getSoundSize(int type);
+    string getSoundType(int type);
 
     NumUtils* numUtils;
+    AMF0 *amf;
     void readFirstAmf();
     void readSecondAmf();
+    void logPreviouTagHeader();
+
     string resultStr;
     FILE *flv;
 
