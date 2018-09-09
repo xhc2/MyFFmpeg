@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -153,6 +152,13 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             }
         });
 
+        findViewById(R.id.ib_hard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Mp4PlayerActivity.this, HardCodeActivity.class));
+            }
+        });
+
         findViewById(R.id.ib_publish).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -162,12 +168,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             }
         });
 
-        findViewById(R.id.ib_flv).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                
-            }
-        });
 
 
         btPlay.setOnClickListener(new View.OnClickListener() {

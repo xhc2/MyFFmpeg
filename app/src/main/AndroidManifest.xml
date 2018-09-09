@@ -48,7 +48,8 @@
         <activity
             android:name=".CameraStreamActivity"
             android:label="@string/title_activity_camera_stream" />
-        <activity android:name=".FlvParseActivity"></activity>
+        <activity android:name=".FlvParseActivity" />
+        <activity android:name=".HardCodeActivity"></activity>
     </application>
 
 </manifest>

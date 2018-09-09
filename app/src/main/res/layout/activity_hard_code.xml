@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".HardCodeActivity">
+
+    <Button
+        android:id="@+id/bt_h264_e"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="视频编码h264"
+        />
+
+    <Button
+        android:id="@+id/bt_aac_e"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="音频编码aac"
+        />
+
+    <Button
+        android:id="@+id/bt_h264_d"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="视频解码h264"
+        />
+
+    <Button
+        android:id="@+id/bt_aac_d"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="音频解码aac"
+        />
+</LinearLayout>
