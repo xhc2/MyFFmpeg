@@ -83,7 +83,7 @@ public class MediaCodecAudio extends Thread {
         int size = info.size;
         byte[] outBuffer = new byte[size + 7];
         outputBuffer.get(outBuffer , 7 , size);
-        addADTSToBuffer(outBuffer , size);
+        addADTSToBuffer(outBuffer , size + 7);
         if (callBack != null) {
             Log.e("xhc" ," aac callback "+size );
             count ++ ;
@@ -98,6 +98,7 @@ public class MediaCodecAudio extends Thread {
         int chanCfg = 2;  //CPE
         aac[0] = (byte) 0xFF;
         aac[1] = (byte) 0xF9;
+//        profile的值等于 Audio Object Type的值减1.
         aac[2] = (byte) (((profile - 1) << 6) + (freqIdx << 2) + (chanCfg >> 2));
         aac[3] = (byte) (((chanCfg & 3) << 6) + (bufferLen >> 11));
         aac[4] = (byte) ((bufferLen & 0x7FF) >> 3);

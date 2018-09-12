@@ -28,6 +28,7 @@ public class HardCodeActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hard_code);
+
         findViewById(R.id.bt_h264_e).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
