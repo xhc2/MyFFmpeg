@@ -68,6 +68,15 @@ public class HardCodeActivity extends Activity {
 
             }
         });
+
+        findViewById(R.id.bt_muxer).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //封装音视频
+
+            }
+        });
+
     }
 
     private void encodePcm() throws  Exception {

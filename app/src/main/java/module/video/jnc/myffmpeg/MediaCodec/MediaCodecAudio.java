@@ -34,9 +34,11 @@ public class MediaCodecAudio extends Thread {
             this.channelCount = channelCount;
             mediaCodec = MediaCodec.createEncoderByType(MIME);
             info = new MediaCodec.BufferInfo();
+
             mf = MediaFormat.createAudioFormat(MIME,this.sampleRate, this.channelCount);
             mf.setInteger(MediaFormat.KEY_BIT_RATE, this.bitrate);
             mf.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+
             mediaCodec.configure(mf, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mediaCodec.start();
             timeInter = 1000 * 1000 / sampleRate;

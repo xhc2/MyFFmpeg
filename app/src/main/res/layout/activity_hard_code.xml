@@ -11,15 +11,23 @@
         android:id="@+id/bt_h264_e"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="视频编码h264"
+        android:text="yuv编码h264（yuv_640_360.yuv）"
         />
 
     <Button
         android:id="@+id/bt_aac_e"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="音频编码aac"
+        android:text="pcm编码aac（test_2c_441_16.pcm）"
         />
+
+    <Button
+        android:id="@+id/bt_muxer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="封装视频音频"
+        />
+
 
     <Button
         android:id="@+id/bt_h264_d"
