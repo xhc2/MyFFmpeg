@@ -15,7 +15,10 @@ public class FlvParseActivity extends Activity {
     private TextView tvData;
     private EditText etText;
     private ProgressDialog dialog;
-    
+//    private String path ="sdcard/FFmpeg/flv2.flv";
+    private String path ="sdcard/FFmpeg/test.h264";
+//    private String path ="sdcard/FFmpeg/aac.aac";
+
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -32,9 +35,28 @@ public class FlvParseActivity extends Activity {
         setContentView(R.layout.activity_flv_parse);
         tvData = findViewById(R.id.tv_all_data);
         etText = findViewById(R.id.et_path);
+        etText.setText(path);
+
         dialog = new ProgressDialog(this);
         dialog.setMessage("解析中...");
         findViewById(R.id.bt_parse).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.show();
+                startThread(etText.getText().toString());
+            }
+        });
+
+        findViewById(R.id.bt_parse_h264).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //分析h264
+                dialog.show();
+                startThread(etText.getText().toString());
+            }
+        });
+
+        findViewById(R.id.bt_parse_aac).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.show();
@@ -63,7 +85,16 @@ public class FlvParseActivity extends Activity {
         @Override
         public void run() {
             super.run();
-            String result = FFmpegUtils.flvParse(path);
+            String result = null;
+            if(path.endsWith("flv")){
+                result = FFmpegUtils.flvParse(path);
+            }
+            else if(path.endsWith("h264") || path.endsWith("264")){
+                result = FFmpegUtils.h264Parse(path);
+            }
+            else if(path.endsWith("aac")){
+                result = FFmpegUtils.aacParse(path);
+            }
             Message msg = new Message();
             msg.obj = result;
             handler.sendMessage(msg);

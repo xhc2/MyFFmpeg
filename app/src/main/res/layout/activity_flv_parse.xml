@@ -14,7 +14,7 @@
 
         <EditText
             android:id="@+id/et_path"
-            android:text="sdcard/FFmpeg/flv2.flv"
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -23,7 +23,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="解析flv文件" />
-
+        <Button
+            android:id="@+id/bt_parse_h264"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="解析h264文件" />
+        <Button
+            android:id="@+id/bt_parse_aac"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="解析aac文件" />
         <TextView
             android:id="@+id/tv_all_data"
             android:layout_width="wrap_content"

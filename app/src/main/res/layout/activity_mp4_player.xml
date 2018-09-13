@@ -43,7 +43,7 @@
         <ImageButton
             android:id="@+id/ib_flv"
             android:background="@null"
-            android:src="@mipmap/flv"
+            android:src="@mipmap/fileparse"
             android:layout_marginRight="10dp"
             android:layout_toLeftOf="@id/ib_publish"
             android:layout_width="wrap_content"
