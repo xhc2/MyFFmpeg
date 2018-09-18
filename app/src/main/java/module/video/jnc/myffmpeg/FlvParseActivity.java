@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class FlvParseActivity extends Activity {
 
@@ -42,8 +43,15 @@ public class FlvParseActivity extends Activity {
         findViewById(R.id.bt_parse).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialog.show();
-                startThread(etText.getText().toString());
+                String str = etText.getText().toString();
+                if(str.endsWith("flv")){
+                    dialog.show();
+                    startThread(etText.getText().toString());
+                }
+                else{
+                    Toast.makeText(FlvParseActivity.this, "请输入正确文件格式", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
@@ -51,16 +59,28 @@ public class FlvParseActivity extends Activity {
             @Override
             public void onClick(View v) {
                 //分析h264
-                dialog.show();
-                startThread(etText.getText().toString());
+                String str = etText.getText().toString();
+                if(str.endsWith("h264") || str.endsWith("264")){
+                    dialog.show();
+                    startThread(etText.getText().toString());
+                }
+                else{
+                    Toast.makeText(FlvParseActivity.this, "请输入正确文件格式", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
         findViewById(R.id.bt_parse_aac).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialog.show();
-                startThread(etText.getText().toString());
+                String str = etText.getText().toString();
+                if(str.endsWith("aac")){
+                    dialog.show();
+                    startThread(etText.getText().toString());
+                }
+                else{
+                    Toast.makeText(FlvParseActivity.this, "请输入正确文件格式", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

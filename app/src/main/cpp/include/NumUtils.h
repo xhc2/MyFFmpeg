@@ -24,6 +24,7 @@ public :
     //哥伦布编码
     u_int columbusCoding(char *param);
     string int2String(int num);
+    string int2String(char num);
     string double2String(double num);
     void bitRead(int result);
 };

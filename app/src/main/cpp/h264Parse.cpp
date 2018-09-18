@@ -104,18 +104,19 @@ void h264Parse::parseHeader(char *buf , int start){
     writeMsg("\n");
     char nalHead = buf[start];
     LOGE(" nal head %x " , nalHead);
-    int forbidden = nalHead & 0x80;
+    char forbidden = nalHead & 0x80;
     if(forbidden != 0){
         LOGE(" BORBIDDEN IS WRONG ");
         return ;
     }
     int nri = nalHead & 0x60;
+    nri =  nri >> 5;
     string str(" nal_ref_idc：");
     str.append(numUtils->int2String(nri));
     writeMsg(str);
-    char naluType = nalHead & 0x1F;
+    int naluType = nalHead & 0x1F;
     str.clear();
-    str.append("type : ");
+    str.append("| type : ");
     str.append(numUtils->int2String(naluType));
     str.append("（");
     switch(naluType){
@@ -162,14 +163,15 @@ void h264Parse::parseHeader(char *buf , int start){
 
 
 void h264Parse::writeMsg(string msg){
-    LOGE("%s ",msg.c_str());
-//    fwrite(msg.c_str() , 1, msg.length() , h264OutF);
-//    fflush(h264OutF);
+//    LOGE("%s ",msg.c_str());
+    fwrite(msg.c_str() , 1, msg.length() , h264OutF);
+    fflush(h264OutF);
 }
 
 //每个nalu的size都是需要通过startcode来分割的。也就是只有一个个字节的遍历
 void h264Parse::start() {
     int count = 0;
+    string str ;
     while(!feof(h264F)){
         count ++;
         NALU *na = getNalu();
@@ -177,10 +179,12 @@ void h264Parse::start() {
             LOGE(" WRONG ");
             break;
         }
-        LOGE("---------------------------------------------------------------");
         parseHeader(na->data , na->startCodeSize);
-        LOGE("nal size %d " , na->size);
-        LOGE("---------------------------------------------------------------");
+        str.append("| nal size ");
+        str.append(numUtils->int2String( na->size));
+        writeMsg(str);
+        writeMsg("\n----------------------------------");
+        str.clear();
         free(na->data);
         if(na->isEnd){
             break;

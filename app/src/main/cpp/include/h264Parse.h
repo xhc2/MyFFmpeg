@@ -52,7 +52,6 @@ private :
 //    void parseSps();
 //    void parsePps();
     void writeMsg(string msg);
-
     FILE *h264F;
     FILE *h264OutF;
     NumUtils *numUtils ;

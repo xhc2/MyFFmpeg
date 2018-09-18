@@ -67,6 +67,14 @@ string NumUtils::int2String(int num) {
     return str;
 }
 
+string NumUtils::int2String(char num) {
+    stringstream stream;
+    stream << num;
+    string str = stream.str();
+    stream.clear();
+    return str;
+}
+
 string NumUtils::double2String(double num) {
     stringstream stream;
     stream << num;
