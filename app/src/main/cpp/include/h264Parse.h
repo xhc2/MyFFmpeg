@@ -11,6 +11,10 @@
 
 using namespace std;
 
+/**
+ * 先不详细分析sps，pps这些里面的数据。
+ * 有点繁杂。
+ */
 struct SPSstruct{
 
     char profile_idc;
@@ -22,24 +26,31 @@ struct SPSstruct{
     char constraint_set4_flag : 1;
     char constraint_set5_flag : 1;
     char reserved_zero_2bit : 2;
-
-
-
     char level_idc;
+};
 
+struct NALU{
 
-
-
-
+    int size ;
+    int bufSize;
+    int startCodeSize;
+    char* header;
+    char* data;
+    bool isEnd;
 };
 
 class h264Parse{
 
 private :
     char* path;
-    bool isHead();
-    void parseHeader();
-    void parseSliceHeader();
+    int startCode1(char* buf , int start );
+    int startCode2(char* buf, int start  );
+    void parseHeader(char *buf , int start);
+    NALU* getNalu();
+    int naluSize = 2048;
+//    void parseSlice();
+//    void parseSps();
+//    void parsePps();
     void writeMsg(string msg);
 
     FILE *h264F;

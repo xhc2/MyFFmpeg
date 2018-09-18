@@ -1,6 +1,4 @@
-//
 // Created by Administrator on 2018/9/13/013.
-//
 
 #include "h264Parse.h"
 #include <stdlib.h>
@@ -23,46 +21,89 @@ h264Parse::h264Parse(const char* path){
     }
     numUtils = NumUtils::getInstance();
 
-    char *temp = (char *)malloc(7);
-    temp[6] = 0;
-    temp[5] = 0;
-    temp[4] = 0;
-    temp[3] = 1;
-    temp[2] = 0;
-    temp[1] = 1;
-    temp[0] = 1;
-
-    int result =numUtils->columbusCoding(temp);
-    LOGE(" result %d " , result);
 }
 
-bool h264Parse::isHead(){
-    char *head = (char *)malloc(3);
-    fread(head , 1 , 3 , h264F);
-    if(head[0] == 0x00 && head[1] == 0x00 && head[2] == 0x01){
-        free(head);
-        return true;
-    }
-    if( fseek(h264F , -3 ,1) == -1){
-        LOGE(" seek faild !");
-        free(head);
-        return false;
-    }
+//是不是nalu的header
 
-    head = (char *)realloc(head , 4);
-
-    if(head[0] == 0x00 && head[1] == 0x00 && head[2] == 0x00 && head[3] == 0x01){
-        free(head);
-        return true;
+//3位的code
+int h264Parse::startCode1(char* buf, int start ){
+    if(buf[start] == 0x00 && buf[start+1] == 0x00 && buf[start+2] == 0x01){
+        return 3;
     }
-    free(head);
-    return false;
+    return -1;
 }
 
-void h264Parse::parseHeader(){
+//4位的code
+int h264Parse::startCode2(char* buf, int start ){
+    if(buf[start] == 0x00 && buf[start+1] == 0x00 && buf[start+2] == 0x00 && buf[start+3] == 0x01){
+        return 4;
+    }
+    return -1;
+}
+
+NALU* h264Parse::getNalu(){
+    NALU *nalu = new NALU();
+    nalu->size = 0 ;
+    nalu->bufSize = 0;
+    nalu->startCodeSize = 0;
+    nalu->isEnd = false;
+    char* tempBuf = (char *)malloc(naluSize);
+    nalu->bufSize = naluSize;
+    fread(tempBuf , 1 , 3 , h264F);
+    int startCode = startCode1(tempBuf  , 0  );
+    if(startCode == -1){
+        fread(tempBuf + 3 , 1 , 1 , h264F);
+        startCode = startCode2(tempBuf  , 0 );
+        if(startCode == -1){
+            free(tempBuf);
+            return NULL;
+        }
+    }
+    nalu->startCodeSize = startCode;
+    nalu->size += startCode;
+    startCode = -1;
+    while(startCode == -1){
+        if(feof(h264F)){
+            //文件结尾也算是个startcode标识
+            LOGE(" END OF FILE ! ");
+            nalu->isEnd = true;
+            break;
+        }
+
+        if(nalu->size + 1 > nalu->bufSize){
+            //万一空间不够，重新开辟
+            char *temp  = (char *)malloc(nalu->size + naluSize);
+            nalu->bufSize = nalu->size + naluSize;
+            memcpy(temp , tempBuf , nalu->size);
+            free(tempBuf);
+            tempBuf = temp ;
+        }
+
+        fread(tempBuf +  nalu->size , 1 , 1 , h264F);
+        nalu->size ++;
+        startCode = startCode2(tempBuf , nalu->size - 4);
+        if(startCode == -1){
+            startCode = startCode1(tempBuf  ,nalu->size - 3);
+            if(startCode != -1){
+                break;
+            }
+        }
+        else break;
+    }
+    nalu->size -= startCode;
+    if(fseek(h264F , -startCode , 1) == -1){
+        LOGE(" SEEK FAILD !");
+    }
+    nalu->size -= nalu->startCodeSize;
+    nalu->data = tempBuf;
+    return nalu;
+}
+
+//判断nalu类型
+void h264Parse::parseHeader(char *buf , int start){
     writeMsg("\n");
-    char *head = (char *)malloc(1);
-    int nalHead = *head ;
+    char nalHead = buf[start];
+    LOGE(" nal head %x " , nalHead);
     int forbidden = nalHead & 0x80;
     if(forbidden != 0){
         LOGE(" BORBIDDEN IS WRONG ");
@@ -72,7 +113,7 @@ void h264Parse::parseHeader(){
     string str(" nal_ref_idc：");
     str.append(numUtils->int2String(nri));
     writeMsg(str);
-    int naluType = nalHead * 0x1F;
+    char naluType = nalHead & 0x1F;
     str.clear();
     str.append("type : ");
     str.append(numUtils->int2String(naluType));
@@ -89,31 +130,24 @@ void h264Parse::parseHeader(){
             break;
         case 4:
             str.append("SLICE C");
-
             break;
         case 5:
             str.append(" IDR ");
-
             break;
         case 6:
             str.append(" SEI ");
-
             break;
         case 7:
             str.append(" SPS ");
-
             break;
         case 8:
             str.append(" PPS ");
-
             break;
         case 9:
             str.append(" 分界符 ");
-
             break;
         case 10:
             str.append(" 序列结束 ");
-
             break;
         case 11:
             str.append(" 码流结束 ");
@@ -124,19 +158,33 @@ void h264Parse::parseHeader(){
     }
     str.append("）");
     writeMsg(str);
-    free(head);
 }
 
-void h264Parse::parseSliceHeader(){
-
-}
 
 void h264Parse::writeMsg(string msg){
-    fwrite(msg.c_str() , 1, msg.length() , h264OutF);
-    fflush(h264OutF);
+    LOGE("%s ",msg.c_str());
+//    fwrite(msg.c_str() , 1, msg.length() , h264OutF);
+//    fflush(h264OutF);
 }
 
+//每个nalu的size都是需要通过startcode来分割的。也就是只有一个个字节的遍历
 void h264Parse::start() {
-
+    int count = 0;
+    while(!feof(h264F)){
+        count ++;
+        NALU *na = getNalu();
+        if(na == NULL){
+            LOGE(" WRONG ");
+            break;
+        }
+        LOGE("---------------------------------------------------------------");
+        parseHeader(na->data , na->startCodeSize);
+        LOGE("nal size %d " , na->size);
+        LOGE("---------------------------------------------------------------");
+        free(na->data);
+        if(na->isEnd){
+            break;
+        }
+    }
 
 }

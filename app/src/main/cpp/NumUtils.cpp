@@ -116,7 +116,7 @@ u_int NumUtils::u(char *bs, char bitCount) {
  *  0 0 1 x x 对应3-6
  *  前面0的个数就是后面信息位（x）的个数
  *  值的计算是 = 2 ^ 0 位数 - 1+ x（xxx的十进制表示方式）
- *
+ *  还没写完。先不管
  */
 u_int NumUtils::columbusCoding(char *param) {
     u_int zeroNum = 0;
