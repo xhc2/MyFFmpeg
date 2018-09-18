@@ -47,7 +47,10 @@ private :
     int startCode2(char* buf, int start  );
     void parseHeader(char *buf , int start);
     NALU* getNalu();
+
+    char* getNextNalu();
     int naluSize = 2048;
+    int nowPosition();
 //    void parseSlice();
 //    void parseSps();
 //    void parsePps();
@@ -57,6 +60,7 @@ private :
     NumUtils *numUtils ;
 public :
     h264Parse(const char *path);
+    ~h264Parse();
     void start();
 };
 

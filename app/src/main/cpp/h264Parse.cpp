@@ -23,7 +23,6 @@ h264Parse::h264Parse(const char* path){
 
 }
 
-//是不是nalu的header
 
 //3位的code
 int h264Parse::startCode1(char* buf, int start ){
@@ -49,7 +48,11 @@ NALU* h264Parse::getNalu(){
     nalu->isEnd = false;
     char* tempBuf = (char *)malloc(naluSize);
     nalu->bufSize = naluSize;
-    fread(tempBuf , 1 , 3 , h264F);
+    int len = fread(tempBuf , 1 , 3 , h264F);
+    if( len == -1 || len < 3){
+        return NULL;
+    };
+
     int startCode = startCode1(tempBuf  , 0  );
     if(startCode == -1){
         fread(tempBuf + 3 , 1 , 1 , h264F);
@@ -162,8 +165,15 @@ void h264Parse::parseHeader(char *buf , int start){
 }
 
 
+//获取下一个nalu，包含了startCode
+char* h264Parse::getNextNalu(){
+    NALU *nalu = getNalu();
+    if(nalu == NULL){
+        return NULL;
+    }
+}
+
 void h264Parse::writeMsg(string msg){
-//    LOGE("%s ",msg.c_str());
     fwrite(msg.c_str() , 1, msg.length() , h264OutF);
     fflush(h264OutF);
 }
@@ -175,7 +185,7 @@ void h264Parse::start() {
     while(!feof(h264F)){
         count ++;
         NALU *na = getNalu();
-        if(na == NULL){
+        if(na == NULL) {
             LOGE(" WRONG ");
             break;
         }
@@ -190,5 +200,10 @@ void h264Parse::start() {
             break;
         }
     }
+}
+
+
+h264Parse::~h264Parse(){
+
 
 }
