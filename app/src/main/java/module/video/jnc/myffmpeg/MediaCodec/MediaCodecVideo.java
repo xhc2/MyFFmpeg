@@ -99,13 +99,13 @@ public class MediaCodecVideo extends Thread{
         byte[] outBuffer = new byte[size];
         outputBuffer.get(outBuffer);
         if(callBack != null){
-            callBack.H264CallBack(outBuffer);
+            callBack.H264CallBack(outBuffer , info ,outputBuffer );
         }
         mediaCodec.releaseOutputBuffer(outputBufferId, false);
     }
 
     public interface H264CallBack{
-        void H264CallBack(byte[] data);
+        void H264CallBack(byte[] data ,MediaCodec.BufferInfo info , ByteBuffer buffer);
     }
 
     public void startEncode(){
@@ -117,7 +117,10 @@ public class MediaCodecVideo extends Thread{
         runFlag = false;
         try {
             join();
-        } catch (InterruptedException e) {
+            mediaCodec.stop();
+            mediaCodec.release();
+        } catch (Exception e) {
+            Log.e("xhc" , "stop exception "+e.getMessage());
             e.printStackTrace();
         }
     }

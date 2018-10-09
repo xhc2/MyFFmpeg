@@ -23,9 +23,9 @@ public class FlvParseActivity extends Activity {
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            dialog.dismiss();
-            String str = (String)msg.obj;
-            tvData.setText(str);
+//            dialog.dismiss();
+//            String str = (String)msg.obj;
+//            tvData.setText(str);
             return false;
         }
     });
@@ -40,6 +40,7 @@ public class FlvParseActivity extends Activity {
 
         dialog = new ProgressDialog(this);
         dialog.setMessage("解析中...");
+
         findViewById(R.id.bt_parse).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -83,6 +84,15 @@ public class FlvParseActivity extends Activity {
                 }
             }
         });
+
+        findViewById(R.id.bt_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               byte[] array =  FFmpegUtils.getNextNalu(path);
+               Log.e("xhc_jni" , " size "+array.length);
+            }
+        });
+
     }
 
     private ParseThread ptThread;

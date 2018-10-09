@@ -76,7 +76,7 @@ public class FFmpegUtils {
     public static native String flvParse(String path);
     public static native String h264Parse(String path);
     public static native String aacParse(String path);
-
+    public static native byte[] getNextNalu(String path);
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

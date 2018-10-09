@@ -9,7 +9,7 @@ h264Parse::h264Parse(const char* path){
     this->path = (char *)malloc(length);
     memcpy(this->path , path , length);
     LOGE("PATH %s " , path);
-    h264F = fopen(path , "r");
+    h264F = fopen(this->path , "r");
     if(h264F == NULL){
         LOGE(" FILE IS NULL !");
         return ;
@@ -166,11 +166,8 @@ void h264Parse::parseHeader(char *buf , int start){
 
 
 //获取下一个nalu，包含了startCode
-char* h264Parse::getNextNalu(){
-    NALU *nalu = getNalu();
-    if(nalu == NULL){
-        return NULL;
-    }
+NALU* h264Parse::getNextNalu(){
+    return getNalu();
 }
 
 void h264Parse::writeMsg(string msg){

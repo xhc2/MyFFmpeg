@@ -17,6 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+
         <activity
             android:name=".Mp4PlayerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -49,7 +50,7 @@
             android:name=".CameraStreamActivity"
             android:label="@string/title_activity_camera_stream" />
         <activity android:name=".FlvParseActivity" />
-        <activity android:name=".HardCodeActivity"></activity>
+        <activity android:name=".HardCodeActivity"/>
     </application>
 
 </manifest>

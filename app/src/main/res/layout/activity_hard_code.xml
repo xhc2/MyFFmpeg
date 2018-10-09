@@ -7,6 +7,18 @@
     android:orientation="vertical"
     tools:context=".HardCodeActivity">
 
+    <TextView
+        android:text="硬解相关"
+        android:padding="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tv_view"
+        android:padding="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/bt_h264_e"
         android:layout_width="match_parent"

@@ -27,6 +27,7 @@ public class MediaCodecAudio extends Thread {
     private int sampleSize = 16;
     private AACCallBack callBack;
     private  int channelCount;
+    private boolean addHead = true;
     public MediaCodecAudio( int sampleRate, int channelCount , int pcmSize,  AACCallBack callBack) {
         try {
             this.pcmSize = pcmSize;
@@ -46,6 +47,10 @@ public class MediaCodecAudio extends Thread {
         } catch (Exception e) {
             Log.e("xhc" , " init "+e.getMessage());
         }
+    }
+
+    public void addHeadFlag(boolean flag){
+        this.addHead = flag;
     }
 
     public void addData(byte[] buffer) {
@@ -83,13 +88,22 @@ public class MediaCodecAudio extends Thread {
             outputBuffer.limit(info.offset + info.size);
         }
         int size = info.size;
-        byte[] outBuffer = new byte[size + 7];
-        outputBuffer.get(outBuffer , 7 , size);
-        addADTSToBuffer(outBuffer , size + 7);
+        byte[] outBuffer = null;
+        if(addHead){
+            outBuffer = new byte[size + 7];
+            outputBuffer.get(outBuffer , 7 , size);
+            addADTSToBuffer(outBuffer , size + 7);
+        }
+        else{
+            outBuffer = new byte[size ];
+            outputBuffer.get(outBuffer , 0 , size);
+        }
+
+
+
         if (callBack != null) {
-            Log.e("xhc" ," aac callback "+size );
             count ++ ;
-            callBack.aacCallBack(outBuffer);
+            callBack.aacCallBack(outBuffer ,info );
         }
         mediaCodec.releaseOutputBuffer(outputBufferId, false);
     }
@@ -118,13 +132,16 @@ public class MediaCodecAudio extends Thread {
         runFlag = false;
         try {
             join();
-        } catch (InterruptedException e) {
+            mediaCodec.stop();
+            mediaCodec.release();
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public interface AACCallBack {
-        void aacCallBack(byte[] buffer);
+        void aacCallBack(byte[] buffer , MediaCodec.BufferInfo info);
     }
 
     @Override

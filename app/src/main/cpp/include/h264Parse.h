@@ -48,7 +48,7 @@ private :
     void parseHeader(char *buf , int start);
     NALU* getNalu();
 
-    char* getNextNalu();
+
     int naluSize = 2048;
     int nowPosition();
 //    void parseSlice();
@@ -60,6 +60,7 @@ private :
     NumUtils *numUtils ;
 public :
     h264Parse(const char *path);
+    NALU* getNextNalu();
     ~h264Parse();
     void start();
 };
