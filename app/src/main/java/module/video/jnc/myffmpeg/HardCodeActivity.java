@@ -268,14 +268,42 @@ public class HardCodeActivity extends Activity {
      */
     private String muxerVideoAudio(){
         String fileName = "hard_muxer.mp4";
+        int width = 640;
+        int height = 360;
         mmm  = new MyMediaMuxer("sdcard/FFmpeg/"+fileName );
-//        mmm.initAudio(44100 , 2);
-        mmm.initVideo(640 , 360);
-        mmm.startMuxer();
-        getEncodeH264(mmm);
+        MediaCodecVideo mcv = new MediaCodecVideo(width, height, new MediaCodecVideo.H264CallBack() {
+            @Override
+            public void H264CallBack(byte[] data , MediaCodec.BufferInfo info , ByteBuffer buffer) {
+                try{
+                    if(mmm != null){
+                        mmm.writeVideoData(buffer , info);
+                    }
+                }
+                catch (Exception e){
+                    Log.e("xhc" , " exception "+e.getMessage());
+                }
+            }
+        });
+        mcv.setMuxer(mmm);
+        mcv.startEncode();
 
-
-
+        try {
+            FileInputStream fis = new FileInputStream(new File("sdcard/FFmpeg/yuv_640_360.yuv"));
+            while(true){
+                byte[] buffer = new byte[height * width * 3 / 2];
+                if( fis.read(buffer) == -1 )
+                {
+                    break;
+                }
+                mcv.addByte(buffer);
+            }
+            Thread.sleep(2000);
+            mcv.stopEncode();
+            mmm.stopMuxer();
+        } catch (Exception e) {
+            Log.e("xhc" , "video encode exception "+e.getMessage());
+            e.printStackTrace();
+        }
 
         return fileName;
     }

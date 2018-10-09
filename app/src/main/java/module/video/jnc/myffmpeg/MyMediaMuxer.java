@@ -57,6 +57,13 @@ public class MyMediaMuxer extends Thread {
         Log.e("xhc", " videoTrack " + videoTrack);
     }
 
+    public void addVideoTrack(MediaFormat format){
+        if(format != null ){
+            videoTrack = muxer.addTrack(format);
+        }
+
+        Log.e("xhc", " videoTrack " + videoTrack);
+    }
 
     public void startMuxer() {
         muxer.start();
