@@ -1,10 +1,7 @@
 package module.video.jnc.myffmpeg;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.media.MediaCodec;
-import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -12,15 +9,18 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import module.video.jnc.myffmpeg.MediaCodec.MediaCodecAudioDecoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecAudioEncoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecVideoDecoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecVideoEncoder;
-import module.video.jnc.myffmpeg.MediaCodec.ParseH264FileActivity;
 
 
 /**
@@ -92,7 +92,20 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
         findViewById(R.id.bt_aac_d).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(HardCodeActivity.this ,ParseH264FileActivity.class));
+                MediaCodecAudioDecoder mad = new MediaCodecAudioDecoder(44100 , 2);
+                try {
+                    byte[] buffer = new byte[200];
+                    FileInputStream fis = new FileInputStream("sdcard/FFmpeg/test.aac");
+                    int len ;
+                    while((len = fis.read(buffer)) != -1){
+                        Log.e("xhc" , " aac read size "+len);
+                        mad.onFrame(buffer , 0 , len);
+                    }
+
+                } catch (Exception e) {
+                    Log.e("xhc" , "excepton "+e.getMessage());
+                    e.printStackTrace();
+                }
             }
         });
 

@@ -50,9 +50,6 @@
             android:label="@string/title_activity_camera_stream" />
         <activity android:name=".FlvParseActivity" />
         <activity android:name=".HardCodeActivity" />
-        <activity
-            android:name=".MediaCodec.ParseH264FileActivity"
-            android:label="@string/title_activity_parse_h264_file"></activity>
     </application>
 
 </manifest>

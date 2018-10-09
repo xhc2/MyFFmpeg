@@ -43,7 +43,7 @@ public class MediaCodecVideoDecoder {
 
     public boolean onFrame(byte[] buf, int offset, int length) {
         // 获取输入buffer index
-        ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
+//        ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
         //-1表示一直等待；0表示不等待；其他大于0的参数表示等待毫秒数
         int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
         if (inputBufferIndex >= 0) {
