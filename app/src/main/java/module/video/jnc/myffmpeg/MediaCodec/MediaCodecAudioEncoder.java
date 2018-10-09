@@ -10,13 +10,13 @@ import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class MediaCodecAudio extends Thread {
+public class MediaCodecAudioEncoder extends Thread {
 
     private boolean runFlag = false;
     private MediaCodec.BufferInfo info;
     private MediaFormat mf;
     private MediaCodec mediaCodec;
-    private int sampleRate ;
+    private int sampleRate;
     private final String MIME = "audio/mp4a-latm";
     private int bitrate = 200000;
     private Queue<byte[]> queue = new ConcurrentLinkedQueue<>();
@@ -26,9 +26,12 @@ public class MediaCodecAudio extends Thread {
     private long pts;
     private int sampleSize = 16;
     private AACCallBack callBack;
-    private  int channelCount;
+    private int channelCount;
     private boolean addHead = true;
-    public MediaCodecAudio( int sampleRate, int channelCount , int pcmSize,  AACCallBack callBack) {
+    private MyMediaMuxer mmm;
+
+
+    public MediaCodecAudioEncoder(int sampleRate, int channelCount, int pcmSize, AACCallBack callBack) {
         try {
             this.pcmSize = pcmSize;
             this.sampleRate = sampleRate;
@@ -36,7 +39,7 @@ public class MediaCodecAudio extends Thread {
             mediaCodec = MediaCodec.createEncoderByType(MIME);
             info = new MediaCodec.BufferInfo();
 
-            mf = MediaFormat.createAudioFormat(MIME,this.sampleRate, this.channelCount);
+            mf = MediaFormat.createAudioFormat(MIME, this.sampleRate, this.channelCount);
             mf.setInteger(MediaFormat.KEY_BIT_RATE, this.bitrate);
             mf.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
 
@@ -45,11 +48,16 @@ public class MediaCodecAudio extends Thread {
             timeInter = 1000 * 1000 / sampleRate;
             this.callBack = callBack;
         } catch (Exception e) {
-            Log.e("xhc" , " init "+e.getMessage());
+            Log.e("xhc", " init " + e.getMessage());
         }
     }
 
-    public void addHeadFlag(boolean flag){
+    public void setMuxer(MyMediaMuxer mmm) {
+        this.mmm = mmm;
+    }
+
+
+    public void addHeadFlag(boolean flag) {
         this.addHead = flag;
     }
 
@@ -74,41 +82,49 @@ public class MediaCodecAudio extends Thread {
         }
 
         int outputBufferId = mediaCodec.dequeueOutputBuffer(info, 1000);
-        if (outputBufferId < 0) {
-            return;
-        }
-        ByteBuffer outputBuffer = null;
-        if (Build.VERSION.SDK_INT >= 21) {
-            outputBuffer = mediaCodec.getOutputBuffer(outputBufferId);
+        if (outputBufferId == MediaCodec.INFO_TRY_AGAIN_LATER) {
+            // wait 5 counts(=TIMEOUT_USEC x 5 = 50msec) until data/EOS come
+        } else if (outputBufferId == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+        } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+            //混合器需要在这个时机addtrack
+            Log.e("xhc", "audio INFO_OUTPUT_FORMAT_CHANGED ");
+            if (mmm != null) {
+                mmm.addAudioTrack(mediaCodec.getOutputFormat());
+                mmm.startMuxer();
+            }
+        } else if (outputBufferId < 0) {
+            // unexpected status
         } else {
-            outputBuffer = mediaCodec.getOutputBuffers()[outputBufferId];
-        }
-        if (Build.VERSION.SDK_INT <= 19) {
-            outputBuffer.position(info.offset);
-            outputBuffer.limit(info.offset + info.size);
-        }
-        int size = info.size;
-        byte[] outBuffer = null;
-        if(addHead){
-            outBuffer = new byte[size + 7];
-            outputBuffer.get(outBuffer , 7 , size);
-            addADTSToBuffer(outBuffer , size + 7);
-        }
-        else{
-            outBuffer = new byte[size ];
-            outputBuffer.get(outBuffer , 0 , size);
-        }
+            ByteBuffer outputBuffer = null;
+            if (Build.VERSION.SDK_INT >= 21) {
+                outputBuffer = mediaCodec.getOutputBuffer(outputBufferId);
+            } else {
+                outputBuffer = mediaCodec.getOutputBuffers()[outputBufferId];
+            }
+            if (Build.VERSION.SDK_INT <= 19) {
+                outputBuffer.position(info.offset);
+                outputBuffer.limit(info.offset + info.size);
+            }
+            int size = info.size;
+            byte[] outBuffer = null;
+            if (addHead) {
+                outBuffer = new byte[size + 7];
+                outputBuffer.get(outBuffer, 7, size);
+                addADTSToBuffer(outBuffer, size + 7);
+            } else {
+                outBuffer = new byte[size];
+                outputBuffer.get(outBuffer, 0, size);
+            }
 
-
-
-        if (callBack != null) {
-            count ++ ;
-            callBack.aacCallBack(outBuffer ,info );
+            if (callBack != null) {
+                count++;
+                callBack.aacCallBack(outBuffer, info,outputBuffer );
+            }
+            mediaCodec.releaseOutputBuffer(outputBufferId, false);
         }
-        mediaCodec.releaseOutputBuffer(outputBufferId, false);
     }
 
-    private byte[] addADTSToBuffer(byte[] aac , int bufferLen){
+    private byte[] addADTSToBuffer(byte[] aac, int bufferLen) {
         int profile = 2;  //AAC LC
         int freqIdx = 4;  //44.1KHz
         int chanCfg = 2;  //CPE
@@ -141,14 +157,14 @@ public class MediaCodecAudio extends Thread {
     }
 
     public interface AACCallBack {
-        void aacCallBack(byte[] buffer , MediaCodec.BufferInfo info);
+        void aacCallBack(byte[] buffer, MediaCodec.BufferInfo info , ByteBuffer byteBuffer);
     }
 
     @Override
     public void run() {
         super.run();
         while (runFlag) {
-            if(!queue.isEmpty()){
+            if (!queue.isEmpty()) {
                 byte[] buffer = queue.poll();
                 encode(buffer);
             }

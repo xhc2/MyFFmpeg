@@ -4,4 +4,5 @@
     <!--其中的1是第一个被替代的，2是第二个被替代的。-->
     <string name="time">%1$s/%2$s</string>
     <string name="title_activity_camera_stream">CameraStreamActivity</string>
+    <string name="title_activity_parse_h264_file">ParseH264FileActivity</string>
 </resources>

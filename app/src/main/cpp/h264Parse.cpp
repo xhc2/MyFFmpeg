@@ -53,7 +53,7 @@ NALU* h264Parse::getNalu(){
         return NULL;
     };
 
-    int startCode = startCode1(tempBuf  , 0  );
+    int startCode = startCode1(tempBuf  , 0);
     if(startCode == -1){
         fread(tempBuf + 3 , 1 , 1 , h264F);
         startCode = startCode2(tempBuf  , 0 );
@@ -64,12 +64,14 @@ NALU* h264Parse::getNalu(){
     }
     nalu->startCodeSize = startCode;
     nalu->size += startCode;
+
     startCode = -1;
     while(startCode == -1){
         if(feof(h264F)){
             //文件结尾也算是个startcode标识
             LOGE(" END OF FILE ! ");
             nalu->isEnd = true;
+            fclose(h264F);
             break;
         }
 
@@ -99,6 +101,7 @@ NALU* h264Parse::getNalu(){
     }
     nalu->size -= nalu->startCodeSize;
     nalu->data = tempBuf;
+
     return nalu;
 }
 

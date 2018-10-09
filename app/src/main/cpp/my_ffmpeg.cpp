@@ -322,8 +322,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getNextNalu(JNIEnv *env, jclass type,
     NALU *temp = hp->getNextNalu();
 
     if(temp != NULL){
-        jbyteArray array = env->NewByteArray(temp->size);
-        env->SetByteArrayRegion(array , 0 , temp->size , (jbyte *)temp->data);
+        jbyteArray array = env->NewByteArray(temp->size +temp->startCodeSize);
+        env->SetByteArrayRegion(array , 0 , temp->size + temp->startCodeSize, (jbyte *)temp->data);
         free(temp);
         env->ReleaseStringUTFChars(path_, path);
         return array;

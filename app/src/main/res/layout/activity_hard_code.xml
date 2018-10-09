@@ -7,53 +7,79 @@
     android:orientation="vertical"
     tools:context=".HardCodeActivity">
 
-    <TextView
-        android:text="硬解相关"
-        android:padding="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <TextView
-        android:id="@+id/tv_view"
-        android:padding="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <Button
-        android:id="@+id/bt_h264_e"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="yuv编码h264（yuv_640_360.yuv）"
-        />
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/bt_aac_e"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="硬解相关" />
+
+        <TextView
+            android:id="@+id/tv_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="pcm编码aac（test_2c_441_16.pcm）"
-        />
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/bt_h264_e"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="yuv编码h264（yuv_640_360.yuv）"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/bt_aac_e"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="pcm编码aac（test_2c_441_16.pcm）"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+
+        <Button
+            android:id="@+id/bt_h264_d"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="视频解码h264" />
+
+        <Button
+            android:id="@+id/bt_aac_d"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="音频解码aac" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/bt_muxer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="封装视频音频"
-        />
+        android:text="封装视频音频" />
 
-
-    <Button
-        android:id="@+id/bt_h264_d"
+    <SurfaceView
+        android:id="@+id/surface_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="视频解码h264"
-        />
-
-    <Button
-        android:id="@+id/bt_aac_d"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="音频解码aac"
-        />
-
+        android:layout_height="match_parent" />
 
 </LinearLayout>

@@ -10,13 +10,11 @@ import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import module.video.jnc.myffmpeg.MyMediaMuxer;
-
 
 /**
  * 用来编码yuv -> h264
  */
-public class MediaCodecVideo extends Thread {
+public class MediaCodecVideoEncoder extends Thread {
 
     private String MIME_TYPE = "video/avc";
     private int width;
@@ -35,7 +33,7 @@ public class MediaCodecVideo extends Thread {
     private MyMediaMuxer mmm;
 
 
-    public MediaCodecVideo(int width, int height, H264CallBack callBack) {
+    public MediaCodecVideoEncoder(int width, int height, H264CallBack callBack) {
         this.width = width;
         this.height = height;
         this.callBack = callBack;
@@ -46,13 +44,11 @@ public class MediaCodecVideo extends Thread {
 
     public void setMuxer(MyMediaMuxer mmm){
         this.mmm = mmm;
-
     }
 
 
     private void init() {
         try {
-
             bitrate = width * height * 3 * 8 * 25 / 256;
             info = new MediaCodec.BufferInfo();
             mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
@@ -78,7 +74,7 @@ public class MediaCodecVideo extends Thread {
 
     private void encode(byte[] data) {
         int inputBufferId = mediaCodec.dequeueInputBuffer(1000);
-        if (inputBufferId > 0) {
+        if (inputBufferId >= 0) {
             count++;
             ByteBuffer inputBuffer = null;
             if (Build.VERSION.SDK_INT >= 21) {
@@ -98,17 +94,14 @@ public class MediaCodecVideo extends Thread {
             // wait 5 counts(=TIMEOUT_USEC x 5 = 50msec) until data/EOS come
         }
         else if (outputBufferId == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-
-            // this shoud not come when encoding
-//            outputBuffer = mediaCodec.getOutputBuffers();
-
-
         }
         else if(outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED){
             //混合器需要在这个时机addtrack
-            Log.e("xhc" , " INFO_OUTPUT_FORMAT_CHANGED ");
-            mmm.addVideoTrack(mediaCodec.getOutputFormat());
-            mmm.startMuxer();
+            Log.e("xhc" , "video INFO_OUTPUT_FORMAT_CHANGED ");
+            if(mmm != null){
+                mmm.addVideoTrack(mediaCodec.getOutputFormat());
+                mmm.startMuxer();
+            }
         }
         else if (outputBufferId < 0) {
             // unexpected status
