@@ -1,6 +1,9 @@
 package module.video.jnc.myffmpeg;
 
 import android.app.Activity;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,6 +34,8 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
     private TextView tvView;
     private SurfaceView surfaceView;
     private SurfaceHolder holder;
+    private AudioTrack audioTrack;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,18 +98,24 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
             @Override
             public void onClick(View v) {
                 MediaCodecAudioDecoder mad = new MediaCodecAudioDecoder(44100 , 2);
-                try {
-                    byte[] buffer = new byte[200];
-                    FileInputStream fis = new FileInputStream("sdcard/FFmpeg/test.aac");
-                    int len ;
-                    while((len = fis.read(buffer)) != -1){
-                        Log.e("xhc" , " aac read size "+len);
-                        mad.onFrame(buffer , 0 , len);
+                int bufferSize = AudioTrack.getMinBufferSize(44100,AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+                audioTrack  = new AudioTrack(AudioManager.STREAM_MUSIC , 44100 , AudioFormat.CHANNEL_OUT_STEREO , AudioFormat.ENCODING_PCM_16BIT , bufferSize, AudioTrack.MODE_STREAM);
+                audioTrack.play();
+                mad.setAACCallBack(new MediaCodecAudioDecoder.AACCallBack() {
+                    @Override
+                    public void callBack(byte[] pcm) {
+                        audioTrack.write(pcm, 0, pcm.length);
                     }
+                });
+                while(true){
+                    byte[] buffer = FFmpegUtils.getAACFrame("sdcard/FFmpeg/test.aac");
+                    if(buffer == null){
+                        Log.e( "xhc", " buffer null");
+                        break;
+                    }
+                    Log.e("xhc" , " buffer size " + buffer.length);
+                    mad.onFrame(buffer , 0 , buffer.length);
 
-                } catch (Exception e) {
-                    Log.e("xhc" , "excepton "+e.getMessage());
-                    e.printStackTrace();
                 }
             }
         });

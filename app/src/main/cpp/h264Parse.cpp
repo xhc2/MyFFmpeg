@@ -1,8 +1,7 @@
 // Created by Administrator on 2018/9/13/013.
 
 #include "h264Parse.h"
-#include <stdlib.h>
-#include <my_log.h>
+
 
 h264Parse::h264Parse(const char* path){
     int length = strlen(path);

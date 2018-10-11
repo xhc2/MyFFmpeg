@@ -1,6 +1,7 @@
 package module.video.jnc.myffmpeg.MediaCodec;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.util.Log;
@@ -14,10 +15,25 @@ public class MediaCodecAudioDecoder {
     private final String MIME_TYPE = "audio/mp4a-latm";
     private int count = 0;
     private final static int TIME_INTERNAL = 5;
+    private AACCallBack callBack;
+    public void setAACCallBack(AACCallBack callBack){
+        this.callBack = callBack;
+    }
+
+    public interface AACCallBack{
+        void callBack(byte[] pcm);
+    }
+
     public MediaCodecAudioDecoder(int sampleRate , int channelCount){
         try {
             mediaCodec = MediaCodec.createDecoderByType(MIME_TYPE);
             MediaFormat mediaFormat = MediaFormat.createAudioFormat(MIME_TYPE , sampleRate , channelCount);
+            //用来标记AAC是否有adts头，1->有
+            mediaFormat.setInteger(MediaFormat.KEY_IS_ADTS, 1);
+            //ByteBuffer key（暂时不了解该参数的含义，但必须设置）
+            byte[] data = new byte[]{(byte) 0x11, (byte) 0x90};
+            ByteBuffer csd_0 = ByteBuffer.wrap(data);
+            mediaFormat.setByteBuffer("csd-0", csd_0);
             mediaCodec.configure(mediaFormat, null, null, 0);
             mediaCodec.start();
         } catch (IOException e) {
@@ -30,7 +46,7 @@ public class MediaCodecAudioDecoder {
         // 获取输入buffer index
 //        ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
         //-1表示一直等待；0表示不等待；其他大于0的参数表示等待毫秒数
-        int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
+        int inputBufferIndex = mediaCodec.dequeueInputBuffer(100);
         if (inputBufferIndex >= 0) {
             ByteBuffer inputBuffer = null;
             if (Build.VERSION.SDK_INT >= 21) {
@@ -46,7 +62,7 @@ public class MediaCodecAudioDecoder {
             //put需要解码的数据
             inputBuffer.put(buf, offset, length);
             //解码
-            mediaCodec.queueInputBuffer(inputBufferIndex, 0, length, count * TIME_INTERNAL, 0);
+            mediaCodec.queueInputBuffer(inputBufferIndex, 0, length, 0, 0);
             count++;
         } else {
             return false;
@@ -69,10 +85,12 @@ public class MediaCodecAudioDecoder {
                 outputBuffer.limit(bufferInfo.offset + bufferInfo.size);
             }
             int size = bufferInfo.size;
-            Log.e("xhc" , " size "+size);
+            Log.e("xhc" , "out size "+size);
             byte[] outBuffer = new byte[size];
             outputBuffer.get(outBuffer);
-
+            if(callBack != null){
+                callBack.callBack(outBuffer);
+            }
             mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
             outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
         }

@@ -1,4 +1,9 @@
 
+
+#ifndef MYANDROIDRTMP_MYLOG_H
+#define MYANDROIDRTMP_MYLOG_H
+
+
 #include <jni.h>
 #include <Android/log.h>
 #include <string.h>
@@ -16,10 +21,5 @@ const static int RESULT_SUCCESS = 1;
 const static int RESULT_FAILD = -1;
 //目前不支持的像素格式
 const static int RESULT_WRONG_PIX = -100;
-#ifndef MYANDROIDRTMP_MYLOG_H
-#define MYANDROIDRTMP_MYLOG_H
-
-
-
 
 #endif //MYANDROIDRTMP_MYLOG_H

@@ -13,6 +13,7 @@
 #include <CameraStream.h>
 #include <decode_test.h>
 #include <SRSLibRtmp.h>
+#include <aacparse.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 
@@ -298,17 +299,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_h264Parse(JNIEnv *env, jclass type, j
 
 
 
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_aacParse(JNIEnv *env, jclass type, jstring path_) {
-    const char *path = env->GetStringUTFChars(path_, 0);
 
-    // TODO
-
-    env->ReleaseStringUTFChars(path_, path);
-
-    return env->NewStringUTF("h264解析完毕");
-}
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
@@ -317,13 +308,48 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getNextNalu(JNIEnv *env, jclass type,
     if(hp == NULL){
         hp = new h264Parse(path);
     }
-
-
     NALU *temp = hp->getNextNalu();
 
     if(temp != NULL){
         jbyteArray array = env->NewByteArray(temp->size +temp->startCodeSize);
         env->SetByteArrayRegion(array , 0 , temp->size + temp->startCodeSize, (jbyte *)temp->data);
+        free(temp);
+        env->ReleaseStringUTFChars(path_, path);
+        return array;
+    }
+    env->ReleaseStringUTFChars(path_, path);
+    return NULL;
+}
+
+AACParse *aacParse = NULL;
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_aacParse__Ljava_lang_String_2(JNIEnv *env, jclass type,
+                                                                         jstring path_) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+
+    if(aacParse == NULL){
+        aacParse = new AACParse(path);
+    }
+    aacParse->parseStart();
+    env->ReleaseStringUTFChars(path_, path);
+
+    return env->NewStringUTF("aac解析完毕");
+}
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getAACFrame(JNIEnv *env, jclass type, jstring path_) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+
+    if(aacParse == NULL){
+        aacParse = new AACParse(path);
+    }
+    AACFrame *temp = aacParse->getAACFrame(false);
+    if(temp != NULL){
+        jbyteArray array = env->NewByteArray(temp->size);
+        env->SetByteArrayRegion(array , 0 , temp->size, (jbyte *)temp->data);
         free(temp);
         env->ReleaseStringUTFChars(path_, path);
         return array;

@@ -36,6 +36,7 @@
             android:id="@+id/bt_parse_aac"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:text="解析aac文件" />
 
         <Button

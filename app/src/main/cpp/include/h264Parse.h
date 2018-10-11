@@ -8,7 +8,8 @@
 #include <stdio.h>
 #include <string>
 #include "NumUtils.h"
-
+#include <stdlib.h>
+#include <my_log.h>
 using namespace std;
 
 /**

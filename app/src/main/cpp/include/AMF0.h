@@ -1,10 +1,11 @@
 //
 // Created by Administrator on 2018/9/6/006.
 //
-#include<string>
-using namespace std;
+
 #ifndef MYFFMPEG_AMF0_H
 #define MYFFMPEG_AMF0_H
+#include<string>
+using namespace std;
 enum amf0{
     kNumber=0x00 ,
     kBoolean ,

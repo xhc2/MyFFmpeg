@@ -17,8 +17,8 @@ public class FlvParseActivity extends Activity {
     private EditText etText;
     private ProgressDialog dialog;
 //    private String path ="sdcard/FFmpeg/flv2.flv";
-    private String path ="sdcard/FFmpeg/test.h264";
-//    private String path ="sdcard/FFmpeg/aac.aac";
+//    private String path ="sdcard/FFmpeg/test.h264";
+    private String path ="sdcard/FFmpeg/test.aac";
 
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
