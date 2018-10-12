@@ -27,6 +27,8 @@ public class MyMediaMuxer extends Thread {
     private int audioTrack;
     private List<MuxerData> queue = new ArrayList<>();
     private boolean startFlag ;
+
+
     public MyMediaMuxer(String outpath) {
         this.path = outpath;
         try {
@@ -59,13 +61,14 @@ public class MyMediaMuxer extends Thread {
         if(startFlag){
             return ;
         }
-        count ++ ;
+
         if(count == 1 ){
             startFlag = true;
             muxer.start();
             flag = true;
             this.start();
         }
+        count ++ ;
     }
 
     public void stopMuxer() {
@@ -85,22 +88,6 @@ public class MyMediaMuxer extends Thread {
         Log.e("xhc", " muxer release ");
     }
 
-    public void writeVideoData(byte[] buffer, MediaCodec.BufferInfo info) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.length);
-        byteBuffer.put(buffer);
-        MuxerData md = new MuxerData();
-        md.isAudio = false;
-        md.byteBuffer = byteBuffer;
-        md.info = info;
-        byte head = buffer[0];
-        int type = head & 0x1f;
-        md.info.flags = 0;
-        if (type == 5) {
-            md.info.flags = MediaCodec.BUFFER_FLAG_KEY_FRAME;
-        }
-        queue.add(md);
-    }
-
     public void writeVideoData(ByteBuffer buffer ,  MediaCodec.BufferInfo info){
         MuxerData md = new MuxerData();
         md.isAudio = false;
@@ -118,21 +105,6 @@ public class MyMediaMuxer extends Thread {
     }
 
 
-
-
-    public void writeAudioData(byte[] buffer, MediaCodec.BufferInfo info) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.length);
-        byteBuffer.put(buffer);
-        MuxerData md = new MuxerData();
-        md.isAudio = true;
-        md.byteBuffer = byteBuffer;
-        md.info = info;
-        queue.add(md);
-    }
-
-
-
-
     @Override
     public void run() {
         super.run();
@@ -144,12 +116,10 @@ public class MyMediaMuxer extends Thread {
                     continue;
                 }
                 if (md.isAudio) {
-                    Log.e("xhc", "*audio time " + md.info.presentationTimeUs + " size " + md.info.size + " offset " + md.info.offset
-                            + " capacity  " + md.byteBuffer.capacity());
+                    Log.e("xhc" ," audio time "+md.info.presentationTimeUs);
                     muxer.writeSampleData(audioTrack, md.byteBuffer, md.info);
                 } else {
-                    Log.e("xhc", "*video time " + md.info.presentationTimeUs + " size " + md.info.size + " offset " + md.info.offset
-                            + " capacity  " + md.byteBuffer.capacity());
+                    Log.e("xhc" ," video time "+md.info.presentationTimeUs);
                     muxer.writeSampleData(videoTrack, md.byteBuffer, md.info);
                 }
             }

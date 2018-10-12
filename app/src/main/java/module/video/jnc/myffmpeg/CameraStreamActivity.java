@@ -33,13 +33,16 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
     private boolean isRecord = false;
     private TextView tv ;
     private AudioRecord audioRecord;
+
     private static final int sampleRate = 44100;
     private static final int pcmFormat = AudioFormat.ENCODING_PCM_16BIT;
     private static final int channel = AudioFormat.CHANNEL_IN_MONO;
+
     private AudioRead audioRead;
     private boolean audioReadFlag = false;
     private byte[] bytes ;
     private int pcmSize ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

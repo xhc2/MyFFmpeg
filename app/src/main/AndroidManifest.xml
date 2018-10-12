@@ -50,6 +50,7 @@
             android:label="@string/title_activity_camera_stream" />
         <activity android:name=".FlvParseActivity" />
         <activity android:name=".HardCodeActivity" />
+        <activity android:name=".HardMuxerCameraActivity"></activity>
     </application>
 
 </manifest>

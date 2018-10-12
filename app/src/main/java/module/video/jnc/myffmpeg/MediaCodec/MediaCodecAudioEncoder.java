@@ -22,14 +22,19 @@ public class MediaCodecAudioEncoder extends Thread {
     private Queue<byte[]> queue = new ConcurrentLinkedQueue<>();
     private int pcmSize;
     private int count;
-    private long timeInter;
-    private long pts;
+
     private int sampleSize = 16;
+    private long nowtime = 0 ;
     private AACCallBack callBack;
     private int channelCount;
     private boolean addHead = true;
-    private MyMediaMuxer mmm;
+    private AddTrackInter addTrackInter;
+    private float timeInter;
 
+
+    public void addTrack(AddTrackInter addTrackInter){
+        this.addTrackInter = addTrackInter;
+    }
 
     public MediaCodecAudioEncoder(int sampleRate, int channelCount, int pcmSize, AACCallBack callBack) {
         try {
@@ -45,16 +50,14 @@ public class MediaCodecAudioEncoder extends Thread {
 
             mediaCodec.configure(mf, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mediaCodec.start();
-            timeInter = 1000 * 1000 / sampleRate;
+            timeInter = (float)1000 / sampleRate;
             this.callBack = callBack;
+
         } catch (Exception e) {
             Log.e("xhc", " init " + e.getMessage());
         }
     }
 
-    public void setMuxer(MyMediaMuxer mmm) {
-        this.mmm = mmm;
-    }
 
 
     public void addHeadFlag(boolean flag) {
@@ -77,8 +80,8 @@ public class MediaCodecAudioEncoder extends Thread {
             }
             inputBuffer.clear();
             inputBuffer.put(data);
-            pts += data.length / 16 * timeInter;
-            mediaCodec.queueInputBuffer(inputBufferId, 0, data.length, pts, 0);
+            nowtime += data.length / 2 * timeInter;
+            mediaCodec.queueInputBuffer(inputBufferId, 0, data.length, nowtime, 0);
         }
 
         int outputBufferId = mediaCodec.dequeueOutputBuffer(info, 1000);
@@ -88,9 +91,8 @@ public class MediaCodecAudioEncoder extends Thread {
         } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
             //混合器需要在这个时机addtrack
             Log.e("xhc", "audio INFO_OUTPUT_FORMAT_CHANGED ");
-            if (mmm != null) {
-                mmm.addAudioTrack(mediaCodec.getOutputFormat());
-                mmm.startMuxer();
+            if(addTrackInter != null){
+                addTrackInter.addTrack(mediaCodec.getOutputFormat());
             }
         } else if (outputBufferId < 0) {
             // unexpected status
@@ -159,6 +161,11 @@ public class MediaCodecAudioEncoder extends Thread {
     public interface AACCallBack {
         void aacCallBack(byte[] buffer, MediaCodec.BufferInfo info , ByteBuffer byteBuffer);
     }
+
+    public interface AddTrackInter{
+        void addTrack(MediaFormat format);
+    }
+
 
     @Override
     public void run() {

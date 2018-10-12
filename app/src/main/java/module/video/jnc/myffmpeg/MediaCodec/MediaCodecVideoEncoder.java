@@ -30,20 +30,19 @@ public class MediaCodecVideoEncoder extends Thread {
     private int count = 0;
     private int frameRate = 25;
     private long timeInter;
-    private MyMediaMuxer mmm;
+    private AddTrackInter addTrackInter;
 
+    public void addTrack(AddTrackInter addTrackInter){
+        this.addTrackInter = addTrackInter;
+    }
 
     public MediaCodecVideoEncoder(int width, int height, H264CallBack callBack) {
         this.width = width;
         this.height = height;
         this.callBack = callBack;
         yuvSize = width * height * 3 / 2;
-        timeInter = 1000 * 1000 / frameRate;
+        timeInter = 1000 / frameRate;
         init();
-    }
-
-    public void setMuxer(MyMediaMuxer mmm){
-        this.mmm = mmm;
     }
 
 
@@ -98,9 +97,8 @@ public class MediaCodecVideoEncoder extends Thread {
         else if(outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED){
             //混合器需要在这个时机addtrack
             Log.e("xhc" , "video INFO_OUTPUT_FORMAT_CHANGED ");
-            if(mmm != null){
-                mmm.addVideoTrack(mediaCodec.getOutputFormat());
-                mmm.startMuxer();
+            if(addTrackInter != null){
+                addTrackInter.addTrack(mediaCodec.getOutputFormat());
             }
         }
         else if (outputBufferId < 0) {
@@ -124,11 +122,14 @@ public class MediaCodecVideoEncoder extends Thread {
             }
             mediaCodec.releaseOutputBuffer(outputBufferId, false);
         }
-
     }
 
     public interface H264CallBack {
         void H264CallBack(byte[] data, MediaCodec.BufferInfo info, ByteBuffer buffer);
+    }
+
+    public interface AddTrackInter{
+        void addTrack(MediaFormat format);
     }
 
     public void startEncode() {

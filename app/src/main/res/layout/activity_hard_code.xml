@@ -70,13 +70,25 @@
             android:layout_weight="1"
             android:text="音频解码aac" />
     </LinearLayout>
-
-    <Button
-        android:id="@+id/bt_muxer"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="封装视频音频" />
+        android:orientation="horizontal"
+        android:weightSum="2">
+    <Button
+        android:id="@+id/bt_muxer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="封装音视频" />
 
+        <Button
+            android:id="@+id/bt_extractor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="解封装音视频" />
+    </LinearLayout>
     <SurfaceView
         android:id="@+id/surface_view"
         android:layout_width="match_parent"

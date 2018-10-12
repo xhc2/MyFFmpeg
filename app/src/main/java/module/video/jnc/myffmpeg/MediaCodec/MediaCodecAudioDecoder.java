@@ -13,7 +13,6 @@ public class MediaCodecAudioDecoder {
 
     private MediaCodec mediaCodec;
     private final String MIME_TYPE = "audio/mp4a-latm";
-    private int count = 0;
     private final static int TIME_INTERNAL = 5;
     private AACCallBack callBack;
     public void setAACCallBack(AACCallBack callBack){
@@ -63,7 +62,7 @@ public class MediaCodecAudioDecoder {
             inputBuffer.put(buf, offset, length);
             //解码
             mediaCodec.queueInputBuffer(inputBufferIndex, 0, length, 0, 0);
-            count++;
+
         } else {
             return false;
         }
