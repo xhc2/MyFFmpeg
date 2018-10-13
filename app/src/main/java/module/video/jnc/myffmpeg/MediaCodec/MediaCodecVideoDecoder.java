@@ -40,6 +40,18 @@ public class MediaCodecVideoDecoder {
 
     }
 
+    public MediaCodecVideoDecoder(String mimeType , MediaFormat mf , Surface surface){
+
+        try {
+            this.surface = surface;
+            mediaCodec = MediaCodec.createDecoderByType(mimeType);
+            mediaCodec.configure(mf, surface, null, 0);
+            mediaCodec.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public boolean onFrame(byte[] buf, int offset, int length) {
         // 获取输入buffer index

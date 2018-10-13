@@ -7,8 +7,12 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -104,8 +108,7 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
                 int bufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
                 audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
                 audioTrack.play();
-//                audioTrack.stop();
-//                audioTrack.release();
+
                 mad.setAACCallBack(new MediaCodecAudioDecoder.AACCallBack() {
                     @Override
                     public void callBack(byte[] pcm) {
@@ -130,6 +133,17 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
             public void onClick(View v) {
                 //封装音视频
                 muxerVideoAudio();
+            }
+        });
+
+        findViewById(R.id.bt_extractor).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    extratorVideo();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -221,6 +235,75 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
     private void muxerVideoAudio() {
         startActivity(new Intent(HardCodeActivity.this , HardMuxerCameraActivity.class));
     }
+
+    private void extratorVideo() throws Exception{
+        int videoIndex = -1;
+        int audioIndex = -1;
+        int width = 0;
+        int height = 0;
+        MediaCodecAudioDecoder aDecoder = null;
+        MediaCodecVideoDecoder vDecoder = null;
+        MediaExtractor me = new MediaExtractor();
+        me.setDataSource("sdcard/FFmpeg/test.mp4");
+        for(int i = 0 ;i < me.getTrackCount() ; ++i){
+            MediaFormat format = me.getTrackFormat(i);
+            String mimeType = format.getString(MediaFormat.KEY_MIME);
+            if(mimeType.startsWith("video/")){
+                videoIndex = i;
+                width = format.getInteger(MediaFormat.KEY_WIDTH);
+                height = format.getInteger(MediaFormat.KEY_HEIGHT);
+                vDecoder = new MediaCodecVideoDecoder(mimeType , format , holder.getSurface() );
+
+            }
+            if(mimeType.startsWith("audio/")){
+                audioIndex = i;
+                aDecoder = new MediaCodecAudioDecoder(mimeType , format);
+                int mfSampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+                int mfChannelCount = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+                int channel = mfChannelCount == 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO ;
+                int bufferSize = AudioTrack.getMinBufferSize(mfSampleRate, channel, AudioFormat.ENCODING_PCM_16BIT);
+                audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mfSampleRate,
+                        channel, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
+            }
+        }
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+
+        aDecoder.setAACCallBack(new MediaCodecAudioDecoder.AACCallBack() {
+            @Override
+            public void callBack(byte[] pcm) {
+                if(pcm != null){
+                    audioTrack.write(pcm , 0 , pcm.length);
+                }
+            }
+        });
+        audioTrack.play();
+
+        ByteBuffer buffer = ByteBuffer.allocate((int)(width * height * (float)3 / 2));
+        int sampleSize ;
+        int sampleIndex ;
+        me.selectTrack(audioIndex);
+        me.selectTrack(videoIndex);
+        while(true){
+            sampleSize = me.readSampleData(buffer , 0);
+            sampleIndex = me.getSampleTrackIndex();
+            Log.e("xhc" , " samplesize "+sampleSize+" index "+sampleIndex);
+            if(sampleSize < 0){
+                break;
+            }
+            if(sampleIndex == videoIndex){
+                vDecoder.onFrame(buffer.array() , 0 , sampleSize);
+            }
+            else if(sampleIndex == audioIndex){
+                aDecoder.onFrame(buffer.array() , 0 , sampleSize);
+
+            }
+
+            me.advance();
+        }
+
+        me.release();
+    }
+
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {

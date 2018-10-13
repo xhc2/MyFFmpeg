@@ -41,6 +41,18 @@ public class MediaCodecAudioDecoder {
         }
     }
 
+    public MediaCodecAudioDecoder(String mimeType , MediaFormat mf){
+
+        try {
+            mediaCodec = MediaCodec.createDecoderByType(mimeType);
+            mediaCodec.configure(mf, null, null, 0);
+            mediaCodec.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public boolean onFrame(byte[] buf, int offset, int length) {
         // 获取输入buffer index
 //        ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
