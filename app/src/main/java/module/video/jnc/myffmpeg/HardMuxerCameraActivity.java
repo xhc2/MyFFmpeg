@@ -10,6 +10,7 @@ import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
+import android.media.MediaSync;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -41,17 +42,15 @@ public class HardMuxerCameraActivity extends Activity implements Camera.PreviewC
     private boolean isRecord = false;
     private TextView tv;
     private AudioRecord audioRecord;
-
     private static final int sampleRate = 44100;
     private static final int pcmFormat = AudioFormat.ENCODING_PCM_16BIT;
     private static final int channel = AudioFormat.CHANNEL_IN_MONO;
-    private static final int channelCount = 2;
+    private static final int channelCount = 1;
 
     private AudioRead audioRead;
     private boolean audioReadFlag = false;
-    private byte[] bytes;
     private int pcmSize;
-
+    private int AUDIO_BUFFER_SIZE = 1024;
     private MediaCodecVideoEncoder vEncoder;
     private MediaCodecAudioEncoder aEncoder;
     private MyMediaMuxer muxer;
@@ -63,11 +62,12 @@ public class HardMuxerCameraActivity extends Activity implements Camera.PreviewC
         ouputPath = "sdcard/FFmpeg/hard_muxer.mp4";
         preview = (FrameLayout) findViewById(R.id.camera_preview);
         tv = (TextView) findViewById(R.id.bt_record);
-        pcmSize = 4096;//AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);
+        pcmSize = AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);
+        Log.e("xhc" , " pcm size "+pcmSize);
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
                 channel, pcmFormat,
-                pcmSize);
-        bytes = new byte[pcmSize];
+                pcmSize );
+
         audioRecord.startRecording();
         startAudioRead();
         findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
@@ -96,7 +96,7 @@ public class HardMuxerCameraActivity extends Activity implements Camera.PreviewC
         });
         vEncoder.startEncode();
 
-        aEncoder = new MediaCodecAudioEncoder(sampleRate, channelCount, pcmSize, this);
+        aEncoder = new MediaCodecAudioEncoder(sampleRate, channelCount, AUDIO_BUFFER_SIZE, this);
         aEncoder.addTrack(new MediaCodecAudioEncoder.AddTrackInter() {
             @Override
             public void addTrack(MediaFormat format) {
@@ -138,18 +138,9 @@ public class HardMuxerCameraActivity extends Activity implements Camera.PreviewC
             super.run();
             while (audioReadFlag) {
                 if (isRecord) {
-                    readSize = audioRecord.read(bytes, 0, pcmSize);
-
-                    if (AudioRecord.ERROR_INVALID_OPERATION != readSize) {
-                        if (readSize != bytes.length) {
-                            byte[] tempbuffer = new byte[readSize];
-                            System.arraycopy(bytes, 0, tempbuffer, 0, readSize);
-                            aEncoder.addData(tempbuffer);
-                        } else {
-                            aEncoder.addData(bytes);
-                        }
-
-                    }
+                    byte[] bytes = new byte[AUDIO_BUFFER_SIZE];
+                    readSize = audioRecord.read(bytes, 0, AUDIO_BUFFER_SIZE);
+                    aEncoder.addData(bytes);
                 }
             }
         }

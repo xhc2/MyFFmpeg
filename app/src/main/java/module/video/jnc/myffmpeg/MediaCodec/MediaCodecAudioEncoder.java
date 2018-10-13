@@ -20,11 +20,7 @@ public class MediaCodecAudioEncoder extends Thread {
     private final String MIME = "audio/mp4a-latm";
     private int bitrate = 200000;
     private Queue<byte[]> queue = new ConcurrentLinkedQueue<>();
-    private int pcmSize;
-    private int count;
 
-    private int sampleSize = 16;
-    private long nowtime = 0 ;
     private AACCallBack callBack;
     private int channelCount;
     private boolean addHead = true;
@@ -36,9 +32,8 @@ public class MediaCodecAudioEncoder extends Thread {
         this.addTrackInter = addTrackInter;
     }
 
-    public MediaCodecAudioEncoder(int sampleRate, int channelCount, int pcmSize, AACCallBack callBack) {
+    public MediaCodecAudioEncoder(int sampleRate, int channelCount, int maxInputSize, AACCallBack callBack) {
         try {
-            this.pcmSize = pcmSize;
             this.sampleRate = sampleRate;
             this.channelCount = channelCount;
             mediaCodec = MediaCodec.createEncoderByType(MIME);
@@ -47,7 +42,7 @@ public class MediaCodecAudioEncoder extends Thread {
             mf = MediaFormat.createAudioFormat(MIME, this.sampleRate, this.channelCount);
             mf.setInteger(MediaFormat.KEY_BIT_RATE, this.bitrate);
             mf.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-
+            mf.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
             mediaCodec.configure(mf, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mediaCodec.start();
             timeInter = (float)1000 / sampleRate;
@@ -71,17 +66,18 @@ public class MediaCodecAudioEncoder extends Thread {
     private void encode(byte[] data) {
         int inputBufferId = mediaCodec.dequeueInputBuffer(1000);
         if (inputBufferId > 0) {
-            count++;
+
             ByteBuffer inputBuffer = null;
             if (Build.VERSION.SDK_INT >= 21) {
                 inputBuffer = mediaCodec.getInputBuffer(inputBufferId);
             } else {
                 inputBuffer = mediaCodec.getInputBuffers()[inputBufferId];
             }
+            Log.e("xhc" , " limit "+inputBuffer.limit()+" data.size "+data.length);
             inputBuffer.clear();
             inputBuffer.put(data);
-            nowtime += data.length / 2 * timeInter;
-            mediaCodec.queueInputBuffer(inputBufferId, 0, data.length, nowtime, 0);
+
+            mediaCodec.queueInputBuffer(inputBufferId, 0, data.length, getPTSUs(), 0);
         }
 
         int outputBufferId = mediaCodec.dequeueOutputBuffer(info, 1000);
@@ -107,6 +103,7 @@ public class MediaCodecAudioEncoder extends Thread {
                 outputBuffer.position(info.offset);
                 outputBuffer.limit(info.offset + info.size);
             }
+            prevPresentationTimes = info.presentationTimeUs;
             int size = info.size;
             byte[] outBuffer = null;
             if (addHead) {
@@ -119,7 +116,6 @@ public class MediaCodecAudioEncoder extends Thread {
             }
 
             if (callBack != null) {
-                count++;
                 callBack.aacCallBack(outBuffer, info,outputBuffer );
             }
             mediaCodec.releaseOutputBuffer(outputBufferId, false);
@@ -166,6 +162,14 @@ public class MediaCodecAudioEncoder extends Thread {
         void addTrack(MediaFormat format);
     }
 
+    private long prevPresentationTimes;
+    private long getPTSUs(){
+        long result = System.nanoTime()/1000;
+        if(result < prevPresentationTimes){
+            result = (prevPresentationTimes  - result ) + result;
+        }
+        return result;
+    }
 
     @Override
     public void run() {

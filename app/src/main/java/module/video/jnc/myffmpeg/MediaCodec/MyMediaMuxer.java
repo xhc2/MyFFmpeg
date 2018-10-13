@@ -20,7 +20,7 @@ import static android.media.MediaCodec.BUFFER_FLAG_SYNC_FRAME;
  */
 public class MyMediaMuxer extends Thread {
 
-    public String path;
+    private String path;
     private boolean flag;
     private MediaMuxer muxer;
     private int videoTrack;
@@ -45,14 +45,12 @@ public class MyMediaMuxer extends Thread {
         if(format != null){
             audioTrack = muxer.addTrack(format);
         }
-        Log.e("xhc", " audioTrack " + audioTrack);
     }
 
     public void addVideoTrack(MediaFormat format){
         if(format != null ){
             videoTrack = muxer.addTrack(format);
         }
-        Log.e("xhc", " videoTrack " + videoTrack);
     }
 
     private int count = 0;
@@ -61,6 +59,7 @@ public class MyMediaMuxer extends Thread {
         if(startFlag){
             return ;
         }
+
 
         if(count == 1 ){
             startFlag = true;

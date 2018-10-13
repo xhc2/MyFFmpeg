@@ -19,7 +19,6 @@ public class MediaCodecVideoEncoder extends Thread {
     private String MIME_TYPE = "video/avc";
     private int width;
     private int height;
-    private int bitrate = width * height * 3 * 8 * 25 / 256;
     private MediaCodec.BufferInfo info;
     private MediaFormat mf;
     private MediaCodec mediaCodec;
@@ -27,9 +26,8 @@ public class MediaCodecVideoEncoder extends Thread {
     private Queue<byte[]> queue = new ConcurrentLinkedQueue<>();
     private boolean runFlag = false;
     private int yuvSize;
-    private int count = 0;
-    private int frameRate = 25;
-    private long timeInter;
+    private int frameRate = 24;
+    private int bitrate ;
     private AddTrackInter addTrackInter;
 
     public void addTrack(AddTrackInter addTrackInter){
@@ -41,23 +39,23 @@ public class MediaCodecVideoEncoder extends Thread {
         this.height = height;
         this.callBack = callBack;
         yuvSize = width * height * 3 / 2;
-        timeInter = 1000 / frameRate;
         init();
     }
 
 
     private void init() {
         try {
-            bitrate = width * height * 3 * 8 * 25 / 256;
+            bitrate = width * height * 3 * 8 * frameRate / 256;
             info = new MediaCodec.BufferInfo();
             mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
             mf = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
             mf.setInteger(MediaFormat.KEY_BIT_RATE, bitrate);
             mf.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
+            mf.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
             //仅仅uv对应错误解码应该只是花屏而已。
 //            COLOR_FormatYUV420SemiPlanar yyyyyyyyvuvu COLOR_FormatYUV420Planar
             mf.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
-            mf.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+
             mediaCodec.configure(mf, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mediaCodec.start();
 
@@ -74,7 +72,6 @@ public class MediaCodecVideoEncoder extends Thread {
     private void encode(byte[] data) {
         int inputBufferId = mediaCodec.dequeueInputBuffer(1000);
         if (inputBufferId >= 0) {
-            count++;
             ByteBuffer inputBuffer = null;
             if (Build.VERSION.SDK_INT >= 21) {
                 inputBuffer = mediaCodec.getInputBuffer(inputBufferId);
@@ -83,8 +80,8 @@ public class MediaCodecVideoEncoder extends Thread {
             }
             inputBuffer.clear();
             inputBuffer.put(data);
-            mediaCodec.queueInputBuffer(inputBufferId, 0, yuvSize, count * timeInter, 0);
-            count++;
+            //这里放入时间戳的方式都是这种getPTSUs()有些奇怪。不过管用
+            mediaCodec.queueInputBuffer(inputBufferId, 0, yuvSize, getPTSUs(), 0);
         }
 
         int outputBufferId = mediaCodec.dequeueOutputBuffer(info, 1000);
@@ -114,6 +111,7 @@ public class MediaCodecVideoEncoder extends Thread {
                 outputBuffer.position(info.offset);
                 outputBuffer.limit(info.offset + info.size);
             }
+            prevPresentationTimes = info.presentationTimeUs;
             int size = info.size;
             byte[] outBuffer = new byte[size];
             outputBuffer.get(outBuffer);
@@ -149,6 +147,14 @@ public class MediaCodecVideoEncoder extends Thread {
         }
     }
 
+    private long prevPresentationTimes;
+    private long getPTSUs(){
+        long result = System.nanoTime() / 1000;
+        if(result < prevPresentationTimes){
+            result = (prevPresentationTimes  - result ) + result;
+        }
+        return result;
+    }
 
     @Override
     public void run() {
@@ -156,6 +162,11 @@ public class MediaCodecVideoEncoder extends Thread {
         while (runFlag) {
             if (!queue.isEmpty()) {
                 byte[] buffer = queue.poll();
+                try {
+                    Thread.sleep(40);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 encode(buffer);
             }
         }
