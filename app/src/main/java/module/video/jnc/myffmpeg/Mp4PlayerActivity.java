@@ -155,7 +155,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         findViewById(R.id.ib_hard).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(Mp4PlayerActivity.this, HardCodeActivity.class));
+//                startActivity(new Intent(Mp4PlayerActivity.this, HardCodeActivity.class));
+                startActivity(new Intent(Mp4PlayerActivity.this , ChoiseVideoActivity.class));
             }
         });
 
@@ -167,7 +168,13 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 startActivity(intent);
             }
         });
-
+        findViewById(R.id.ib_video_cart).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Mp4PlayerActivity.this, VideoEditActivity.class);
+                startActivity(intent);
+            }
+        });
 
 
         btPlay.setOnClickListener(new View.OnClickListener() {

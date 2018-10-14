@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="title_bar">
+        <attr name="title_text" format="string" />
+
+    </declare-styleable>
+
+</resources>

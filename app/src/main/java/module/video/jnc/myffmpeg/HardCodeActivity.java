@@ -295,7 +295,6 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
             }
             else if(sampleIndex == audioIndex){
                 aDecoder.onFrame(buffer.array() , 0 , sampleSize);
-
             }
 
             me.advance();

@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-   >
+    android:layout_height="match_parent">
 
-    <!--<FrameLayout-->
-        <!--android:id="@+id/fl_contain"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"/>-->
 
     <module.video.jnc.myffmpeg.MyVideoGpuShow
         android:id="@+id/play_gl_surfaceview"
@@ -59,6 +54,18 @@
             android:layout_toLeftOf="@id/ib_flv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
+
+        <ImageButton
+            android:id="@+id/ib_video_cart"
+            android:background="@null"
+            android:src="@mipmap/edit_"
+            android:layout_toLeftOf="@id/ib_hard"
+            android:layout_marginRight="10dp"
+            android:scaleType="centerInside"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
     </RelativeLayout>
 
     <RelativeLayout
