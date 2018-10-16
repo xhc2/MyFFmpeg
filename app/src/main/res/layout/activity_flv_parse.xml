@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    tools:context=".FlvParseActivity">
+    tools:context=".activity.FlvParseActivity">
 
     <LinearLayout
         android:layout_width="match_parent"

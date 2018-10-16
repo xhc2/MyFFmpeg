@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.os.Environment;
 import android.os.Handler;
@@ -10,6 +10,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+
+import module.video.jnc.myffmpeg.R;
 
 /**
  * 视频编码界面

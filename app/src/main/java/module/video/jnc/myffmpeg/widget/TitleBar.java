@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -12,13 +13,14 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import module.video.jnc.myffmpeg.DensityUtils;
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.DensityUtils;
 
 public class TitleBar extends RelativeLayout{
 
     private TextView tvTitle;
     private String title ;
+    private String rightText;
     public TitleBar(Context context) {
         this(context , null);
     }
@@ -31,6 +33,7 @@ public class TitleBar extends RelativeLayout{
         super(context, attrs, defStyleAttr);
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.title_bar);
         title = array.getString(R.styleable.title_bar_title_text);
+        rightText= array.getString(R.styleable.title_bar_right_text);
         array.recycle();
         init();
     }
@@ -44,7 +47,10 @@ public class TitleBar extends RelativeLayout{
         tvTitle.setGravity(Gravity.CENTER);
         tvTitle.setTextSize(16);
         tvTitle.setTextColor(Color.parseColor("#ffffff"));
-        tvTitle.setText(title);
+        if(!TextUtils.isEmpty(title)){
+            tvTitle.setText(title);
+        }
+
         this.addView(tvTitle);
 
         ImageView back = new ImageView(getContext());
@@ -57,6 +63,27 @@ public class TitleBar extends RelativeLayout{
         back.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         this.addView(back);
 
+        if(!TextUtils.isEmpty(rightText)){
+            TextView tvRight = new TextView(getContext());
+            LayoutParams rightParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT , ViewGroup.LayoutParams.MATCH_PARENT);
+            rightParams.addRule(ALIGN_PARENT_RIGHT);
+            tvRight.setLayoutParams(rightParams);
+            tvRight.setTextColor(Color.parseColor("#ffffff"));
+            tvRight.setTextSize(14);
+            tvRight.setPadding(dp5 , 0 , dp5 , 0);
+            tvRight.setGravity(Gravity.CENTER);
+            tvRight.setText(rightText);
+            this.addView(tvRight);
+            tvRight.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(rightClickInter != null){
+                        rightClickInter.clickRight();
+                    }
+                }
+            });
+        }
+
         back.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,6 +92,21 @@ public class TitleBar extends RelativeLayout{
                 }
             }
         });
+    }
+
+    private RightClickInter rightClickInter;
+    public void setRightClickInter(RightClickInter rightClickInter){
+        this.rightClickInter = rightClickInter;
+    }
+
+    public interface RightClickInter{
+        void clickRight();
+    }
+
+    public void setTitile(String title){
+        if(!TextUtils.isEmpty(title)){
+            tvTitle.setText(title);
+        }
     }
 
 }

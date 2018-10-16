@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -15,9 +15,12 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.List;
+
+import module.video.jnc.myffmpeg.FFmpegUtils;
+import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.Constant;
+import module.video.jnc.myffmpeg.widget.CameraPreview;
 
 public class CameraStreamActivity extends Activity implements  Camera.PreviewCallback{
 

@@ -1,7 +1,11 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+
+import module.video.jnc.myffmpeg.R;
 
 /**
  * 一：视频相关的编辑-》这个相对比较简单
@@ -19,13 +23,26 @@ import android.os.Bundle;
  *  2.视频配乐
  *  3.倒放
  */
-public class VideoEditActivity extends Activity {
+public class VideoEditActivity extends Activity implements View.OnClickListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_edit);
+        findViewById(R.id.tv_video_edit).setOnClickListener(this);
+    }
 
+
+    @Override
+    public void onClick(View v) {
+        Intent intent = new Intent(VideoEditActivity.this , ChoiseVideoActivity.class);
+        switch (v.getId()){
+            case R.id.tv_video_edit:
+                intent.putExtra("choise_num" , 1);
+                intent.putExtra("action" , "xhc.video.clip");
+                startActivity(intent);
+                break;
+        }
     }
 }
 

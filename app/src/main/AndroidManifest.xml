@@ -10,15 +10,16 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme.NoActionBar">
         <activity
-            android:name=".Mp4PlayerActivity"
+            android:name=".activity.TestActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -44,15 +45,26 @@
         <!-- android:screenOrientation="landscape" -->
         <!-- android:theme="@android:style/Theme.NoTitleBar.Fullscreen" /> -->
 
-        <activity android:name=".NetStreamActivity" />
+        <activity android:name=".activity.NetStreamActivity" />
         <activity
-            android:name=".CameraStreamActivity"
+            android:name=".activity.CameraStreamActivity"
             android:label="@string/title_activity_camera_stream" />
-        <activity android:name=".FlvParseActivity" />
-        <activity android:name=".HardCodeActivity" />
-        <activity android:name=".HardMuxerCameraActivity" />
-        <activity android:name=".VideoEditActivity" />
-        <activity android:name=".ChoiseVideoActivity"/>
+        <activity android:name=".activity.FlvParseActivity" />
+        <activity android:name=".activity.HardCodeActivity" />
+        <activity android:name=".activity.HardMuxerCameraActivity" />
+        <activity android:name=".activity.VideoEditActivity" />
+        <activity android:name=".activity.ChoiseVideoActivity" />
+        <activity
+            android:name=".activity.VideoClipActivity"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="xhc.video.clip" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".activity.BaseActivity" />
+        <!--<activity android:name=".activity.TestActivity"></activity>-->
     </application>
 
 </manifest>

@@ -1,93 +1,73 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.app.Dialog;
-import android.content.Intent;
-import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.VideoView;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayAudioActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
+import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.Constant;
+
+/**
+ * 用于播放视频
+ */
+public class PlayVideoActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
+
+    private VideoView videoView;
+
     private Dialog dialog ;
-    private String path ;
-    private MediaPlayer mp ;
+    private String playPath;
     private List<File> listFile = new ArrayList<>();
     private List<String> suffixs = new ArrayList<String>();
-    private  FileAdater adater ;
+    private FileAdater adater ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_play_audio);
-
-        Intent intent = getIntent();
-        if(intent != null){
-            path = intent.getStringExtra("path");
-        }
-
-        playPath(path);
+        setContentView(R.layout.activity_play_video);
+        videoView = (VideoView)findViewById(R.id.videoview);
+        setOnclickListener();
         addSuffixs();
-        findViewById(R.id.bt_play).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mp != null){
-                    mp.start();
-                }
+        playPath = getIntent().getStringExtra("path");
+        if(playPath != null){
+            videoView.setVideoPath(playPath);
+            videoView.start();
+        }
+        createDialog();
+    }
 
-            }
-        });
-        findViewById(R.id.bt_file_list).setOnClickListener(new View.OnClickListener() {
+    private void setOnclickListener(){
+        findViewById(R.id.show_file).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showDialog();
             }
         });
+        findViewById(R.id.play_repeat).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                videoView.start();
+            }
+        });
     }
 
     private void addSuffixs(){
-        suffixs.add("mp3");
+        suffixs.add("mp4");
         suffixs.add("flv");
         suffixs.add("aac");
-        suffixs.add("pcm");
-        suffixs.add("wav");
-    }
-    private void playPath(String path){
+        suffixs.add("ts");
 
-        if(!TextUtils.isEmpty(path)){
-            Log.e("xhc" , " path "+path);
-            releaseAudio();
-            mp = new MediaPlayer();
-            try{
-
-                mp.setDataSource(path);
-                mp.prepare();
-                mp.start();
-            }catch(Exception e){
-                Toast.makeText(this ,e.getMessage()+" " , Toast.LENGTH_SHORT).show();
-                Log.e("xhc",""+ e.getMessage());
-            }
-
-
-        }
-    }
-
-    private void releaseAudio(){
-        if(mp!= null){
-            mp.stop();
-            mp.release();
-            mp = null;
-        }
     }
 
     private void createDialog(){
@@ -114,12 +94,6 @@ public class PlayAudioActivity extends AppCompatActivity implements AdapterView.
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        releaseAudio();
-    }
-
     private void getFileList(){
         File[] files = Constant.rootFile.listFiles();
         if(files != null){
@@ -135,7 +109,8 @@ public class PlayAudioActivity extends AppCompatActivity implements AdapterView.
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         File file = listFile.get(i);
-        playPath(file.getAbsolutePath());
+        videoView.setVideoPath(file.getAbsolutePath());
+        videoView.start();
         dismissDialog();
     }
 
@@ -148,7 +123,7 @@ public class PlayAudioActivity extends AppCompatActivity implements AdapterView.
         return true;
     }
 
-    private class FileAdater extends BaseAdapter {
+    private class FileAdater extends BaseAdapter{
 
         @Override
         public int getCount() {
@@ -167,18 +142,19 @@ public class PlayAudioActivity extends AppCompatActivity implements AdapterView.
 
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
-            FileAdater.ViewHolder holder;
+            ViewHolder holder;
             if(view == null){
-                holder = new FileAdater.ViewHolder();
-                holder.tv = new TextView(PlayAudioActivity.this);
+                holder = new ViewHolder();
+                holder.tv = new TextView(PlayVideoActivity.this);
                 holder.tv.setPadding(10 , 10 , 10 , 10);
+                holder.tv.setGravity(Gravity.CENTER);
                 ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.WRAP_CONTENT );
                 holder.tv.setLayoutParams(params);
                 view = holder.tv;
                 view.setTag(holder);
             }
             else{
-                holder = (FileAdater.ViewHolder)view.getTag();
+                holder = (ViewHolder)view.getTag();
             }
             holder.tv.setText(listFile.get(i).getName());
             return view;

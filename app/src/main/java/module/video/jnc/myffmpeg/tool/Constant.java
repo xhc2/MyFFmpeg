@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.tool;
 
 import android.content.Context;
 import android.hardware.Camera;

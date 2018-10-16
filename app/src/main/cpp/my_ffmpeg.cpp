@@ -16,7 +16,7 @@
 #include <aacparse.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
-
+#include "VideoClip.h"
 
 
 Mp4Player *mp4Player = NULL ;
@@ -356,4 +356,21 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getAACFrame(JNIEnv *env, jclass type,
     }
     env->ReleaseStringUTFChars(path_, path);
     return NULL;
+}
+
+VideoClip *vc;
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_startClip(JNIEnv *env, jclass type, jstring path_ , jstring output_,
+                                                     jint start, jint end) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+    const char *output = env->GetStringUTFChars(output_, 0);
+    LOGE(" OUTPUT %s " , output);
+    if(vc == NULL){
+        vc = new VideoClip(path ,output ,  start , end);
+    }
+    vc->start();
+    env->ReleaseStringUTFChars(path_, path);
+    env->ReleaseStringUTFChars(output_, output);
 }

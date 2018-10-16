@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="module.video.jnc.myffmpeg.EncodeActivity">
+    tools:context="module.video.jnc.myffmpeg.activity.EncodeActivity">
 
     <TextView
         android:id="@+id/tv"

@@ -1,36 +1,31 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioManager;
-import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecAudioDecoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecAudioEncoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecVideoDecoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecVideoEncoder;
+import module.video.jnc.myffmpeg.R;
 
 
 /**

@@ -32,6 +32,7 @@ add_library( my_ffmpeg
             src/main/cpp/NumUtils.cpp
             src/main/cpp/h264Parse.cpp
             src/main/cpp/AACParse.cpp
+            src/main/cpp/VideoClip.cpp
             )
 
 

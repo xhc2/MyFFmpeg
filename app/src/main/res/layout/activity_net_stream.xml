@@ -34,7 +34,7 @@
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"
         android:layout_height="wrap_content"
-        android:text="srs_librtmp"
+        android:text="srs_librtmp(还需继续学习)"
         />
 
     <Button

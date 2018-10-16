@@ -278,8 +278,9 @@ void Mp4Player::playVA(){
 }
 
 Mp4Player::~Mp4Player(){
-    videoDuration = -1;
 
+    LOGE("---------destroy Mp4Player------------");
+    videoDuration = -1;
     this->stop();
     if(seekFile != NULL){
         seekFile->stop();
@@ -349,6 +350,6 @@ Mp4Player::~Mp4Player(){
         avformat_close_input(&afc);
     }
 
-    LOGE("destroy Mp4Player");
+
 }
 

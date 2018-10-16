@@ -3,16 +3,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="#ffffff"
-    android:orientation="vertical"
-    android:layout_height="match_parent">
+    android:orientation="vertical">
 
     <module.video.jnc.myffmpeg.widget.TitleBar
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        app:title_text="选择视频"
-        />
+        android:id="@+id/title"
+        style="@style/title_bar"
+        app:right_text="下一步"
+        app:title_text="选择视频" />
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="420dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#000000" />
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rl_choise"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 
 </LinearLayout>

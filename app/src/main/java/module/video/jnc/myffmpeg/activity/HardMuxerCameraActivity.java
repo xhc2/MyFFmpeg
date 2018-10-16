@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,24 +10,22 @@ import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
-import android.media.MediaSync;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecAudioEncoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecVideoEncoder;
 import module.video.jnc.myffmpeg.MediaCodec.MyMediaMuxer;
+import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.Constant;
+import module.video.jnc.myffmpeg.widget.CameraPreview;
 
 public class HardMuxerCameraActivity extends Activity implements Camera.PreviewCallback, MediaCodecVideoEncoder.H264CallBack, MediaCodecAudioEncoder.AACCallBack {
 

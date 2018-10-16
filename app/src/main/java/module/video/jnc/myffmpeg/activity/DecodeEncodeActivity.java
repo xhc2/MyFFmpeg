@@ -1,10 +1,14 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import module.video.jnc.myffmpeg.MyGLSurfaceShader;
+import module.video.jnc.myffmpeg.MyGlSurface;
+import module.video.jnc.myffmpeg.R;
 
 public class DecodeEncodeActivity extends AppCompatActivity {
 

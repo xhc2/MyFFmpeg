@@ -74,6 +74,7 @@ int decode(const char *input_path, JNIEnv *env, jobject surface) {
             }
         }
     }
+
     ac = avcodec_alloc_context3(audioCode);
     if (!ac) {
         LOGE("AC AVCodecContext FAILD ! ");

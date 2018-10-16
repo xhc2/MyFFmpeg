@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,6 +8,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import module.video.jnc.myffmpeg.FFmpegUtils;
+import module.video.jnc.myffmpeg.R;
 
 /**
  * https://blog.csdn.net/leixiaohua1020/article/details/39803457

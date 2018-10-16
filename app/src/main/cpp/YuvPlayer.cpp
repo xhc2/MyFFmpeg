@@ -18,7 +18,6 @@ YuvPlayer::YuvPlayer(ANativeWindow *nwin, int outWidth , int outHeight){
     buf_u = (uint8_t *)malloc(pixSize / 4 );
     buf_v = (uint8_t *)malloc(pixSize / 4);
 
-//    fileYuv = fopen("sdcard/FFmpeg/fileyuv.pcm" , "wb+");
 }
 
 YuvPlayer::~YuvPlayer(){
@@ -117,8 +116,6 @@ int YuvPlayer::showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
     //窗口显示
     eglSwapBuffers(display, winsurface);
     ////纹理的修改和显示
-
-
 
     return RESULT_SUCCESS;
 }

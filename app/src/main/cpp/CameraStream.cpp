@@ -119,6 +119,7 @@ void CameraStream::addVideoStream() {
         cj->callStr(" vcode context faild ! ");
         return;
     }
+
     vCodeCtx->width = outWidth;
     vCodeCtx->height = outHeight;
     vCodeCtx->codec_type = AVMEDIA_TYPE_VIDEO;

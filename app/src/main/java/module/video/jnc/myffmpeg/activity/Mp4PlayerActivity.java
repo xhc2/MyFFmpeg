@@ -1,27 +1,20 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.os.Bundle;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -30,14 +23,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import module.video.jnc.myffmpeg.FFmpegUtils;
+import module.video.jnc.myffmpeg.MyVideoGpuShow;
+import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.Constant;
+import module.video.jnc.myffmpeg.tool.DensityUtils;
 
 import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
@@ -113,6 +109,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         myVideoGpuShow.setRenderer(this);//android 8.0需要设置
         myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
+
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         btPlay = (TextView) findViewById(R.id.bt_play_button);
         tvSpeed = (TextView) findViewById(R.id.bt_play_speed);
@@ -155,8 +152,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         findViewById(R.id.ib_hard).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                startActivity(new Intent(Mp4PlayerActivity.this, HardCodeActivity.class));
-                startActivity(new Intent(Mp4PlayerActivity.this , ChoiseVideoActivity.class));
+                startActivity(new Intent(Mp4PlayerActivity.this, HardCodeActivity.class));
             }
         });
 
@@ -461,7 +457,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     protected void onPause() {
         super.onPause();
         myVideoGpuShow.onPause();
-        Log.e("xhc", "activity onPause ");
         flag = PAUSE;
         pauseFlag = true;
         if (FFmpegUtils.mp4Pause() == 1) {
@@ -480,8 +475,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("xhc", "activity onDestroy ");
-
         stopThread();
         FFmpegUtils.removeNotify(this);
         FFmpegUtils.destroyMp4Play();

@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -10,6 +10,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import module.video.jnc.myffmpeg.FFmpegUtils;
+import module.video.jnc.myffmpeg.R;
 
 public class FlvParseActivity extends Activity {
 

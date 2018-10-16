@@ -32,25 +32,18 @@ public class FFmpegUtils {
         listNativeNotify.remove(lis);
     }
 
-    interface Lis{
+    public interface Lis{
         void nativeNotify(String str);
     }
 
     //下面是做音视频播放器的
     public static native int initMp4Play(String path, Object glSurfaceView);
-
     public static native float getDuration();
-
     public static native int destroyMp4Play();
-
     public static native int mp4Pause();
-
     public static native int mp4Play();
-
     public static native int getProgress();
-
     public static native int changeSpeed(float speed);
-
     public static native int seekStart();
     public static native int seek(float progress);
 
@@ -82,6 +75,9 @@ public class FFmpegUtils {
     //aac
     public static native String aacParse(String path);
     public static native  byte[]  getAACFrame(String path);
+
+    //视频剪辑
+    public static native void startClip(String path , String output ,   int start , int end);
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

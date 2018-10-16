@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:orientation="vertical"
     android:layout_height="match_parent"
-    tools:context="module.video.jnc.myffmpeg.PlayVideoActivity">
+    tools:context="module.video.jnc.myffmpeg.activity.PlayVideoActivity">
 
     <Button
         android:id="@+id/show_file"
