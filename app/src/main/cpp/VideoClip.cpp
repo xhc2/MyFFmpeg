@@ -3,7 +3,11 @@
 // http://ffmpeg.org/doxygen/3.4/remuxing_8c-example.html#a25 可以参考
 //
 
-
+/**
+ * 现在改到任意帧，也就是需要解码视频帧，不然会有花屏的情况。因为第一帧不是关键帧。
+ * 音频帧就不用解码了。直接写入。
+ *
+ */
 #include "VideoClip.h"
 
 VideoClip::VideoClip(const char* path , const char* output ,  int startSecond , int endSecond){
@@ -11,7 +15,7 @@ VideoClip::VideoClip(const char* path , const char* output ,  int startSecond , 
     this->endSecond = endSecond;
 
     int pathLen = strlen(path);
-    pathLen ++;// for '\0'
+    pathLen ++;
     this->path = (char *)malloc(pathLen);
     strcpy(this->path  , path);
 
@@ -19,6 +23,8 @@ VideoClip::VideoClip(const char* path , const char* output ,  int startSecond , 
     outputPathLen++;
     this->outputPath = (char *)malloc(outputPathLen);
     strcpy(this->outputPath  , output);
+
+    findKeyFrame = false;
 
 }
 
@@ -42,6 +48,7 @@ int VideoClip::initInput(){
         if(stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
             videoStream = stream;
             video_index = i;
+            videoCodecD = avcodec_find_decoder(stream->codecpar->codec_id);
         }
         else if(stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO){
             audioStream = stream;
@@ -49,10 +56,29 @@ int VideoClip::initInput(){
         }
     }
 
+    if(videoCodecD == NULL){
+        LOGE(" 没找到视频解码器 ");
+        return -1;
+    }
+    vCtxD = avcodec_alloc_context3(videoCodecD);
+
+    if (!vCtxD) {
+        LOGE("vc AVCodecContext FAILD ! ");
+        return -1;
+    }
+
+    avcodec_parameters_to_context(vCtxD, afc_input->streams[video_index]->codecpar);
+
+    result = avcodec_open2(vCtxD, NULL, NULL);
+
+    if (result != 0) {
+        LOGE("ctx avcodec_open2 Faild !");
+        return -1;
+    }
+    LOGE(" init input success ");
+
     return 1;
 }
-
-
 
 int VideoClip::initOutput(){
     int result = 0 ;
@@ -63,7 +89,6 @@ int VideoClip::initOutput(){
         return -1;
     }
     afot = afc_output->oformat;
-
     if(addVideoOutputStream() < 0){
         return -1;
     }
@@ -78,17 +103,21 @@ int VideoClip::initOutput(){
             return -1;
         }
     }
+
     result = avformat_write_header(afc_output, NULL);
+
     if (result < 0) {
         LOGE( "Error occurred when opening output file\n");
-
     }
+
+
+    LOGE(" INIT OUTPUT SUCCESS !");
+
     return 1;
 }
 
 
 int VideoClip::addVideoOutputStream(){
-    int result = 0;
     videoOutStream = avformat_new_stream(afc_output , NULL);
     if(videoOutStream == NULL){
         LOGE(" VIDEO STREAM NULL ");
@@ -100,9 +129,30 @@ int VideoClip::addVideoOutputStream(){
     }
 
     avcodec_parameters_copy(videoOutStream->codecpar , videoStream->codecpar);
+
     videoOutStream->codecpar->codec_tag = 0 ;
 
-    LOGE(" VIDEO STREAM WIDTH %d " ,videoOutStream->codecpar->width  );
+    LOGE(" output video stream id %d " , videoOutStream->codecpar->codec_id );
+
+    if(videoOutStream->codecpar->codec_id == AV_CODEC_ID_NONE){
+        LOGE(" video output stream %d " , videoOutStream->codecpar->codec_id );
+        return -1;
+    }
+    videoCodecE  = avcodec_find_encoder(videoOutStream->codecpar->codec_id);
+    if( videoCodecE == NULL){
+        LOGE(" avcodec_find_encoder FAILD ! ");
+        return -1;
+    }
+    vCtxE = avcodec_alloc_context3(videoCodecE);
+    if(vCtxE == NULL){
+        LOGE(" avcodec_alloc_context3 FAILD ! ");
+        return -1;
+    }
+    if (avcodec_open2(vCtxE, videoCodecE, NULL) < 0) {
+        LOGE( "Could not open codec\n");
+        return -1;
+    }
+    LOGE(" VIDEO STREAM WIDTH %d " , videoOutStream->codecpar->width);
 
     return 1;
 }
@@ -120,9 +170,9 @@ int VideoClip::addAudioOutputStream(){
     }
 
     avcodec_parameters_copy(audioOutStream->codecpar , audioStream->codecpar);
+
     audioOutStream->codecpar->codec_tag = 0 ;
 
-    LOGE(" VIDEO STREAM WIDTH %d " ,audioOutStream->codecpar->width  );
     return 1;
 }
 
@@ -146,46 +196,55 @@ void VideoClip::start(){
         LOGE(" INIT INPUT FAILD ");
         return ;
     }
-
     if(initOutput() < 0){
         LOGE(" INIT OUTPUT FAILD ");
         return ;
     }
 
-    AVPacket *packet = av_packet_alloc();
-    int64_t pts = 0;
-    AVStream *inStream , *outStream;
-    while(true){
-        result = av_read_frame(afc_input , packet);
-        if(result < 0){
-            LOGE(" READ FRAME FAILD ");
-            break;
-        }
-        if(packet->stream_index == video_index){
-            inStream = videoStream;
-            outStream = videoOutStream;
-            pts = (int64_t)(packet->pts * av_q2d(videoStream->time_base) * 1000);
-            LOGE(" VIDEO %lld" , pts);
-        }
-        else if(packet->stream_index == audio_index){
-            inStream = audioStream;
-            outStream = audioOutStream;
-            pts = (int64_t)(packet->pts * av_q2d(audioStream->time_base) * 1000);
-            LOGE(" AUDIO %lld" , pts);
-        }
-        if((pts >= startSecond * 1000) && (pts <= endSecond * 1000) ){
-            LOGE(" pts is true...");
-            packet->pts = av_rescale_q_rnd(packet->pts, inStream->time_base, outStream->time_base, AV_ROUND_NEAR_INF);
-            packet->dts = av_rescale_q_rnd(packet->dts, inStream->time_base, outStream->time_base, AV_ROUND_NEAR_INF);
-            packet->duration = av_rescale_q(packet->duration, inStream->time_base, outStream->time_base);
-            av_interleaved_write_frame(afc_output ,packet);
-            av_packet_unref(packet);
-        }
-    }
-    av_write_trailer(afc_output);
+
+
+//    AVPacket *packet = av_packet_alloc();
+//    int64_t pts = 0;
+//    AVStream *inStream , *outStream;
+//    while(true){
+//        result = av_read_frame(afc_input , packet);
+//        if(result < 0){
+//            LOGE(" READ FRAME FAILD ");
+//            break;
+//        }
+//        if(packet->stream_index == video_index){
+//            inStream = videoStream;
+//            outStream = videoOutStream;
+//            pts = (int64_t)(packet->pts * av_q2d(videoStream->time_base) * 1000);
+//            //需要解码处理了。
+////            LOGE("NALU ? %x , %x , %x , %x " , packet->data[0] , packet->data[1] , packet->data[2] , packet->data[3]);
+//        }
+//        else if(packet->stream_index == audio_index){
+//            inStream = audioStream;
+//            outStream = audioOutStream;
+//            pts = (int64_t)(packet->pts * av_q2d(audioStream->time_base) * 1000);
+//        }
+//        if((pts >= startSecond * 1000) && (pts <= endSecond * 1000) ){
+//            LOGE(" packet->flags %d " , packet->flags);
+//
+//
+//            packet->pts = av_rescale_q_rnd(packet->pts, inStream->time_base, outStream->time_base, AV_ROUND_NEAR_INF);
+//            packet->dts = av_rescale_q_rnd(packet->dts, inStream->time_base, outStream->time_base, AV_ROUND_NEAR_INF);
+//            packet->duration = av_rescale_q(packet->duration, inStream->time_base, outStream->time_base);
+//            av_interleaved_write_frame(afc_output ,packet);
+//            av_packet_unref(packet);
+//        }
+//    }
+//    av_write_trailer(afc_output);
 }
 
 
 VideoClip::~VideoClip(){
+    if(afc_input != NULL){
+        avformat_close_input(&afc_input);
+    }
+    if(afc_output != NULL){
+        avformat_free_context(afc_output);
+    }
 
 }

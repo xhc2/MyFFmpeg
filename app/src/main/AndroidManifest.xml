@@ -19,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity
-            android:name=".activity.TestActivity"
+            android:name="module.video.jnc.myffmpeg.activity.TestActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -64,7 +64,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.BaseActivity" />
-        <!--<activity android:name=".activity.TestActivity"></activity>-->
+        <!-- <activity android:name=".activity.TestActivity"></activity> -->
+        <!--<activity android:name=".opengl.OpenGlTestActivity"></activity>-->
     </application>
 
 </manifest>

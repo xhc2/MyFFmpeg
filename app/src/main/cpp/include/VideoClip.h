@@ -20,6 +20,11 @@ private :
     int audio_index;
     AVStream *audioStream ;
     AVStream *videoStream ;
+    AVCodec *videoCodecD;
+    AVCodec *videoCodecE;
+
+    AVCodecContext *vCtxD;
+    AVCodecContext *vCtxE;
     AVFormatContext *afc_input ;
     AVFormatContext *afc_output ;
     AVOutputFormat *afot;
@@ -32,6 +37,9 @@ private :
     AVStream *videoOutStream ;
     char* path;
     char* outputPath;
+
+    bool findKeyFrame ;
+
 public :
     VideoClip(const char* path , const char* output , int startSecond , int endSecond);
     void start();

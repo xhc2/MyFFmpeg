@@ -20,5 +20,12 @@ public class TestActivity extends AppCompatActivity {
                 FFmpegUtils.startClip("sdcard/FFmpeg/test.mp4" ,"sdcard/FFmpeg/test_clip.mp4" , 0,15);
             }
         });
+
+        findViewById(R.id.bt_end).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FFmpegUtils.destroyClip();
+            }
+        });
     }
 }

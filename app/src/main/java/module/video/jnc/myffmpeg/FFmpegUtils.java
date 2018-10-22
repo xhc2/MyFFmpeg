@@ -78,6 +78,11 @@ public class FFmpegUtils {
 
     //视频剪辑
     public static native void startClip(String path , String output ,   int start , int end);
+    public static native void destroyClip();
+
+    //opengl test
+    public static native void openGlTest(String path, Object glSurfaceView);
+    public static native void openDestroy();
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

@@ -14,6 +14,7 @@
 #include <decode_test.h>
 #include <SRSLibRtmp.h>
 #include <aacparse.h>
+#include <OpenGlTest.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -373,4 +374,33 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startClip(JNIEnv *env, jclass type, j
     vc->start();
     env->ReleaseStringUTFChars(path_, path);
     env->ReleaseStringUTFChars(output_, output);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyClip(JNIEnv *env, jclass type) {
+    if(vc != NULL){
+        delete vc;
+    }
+}
+OpenGlTest *ot;
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_openGlTest(JNIEnv *env, jclass type, jstring path_,
+                                                      jobject glSurfaceView) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+    ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
+    ot = new OpenGlTest(path , win);
+    ot->start();
+    env->ReleaseStringUTFChars(path_, path);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_openDestroy(JNIEnv *env, jclass type) {
+
+    delete ot;
+    // TODO
+
 }

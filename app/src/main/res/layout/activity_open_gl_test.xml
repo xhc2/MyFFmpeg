@@ -3,20 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activity.TestActivity">
+    android:layout_height="match_parent"
+    tools:context=".opengl.OpenGlTestActivity">
 
     <Button
         android:id="@+id/bt_start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="开始"
+        android:text="start"
         />
-    <Button
-        android:id="@+id/bt_end"
+
+    <module.video.jnc.myffmpeg.opengl.MyGlSurfaceView
+        android:id="@+id/surface_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="结束"
+        android:layout_height="match_parent"
         />
+
+
 </LinearLayout>
