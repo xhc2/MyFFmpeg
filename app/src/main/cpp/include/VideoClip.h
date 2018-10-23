@@ -31,7 +31,9 @@ private :
     int initInput();
     int initOutput();
 
-    int addVideoOutputStream();
+
+
+    int addVideoOutputStream(int width , int height);
     int addAudioOutputStream();
     AVStream *audioOutStream ;
     AVStream *videoOutStream ;

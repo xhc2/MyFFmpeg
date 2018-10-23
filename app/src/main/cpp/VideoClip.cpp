@@ -49,6 +49,7 @@ int VideoClip::initInput(){
             videoStream = stream;
             video_index = i;
             videoCodecD = avcodec_find_decoder(stream->codecpar->codec_id);
+
         }
         else if(stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO){
             audioStream = stream;
@@ -89,7 +90,7 @@ int VideoClip::initOutput(){
         return -1;
     }
     afot = afc_output->oformat;
-    if(addVideoOutputStream() < 0){
+    if(addVideoOutputStream(videoStream->codecpar->width , videoStream->codecpar->height) < 0){
         return -1;
     }
     if(addAudioOutputStream() < 0){
@@ -107,7 +108,7 @@ int VideoClip::initOutput(){
     result = avformat_write_header(afc_output, NULL);
 
     if (result < 0) {
-        LOGE( "Error occurred when opening output file\n");
+        LOGE( " avformat_write_header %s" , av_err2str(result));
     }
 
 
@@ -117,7 +118,7 @@ int VideoClip::initOutput(){
 }
 
 
-int VideoClip::addVideoOutputStream(){
+int VideoClip::addVideoOutputStream(int width , int height){
     int result = 0 ;
     videoOutStream = avformat_new_stream(afc_output , NULL);
     if(videoOutStream == NULL){
@@ -129,11 +130,6 @@ int VideoClip::addVideoOutputStream(){
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
-
-    avcodec_parameters_copy(videoOutStream->codecpar , videoStream->codecpar);
-
-    LOGE(" input_video videoStream->codecpar %d " , videoStream->codecpar->codec_id);
-    LOGE(" afot->video_codec %d " , afot->video_codec); // 13
 
     videoCodecE = avcodec_find_encoder(afot->video_codec);
 
@@ -148,15 +144,6 @@ int VideoClip::addVideoOutputStream(){
         return -1;
     }
 
-    LOGE(" videoOutStream->codecpar->codec_id %d " , videoOutStream->codecpar->codec_id);//28
-
-    result = avcodec_parameters_to_context(vCtxE , videoOutStream->codecpar);
-    if(result < 0){
-        LOGE(" avcodec_parameters_to_context faild ! %s " , av_err2str(result));
-        return -1;
-    }
-
-
     vCtxE->bit_rate = 400000;
     vCtxE->time_base = (AVRational){1, 25};
     vCtxE->framerate = (AVRational){25, 1};
@@ -164,28 +151,24 @@ int VideoClip::addVideoOutputStream(){
     vCtxE->max_b_frames = 1;
     vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
     vCtxE->codec_type = AVMEDIA_TYPE_VIDEO;
-    vCtxE->codec_id = afot->video_codec;
+    vCtxE->width = width;
+    vCtxE->height = height;
 
+    result = avcodec_parameters_from_context(videoOutStream->codecpar, vCtxE );
 
+    if(result < 0){
+        LOGE(" avcodec_parameters_from_context FAILD ! ");
+        return -1;
+    }
 
-    LOGE(" bit rate %lld " ,vCtxE->bit_rate );
-    LOGE(" width %d " ,vCtxE->width );
-    LOGE(" height %d " ,vCtxE->height );
-    LOGE(" time_base.num %d  , den %d " ,vCtxE->time_base.num , vCtxE->time_base.den );
-    LOGE(" framerate.num %d  , framerate.den %d " ,vCtxE->framerate.num ,  vCtxE->framerate.den);
-    LOGE(" framerate->gop_size %d " ,vCtxE->gop_size );
-    LOGE(" framerate->pix_fmt %d " ,vCtxE->pix_fmt );
-    LOGE(" framerate->max_b %d " ,vCtxE->max_b_frames );
-    LOGE(" vCtxE->codec_id %d " , vCtxE->codec_id);
-    LOGE(" videoCodecE->id  %d " , videoCodecE->id);
     result = avcodec_open2(vCtxE, videoCodecE, NULL);
 
     if (result < 0) {
         LOGE( "Could not open codec %s " , av_err2str(result));
         return -1;
     }
-    LOGE(" VIDEO STREAM WIDTH %d " , videoOutStream->codecpar->width);
 
+    LOGE(" VIDEO STREAM WIDTH %d " , videoOutStream->codecpar->width);
     return 1;
 }
 
@@ -200,9 +183,7 @@ int VideoClip::addAudioOutputStream(){
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
-
     avcodec_parameters_copy(audioOutStream->codecpar , audioStream->codecpar);
-
     audioOutStream->codecpar->codec_tag = 0 ;
 
     return 1;
