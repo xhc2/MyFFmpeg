@@ -124,19 +124,17 @@ int VideoClip::addVideoOutputStream(){
         LOGE(" VIDEO STREAM NULL ");
         return -1;
     }
+
     if (afot->video_codec == AV_CODEC_ID_NONE) {
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
-    avcodec_parameters_copy(videoOutStream->codecpar , videoStream->codecpar);
-    videoOutStream->codecpar->codec_tag = 0 ;
-    LOGE(" output video stream id %d " , videoOutStream->codecpar->codec_id );
 
-//    if(videoOutStream->codecpar->codec_id == AV_CODEC_ID_NONE){
-//        LOGE(" video output stream %d " , videoOutStream->codecpar->codec_id );
-//        return -1;
-//    }
-    LOGE(" afot->video_codec %d " , afot->video_codec);
+    avcodec_parameters_copy(videoOutStream->codecpar , videoStream->codecpar);
+
+    LOGE(" input_video videoStream->codecpar %d " , videoStream->codecpar->codec_id);
+    LOGE(" afot->video_codec %d " , afot->video_codec); // 13
+
     videoCodecE = avcodec_find_encoder(afot->video_codec);
 
     if(videoCodecE == NULL){
@@ -150,11 +148,26 @@ int VideoClip::addVideoOutputStream(){
         return -1;
     }
 
+    LOGE(" videoOutStream->codecpar->codec_id %d " , videoOutStream->codecpar->codec_id);//28
+
     result = avcodec_parameters_to_context(vCtxE , videoOutStream->codecpar);
     if(result < 0){
         LOGE(" avcodec_parameters_to_context faild ! %s " , av_err2str(result));
         return -1;
     }
+
+
+    vCtxE->bit_rate = 400000;
+    vCtxE->time_base = (AVRational){1, 25};
+    vCtxE->framerate = (AVRational){25, 1};
+    vCtxE->gop_size = 10;
+    vCtxE->max_b_frames = 1;
+    vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
+    vCtxE->codec_type = AVMEDIA_TYPE_VIDEO;
+    vCtxE->codec_id = afot->video_codec;
+
+
+
     LOGE(" bit rate %lld " ,vCtxE->bit_rate );
     LOGE(" width %d " ,vCtxE->width );
     LOGE(" height %d " ,vCtxE->height );
@@ -163,12 +176,8 @@ int VideoClip::addVideoOutputStream(){
     LOGE(" framerate->gop_size %d " ,vCtxE->gop_size );
     LOGE(" framerate->pix_fmt %d " ,vCtxE->pix_fmt );
     LOGE(" framerate->max_b %d " ,vCtxE->max_b_frames );
-    vCtxE->time_base.num = 1;
-    vCtxE->time_base.den = 25;
-    vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
-    vCtxE->gop_size = 25;
-
-    LOGE(" videoCodecE %d " , videoCodecE->id);
+    LOGE(" vCtxE->codec_id %d " , vCtxE->codec_id);
+    LOGE(" videoCodecE->id  %d " , videoCodecE->id);
     result = avcodec_open2(vCtxE, videoCodecE, NULL);
 
     if (result < 0) {
@@ -244,7 +253,7 @@ void VideoClip::encodeTest(){
         LOGE(" avcodec_alloc_context3 FAILD ! ");
         return ;
     }
-//    vCtxE->codec_tag =
+
     vCtxE->bit_rate = 400000;
     vCtxE->width = 352;
     vCtxE->height = 288;
@@ -253,6 +262,16 @@ void VideoClip::encodeTest(){
     vCtxE->gop_size = 10;
     vCtxE->max_b_frames = 1;
     vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
+//    videoOutStream->codec = vCtxE;
+
+    result =  avcodec_parameters_from_context(videoOutStream->codecpar , vCtxE);
+
+    if(result < 0){
+        LOGE(" params context faild !");
+        return;
+    }
+
+
 
     LOGE(" bit rate %lld " ,vCtxE->bit_rate );
     LOGE(" width %d " ,vCtxE->width );
@@ -289,7 +308,6 @@ void VideoClip::encodeTest(){
         return ;
     }
 
-
     LOGE(" INIT OUTPUT SUCCESS !");
 }
 
@@ -299,17 +317,16 @@ void VideoClip::start(){
     av_register_all();
     avcodec_register_all();
     av_log_set_callback(custom_log2);
-    encodeTest();
+//    encodeTest();
 
-
-//    if(initInput() < 0){
-//        LOGE(" INIT INPUT FAILD ");
-//        return ;
-//    }
-//    if(initOutput() < 0){
-//        LOGE(" INIT OUTPUT FAILD ");
-//        return ;
-//    }
+    if(initInput() < 0){
+        LOGE(" INIT INPUT FAILD ");
+        return ;
+    }
+    if(initOutput() < 0){
+        LOGE(" INIT OUTPUT FAILD ");
+        return ;
+    }
 
 
 
