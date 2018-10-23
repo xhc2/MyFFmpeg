@@ -43,6 +43,7 @@ private :
 public :
     VideoClip(const char* path , const char* output , int startSecond , int endSecond);
     void start();
+    void encodeTest();
     ~VideoClip();
 
 

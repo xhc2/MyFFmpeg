@@ -118,6 +118,7 @@ int VideoClip::initOutput(){
 
 
 int VideoClip::addVideoOutputStream(){
+    int result = 0 ;
     videoOutStream = avformat_new_stream(afc_output , NULL);
     if(videoOutStream == NULL){
         LOGE(" VIDEO STREAM NULL ");
@@ -127,29 +128,51 @@ int VideoClip::addVideoOutputStream(){
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
-
     avcodec_parameters_copy(videoOutStream->codecpar , videoStream->codecpar);
-
     videoOutStream->codecpar->codec_tag = 0 ;
-
     LOGE(" output video stream id %d " , videoOutStream->codecpar->codec_id );
 
-    if(videoOutStream->codecpar->codec_id == AV_CODEC_ID_NONE){
-        LOGE(" video output stream %d " , videoOutStream->codecpar->codec_id );
-        return -1;
-    }
-    videoCodecE  = avcodec_find_encoder(videoOutStream->codecpar->codec_id);
-    if( videoCodecE == NULL){
+//    if(videoOutStream->codecpar->codec_id == AV_CODEC_ID_NONE){
+//        LOGE(" video output stream %d " , videoOutStream->codecpar->codec_id );
+//        return -1;
+//    }
+    LOGE(" afot->video_codec %d " , afot->video_codec);
+    videoCodecE = avcodec_find_encoder(afot->video_codec);
+
+    if(videoCodecE == NULL){
         LOGE(" avcodec_find_encoder FAILD ! ");
         return -1;
     }
     vCtxE = avcodec_alloc_context3(videoCodecE);
+
     if(vCtxE == NULL){
         LOGE(" avcodec_alloc_context3 FAILD ! ");
         return -1;
     }
-    if (avcodec_open2(vCtxE, videoCodecE, NULL) < 0) {
-        LOGE( "Could not open codec\n");
+
+    result = avcodec_parameters_to_context(vCtxE , videoOutStream->codecpar);
+    if(result < 0){
+        LOGE(" avcodec_parameters_to_context faild ! %s " , av_err2str(result));
+        return -1;
+    }
+    LOGE(" bit rate %lld " ,vCtxE->bit_rate );
+    LOGE(" width %d " ,vCtxE->width );
+    LOGE(" height %d " ,vCtxE->height );
+    LOGE(" time_base.num %d  , den %d " ,vCtxE->time_base.num , vCtxE->time_base.den );
+    LOGE(" framerate.num %d  , framerate.den %d " ,vCtxE->framerate.num ,  vCtxE->framerate.den);
+    LOGE(" framerate->gop_size %d " ,vCtxE->gop_size );
+    LOGE(" framerate->pix_fmt %d " ,vCtxE->pix_fmt );
+    LOGE(" framerate->max_b %d " ,vCtxE->max_b_frames );
+    vCtxE->time_base.num = 1;
+    vCtxE->time_base.den = 25;
+    vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
+    vCtxE->gop_size = 25;
+
+    LOGE(" videoCodecE %d " , videoCodecE->id);
+    result = avcodec_open2(vCtxE, videoCodecE, NULL);
+
+    if (result < 0) {
+        LOGE( "Could not open codec %s " , av_err2str(result));
         return -1;
     }
     LOGE(" VIDEO STREAM WIDTH %d " , videoOutStream->codecpar->width);
@@ -178,7 +201,8 @@ int VideoClip::addAudioOutputStream(){
 
 
 void custom_log2(void *ptr, int level, const char *fmt, va_list vl) {
-    FILE *fp = fopen("sdcard/FFmpeg/ffmpeglog.txt", "a+");
+    LOGFFMPEG("FFmpeg LOG -> %s" , fmt , vl);
+    FILE *fp = fopen("sdcard/FFmpeg/ffmpeglog.txt", "w");
     if (fp) {
         vfprintf(fp, fmt, vl);
         fflush(fp);
@@ -186,20 +210,106 @@ void custom_log2(void *ptr, int level, const char *fmt, va_list vl) {
     }
 };
 
+void VideoClip::encodeTest(){
+    int result = 0 ;
+    afc_output = NULL;
+    result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outputPath);
+    if (result < 0 || afc_output == NULL) {
+        LOGE(" avformat_alloc_output_context2 faild %s " , av_err2str(result));
+        return  ;
+    }
+    afot = afc_output->oformat;
+
+    videoOutStream = avformat_new_stream(afc_output , NULL);
+    if(videoOutStream == NULL){
+        LOGE(" VIDEO STREAM NULL ");
+        return ;
+    }
+
+    videoOutStream->id = afc_output->nb_streams - 1;
+
+    if (afot->video_codec == AV_CODEC_ID_NONE) {
+        LOGE(" VIDEO AV_CODEC_ID_NONE ");
+        return ;
+    }
+
+    videoCodecE = avcodec_find_encoder(afot->video_codec);
+
+    if(videoCodecE == NULL){
+        LOGE(" avcodec_find_encoder FAILD ! ");
+        return ;
+    }
+    vCtxE = avcodec_alloc_context3(videoCodecE);
+    if(vCtxE ==  NULL ){
+        LOGE(" avcodec_alloc_context3 FAILD ! ");
+        return ;
+    }
+//    vCtxE->codec_tag =
+    vCtxE->bit_rate = 400000;
+    vCtxE->width = 352;
+    vCtxE->height = 288;
+    vCtxE->time_base = (AVRational){1, 25};
+    vCtxE->framerate = (AVRational){25, 1};
+    vCtxE->gop_size = 10;
+    vCtxE->max_b_frames = 1;
+    vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
+
+    LOGE(" bit rate %lld " ,vCtxE->bit_rate );
+    LOGE(" width %d " ,vCtxE->width );
+    LOGE(" height %d " ,vCtxE->height );
+    LOGE(" time_base.num %d  , den %d " ,vCtxE->time_base.num , vCtxE->time_base.den );
+    LOGE(" framerate.num %d  , framerate.den %d " ,vCtxE->framerate.num ,  vCtxE->framerate.den);
+    LOGE(" framerate->gop_size %d " ,vCtxE->gop_size );
+    LOGE(" framerate->pix_fmt %d " ,vCtxE->pix_fmt );
+    LOGE(" framerate->max_b %d " ,vCtxE->max_b_frames );
+
+    LOGE(" vCtxE codec_id = %d , afot->video_codec id = %d  ，videoCodecE->id = %d " ,
+         vCtxE->codec_id ,afot->video_codec  , videoCodecE->id  );
+
+    result = avcodec_open2(vCtxE, videoCodecE, NULL);
+    if (result < 0) {
+        LOGE( "Could not open codec %s " , av_err2str(result));
+        return ;
+    }
+
+    if (!(afot->flags & AVFMT_NOFILE)) {
+        result = avio_open(&afc_output->pb, outputPath, AVIO_FLAG_WRITE);
+        if (result < 0) {
+            LOGE(  "Could not open output file %s ", outputPath);
+            return ;
+        }
+    }
+
+    LOGE(" code name %s " , videoCodecE->name);
+
+    result = avformat_write_header(afc_output, NULL);
+
+    if (result < 0) {
+        LOGE( "avformat_write_header %s " , av_err2str(result));
+        return ;
+    }
+
+
+    LOGE(" INIT OUTPUT SUCCESS !");
+}
+
 void VideoClip::start(){
 
     int result = -1;
     av_register_all();
     avcodec_register_all();
     av_log_set_callback(custom_log2);
-    if(initInput() < 0){
-        LOGE(" INIT INPUT FAILD ");
-        return ;
-    }
-    if(initOutput() < 0){
-        LOGE(" INIT OUTPUT FAILD ");
-        return ;
-    }
+    encodeTest();
+
+
+//    if(initInput() < 0){
+//        LOGE(" INIT INPUT FAILD ");
+//        return ;
+//    }
+//    if(initOutput() < 0){
+//        LOGE(" INIT OUTPUT FAILD ");
+//        return ;
+//    }
 
 
 
