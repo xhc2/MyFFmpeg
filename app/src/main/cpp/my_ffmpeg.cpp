@@ -385,6 +385,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyClip(JNIEnv *env, jclass type)
         delete vc;
     }
 }
+
+
+
 OpenGlTest *ot;
 extern "C"
 JNIEXPORT void JNICALL

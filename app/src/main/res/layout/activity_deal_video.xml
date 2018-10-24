@@ -14,9 +14,26 @@
         app:title_text="视频剪辑"
         app:right_text="确定"/>
 
-    <module.video.jnc.myffmpeg.MyVideoGpuShow
-        android:id="@+id/play_gl_surfaceview"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="150dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="30dp"
+        android:background="#3366ff"
+        />
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="50dp"
+        android:background="#3366ff"
+        />
+
+
+
 
 </LinearLayout>

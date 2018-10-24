@@ -19,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity
-            android:name="module.video.jnc.myffmpeg.activity.TestActivity"
+            android:name="module.video.jnc.myffmpeg.activity.Mp4PlayerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -28,22 +28,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- <activity android:name=".EncodeActivity" /> -->
-        <!-- <activity android:name=".opengl.OpenglActivity" /> -->
-        <!-- <activity android:name=".EGLCamera.EGLCameraActivity" /> -->
-        <!-- <activity android:name=".PlayVideoActivity" /> -->
-        <!-- <activity android:name=".MyFFmpegActivity" /> -->
-        <!-- <activity android:name=".PlayAudioActivity" /> -->
-        <!-- <activity android:name=".DecodeEncodeActivity" /> -->
-        <!-- android:screenOrientation="landscape" -->
-        <!-- <activity -->
-        <!-- android:name=".ShowVideoAndAudioActivity" -->
-        <!-- android:theme="@android:style/Theme.NoTitleBar.Fullscreen" /> -->
-        <!-- <activity -->
-        <!-- android:name=".ShowVideoShaderActivity" -->
-        <!-- android:configChanges="keyboardHidden|orientation|screenSize" -->
-        <!-- android:screenOrientation="landscape" -->
-        <!-- android:theme="@android:style/Theme.NoTitleBar.Fullscreen" /> -->
 
         <activity android:name=".activity.NetStreamActivity" />
         <activity
@@ -55,8 +39,7 @@
         <activity android:name=".activity.VideoEditActivity" />
         <activity android:name=".activity.ChoiseVideoActivity" />
         <activity
-            android:name=".activity.VideoClipActivity"
-            android:screenOrientation="landscape">
+            android:name=".activity.VideoClipActivity" >
             <intent-filter>
                 <action android:name="xhc.video.clip" />
 
