@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyFFmpeg</string>
+    <string name="app_name">多媒体</string>
     <string name="title_activity_add_filter">AddFilterActivity</string>
     <!--其中的1是第一个被替代的，2是第二个被替代的。-->
     <string name="time">%1$s/%2$s</string>
