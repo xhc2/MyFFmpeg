@@ -1,34 +1,32 @@
 //
-// Created by Administrator on 2018/10/15/015.
 // http://ffmpeg.org/doxygen/3.4/remuxing_8c-example.html#a25 可以参考
 //
 
 /**
  * 现在改到任意帧，也就是需要解码视频帧，不然会有花屏的情况。因为第一帧不是关键帧。
  * 音频帧就不用解码了。直接写入。
- *
  */
 #include "VideoClip.h"
 
-VideoClip::VideoClip(const char* path , const char* output ,  int startSecond , int endSecond){
-    this->startSecond = startSecond ;
+
+VideoClip::VideoClip(const char *path, const char *output, int startSecond, int endSecond) {
+    this->startSecond = startSecond;
     this->endSecond = endSecond;
 
     int pathLen = strlen(path);
-    pathLen ++;
-    this->path = (char *)malloc(pathLen);
-    strcpy(this->path  , path);
+    pathLen++;
+    this->path = (char *) malloc(pathLen);
+    strcpy(this->path, path);
 
     int outputPathLen = strlen(output);
     outputPathLen++;
-    this->outputPath = (char *)malloc(outputPathLen);
-    strcpy(this->outputPath  , output);
+    this->outputPath = (char *) malloc(outputPathLen);
+    strcpy(this->outputPath, output);
 
-    findKeyFrame = false;
 
 }
 
-int VideoClip::initInput(){
+int VideoClip::initInput() {
     int result = 0;
     afc_input = NULL;
     result = avformat_open_input(&afc_input, path, 0, 0);
@@ -43,21 +41,21 @@ int VideoClip::initInput(){
         return -1;
     }
 
-    for(int i = 0 ;i < afc_input->nb_streams ; ++ i){
+    for (int i = 0; i < afc_input->nb_streams; ++i) {
         AVStream *stream = afc_input->streams[i];
-        if(stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
+        if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             videoStream = stream;
             video_index = i;
             videoCodecD = avcodec_find_decoder(stream->codecpar->codec_id);
-
-        }
-        else if(stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO){
+            width = videoStream->codecpar->width;
+            height = videoStream->codecpar->height;
+        } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             audioStream = stream;
             audio_index = i;
         }
     }
 
-    if(videoCodecD == NULL){
+    if (videoCodecD == NULL) {
         LOGE(" 没找到视频解码器 ");
         return -1;
     }
@@ -70,10 +68,10 @@ int VideoClip::initInput(){
 
     avcodec_parameters_to_context(vCtxD, afc_input->streams[video_index]->codecpar);
 
-    result = avcodec_open2(vCtxD, NULL, NULL);
+    result = avcodec_open2(vCtxD, videoCodecD, NULL);
 
-    if (result != 0) {
-        LOGE("ctx avcodec_open2 Faild !");
+    if (result < 0) {
+        LOGE(" decode avcodec_open2 Faild !");
         return -1;
     }
     LOGE(" init input success ");
@@ -81,26 +79,27 @@ int VideoClip::initInput(){
     return 1;
 }
 
-int VideoClip::initOutput(){
-    int result = 0 ;
+
+int VideoClip::initOutput() {
+    int result = 0;
     afc_output = NULL;
     result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outputPath);
     if (result < 0 || afc_output == NULL) {
-        LOGE(" avformat_alloc_output_context2 faild %s " , av_err2str(result));
+        LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
         return -1;
     }
     afot = afc_output->oformat;
-    if(addVideoOutputStream(videoStream->codecpar->width , videoStream->codecpar->height) < 0){
+    if (addVideoOutputStream(width, height) < 0) {
         return -1;
     }
-    if(addAudioOutputStream() < 0){
+    if (addAudioOutputStream() < 0) {
         return -1;
     }
 
     if (!(afot->flags & AVFMT_NOFILE)) {
         result = avio_open(&afc_output->pb, outputPath, AVIO_FLAG_WRITE);
         if (result < 0) {
-            LOGE(  "Could not open output file %s ", outputPath);
+            LOGE("Could not open output file %s ", outputPath);
             return -1;
         }
     }
@@ -108,9 +107,8 @@ int VideoClip::initOutput(){
     result = avformat_write_header(afc_output, NULL);
 
     if (result < 0) {
-        LOGE( " avformat_write_header %s" , av_err2str(result));
+        LOGE(" avformat_write_header %s", av_err2str(result));
     }
-
 
     LOGE(" INIT OUTPUT SUCCESS !");
 
@@ -118,10 +116,10 @@ int VideoClip::initOutput(){
 }
 
 
-int VideoClip::addVideoOutputStream(int width , int height){
-    int result = 0 ;
-    videoOutStream = avformat_new_stream(afc_output , NULL);
-    if(videoOutStream == NULL){
+int VideoClip::addVideoOutputStream(int width, int height) {
+    int result = 0;
+    videoOutStream = avformat_new_stream(afc_output, NULL);
+    if (videoOutStream == NULL) {
         LOGE(" VIDEO STREAM NULL ");
         return -1;
     }
@@ -133,20 +131,20 @@ int VideoClip::addVideoOutputStream(int width , int height){
 
     videoCodecE = avcodec_find_encoder(afot->video_codec);
 
-    if(videoCodecE == NULL){
+    if (videoCodecE == NULL) {
         LOGE(" avcodec_find_encoder FAILD ! ");
         return -1;
     }
     vCtxE = avcodec_alloc_context3(videoCodecE);
 
-    if(vCtxE == NULL){
+    if (vCtxE == NULL) {
         LOGE(" avcodec_alloc_context3 FAILD ! ");
         return -1;
     }
 
     vCtxE->bit_rate = 400000;
-    vCtxE->time_base = (AVRational){1, 25};
-    vCtxE->framerate = (AVRational){25, 1};
+    vCtxE->time_base = (AVRational) {1, 25};
+    vCtxE->framerate = (AVRational) {25, 1};
     vCtxE->gop_size = 10;
     vCtxE->max_b_frames = 1;
     vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -154,9 +152,9 @@ int VideoClip::addVideoOutputStream(int width , int height){
     vCtxE->width = width;
     vCtxE->height = height;
 
-    result = avcodec_parameters_from_context(videoOutStream->codecpar, vCtxE );
+    result = avcodec_parameters_from_context(videoOutStream->codecpar, vCtxE);
 
-    if(result < 0){
+    if (result < 0) {
         LOGE(" avcodec_parameters_from_context FAILD ! ");
         return -1;
     }
@@ -164,18 +162,17 @@ int VideoClip::addVideoOutputStream(int width , int height){
     result = avcodec_open2(vCtxE, videoCodecE, NULL);
 
     if (result < 0) {
-        LOGE( "Could not open codec %s " , av_err2str(result));
+        LOGE("Could not open codec %s ", av_err2str(result));
         return -1;
     }
 
-    LOGE(" VIDEO STREAM WIDTH %d " , videoOutStream->codecpar->width);
     return 1;
 }
 
-int VideoClip::addAudioOutputStream(){
+int VideoClip::addAudioOutputStream() {
     int result = 0;
-    audioOutStream = avformat_new_stream(afc_output , NULL);
-    if(audioOutStream == NULL){
+    audioOutStream = avformat_new_stream(afc_output, NULL);
+    if (audioOutStream == NULL) {
         LOGE(" VIDEO STREAM NULL ");
         return -1;
     }
@@ -183,16 +180,15 @@ int VideoClip::addAudioOutputStream(){
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
-    avcodec_parameters_copy(audioOutStream->codecpar , audioStream->codecpar);
-    audioOutStream->codecpar->codec_tag = 0 ;
+    avcodec_parameters_copy(audioOutStream->codecpar, audioStream->codecpar);
+    audioOutStream->codecpar->codec_tag = 0;
 
     return 1;
 }
 
 
 void custom_log2(void *ptr, int level, const char *fmt, va_list vl) {
-    LOGFFMPEG("FFmpeg LOG -> %s" , fmt , vl);
-    FILE *fp = fopen("sdcard/FFmpeg/ffmpeglog.txt", "w");
+    FILE *fp = fopen("sdcard/FFmpeg/ffmpeg_log.txt", "w");
     if (fp) {
         vfprintf(fp, fmt, vl);
         fflush(fp);
@@ -200,159 +196,152 @@ void custom_log2(void *ptr, int level, const char *fmt, va_list vl) {
     }
 };
 
-void VideoClip::encodeTest(){
-    int result = 0 ;
-    afc_output = NULL;
-    result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outputPath);
-    if (result < 0 || afc_output == NULL) {
-        LOGE(" avformat_alloc_output_context2 faild %s " , av_err2str(result));
-        return  ;
-    }
-    afot = afc_output->oformat;
 
-    videoOutStream = avformat_new_stream(afc_output , NULL);
-    if(videoOutStream == NULL){
-        LOGE(" VIDEO STREAM NULL ");
-        return ;
-    }
+AVFrame *VideoClip::deocdePacket(AVPacket *packet) {
 
-    videoOutStream->id = afc_output->nb_streams - 1;
-
-    if (afot->video_codec == AV_CODEC_ID_NONE) {
-        LOGE(" VIDEO AV_CODEC_ID_NONE ");
-        return ;
-    }
-
-    videoCodecE = avcodec_find_encoder(afot->video_codec);
-
-    if(videoCodecE == NULL){
-        LOGE(" avcodec_find_encoder FAILD ! ");
-        return ;
-    }
-    vCtxE = avcodec_alloc_context3(videoCodecE);
-    if(vCtxE ==  NULL ){
-        LOGE(" avcodec_alloc_context3 FAILD ! ");
-        return ;
-    }
-
-    vCtxE->bit_rate = 400000;
-    vCtxE->width = 352;
-    vCtxE->height = 288;
-    vCtxE->time_base = (AVRational){1, 25};
-    vCtxE->framerate = (AVRational){25, 1};
-    vCtxE->gop_size = 10;
-    vCtxE->max_b_frames = 1;
-    vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
-//    videoOutStream->codec = vCtxE;
-
-    result =  avcodec_parameters_from_context(videoOutStream->codecpar , vCtxE);
-
-    if(result < 0){
-        LOGE(" params context faild !");
-        return;
-    }
-
-
-
-    LOGE(" bit rate %lld " ,vCtxE->bit_rate );
-    LOGE(" width %d " ,vCtxE->width );
-    LOGE(" height %d " ,vCtxE->height );
-    LOGE(" time_base.num %d  , den %d " ,vCtxE->time_base.num , vCtxE->time_base.den );
-    LOGE(" framerate.num %d  , framerate.den %d " ,vCtxE->framerate.num ,  vCtxE->framerate.den);
-    LOGE(" framerate->gop_size %d " ,vCtxE->gop_size );
-    LOGE(" framerate->pix_fmt %d " ,vCtxE->pix_fmt );
-    LOGE(" framerate->max_b %d " ,vCtxE->max_b_frames );
-
-    LOGE(" vCtxE codec_id = %d , afot->video_codec id = %d  ，videoCodecE->id = %d " ,
-         vCtxE->codec_id ,afot->video_codec  , videoCodecE->id  );
-
-    result = avcodec_open2(vCtxE, videoCodecE, NULL);
+    int result = avcodec_send_packet(vCtxD, packet);
     if (result < 0) {
-        LOGE( "Could not open codec %s " , av_err2str(result));
-        return ;
+        LOGE("  avcodec_send_packet %s ", av_err2str(result));
+        return NULL;
     }
-
-    if (!(afot->flags & AVFMT_NOFILE)) {
-        result = avio_open(&afc_output->pb, outputPath, AVIO_FLAG_WRITE);
+    AVFrame *frame = av_frame_alloc();
+    while (result >= 0) {
+        result = avcodec_receive_frame(vCtxD, frame);
         if (result < 0) {
-            LOGE(  "Could not open output file %s ", outputPath);
-            return ;
+            LOGE(" avcodec_receive_frame  faild %s ", av_err2str(result));
+            av_frame_free(&frame);
+            return NULL;
         }
+        return frame;
     }
-
-    LOGE(" code name %s " , videoCodecE->name);
-
-    result = avformat_write_header(afc_output, NULL);
-
-    if (result < 0) {
-        LOGE( "avformat_write_header %s " , av_err2str(result));
-        return ;
-    }
-
-    LOGE(" INIT OUTPUT SUCCESS !");
+    av_frame_free(&frame);
+    return NULL;
 }
 
-void VideoClip::start(){
+
+AVPacket *VideoClip::encodeFrame(AVFrame *frame) {
+    int result = 0;
+    result = avcodec_send_frame(vCtxE, frame);
+    if (result < 0) {
+        LOGE(" avcodec_send_frame faild ! %s ", av_err2str(result));
+        return NULL;
+    }
+    AVPacket *packet = av_packet_alloc();
+    while (result >= 0) {
+        result = avcodec_receive_packet(vCtxE, packet);
+        if (result < 0) {
+            LOGE(" avcodec_receive_packet faild ! %s ", av_err2str(result));
+            av_packet_free(&packet);
+            return NULL;
+        }
+        return packet;
+    }
+
+    return NULL;
+}
+
+
+
+void VideoClip::write_frame(AVStream *inStream, AVStream *outStream, AVPacket *packet) {
+    packet->pts = av_rescale_q_rnd(packet->pts, inStream->time_base, outStream->time_base,
+                                   AV_ROUND_NEAR_INF);
+    packet->dts = av_rescale_q_rnd(packet->dts, inStream->time_base, outStream->time_base,
+                                   AV_ROUND_NEAR_INF);
+    packet->duration = av_rescale_q(packet->duration, inStream->time_base, outStream->time_base);
+    av_interleaved_write_frame(afc_output, packet);
+}
+
+
+void VideoClip::startClip() {
 
     int result = -1;
     av_register_all();
     avcodec_register_all();
+#ifdef DEBUG
     av_log_set_callback(custom_log2);
-//    encodeTest();
+    LOGE(" dubug ");
+#endif
 
-    if(initInput() < 0){
+    if (initInput() < 0) {
         LOGE(" INIT INPUT FAILD ");
-        return ;
+        return;
     }
-    if(initOutput() < 0){
+    if (initOutput() < 0) {
         LOGE(" INIT OUTPUT FAILD ");
-        return ;
+        return;
     }
 
 
+    //这里需要直接seek到裁剪的开始时间，节约时间。然后直接开始解码。就不会存在花屏问题。
+    result = av_seek_frame(afc_input, -1,
+                           ((float) startSecond / 1000) * AV_TIME_BASE * afc_input->start_time,
+                           AVSEEK_FLAG_BACKWARD);
+    if (result < 0) {
+        LOGE(" SEEK FRAME FAILD ! %s ", av_err2str(result));
+        return;
+    }
+    int64_t pts = 0;
+    while (true) {
+        AVPacket *packet = av_packet_alloc();
+        result = av_read_frame(afc_input, packet);
+        if (result < 0) {
+            LOGE(" ********************** READ FRAME FAILD *********************");
+            av_packet_free(&packet);
+            break;
+        }
+        if (packet->stream_index == video_index) {
+            AVFrame *frame = deocdePacket(packet);
+            if (frame != NULL) {
+                pts = (int64_t) (frame->pts * av_q2d(videoStream->time_base) * 1000);
+                if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
+                    AVPacket *newPkt = encodeFrame(frame);
+                    if (newPkt != NULL) {
+                        LOGE("WRITE VIDEO ");
+                        write_frame(videoStream, videoOutStream, newPkt);
+                        av_packet_free(&newPkt);
+                    }
+                }
+                av_frame_free(&frame);
+            }
+            av_packet_free(&packet);
+        } else if (packet->stream_index == audio_index) {
+            pts = (int64_t) (packet->pts * av_q2d(audioStream->time_base) * 1000);
+            if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
+                LOGE(" WRITE AUDIO ");
+                write_frame(audioStream, audioOutStream, packet);
+            }
+            av_packet_free(&packet);
+        }
+        if (pts > endSecond * 1000) {
+            LOGE(" ************* READ ENOUGH ************* ");
+            break;
+        }
+    }
+    av_write_trailer(afc_output);
 
-//    AVPacket *packet = av_packet_alloc();
-//    int64_t pts = 0;
-//    AVStream *inStream , *outStream;
-//    while(true){
-//        result = av_read_frame(afc_input , packet);
-//        if(result < 0){
-//            LOGE(" READ FRAME FAILD ");
-//            break;
-//        }
-//        if(packet->stream_index == video_index){
-//            inStream = videoStream;
-//            outStream = videoOutStream;
-//            pts = (int64_t)(packet->pts * av_q2d(videoStream->time_base) * 1000);
-//            //需要解码处理了。
-////            LOGE("NALU ? %x , %x , %x , %x " , packet->data[0] , packet->data[1] , packet->data[2] , packet->data[3]);
-//        }
-//        else if(packet->stream_index == audio_index){
-//            inStream = audioStream;
-//            outStream = audioOutStream;
-//            pts = (int64_t)(packet->pts * av_q2d(audioStream->time_base) * 1000);
-//        }
-//        if((pts >= startSecond * 1000) && (pts <= endSecond * 1000) ){
-//            LOGE(" packet->flags %d " , packet->flags);
-//
-//
-//            packet->pts = av_rescale_q_rnd(packet->pts, inStream->time_base, outStream->time_base, AV_ROUND_NEAR_INF);
-//            packet->dts = av_rescale_q_rnd(packet->dts, inStream->time_base, outStream->time_base, AV_ROUND_NEAR_INF);
-//            packet->duration = av_rescale_q(packet->duration, inStream->time_base, outStream->time_base);
-//            av_interleaved_write_frame(afc_output ,packet);
-//            av_packet_unref(packet);
-//        }
-//    }
-//    av_write_trailer(afc_output);
 }
 
 
-VideoClip::~VideoClip(){
-    if(afc_input != NULL){
+VideoClip::~VideoClip() {
+
+
+    if(vCtxE != NULL){
+        avcodec_free_context(&vCtxE);
+    }
+    if(vCtxD != NULL){
+        avcodec_free_context(&vCtxD);
+    }
+    if (afc_input != NULL) {
         avformat_close_input(&afc_input);
     }
-    if(afc_output != NULL){
+    if (afc_output != NULL) {
         avformat_free_context(afc_output);
+    }
+    if(path != NULL){
+        free(path);
+    }
+    if(outputPath != NULL){
+        free(outputPath);
     }
 
 }

@@ -19,6 +19,7 @@
 #include "h264Parse.h"
 #include "VideoClip.h"
 
+#define DEBUG;
 
 Mp4Player *mp4Player = NULL ;
 PublishStream *ps = NULL;
@@ -371,7 +372,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startClip(JNIEnv *env, jclass type, j
     if(vc == NULL){
         vc = new VideoClip(path ,output ,  start , end);
     }
-    vc->start();
+    vc->startClip();
     env->ReleaseStringUTFChars(path_, path);
     env->ReleaseStringUTFChars(output_, output);
 }

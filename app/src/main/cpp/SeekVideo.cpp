@@ -28,6 +28,7 @@ void SeekFile::seek(float progress , int64_t &audioPts , int64_t &videoPts) {
     seekPts = progress * afc->streams[videoIndex]->duration;
     LOGE("SEEK PRO %f  , PTS %lld , convert_pts %lld  , av_q2d(time_base) %f", progress, seekPts,
          utils.getConvertPts(seekPts, afc->streams[videoIndex]->time_base) , av_q2d( afc->streams[videoIndex]->time_base));
+
     int result = 0;
     //是视频，还需要自己解码到用户指定位置
 

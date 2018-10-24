@@ -70,15 +70,6 @@ void DecodeVideoThread::run() {
             myData->vHeight = vc->height;
             int size = vc->width *  vc->height;
             myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) * vframe->height;
-//            if(vframe->pict_type == AV_PICTURE_TYPE_I){
-//                LOGE(" PIC TYPE I");
-//            }
-//            else if(vframe->pict_type == AV_PICTURE_TYPE_B){
-//                LOGE(" PIC TYPE B");
-//            }
-//            else if(vframe->pict_type == AV_PICTURE_TYPE_P){
-//                LOGE(" PIC TYPE P");
-//            }
 
             //y
             myData->datas[0] = (uint8_t *)malloc(size);
@@ -100,11 +91,6 @@ void DecodeVideoThread::run() {
             for(int i = 0 ;i < vc->height / 2 ; ++i){
                 memcpy(myData->datas[2]  + vc->width / 2 * i,vframe->data[2] + vframe->linesize[2] * i ,  vc->width / 2);
             }
-//            LOGE(" DECODE VIDEO ");
-//            fwrite(myData->datas[0] , 1, size , file);
-//            fwrite(myData->datas[1] , 1, size / 4 , file);
-//            fwrite(myData->datas[2] , 1, size / 4, file);
-//            threadSleep(40);
             this->notify(myData);
         }
     }

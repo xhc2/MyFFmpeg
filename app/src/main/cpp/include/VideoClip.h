@@ -11,15 +11,18 @@ extern "C" {
 #include <libavcodec/jni.h>
 }
 #include <my_log.h>
-class VideoClip{
+#include "MyThread.h"
+class VideoClip  {
 
 private :
     int startSecond ;
     int endSecond ;
     int video_index;
     int audio_index;
+
     AVStream *audioStream ;
     AVStream *videoStream ;
+
     AVCodec *videoCodecD;
     AVCodec *videoCodecE;
 
@@ -28,26 +31,28 @@ private :
     AVFormatContext *afc_input ;
     AVFormatContext *afc_output ;
     AVOutputFormat *afot;
+
     int initInput();
     int initOutput();
 
-
-
-    int addVideoOutputStream(int width , int height);
-    int addAudioOutputStream();
     AVStream *audioOutStream ;
     AVStream *videoOutStream ;
     char* path;
     char* outputPath;
 
-    bool findKeyFrame ;
+
+    int addVideoOutputStream(int width , int height);
+    int addAudioOutputStream();
+    AVFrame *deocdePacket(AVPacket *packet);
+    AVPacket *encodeFrame(AVFrame *frame);
+    void write_frame(AVStream *inStream , AVStream *outStream , AVPacket *packet);
+    int width ;
+    int height ;
 
 public :
     VideoClip(const char* path , const char* output , int startSecond , int endSecond);
-    void start();
-    void encodeTest();
+    void startClip();
     ~VideoClip();
-
 
 };
 
