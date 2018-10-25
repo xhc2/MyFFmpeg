@@ -6,7 +6,6 @@
 
 /**
  * 将视频，和声音录制了，然后再编码处理。
- * 300266343d8a91b21765c850dd82ae4449e09abd
  */
 CameraStream::CameraStream(const char *url, int width, int height, int pcmsize, CallJava *cj) {
     afc = NULL;
@@ -53,21 +52,16 @@ CameraStream::CameraStream(const char *url, int width, int height, int pcmsize, 
 
 }
 
-void custom_log(void *ptr, int level, const char *fmt, va_list vl) {
-    FILE *fp = fopen("sdcard/FFmpeg/ffmpeglog.txt", "a+");
-    if (fp) {
-        vfprintf(fp, fmt, vl);
-        fflush(fp);
-        fclose(fp);
-    }
-};
+
 
 
 void CameraStream::initFFmpeg() {
     int result = 0;
     av_register_all();
     avformat_network_init();
+#ifdef DEBUG
     av_log_set_callback(custom_log);
+#endif
     result = avformat_alloc_output_context2(&afc, NULL, "flv", url);
     if (result < 0 || afc == NULL) {
         cj->callStr(" avformat_alloc_output_context2 faild ");

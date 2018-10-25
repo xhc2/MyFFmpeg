@@ -23,7 +23,6 @@ VideoClip::VideoClip(const char *path, const char *output, int startSecond, int 
     this->outputPath = (char *) malloc(outputPathLen);
     strcpy(this->outputPath, output);
 
-
 }
 
 int VideoClip::initInput() {
@@ -78,7 +77,6 @@ int VideoClip::initInput() {
 
     return 1;
 }
-
 
 int VideoClip::initOutput() {
     int result = 0;
@@ -187,14 +185,7 @@ int VideoClip::addAudioOutputStream() {
 }
 
 
-void custom_log2(void *ptr, int level, const char *fmt, va_list vl) {
-    FILE *fp = fopen("sdcard/FFmpeg/ffmpeg_log.txt", "w");
-    if (fp) {
-        vfprintf(fp, fmt, vl);
-        fflush(fp);
-        fclose(fp);
-    }
-};
+
 
 
 AVFrame *VideoClip::deocdePacket(AVPacket *packet) {
@@ -258,7 +249,7 @@ void VideoClip::startClip() {
     av_register_all();
     avcodec_register_all();
 #ifdef DEBUG
-    av_log_set_callback(custom_log2);
+//    av_log_set_callback(custom_log);
     LOGE(" dubug ");
 #endif
 

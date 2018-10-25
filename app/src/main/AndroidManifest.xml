@@ -19,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity
-            android:name="module.video.jnc.myffmpeg.activity.Mp4PlayerActivity"
+            android:name="module.video.jnc.myffmpeg.activity.TestActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -28,7 +28,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".activity.NetStreamActivity" />
         <activity
             android:name=".activity.CameraStreamActivity"
@@ -38,17 +37,21 @@
         <activity android:name=".activity.HardMuxerCameraActivity" />
         <activity android:name=".activity.VideoEditActivity" />
         <activity android:name=".activity.ChoiseVideoActivity" />
-        <activity
-            android:name=".activity.VideoClipActivity" >
+        <activity android:name=".activity.VideoClipActivity">
             <intent-filter>
                 <action android:name="xhc.video.clip" />
-
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity android:name=".activity.BaseActivity" />
         <!-- <activity android:name=".activity.TestActivity"></activity> -->
-        <!--<activity android:name=".opengl.OpenGlTestActivity"></activity>-->
+        <!-- <activity android:name=".opengl.OpenGlTestActivity"></activity> -->
+        <activity android:name=".activity.VideoJointActivity">
+            <intent-filter>
+                <action android:name="xhc.video.joint" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

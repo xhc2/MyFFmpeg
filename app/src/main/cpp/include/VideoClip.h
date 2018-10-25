@@ -9,7 +9,9 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 #include <libavcodec/jni.h>
+
 }
+#include "EditParent.h"
 #include <my_log.h>
 #include "MyThread.h"
 class VideoClip  {

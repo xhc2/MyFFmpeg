@@ -9,7 +9,7 @@
 #include <queue>
 #include "MyThread.h"
 #include "my_data.h"
-
+#include "EditParent.h"
 extern "C"
 {
 #include "libavformat/avformat.h"
@@ -17,6 +17,7 @@ extern "C"
 #include "libavutil/time.h"
 #include "libswscale/swscale.h"
 #include <libswresample/swresample.h>
+
 };
 using namespace std;
 class CameraStream : public MyThread{

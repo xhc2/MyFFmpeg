@@ -17,14 +17,16 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FFmpegUtils.startClip("sdcard/FFmpeg/test.mp4" ,"sdcard/FFmpeg/test_clip.mp4" , 12,24);
+//                FFmpegUtils.startClip("sdcard/FFmpeg/test.mp4" ,"sdcard/FFmpeg/test_clip.mp4" , 12,24);
+                String[] paths = {"sdcard/FFmpeg/video/test.mp4" , "sdcard/FFmpeg/video/v1080.mp4" , "sdcard/FFmpeg/video/flv.flv"};
+                FFmpegUtils.startJoint( paths , "sdcard/FFmpeg/testjoint.mp4" , 1280 , 720);
             }
         });
 
         findViewById(R.id.bt_end).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FFmpegUtils.destroyClip();
+//                FFmpegUtils.destroyClip();
             }
         });
     }

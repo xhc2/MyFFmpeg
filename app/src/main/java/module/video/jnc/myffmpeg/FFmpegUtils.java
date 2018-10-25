@@ -80,6 +80,11 @@ public class FFmpegUtils {
     public static native void startClip(String path , String output ,   int start , int end);
     public static native void destroyClip();
 
+    //视频拼接
+    public static native void startJoint(String[] paths , String output  , int outWidth , int outHeight);
+    public static native void destroyJoint();
+
+
     //opengl test
     public static native void openGlTest(String path, Object glSurfaceView);
     public static native void openDestroy();

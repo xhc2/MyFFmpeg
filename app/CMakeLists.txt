@@ -34,6 +34,9 @@ add_library( my_ffmpeg
             src/main/cpp/AACParse.cpp
             src/main/cpp/VideoClip.cpp
             src/main/cpp/OpenGlTest.cpp
+            src/main/cpp/VideoJoint.cpp
+            src/main/cpp/EditParent.cpp
+
             )
 
 

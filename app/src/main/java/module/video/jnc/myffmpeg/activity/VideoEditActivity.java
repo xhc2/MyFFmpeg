@@ -30,16 +30,24 @@ public class VideoEditActivity extends Activity implements View.OnClickListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_edit);
         findViewById(R.id.tv_video_edit).setOnClickListener(this);
+        findViewById(R.id.tv_video_joint).setOnClickListener(this);
     }
 
 
     @Override
     public void onClick(View v) {
-        Intent intent = new Intent(VideoEditActivity.this , ChoiseVideoActivity.class);
+        Intent intent = new Intent();
+        intent.setClass(VideoEditActivity.this , ChoiseVideoActivity.class);
         switch (v.getId()){
             case R.id.tv_video_edit:
                 intent.putExtra("choise_num" , 1);
                 intent.putExtra("action" , "xhc.video.clip");
+                startActivity(intent);
+                break;
+            case R.id.tv_video_joint:
+                //视频拼接
+                intent.putExtra("choise_num" , 3);
+                intent.putExtra("action" , "xhc.video.joint");
                 startActivity(intent);
                 break;
         }
