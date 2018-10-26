@@ -227,7 +227,6 @@ AVPacket *VideoClip::encodeFrame(AVFrame *frame) {
         }
         return packet;
     }
-
     return NULL;
 }
 
@@ -249,10 +248,9 @@ void VideoClip::startClip() {
     av_register_all();
     avcodec_register_all();
 #ifdef DEBUG
-//    av_log_set_callback(custom_log);
+    av_log_set_callback(custom_log);
     LOGE(" dubug ");
 #endif
-
     if (initInput() < 0) {
         LOGE(" INIT INPUT FAILD ");
         return;
@@ -261,7 +259,6 @@ void VideoClip::startClip() {
         LOGE(" INIT OUTPUT FAILD ");
         return;
     }
-
 
     //这里需要直接seek到裁剪的开始时间，节约时间。然后直接开始解码。就不会存在花屏问题。
     result = av_seek_frame(afc_input, -1,

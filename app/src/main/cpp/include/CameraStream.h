@@ -30,6 +30,7 @@ private :
     int width, height;
     int outWidth, outHeight;
     SwsContext *sws;
+
     int size;
     int pcmSize;
     int pcmMinSize;
@@ -52,9 +53,9 @@ private :
     int nbSample;
     int64_t wvpts , wapts ;
     AVRational timeBaseFFmpeg;
-    void initFFmpeg();
-    void addVideoStream();
-    void addAudioStream();
+    int initFFmpeg();
+    int addVideoStream();
+    int addAudioStream();
     void encodeVideoFrame();
     void encodeAudioFrame(int pcmSize);
     void writeVideoPacket();

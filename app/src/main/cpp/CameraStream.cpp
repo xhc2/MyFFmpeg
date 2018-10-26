@@ -55,7 +55,7 @@ CameraStream::CameraStream(const char *url, int width, int height, int pcmsize, 
 
 
 
-void CameraStream::initFFmpeg() {
+int CameraStream::initFFmpeg() {
     int result = 0;
     av_register_all();
     avformat_network_init();
@@ -65,53 +65,62 @@ void CameraStream::initFFmpeg() {
     result = avformat_alloc_output_context2(&afc, NULL, "flv", url);
     if (result < 0 || afc == NULL) {
         cj->callStr(" avformat_alloc_output_context2 faild ");
-        return;
+        return -1;
     }
     afot = afc->oformat;
 
-    addVideoStream();
-    addAudioStream();
+    result = addVideoStream();
+    if(result < 0){
+        LOGE(" addVideoStream FAILD! ");
+        return -1;
+    }
+    result = addAudioStream();
+    if(result < 0){
+        LOGE(" addAudioStream FAILD! ");
+        return -1;
+    }
 
     if (!(afc->flags & AVFMT_NOFILE)) {
         result = avio_open(&afc->pb, url, AVIO_FLAG_WRITE);
         if (result < 0) {
             cj->callStr("Could not open output file  ");
-            return;
+            return -1;
         }
     }
 
     result = avformat_write_header(afc, NULL);
     if (result < 0) {
         cj->callStr(" avformat_write_header faild ! ");
-        return;
+        return -1;
     }
     LOGE(" FFMPEG SUCCESS ! ");
     initSuccess = true;
+    return 1;
 }
 
-void CameraStream::addVideoStream() {
+int CameraStream::addVideoStream() {
     int result = 0;
     videoOS = avformat_new_stream(afc, NULL);
     if (videoOS == NULL) {
         cj->callStr("CREATE NEW STREAM FAILD ");
-        return;
+        return -1;
     }
     if (afot->video_codec == AV_CODEC_ID_NONE) {
         cj->callStr(" VIDEO AV_CODEC_ID_NONE ");
-        return;
+        return -1;
     }
 
     AVCodec *vCode = avcodec_find_encoder(afot->video_codec);
 
     if (vCode == NULL) {
         cj->callStr(" avcodec_find_video_encoder faild ! ");
-        return;
+        return -1;
     }
 
     vCodeCtx = avcodec_alloc_context3(vCode);
     if (vCodeCtx == NULL) {
         cj->callStr(" vcode context faild ! ");
-        return;
+        return -1;
     }
 
     vCodeCtx->width = outWidth;
@@ -131,14 +140,14 @@ void CameraStream::addVideoStream() {
     result = avcodec_parameters_from_context(videoOS->codecpar, vCodeCtx);
     if (result < 0) {
         cj->callStr(" avcodec_parameters_from_context faild ");
-        return;
+        return -1;
     }
 
-    result = avcodec_open2(vCodeCtx, NULL, NULL);
+    result = avcodec_open2(vCodeCtx, vCode, NULL);
 
     if (result < 0) {
         cj->callStr("avcodec_open2 faild ! ");
-        return;
+        return -1;
     }
     framePic = av_frame_alloc();
     framePic->format = pixFmt;
@@ -147,12 +156,12 @@ void CameraStream::addVideoStream() {
     result = av_frame_get_buffer(framePic, 0);
     if (result < 0) {
         cj->callStr("av_frame_get_buffer faild ! ");
-        return;
+        return -1;
     }
     result = av_frame_make_writable(framePic);
     if (result < 0) {
         cj->callStr("av_frame_make_writable faild ! ");
-        return;
+        return -1;
     }
 
     outFrame = av_frame_alloc();
@@ -162,13 +171,13 @@ void CameraStream::addVideoStream() {
     result = av_frame_get_buffer(outFrame, 0);
     if (result < 0) {
         cj->callStr("av_frame_get_buffer faild ! ");
-        return;
+        return -1;
     }
 
     result = av_frame_make_writable(outFrame);
     if (result < 0) {
         cj->callStr("av_frame_make_writable faild ! ");
-        return;
+        return -1;
     }
 
     if (afc->oformat->flags & AVFMT_GLOBALHEADER)
@@ -176,40 +185,40 @@ void CameraStream::addVideoStream() {
 
     videoIndex = videoOS->index;
     LOGE(" videoIndex index %d ", videoIndex);
+    return 1;
 }
 
-void CameraStream::addAudioStream() {
+int CameraStream::addAudioStream() {
     int result = 0;
 
     audioOS = avformat_new_stream(afc, NULL);
     if (audioOS == NULL) {
         cj->callStr("CREATE NEW AUDIO STREAM FAILD ");
-        return;
+        return -1;
     }
     if (afot->audio_codec == AV_CODEC_ID_NONE) {
         cj->callStr(" AUDIO AV_CODEC_ID_NONE ");
-        return;
+        return -1;
     }
-    AVCodec *vCode = avcodec_find_encoder(afot->audio_codec);
+    AVCodec *aCodec = avcodec_find_encoder(afot->audio_codec);
 
-    if (vCode == NULL) {
+    if (aCodec == NULL) {
         cj->callStr(" avcodec_find_video_encoder faild ! ");
-        return;
+        return -1;
     }
-    LOGE(" A CODE NAME %s" , vCode->name);
-    aCodeCtx = avcodec_alloc_context3(vCode);
+    LOGE(" A CODE NAME %s , codec id %d " , aCodec->name , aCodec->id);
+    aCodeCtx = avcodec_alloc_context3(aCodec);
     if (aCodeCtx == NULL) {
         cj->callStr(" aCodeCtx context faild ! ");
-        return;
+        return -1;
     }
 
     AVSampleFormat audioFormat = AV_SAMPLE_FMT_S16;//AV_SAMPLE_FMT_FLTP;
     int sampleRate = 44100;
-    int channels = av_get_channel_layout_nb_channels(1);
     int64_t channelLayout = AV_CH_LAYOUT_MONO;//av_get_default_channel_layout(1);
+    int channels = av_get_channel_layout_nb_channels(channelLayout);
 
-    LOGE(" channels %d " , channels);
-    LOGE(" channelLayout %lld " , channelLayout);
+
 
     aCodeCtx->codec_type = AVMEDIA_TYPE_AUDIO;
     aCodeCtx->sample_fmt = audioFormat;
@@ -218,6 +227,14 @@ void CameraStream::addAudioStream() {
     aCodeCtx->channels = channels;
     aCodeCtx->channel_layout =  (uint64_t) channelLayout;
     aCodeCtx->time_base =  (AVRational) {1, aCodeCtx->sample_rate};
+
+    LOGE(" aCodeCtx->codec_type %d " , aCodeCtx->codec_type);
+    LOGE(" aCodeCtx->sample_fmt %d " , aCodeCtx->sample_fmt);
+    LOGE(" aCodeCtx->sample_rate %d " , aCodeCtx->sample_rate);
+    LOGE(" aCodeCtx->channels %d " , aCodeCtx->channels);
+    LOGE(" aCodeCtx->channel_layout %d " , aCodeCtx->channel_layout);
+    LOGE(" aCodeCtx->time_base.den %d " , aCodeCtx->time_base.den);
+    LOGE(" aCodeCtx->time_base.num %d " , aCodeCtx->time_base.num);
 
     audioOS->time_base = (AVRational) {1, aCodeCtx->sample_rate};
     audioOS->codecpar->codec_id = afot->audio_codec;
@@ -232,14 +249,15 @@ void CameraStream::addAudioStream() {
 
     if (result < 0) {
         cj->callStr(" audioOS avcodec_parameters_from_context faild ");
-        return;
+        return -1;
     }
 
-    result = avcodec_open2(aCodeCtx, NULL, NULL);
+    result = avcodec_open2(aCodeCtx, aCodec, NULL);
 
     if (result < 0) {
-        cj->callStr("audioOS avcodec_open2 faild ! ");
-        return;
+        cj->callStr("audioOS avcodec_open2 faild !  " );
+        LOGE("audioOS avcodec_open2 faild ! %s " , av_err2str(result));
+        return -1;
     }
 
     frameAudio = av_frame_alloc();
@@ -255,12 +273,12 @@ void CameraStream::addAudioStream() {
     if (result < 0) {
         LOGE(" AUDIO FRAME GET BUFFER FAILD %s ", av_err2str(result));
         cj->callStr("frameAudio av_frame_get_buffer faild ! ");
-        return;
+        return -1;
     }
     result = av_frame_make_writable(frameAudio);
     if (result < 0) {
         cj->callStr("frameAudio av_frame_make_writable faild ! ");
-        return;
+        return -1;
     }
 
     if (afc->oformat->flags & AVFMT_GLOBALHEADER)
@@ -269,6 +287,7 @@ void CameraStream::addAudioStream() {
     audioIndex = audioOS->index;
 
     LOGE(" audioIndex index %d ", audioIndex);
+    return 1;
 }
 
 void CameraStream::encodeVideoFrame() {
@@ -452,12 +471,27 @@ CameraStream::~CameraStream() {
     this->setPause();
     this->stop();
     this->join();
-    av_frame_free(&framePic);
-    av_frame_free(&outFrame);
-    av_frame_free(&frameAudio);
-    avcodec_free_context(&aCodeCtx);
-    avcodec_free_context(&vCodeCtx);
-    sws_freeContext(sws);
-    avformat_free_context(afc);
+    if(framePic != NULL){
+        av_frame_free(&framePic);
+    }
+    if(outFrame != NULL){
+        av_frame_free(&outFrame);
+    }
+    if(frameAudio != NULL){
+        av_frame_free(&frameAudio);
+    }
+    if(aCodeCtx != NULL){
+        avcodec_free_context(&aCodeCtx);
+    }
+
+    if(vCodeCtx != NULL){
+        avcodec_free_context(&vCodeCtx);
+    }
+    if(sws != NULL){
+        sws_freeContext(sws);
+    }
+    if(afc != NULL){
+        avformat_free_context(afc);
+    }
 
 }
