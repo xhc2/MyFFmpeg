@@ -28,8 +28,11 @@ private :
     char *outPath;
     vector <char *> inputPaths;
 
-    int video_index;
-    int audio_index;
+    int videoIndexInput;
+    int audioIndexInput;
+
+    int videoIndexOutput;
+    int audioIndexOutput;
 
     AVCodec *videoCodecD;
     AVCodec *videoCodecE;
@@ -54,15 +57,31 @@ private :
     int outHeight;
 
     SwsContext *sws;
+    SwrContext *swc;
 
     AVFrame *outVFrame ;
+    AVFrame *outAFrame ;
 
+    int sampleRate ;
+    AVSampleFormat sampleFormat ;
+    uint64_t outChannelLayout ;
+    int channel ;
+    int nbSample ;
+
+    uint8_t *audioOutBuffer;
 
     queue<AVPacket *> audioQue;
-    queue<AVPacket *> VideoQue;
+    queue<AVPacket *> videoQue;
+
+    int audioQueMax ;
+    int videoQueMax ;
 
     int initSwsContext(int inWidth , int inHeight , int inpixFmt);
     void destroySwsContext();
+
+    int initSwrContext(int channelCount ,  AVSampleFormat  in_sample_fmt, int  in_sample_rate);
+    void destroySwrContext();
+
     void initValue();
     int addVideoOutputStream(int width , int height);
     int addAudioOutputStream();

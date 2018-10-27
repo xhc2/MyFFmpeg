@@ -30,6 +30,7 @@ void DeocdeMyAudioThread::run(){
             av_packet_free(&pck);
             continue;
         }
+
         av_packet_free(&pck);
         while (true) {
             result = avcodec_receive_frame(ac, aframe);
@@ -40,14 +41,14 @@ void DeocdeMyAudioThread::run(){
             uint8_t *out[1] = {0};
             out[0] = (uint8_t *) play_audio_temp;
             MyData *myData = new MyData();
-            //音频重采样
+            //音频重采样 , 这里需要改下。
             swr_convert(swc, out,
                         aframe->nb_samples,
                         (const uint8_t **) aframe->data,
                         aframe->nb_samples);
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
             //size = 一个sample多少个字节 * 有多少个sample。
-            myData->size = av_get_bytes_per_sample( AV_SAMPLE_FMT_S16) *
+            myData->size = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) *
                           aframe->nb_samples;
             myData->data = (char *) malloc(myData->size);
             memcpy(myData->data, play_audio_temp, myData->size);
