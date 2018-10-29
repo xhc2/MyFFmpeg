@@ -1,4 +1,3 @@
-//
 // Created by Administrator on 2018/10/25/025.
 //
 #include "VideoJoint.h"
@@ -28,6 +27,123 @@ VideoJoint::VideoJoint(vector<char *> inputPath, const char *output, int outWidt
     strcpy(this->outPath, output);
     LOGE(" OUTPUT path %s ", this->outPath);
     initValue();
+    test();
+}
+
+
+void VideoJoint::test(){
+    char *outPath = "sdcard/FFmpeg/out.aac";
+    av_register_all();
+    avcodec_register_all();
+#ifdef DEBUG
+    av_log_set_callback(custom_log);
+#endif
+    int result = 0;
+    result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outPath);
+    if (result < 0 || afc_output == NULL) {
+        LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
+        return;
+    }
+    afot = afc_output->oformat;
+    result = addAudioOutputStream();
+    if(result < 0){
+        LOGE(" addAudioOutputStream faild !");
+        return ;
+    }
+
+    if (!(afot->flags & AVFMT_NOFILE)) {
+        result = avio_open(&afc_output->pb, outPath, AVIO_FLAG_WRITE);
+        if (result < 0) {
+            LOGE("Could not open output file %s ", outPath);
+            return ;
+        }
+    }
+
+    result = avformat_write_header(afc_output, NULL);
+
+    if (result < 0) {
+        LOGE(" avformat_write_header %s", av_err2str(result));
+        return ;
+    }
+
+    AVFrame *inputFrame = av_frame_alloc();
+//    inputFrame->sample_rate = 44100;
+//    inputFrame->format = AV_SAMPLE_FMT_S16;
+//    inputFrame->channel_layout = outChannelLayout;
+//    inputFrame->channels = 2;
+//    inputFrame->nb_samples = 1024;
+//    result = av_frame_get_buffer(inputFrame, 0);
+//    if (result < 0) {
+//        LOGE(" av_frame_get_buffer FAILD ! ");
+//        return ;
+//    }
+//    result = av_frame_make_writable(inputFrame);
+
+    AVFrame *outputFrame = av_frame_alloc();
+    outputFrame->sample_rate = 44100;
+    outputFrame->format = AV_SAMPLE_FMT_FLTP;
+    outputFrame->channel_layout = outChannelLayout;
+    outputFrame->channels = 1;
+    outputFrame->nb_samples = 1024;
+    result = av_frame_get_buffer(outputFrame, 0);
+    if (result < 0) {
+        LOGE(" av_frame_get_buffer FAILD ! ");
+        return  ;
+    }
+
+    result = av_frame_make_writable(outputFrame);
+    if (result < 0) {
+        LOGE(" outAFrame av_frame_make_writable FAILD ! ");
+        return  ;
+    }
+
+
+
+
+    int inputSample = 1024;
+    AVSampleFormat inputFormat = AV_SAMPLE_FMT_S16;
+    int inputSize = av_get_bytes_per_sample(inputFormat) * nbSample * 2;
+    FILE *pcmF = fopen("sdcard/FFmpeg/test_2c_441_16.pcm" , "r");
+    FILE *pcmOut = fopen("sdcard/FFmpeg/temp.pcm" , "wb+");
+    result = initSwrContext(1 ,AV_SAMPLE_FMT_FLTP , 44100 );
+    if(result < 0){
+        LOGE(" initSwrContext ");
+        return ;
+    }
+
+    char *buffer = (char *)malloc(inputSize);
+
+    int len = 0;
+    int count =0;
+    while(true ){
+        len = fread(buffer , 1 , inputSize , pcmF) ;
+
+        if(len < inputSize){
+            LOGE(" end fread  %d " , len );
+            break;
+        }
+        inputFrame->data[0] = (uint8_t *)buffer;
+        result = swr_convert(swc , &outputFrame->data[0] , 1024 , (const uint8_t **)inputFrame->data , 1024);
+        if(result < 0){
+            LOGE(" convert faild !");
+            continue;
+        }
+        count += result;
+        outputFrame->linesize[0] = result * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLTP);
+        outputFrame->pts = (int64_t)(count * av_q2d(aCtxE->time_base) * 1000);
+        LOGE(" WRITE ING %lld  , timebase %f" , outputFrame->pts , av_q2d(aCtxE->time_base));
+//        fwrite(outputFrame->data[0] , 1 , result * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLTP) , pcmOut );
+        AVPacket *pkt = encodeFrame(outputFrame , aCtxE);
+        if(pkt != NULL){
+            av_write_frame(afc_output , pkt);
+            av_packet_free(&pkt);
+        }
+    }
+    av_write_trailer(afc_output);
+    fclose(pcmF);
+
+    LOGE(" init output success !");
+
 }
 
 void VideoJoint::initValue() {
@@ -58,6 +174,11 @@ void VideoJoint::initValue() {
 
     audioQueMax = 120;
     videoQueMax = 100;
+
+    audioSampleCount = 0;
+
+    readEnd = false;
+    LOGE(" OUT CHANNEL COUNT %d " , channel);
 
 }
 
@@ -117,7 +238,7 @@ void VideoJoint::startJoint() {
 #ifdef DEBUG
     av_log_set_callback(custom_log);
 #endif
-    this->start();
+//    this->start();
     int result = initOutput(this->outPath);
     if (result < 0) {
         LOGE(" init output faild !");
@@ -134,33 +255,48 @@ void VideoJoint::startJoint() {
         startDecode();
         break;
     }
-    av_write_trailer(afc_output);
+
 }
 
 void VideoJoint::run() {
-
+    int result = 0;
     while(!isExit){
         if(this->pause || audioOutStream == NULL || videoOutStream == NULL){
             threadSleep(2);
             continue;
         }
+//        LOGE(" AUDIOQUE.size %d , videoque.size %d " , audioQue.size() , videoQue.size());
         if(audioQue.size() <= 0 || videoQue.size() <= 0){
+            if(readEnd){
+                LOGE("------------- read end ing -------------");
+                break;
+            }
             continue;
         }
 
         AVPacket *aPkt = audioQue.front();
         AVPacket *vPkt = videoQue.front();
+
+        LOGE(" apkt == NULL  %d , vpkt == NULL %d " ,(aPkt == NULL ) , (vPkt == NULL) );
         if(av_compare_ts(aPkt->pts , audioOutStream->time_base , vPkt->pts , videoOutStream->time_base) < 0){
-            av_interleaved_write_frame(afc_output ,aPkt );
-            audioQue.pop();
+            result = av_interleaved_write_frame(afc_output ,aPkt );
+            if(result < 0){
+                LOGE(" audio av_interleaved_write_frame faild ! %s " , av_err2str(result));
+            }
             av_packet_free(&aPkt);
+            audioQue.pop();
         }
         else{
-            av_interleaved_write_frame(afc_output ,vPkt );
-            videoQue.pop();
+            result = av_interleaved_write_frame(afc_output ,vPkt );
+            if(result < 0){
+                LOGE(" video av_interleaved_write_frame faild ! %s", av_err2str(result));
+            }
             av_packet_free(&vPkt);
+            videoQue.pop();
         }
     }
+    LOGE("------------- read end ing -------------");
+    av_write_trailer(afc_output);
 }
 
 AVFrame *VideoJoint::deocdePacket(AVPacket *packet, AVCodecContext *decode) {
@@ -202,86 +338,105 @@ AVPacket *VideoJoint::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
         }
         return packet;
     }
+    av_packet_free(&packet);
     return NULL;
 }
 
 void VideoJoint::startDecode() {
     //开始解码
+    FILE *tempR = fopen("sdcard/FFmpeg/temp.pcm" , "wb+");
     int result = 0;
     AVPacket *pkt = av_packet_alloc();
+//    LOGE(" AUDIO INDEX %d , video output index %d " , audioIndexOutput , videoIndexOutput );
+    int64_t dst_nb_samples ;
     while (!isExit) {
-        LOGE(" AUDIO QUE size %d , video que size %d" ,audioQue.size() , videoQue.size()  );
-//        if(audioQue.size() > audioQueMax || videoQue.size() > videoQueMax){
-//            threadSleep(2);
-//            continue;
-//        }
+        if(audioQue.size() > audioQueMax || videoQue.size() > videoQueMax){
+            threadSleep(2);
+            continue;
+        }
+//        LOGE(" av_read_frame " );
         result = av_read_frame(afc_input, pkt);
         if (result < 0) {
-            LOGE(" startDecode av_read_frame FAILD ! %s ", av_err2str(result));
+            LOGE(" ************* startDecode av_read_frame FAILD ! %s ", av_err2str(result));
+            readEnd = true;
             break;
         }
         AVFrame *frame = NULL;
         if (pkt->stream_index == videoIndexInput) {
-            frame = deocdePacket(pkt, vCtxD);
-            if (frame != NULL) {
-                LOGE(" WRITE VIDEO ");
-                //修改分辨率
-                sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
-                          0, frame->height, outVFrame->data, outVFrame->linesize);
-                av_frame_free(&frame);
-                AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
-                if (vPkt != NULL) {
-                    //放入队列
-                    vPkt->stream_index = videoIndexOutput;
-                    addQueue(vPkt);
-                    LOGE(" VIDEO PKT PTS %lld " , vPkt->pts);
-                }
-            }
+//            frame = deocdePacket(pkt, vCtxD);
+//            if (frame != NULL) {
+//                //修改分辨率
+//                sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
+//                          0, frame->height, outVFrame->data, outVFrame->linesize);
+//                outVFrame->pts = frame->pts;
+//                av_frame_free(&frame);
+//                AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
+//                if (vPkt != NULL) {
+//                    //放入队列
+//                    vPkt->stream_index = videoIndexOutput;
+//                    addQueue(vPkt);
+//                }
+//            }
         } else if (pkt->stream_index == audioIndexInput) {
             frame = deocdePacket(pkt, aCtxD);
             if (frame != NULL) {
-                result = swr_convert(swc, &audioOutBuffer, frame->nb_samples,
+
+                dst_nb_samples = av_rescale_rnd(swr_get_delay(swc, aCtxE->sample_rate) + frame->nb_samples,
+                                                    aCtxE->sample_rate, aCtxE->sample_rate, AV_ROUND_UP);
+                result = swr_convert(swc, outAFrame->data, dst_nb_samples ,
                                      (const uint8_t **) frame->data, frame->nb_samples);
                 if (result < 0) {
                     LOGE(" swr_convert faild ! %s  ", av_err2str(result));
                     continue;
                 }
-                LOGE(" AUDIO RETURN NB_SAMPLE %d ", result);
-                AVPacket *aPkt = encodeFrame(frame, aCtxE);
+
+                outAFrame->linesize[0] = result * av_get_bytes_per_sample(sampleFormat);
+                outAFrame->nb_samples = result;
+                AVPacket *aPkt = encodeFrame(outAFrame, aCtxE);
+                outAFrame->pts  =  (int64_t)(audioSampleCount * av_q2d(audioOutStream->time_base) * 1000);
+                LOGE(" OFFICAL %lld " , av_rescale_q(audioSampleCount , (AVRational){1, aCtxE->sample_rate}, audioOutStream->time_base));
+                audioSampleCount += outAFrame->nb_samples ;
+
                 if (aPkt != NULL) {
                     //放入队列
-                    aPkt->stream_index = audioIndexOutput;
-                    addQueue(aPkt);
-                    LOGE(" audio PKT PTS %lld " , aPkt->pts);
+                    av_packet_rescale_ts(pkt , audioOutStream->time_base , afc_input->streams[audioIndexInput]->time_base);
+                    aPkt->duration = 0;
+                    LOGE(" PTS %lld , DTS %lld , duration %lld " , aPkt->pts , aPkt->dts , aPkt->duration);
+                    aPkt->stream_index = audioOutStream->index;
+                    result = av_write_frame(afc_output , aPkt);
+                    if(result < 0){
+                        LOGE(" av_write_frame faild ! %s " , av_err2str(result));
+                    }
+//
+                    av_packet_free(&aPkt);
+//                    aPkt->stream_index = audioIndexOutput;
+//                    addQueue(aPkt);
                 }
                 av_frame_free(&frame);
             }
         }
     }
+    LOGE(" .........................read end .................. !");
+    av_write_trailer(afc_output);
 }
 
 
 void VideoJoint::addQueue(AVPacket *pkt) {
-    if (pkt->stream_index == videoIndexInput) {
+    if (pkt->stream_index == videoIndexOutput) {
         pkt->pts = av_rescale_q_rnd(pkt->pts, afc_input->streams[videoIndexInput]->time_base,
                                     videoOutStream->time_base,
                                     AV_ROUND_NEAR_INF);
         pkt->dts = av_rescale_q_rnd(pkt->dts, afc_input->streams[videoIndexInput]->time_base,
                                     videoOutStream->time_base,
                                     AV_ROUND_NEAR_INF);
-        pkt->duration = av_rescale_q(pkt->duration, afc_input->streams[videoIndexInput]->time_base,
-                                     videoOutStream->time_base);
         videoQue.push(pkt);
     } else if (pkt->stream_index == audioIndexOutput) {
         pkt->pts = av_rescale_q_rnd(pkt->pts, afc_input->streams[audioIndexInput]->time_base,
                                      audioOutStream->time_base,
                                      AV_ROUND_NEAR_INF);
         pkt->dts = av_rescale_q_rnd(pkt->dts, afc_input->streams[audioIndexInput]->time_base,
-                                     audioOutStream->time_base,
-                                     AV_ROUND_NEAR_INF);
-        pkt->duration = av_rescale_q(pkt->duration,
-                                      afc_input->streams[audioIndexInput]->time_base,
-                                      audioOutStream->time_base);
+                                    audioOutStream->time_base,
+                                    AV_ROUND_NEAR_INF);
         audioQue.push(pkt);
     }
 }
@@ -372,16 +527,15 @@ int VideoJoint::initInput(char *path) {
 
 int VideoJoint::initOutput(char *path) {
     int result = 0;
-    afc_output = NULL;
     result = avformat_alloc_output_context2(&afc_output, NULL, NULL, path);
     if (result < 0 || afc_output == NULL) {
         LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
         return -1;
     }
     afot = afc_output->oformat;
-    if (addVideoOutputStream(outWidth, outHeight) < 0) {
-        return -1;
-    }
+//    if (addVideoOutputStream(outWidth, outHeight) < 0) {
+//        return -1;
+//    }
     if (addAudioOutputStream() < 0) {
         return -1;
     }
@@ -508,6 +662,7 @@ int VideoJoint::addAudioOutputStream() {
         LOGE(" audioCodecE NULL ");
         return -1;
     }
+    LOGE("AUDIO CODEC NAME %s " , audioCodecE->name);
     aCtxE = avcodec_alloc_context3(audioCodecE);
     if (aCtxE == NULL) {
         LOGE("AUDIO avcodec_alloc_context3 FAILD !");
@@ -515,18 +670,17 @@ int VideoJoint::addAudioOutputStream() {
     }
 
     aCtxE->bit_rate = 64000;
-    aCtxE->sample_fmt = sampleFormat;//AV_SAMPLE_FMT_S16;
+    aCtxE->sample_fmt = sampleFormat;
     aCtxE->sample_rate = sampleRate;
     aCtxE->channel_layout = outChannelLayout;
     aCtxE->channels = channel;
-
+    aCtxE->time_base = (AVRational) {1, sampleRate};
+    audioOutStream->time_base = aCtxE->time_base;
     result = avcodec_parameters_from_context(audioOutStream->codecpar, aCtxE);
-
     if (result < 0) {
         LOGE(" avcodec_parameters_from_context FAILD ! ");
         return -1;
     }
-
     result = avcodec_open2(aCtxE, audioCodecE, NULL);
     if (result < 0) {
         LOGE(" audio Could not open codec %s ", av_err2str(result));

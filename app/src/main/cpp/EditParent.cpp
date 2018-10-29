@@ -5,7 +5,7 @@
 #include "EditParent.h"
 
 void  custom_log(void *ptr, int level, const char *fmt, va_list vl) {
-    FILE *fp = fopen("sdcard/FFmpeg/ffmpeg_log.txt", "w+");
+    FILE *fp = fopen("sdcard/FFmpeg/ffmpeg_log.txt", "a+");
     if (fp) {
         vfprintf(fp, fmt, vl);
         fflush(fp);

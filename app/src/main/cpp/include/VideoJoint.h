@@ -62,6 +62,10 @@ private :
     AVFrame *outVFrame ;
     AVFrame *outAFrame ;
 
+    int audioSampleCount ;
+
+    bool readEnd ;
+
     int sampleRate ;
     AVSampleFormat sampleFormat ;
     uint64_t outChannelLayout ;
@@ -104,6 +108,8 @@ public :
     int initOutput(char *path);
 
     ~VideoJoint();
+
+    void test();
 
     virtual void run();
 };

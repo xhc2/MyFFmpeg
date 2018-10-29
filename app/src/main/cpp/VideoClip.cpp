@@ -238,7 +238,14 @@ void VideoClip::write_frame(AVStream *inStream, AVStream *outStream, AVPacket *p
     packet->dts = av_rescale_q_rnd(packet->dts, inStream->time_base, outStream->time_base,
                                    AV_ROUND_NEAR_INF);
     packet->duration = av_rescale_q(packet->duration, inStream->time_base, outStream->time_base);
-    av_interleaved_write_frame(afc_output, packet);
+    if(packet->stream_index == video_index){
+        LOGE(" PTS %lld  , DTS %lld , duration %lld " , packet->pts  , packet->dts , packet->duration);
+
+    }
+
+    if(av_interleaved_write_frame(afc_output, packet) < 0){
+        LOGE(" av_interleaved_write_frame FAILD !");
+    }
 }
 
 
@@ -284,7 +291,7 @@ void VideoClip::startClip() {
                 if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
                     AVPacket *newPkt = encodeFrame(frame);
                     if (newPkt != NULL) {
-                        LOGE("WRITE VIDEO ");
+//                        LOGE("WRITE VIDEO ");
                         write_frame(videoStream, videoOutStream, newPkt);
                         av_packet_free(&newPkt);
                     }
@@ -295,7 +302,7 @@ void VideoClip::startClip() {
         } else if (packet->stream_index == audio_index) {
             pts = (int64_t) (packet->pts * av_q2d(audioStream->time_base) * 1000);
             if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
-                LOGE(" WRITE AUDIO ");
+//                LOGE(" WRITE AUDIO ");
                 write_frame(audioStream, audioOutStream, packet);
             }
             av_packet_free(&packet);
