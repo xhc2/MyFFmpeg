@@ -218,8 +218,6 @@ int CameraStream::addAudioStream() {
     int64_t channelLayout = AV_CH_LAYOUT_MONO;//av_get_default_channel_layout(1);
     int channels = av_get_channel_layout_nb_channels(channelLayout);
 
-
-
     aCodeCtx->codec_type = AVMEDIA_TYPE_AUDIO;
     aCodeCtx->sample_fmt = audioFormat;
     aCodeCtx->bit_rate = 64000;

@@ -33,7 +33,7 @@ PublishStream::PublishStream(const char* url , const char* inpath , CallJava *cj
         LOGE( "Failed to retrieve input stream information");
         return ;
     }
-    //目前rtmp flv 有点用，其他格式都有点问题。
+    //目前rtmp flv 有点用。
     result = avformat_alloc_output_context2(&ofmtCtx, NULL, "flv" , url); //RTMP
     if (result < 0) {
         cj->callStr( "avformat_alloc_output_context2 faild");

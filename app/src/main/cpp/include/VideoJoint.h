@@ -110,6 +110,7 @@ public :
     ~VideoJoint();
 
     void test();
+    void test2();
 
     virtual void run();
 };

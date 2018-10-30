@@ -27,9 +27,84 @@ VideoJoint::VideoJoint(vector<char *> inputPath, const char *output, int outWidt
     strcpy(this->outPath, output);
     LOGE(" OUTPUT path %s ", this->outPath);
     initValue();
-    test();
+    test2();
 }
 
+void VideoJoint::test2(){
+    char *outPath = "sdcard/FFmpeg/out.wav";
+    av_register_all();
+    avcodec_register_all();
+#ifdef DEBUG
+    av_log_set_callback(custom_log);
+#endif
+    int result = 0;
+    result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outPath);
+    if (result < 0 || afc_output == NULL) {
+        LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
+        return;
+    }
+    afot = afc_output->oformat;
+    result = addAudioOutputStream();
+    if(result < 0){
+        LOGE(" addAudioOutputStream faild !");
+        return ;
+    }
+    av_dump_format(afc_output , 0 , "sdcard/FFmpeg/dumpformat.txt" , 1);
+    LOGE("  av_dump_format ");
+    if (!(afot->flags & AVFMT_NOFILE)) {
+        result = avio_open(&afc_output->pb, outPath, AVIO_FLAG_WRITE);
+        if (result < 0) {
+            LOGE("Could not open output file %s ", outPath);
+            return ;
+        }
+    }
+
+    result = avformat_write_header(afc_output, NULL);
+
+    if (result < 0) {
+        LOGE(" avformat_write_header %s", av_err2str(result));
+        return ;
+    }
+    AVFrame *outputFrame = av_frame_alloc();
+    outputFrame->sample_rate = 44100;
+    outputFrame->format = AV_SAMPLE_FMT_S16;
+    outputFrame->channel_layout = AV_CH_LAYOUT_MONO;
+    outputFrame->channels = 1;
+    outputFrame->nb_samples = 1024;
+    result = av_frame_get_buffer(outputFrame, 0);
+    if (result < 0) {
+        LOGE(" av_frame_get_buffer FAILD ! ");
+        return  ;
+    }
+
+    result = av_frame_make_writable(outputFrame);
+    if (result < 0) {
+        LOGE(" outAFrame av_frame_make_writable FAILD ! ");
+        return  ;
+    }
+    FILE *pcmF = fopen("sdcard/FFmpeg/test_1c_441_32.pcm" , "r");
+    int inputSample = 1024 ;
+    int inputSize = inputSample * av_get_bytes_per_sample(sampleFormat);
+    char *buffer = (char *)malloc(inputSize);
+    int len = 0;
+    while(true){
+        len = fread(buffer , 1 ,inputSize , pcmF);
+        if(len < inputSize){
+            LOGE(" RAED END ...");
+            break;
+        }
+        outputFrame->data[0] = (uint8_t *)buffer ;
+        outputFrame->linesize[0] = inputSize;
+        AVPacket *pkt = encodeFrame(outputFrame , aCtxE);
+        if(pkt != NULL){
+            LOGE(" WRITE PKT ");
+            av_write_frame(afc_output , pkt );
+            av_packet_free(&pkt);
+        }
+    }
+
+
+}
 
 void VideoJoint::test(){
     char *outPath = "sdcard/FFmpeg/out.aac";
@@ -50,7 +125,8 @@ void VideoJoint::test(){
         LOGE(" addAudioOutputStream faild !");
         return ;
     }
-
+    av_dump_format(afc_output , 0 , "sdcard/FFmpeg/dumpformat.txt" , 1);
+    LOGE("  av_dump_format ");
     if (!(afot->flags & AVFMT_NOFILE)) {
         result = avio_open(&afc_output->pb, outPath, AVIO_FLAG_WRITE);
         if (result < 0) {
@@ -66,23 +142,13 @@ void VideoJoint::test(){
         return ;
     }
 
+
     AVFrame *inputFrame = av_frame_alloc();
-//    inputFrame->sample_rate = 44100;
-//    inputFrame->format = AV_SAMPLE_FMT_S16;
-//    inputFrame->channel_layout = outChannelLayout;
-//    inputFrame->channels = 2;
-//    inputFrame->nb_samples = 1024;
-//    result = av_frame_get_buffer(inputFrame, 0);
-//    if (result < 0) {
-//        LOGE(" av_frame_get_buffer FAILD ! ");
-//        return ;
-//    }
-//    result = av_frame_make_writable(inputFrame);
 
     AVFrame *outputFrame = av_frame_alloc();
     outputFrame->sample_rate = 44100;
     outputFrame->format = AV_SAMPLE_FMT_FLTP;
-    outputFrame->channel_layout = outChannelLayout;
+    outputFrame->channel_layout = AV_CH_LAYOUT_MONO;
     outputFrame->channels = 1;
     outputFrame->nb_samples = 1024;
     result = av_frame_get_buffer(outputFrame, 0);
@@ -96,9 +162,6 @@ void VideoJoint::test(){
         LOGE(" outAFrame av_frame_make_writable FAILD ! ");
         return  ;
     }
-
-
-
 
     int inputSample = 1024;
     AVSampleFormat inputFormat = AV_SAMPLE_FMT_S16;
@@ -117,7 +180,6 @@ void VideoJoint::test(){
     int count =0;
     while(true ){
         len = fread(buffer , 1 , inputSize , pcmF) ;
-
         if(len < inputSize){
             LOGE(" end fread  %d " , len );
             break;
@@ -129,9 +191,9 @@ void VideoJoint::test(){
             continue;
         }
         count += result;
-        outputFrame->linesize[0] = result * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLTP);
+//        outputFrame->linesize[0] = result * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLTP);
         outputFrame->pts = (int64_t)(count * av_q2d(aCtxE->time_base) * 1000);
-        LOGE(" WRITE ING %lld  , timebase %f" , outputFrame->pts , av_q2d(aCtxE->time_base));
+        LOGE(" WRITE ING %lld , linesize %d " , outputFrame->pts  , outputFrame->linesize[0] );
 //        fwrite(outputFrame->data[0] , 1 , result * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLTP) , pcmOut );
         AVPacket *pkt = encodeFrame(outputFrame , aCtxE);
         if(pkt != NULL){
@@ -322,9 +384,18 @@ AVFrame *VideoJoint::deocdePacket(AVPacket *packet, AVCodecContext *decode) {
 
 
 AVPacket *VideoJoint::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
+    if(frame == NULL || encode == NULL){
+        return NULL;
+    }
     int result = 0;
     result = avcodec_send_frame(encode, frame);
     if (result < 0) {
+        if (!avcodec_is_open(encode) ){
+            LOGE(" avcodec_is_open ");
+        }
+        if(!av_codec_is_encoder(encode->codec)){
+            LOGE(" av_codec_is_encoder ");
+        }
         LOGE(" avcodec_send_frame faild ! %s ", av_err2str(result));
         return NULL;
     }
@@ -657,6 +728,8 @@ int VideoJoint::addAudioOutputStream() {
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
+    LOGE(" afot->audio_codec   %d " , afot->audio_codec );
+
     audioCodecE = avcodec_find_encoder(afot->audio_codec);
     if (audioCodecE == NULL) {
         LOGE(" audioCodecE NULL ");
@@ -668,13 +741,15 @@ int VideoJoint::addAudioOutputStream() {
         LOGE("AUDIO avcodec_alloc_context3 FAILD !");
         return -1;
     }
+    sampleFormat = AV_SAMPLE_FMT_S16;
 
     aCtxE->bit_rate = 64000;
-    aCtxE->sample_fmt = sampleFormat;
+    aCtxE->sample_fmt =  sampleFormat;
     aCtxE->sample_rate = sampleRate;
     aCtxE->channel_layout = outChannelLayout;
     aCtxE->channels = channel;
     aCtxE->time_base = (AVRational) {1, sampleRate};
+    aCtxE->codec_type = AVMEDIA_TYPE_AUDIO ;
     audioOutStream->time_base = aCtxE->time_base;
     result = avcodec_parameters_from_context(audioOutStream->codecpar, aCtxE);
     if (result < 0) {
@@ -686,7 +761,6 @@ int VideoJoint::addAudioOutputStream() {
         LOGE(" audio Could not open codec %s ", av_err2str(result));
         return -1;
     }
-
     LOGE(" INIT OUTPUT SUCCESS AUDIO  !");
     return 1;
 }
