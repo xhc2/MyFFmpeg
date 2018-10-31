@@ -445,7 +445,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startJoint(JNIEnv *env, jclass type, 
     if (vj == NULL) {
         vj = new VideoJoint(inputPaths, output, outWidth, outHeight);
     }
-//    vj->startJoint();
+    vj->startJoint();
     env->ReleaseStringUTFChars(output_, output);
 }
 

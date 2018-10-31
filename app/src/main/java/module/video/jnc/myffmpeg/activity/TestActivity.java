@@ -19,7 +19,7 @@ public class TestActivity extends AppCompatActivity {
             public void onClick(View v) {
 //                FFmpegUtils.startClip("sdcard/FFmpeg/test.mp4" ,"sdcard/FFmpeg/test_clip.mp4" , 12,24);
                 String[] paths = {"sdcard/FFmpeg/video/test.mp4" , "sdcard/FFmpeg/video/v1080.mp4" , "sdcard/FFmpeg/video/flv.flv"};
-                FFmpegUtils.startJoint( paths , "sdcard/FFmpeg/testjoint.mp4" , 1280 , 720);
+                FFmpegUtils.startJoint( paths , "sdcard/FFmpeg/testjoint.flv" , 1280 , 720);
             }
         });
 

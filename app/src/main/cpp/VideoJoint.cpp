@@ -1,5 +1,6 @@
 // Created by Administrator on 2018/10/25/025.
 //
+
 #include "VideoJoint.h"
 
 /**
@@ -27,185 +28,26 @@ VideoJoint::VideoJoint(vector<char *> inputPath, const char *output, int outWidt
     strcpy(this->outPath, output);
     LOGE(" OUTPUT path %s ", this->outPath);
     initValue();
-    test2();
+
 }
 
+void VideoJoint::destroyAudioFifo(){
+    if(audioFifo != NULL){
+        av_audio_fifo_free(audioFifo);
+        audioFifo = NULL;
+    }
+}
+
+void VideoJoint::allocAudioFifo(AVSampleFormat sample_fmt  ,  int channels, int nb_samples){
+    if(audioFifo == NULL){
+        audioFifo = av_audio_fifo_alloc(sample_fmt ,channels , nb_samples);
+    }
+};
+
 void VideoJoint::test2(){
-    char *outPath = "sdcard/FFmpeg/out.wav";
-    av_register_all();
-    avcodec_register_all();
-#ifdef DEBUG
-    av_log_set_callback(custom_log);
-#endif
-    int result = 0;
-    result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outPath);
-    if (result < 0 || afc_output == NULL) {
-        LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
-        return;
-    }
-    afot = afc_output->oformat;
-    result = addAudioOutputStream();
-    if(result < 0){
-        LOGE(" addAudioOutputStream faild !");
-        return ;
-    }
-    av_dump_format(afc_output , 0 , "sdcard/FFmpeg/dumpformat.txt" , 1);
-    LOGE("  av_dump_format ");
-    if (!(afot->flags & AVFMT_NOFILE)) {
-        result = avio_open(&afc_output->pb, outPath, AVIO_FLAG_WRITE);
-        if (result < 0) {
-            LOGE("Could not open output file %s ", outPath);
-            return ;
-        }
-    }
-
-    result = avformat_write_header(afc_output, NULL);
-
-    if (result < 0) {
-        LOGE(" avformat_write_header %s", av_err2str(result));
-        return ;
-    }
-    AVFrame *outputFrame = av_frame_alloc();
-    outputFrame->sample_rate = 44100;
-    outputFrame->format = AV_SAMPLE_FMT_S16;
-    outputFrame->channel_layout = AV_CH_LAYOUT_MONO;
-    outputFrame->channels = 1;
-    outputFrame->nb_samples = 1024;
-    result = av_frame_get_buffer(outputFrame, 0);
-    if (result < 0) {
-        LOGE(" av_frame_get_buffer FAILD ! ");
-        return  ;
-    }
-
-    result = av_frame_make_writable(outputFrame);
-    if (result < 0) {
-        LOGE(" outAFrame av_frame_make_writable FAILD ! ");
-        return  ;
-    }
-    FILE *pcmF = fopen("sdcard/FFmpeg/test_1c_441_32.pcm" , "r");
-    int inputSample = 1024 ;
-    int inputSize = inputSample * av_get_bytes_per_sample(sampleFormat);
-    char *buffer = (char *)malloc(inputSize);
-    int len = 0;
-    while(true){
-        len = fread(buffer , 1 ,inputSize , pcmF);
-        if(len < inputSize){
-            LOGE(" RAED END ...");
-            break;
-        }
-        outputFrame->data[0] = (uint8_t *)buffer ;
-        outputFrame->linesize[0] = inputSize;
-        AVPacket *pkt = encodeFrame(outputFrame , aCtxE);
-        if(pkt != NULL){
-            LOGE(" WRITE PKT ");
-            av_write_frame(afc_output , pkt );
-            av_packet_free(&pkt);
-        }
-    }
-
-
 }
 
 void VideoJoint::test(){
-    char *outPath = "sdcard/FFmpeg/out.aac";
-    av_register_all();
-    avcodec_register_all();
-#ifdef DEBUG
-    av_log_set_callback(custom_log);
-#endif
-    int result = 0;
-    result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outPath);
-    if (result < 0 || afc_output == NULL) {
-        LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
-        return;
-    }
-    afot = afc_output->oformat;
-    result = addAudioOutputStream();
-    if(result < 0){
-        LOGE(" addAudioOutputStream faild !");
-        return ;
-    }
-    av_dump_format(afc_output , 0 , "sdcard/FFmpeg/dumpformat.txt" , 1);
-    LOGE("  av_dump_format ");
-    if (!(afot->flags & AVFMT_NOFILE)) {
-        result = avio_open(&afc_output->pb, outPath, AVIO_FLAG_WRITE);
-        if (result < 0) {
-            LOGE("Could not open output file %s ", outPath);
-            return ;
-        }
-    }
-
-    result = avformat_write_header(afc_output, NULL);
-
-    if (result < 0) {
-        LOGE(" avformat_write_header %s", av_err2str(result));
-        return ;
-    }
-
-
-    AVFrame *inputFrame = av_frame_alloc();
-
-    AVFrame *outputFrame = av_frame_alloc();
-    outputFrame->sample_rate = 44100;
-    outputFrame->format = AV_SAMPLE_FMT_FLTP;
-    outputFrame->channel_layout = AV_CH_LAYOUT_MONO;
-    outputFrame->channels = 1;
-    outputFrame->nb_samples = 1024;
-    result = av_frame_get_buffer(outputFrame, 0);
-    if (result < 0) {
-        LOGE(" av_frame_get_buffer FAILD ! ");
-        return  ;
-    }
-
-    result = av_frame_make_writable(outputFrame);
-    if (result < 0) {
-        LOGE(" outAFrame av_frame_make_writable FAILD ! ");
-        return  ;
-    }
-
-    int inputSample = 1024;
-    AVSampleFormat inputFormat = AV_SAMPLE_FMT_S16;
-    int inputSize = av_get_bytes_per_sample(inputFormat) * nbSample * 2;
-    FILE *pcmF = fopen("sdcard/FFmpeg/test_2c_441_16.pcm" , "r");
-    FILE *pcmOut = fopen("sdcard/FFmpeg/temp.pcm" , "wb+");
-    result = initSwrContext(1 ,AV_SAMPLE_FMT_FLTP , 44100 );
-    if(result < 0){
-        LOGE(" initSwrContext ");
-        return ;
-    }
-
-    char *buffer = (char *)malloc(inputSize);
-
-    int len = 0;
-    int count =0;
-    while(true ){
-        len = fread(buffer , 1 , inputSize , pcmF) ;
-        if(len < inputSize){
-            LOGE(" end fread  %d " , len );
-            break;
-        }
-        inputFrame->data[0] = (uint8_t *)buffer;
-        result = swr_convert(swc , &outputFrame->data[0] , 1024 , (const uint8_t **)inputFrame->data , 1024);
-        if(result < 0){
-            LOGE(" convert faild !");
-            continue;
-        }
-        count += result;
-//        outputFrame->linesize[0] = result * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLTP);
-        outputFrame->pts = (int64_t)(count * av_q2d(aCtxE->time_base) * 1000);
-        LOGE(" WRITE ING %lld , linesize %d " , outputFrame->pts  , outputFrame->linesize[0] );
-//        fwrite(outputFrame->data[0] , 1 , result * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLTP) , pcmOut );
-        AVPacket *pkt = encodeFrame(outputFrame , aCtxE);
-        if(pkt != NULL){
-            av_write_frame(afc_output , pkt);
-            av_packet_free(&pkt);
-        }
-    }
-    av_write_trailer(afc_output);
-    fclose(pcmF);
-
-    LOGE(" init output success !");
-
 }
 
 void VideoJoint::initValue() {
@@ -227,11 +69,13 @@ void VideoJoint::initValue() {
     sws = NULL;
     swc = NULL;
 
+    audioFifo = NULL ;
     sampleRate = 44100;
     sampleFormat = AV_SAMPLE_FMT_FLTP;
     outChannelLayout = AV_CH_LAYOUT_MONO;
     channel = av_get_channel_layout_nb_channels(outChannelLayout);
     nbSample = 1024;
+
     audioOutBuffer = (uint8_t *) malloc(av_get_bytes_per_sample(sampleFormat) * nbSample);
 
     audioQueMax = 120;
@@ -240,7 +84,6 @@ void VideoJoint::initValue() {
     audioSampleCount = 0;
 
     readEnd = false;
-    LOGE(" OUT CHANNEL COUNT %d " , channel);
 
 }
 
@@ -317,7 +160,6 @@ void VideoJoint::startJoint() {
         startDecode();
         break;
     }
-
 }
 
 void VideoJoint::run() {
@@ -327,7 +169,6 @@ void VideoJoint::run() {
             threadSleep(2);
             continue;
         }
-//        LOGE(" AUDIOQUE.size %d , videoque.size %d " , audioQue.size() , videoQue.size());
         if(audioQue.size() <= 0 || videoQue.size() <= 0){
             if(readEnd){
                 LOGE("------------- read end ing -------------");
@@ -418,14 +259,11 @@ void VideoJoint::startDecode() {
     FILE *tempR = fopen("sdcard/FFmpeg/temp.pcm" , "wb+");
     int result = 0;
     AVPacket *pkt = av_packet_alloc();
-//    LOGE(" AUDIO INDEX %d , video output index %d " , audioIndexOutput , videoIndexOutput );
-    int64_t dst_nb_samples ;
     while (!isExit) {
         if(audioQue.size() > audioQueMax || videoQue.size() > videoQueMax){
             threadSleep(2);
             continue;
         }
-//        LOGE(" av_read_frame " );
         result = av_read_frame(afc_input, pkt);
         if (result < 0) {
             LOGE(" ************* startDecode av_read_frame FAILD ! %s ", av_err2str(result));
@@ -444,30 +282,47 @@ void VideoJoint::startDecode() {
 //                AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
 //                if (vPkt != NULL) {
 //                    //放入队列
-//                    vPkt->stream_index = videoIndexOutput;
-//                    addQueue(vPkt);
+////                    result = av_write_frame(afc_output , vPkt);
+////                    if(result < 0){
+////                        LOGE(" av_write_frame faild ! %s " , av_err2str(result));
+////                    }
+////                    av_packet_free(&vPkt);
+////                    vPkt->stream_index = videoIndexOutput;
+////                    addQueue(vPkt);
 //                }
 //            }
         } else if (pkt->stream_index == audioIndexInput) {
             frame = deocdePacket(pkt, aCtxD);
             if (frame != NULL) {
-
-                dst_nb_samples = av_rescale_rnd(swr_get_delay(swc, aCtxE->sample_rate) + frame->nb_samples,
-                                                    aCtxE->sample_rate, aCtxE->sample_rate, AV_ROUND_UP);
-                result = swr_convert(swc, outAFrame->data, dst_nb_samples ,
+                result = swr_convert(swc, &audioOutBuffer, nbSample ,
                                      (const uint8_t **) frame->data, frame->nb_samples);
                 if (result < 0) {
                     LOGE(" swr_convert faild ! %s  ", av_err2str(result));
                     continue;
                 }
+                char *tempAudio = (char *)malloc(result * av_get_bytes_per_sample(sampleFormat));
+                memcpy(tempAudio , audioOutBuffer , result * av_get_bytes_per_sample(sampleFormat) );
+                av_audio_fifo_write(audioFifo , (void **)&tempAudio , result);
+                result = av_audio_fifo_size(audioFifo);
+                LOGE(" av_audio_fifo_size %d " , result);
 
-                outAFrame->linesize[0] = result * av_get_bytes_per_sample(sampleFormat);
+                if(result < aCtxE->frame_size){
+                    continue;
+                }
+                uint8_t *getBuffer = (uint8_t *)malloc(result * av_get_bytes_per_sample(sampleFormat));
+                result = av_audio_fifo_read(audioFifo , (void **)&getBuffer , aCtxE->frame_size);
+                if(result != aCtxE->frame_size){
+                    LOGE(" av_audio_fifo_read FAILD ! ");
+                    continue;
+                }
+                outAFrame->data[0] = getBuffer;
+                audioSampleCount += aCtxE->frame_size;
+                outAFrame->pts = audioSampleCount * av_q2d(aCtxE->time_base) * 1000;
                 outAFrame->nb_samples = result;
                 AVPacket *aPkt = encodeFrame(outAFrame, aCtxE);
-                outAFrame->pts  =  (int64_t)(audioSampleCount * av_q2d(audioOutStream->time_base) * 1000);
-                LOGE(" OFFICAL %lld " , av_rescale_q(audioSampleCount , (AVRational){1, aCtxE->sample_rate}, audioOutStream->time_base));
-                audioSampleCount += outAFrame->nb_samples ;
-
+                //这里释放还有点问题
+//                free(getBuffer);
+                free(outAFrame->data[0]);
                 if (aPkt != NULL) {
                     //放入队列
                     av_packet_rescale_ts(pkt , audioOutStream->time_base , afc_input->streams[audioIndexInput]->time_base);
@@ -478,7 +333,6 @@ void VideoJoint::startDecode() {
                     if(result < 0){
                         LOGE(" av_write_frame faild ! %s " , av_err2str(result));
                     }
-//
                     av_packet_free(&aPkt);
 //                    aPkt->stream_index = audioIndexOutput;
 //                    addQueue(aPkt);
@@ -558,6 +412,7 @@ int VideoJoint::initInput(char *path) {
         LOGE(" initSwrContext faild !");
         return -1;
     }
+
 //  videoCodecD
     if (videoCodecD == NULL) {
         LOGE(" 没找到视频解码器 ");
@@ -691,7 +546,7 @@ int VideoJoint::addVideoOutputStream(int width, int height) {
     vCtxE->time_base = (AVRational) {1, 25};
     vCtxE->framerate = (AVRational) {25, 1};
     vCtxE->gop_size = 10;
-    vCtxE->max_b_frames = 1;
+//    vCtxE->max_b_frames = 1;
     vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;
     vCtxE->codec_type = AVMEDIA_TYPE_VIDEO;
     vCtxE->width = width;
@@ -737,12 +592,12 @@ int VideoJoint::addAudioOutputStream() {
     }
     LOGE("AUDIO CODEC NAME %s " , audioCodecE->name);
     aCtxE = avcodec_alloc_context3(audioCodecE);
+
     if (aCtxE == NULL) {
         LOGE("AUDIO avcodec_alloc_context3 FAILD !");
         return -1;
     }
     sampleFormat = AV_SAMPLE_FMT_S16;
-
     aCtxE->bit_rate = 64000;
     aCtxE->sample_fmt =  sampleFormat;
     aCtxE->sample_rate = sampleRate;
@@ -751,6 +606,7 @@ int VideoJoint::addAudioOutputStream() {
     aCtxE->time_base = (AVRational) {1, sampleRate};
     aCtxE->codec_type = AVMEDIA_TYPE_AUDIO ;
     audioOutStream->time_base = aCtxE->time_base;
+
     result = avcodec_parameters_from_context(audioOutStream->codecpar, aCtxE);
     if (result < 0) {
         LOGE(" avcodec_parameters_from_context FAILD ! ");
@@ -761,7 +617,11 @@ int VideoJoint::addAudioOutputStream() {
         LOGE(" audio Could not open codec %s ", av_err2str(result));
         return -1;
     }
-    LOGE(" INIT OUTPUT SUCCESS AUDIO  !");
+
+    destroyAudioFifo();
+    allocAudioFifo(sampleFormat , channel , aCtxE->frame_size * 2);
+
+    LOGE(" INIT OUTPUT SUCCESS AUDIO  ! aCtxE->Frame.size %d " , aCtxE->frame_size);
     return 1;
 }
 

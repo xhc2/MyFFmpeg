@@ -18,6 +18,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 #include <libavcodec/jni.h>
+#include <libavutil/audio_fifo.h>
 }
 
 using namespace std;
@@ -80,6 +81,8 @@ private :
     int audioQueMax ;
     int videoQueMax ;
 
+    AVAudioFifo *audioFifo;
+
     int initSwsContext(int inWidth , int inHeight , int inpixFmt);
     void destroySwsContext();
 
@@ -87,6 +90,9 @@ private :
     void destroySwrContext();
 
     void initValue();
+    void destroyAudioFifo();
+    void allocAudioFifo(AVSampleFormat sample_fmt  ,  int channels, int nb_samples);
+
     int addVideoOutputStream(int width , int height);
     int addAudioOutputStream();
     AVPacket *encodeFrame(AVFrame *frame , AVCodecContext *encode);
