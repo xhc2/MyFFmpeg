@@ -406,6 +406,7 @@ int VideoJoint::initInput(char *path) {
         return -1;
     }
 
+//  swrContext
     destroySwrContext();
     int sampleRate = afc_input->streams[audioIndexInput]->codecpar->sample_rate;
     AVSampleFormat sampleFmt = (AVSampleFormat) afc_input->streams[audioIndexInput]->codecpar->format;
@@ -644,6 +645,12 @@ void VideoJoint::destroyOutput() {
     if(audioOutBuffer != NULL){
         free(audioOutBuffer);
         audioOutBuffer = NULL;
+    }
+    if(outVFrame != NULL){
+        av_frame_free(&outVFrame);
+    }
+    if(outAFrame != NULL){
+        av_frame_free(&outAFrame);
     }
     destroyAudioFifo();
     destroySwrContext();
