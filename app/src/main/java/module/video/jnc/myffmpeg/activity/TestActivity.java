@@ -9,6 +9,7 @@ import module.video.jnc.myffmpeg.R;
 
 public class TestActivity extends AppCompatActivity {
 
+    String[] paths = {"sdcard/FFmpeg/video/test.mp4" , "sdcard/FFmpeg/video/v1080.mp4" , "sdcard/FFmpeg/video/flv.flv"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,8 +19,15 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                FFmpegUtils.startClip("sdcard/FFmpeg/test.mp4" ,"sdcard/FFmpeg/test_clip.mp4" , 12,24);
-                String[] paths = {"sdcard/FFmpeg/video/test.mp4" , "sdcard/FFmpeg/video/v1080.mp4" , "sdcard/FFmpeg/video/flv.flv"};
-                FFmpegUtils.startJoint( paths , "sdcard/FFmpeg/testjoint.flv" , 1280 , 720);
+
+                new Thread(){
+                    @Override
+                    public void run() {
+                        super.run();
+                        FFmpegUtils.startJoint( paths , "sdcard/FFmpeg/testjoint.flv" , 1280 , 720);
+                    }
+                }.start();
+
             }
         });
 

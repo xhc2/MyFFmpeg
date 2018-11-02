@@ -44,11 +44,6 @@ void VideoJoint::allocAudioFifo(AVSampleFormat sample_fmt  ,  int channels, int 
     }
 };
 
-void VideoJoint::test2(){
-}
-
-void VideoJoint::test(){
-}
 
 void VideoJoint::initValue() {
     videoIndexInput = -1;
@@ -78,13 +73,21 @@ void VideoJoint::initValue() {
 
     audioOutBuffer = (uint8_t *) malloc(av_get_bytes_per_sample(sampleFormat) * nbSample);
 
-    audioQueMax = 120;
+    audioQueMax = 1200;
     videoQueMax = 100;
 
     audioSampleCount = 0;
+    videoFrameCount = 0;
+    outFrameRate = 25;
 
+    AVRational sampleRateAv = (AVRational){ sampleRate , 1 };
+    aCalDuration = (double)(AV_TIME_BASE) * (1 / av_q2d(sampleRateAv));
+    vCalDuration = (double)(AV_TIME_BASE) * (1 / av_q2d((AVRational){ outFrameRate , 1 }));
     readEnd = false;
+    timeBaseFFmpeg = (AVRational){ 1, AV_TIME_BASE };
 
+    apts = 0;
+    vpts = 0;
 }
 
 int VideoJoint::initSwrContext(int channelCount, AVSampleFormat in_sample_fmt, int in_sample_rate) {
@@ -143,7 +146,7 @@ void VideoJoint::startJoint() {
 #ifdef DEBUG
     av_log_set_callback(custom_log);
 #endif
-//    this->start();
+    this->start();
     int result = initOutput(this->outPath);
     if (result < 0) {
         LOGE(" init output faild !");
@@ -165,10 +168,12 @@ void VideoJoint::startJoint() {
 void VideoJoint::run() {
     int result = 0;
     while(!isExit){
+
         if(this->pause || audioOutStream == NULL || videoOutStream == NULL){
             threadSleep(2);
             continue;
         }
+//        LOGE(" videoQue %d ， audioQue %d  " , videoQue.size() , audioQue.size());
         if(audioQue.size() <= 0 || videoQue.size() <= 0){
             if(readEnd){
                 LOGE("------------- read end ing -------------");
@@ -179,9 +184,10 @@ void VideoJoint::run() {
 
         AVPacket *aPkt = audioQue.front();
         AVPacket *vPkt = videoQue.front();
-
-        LOGE(" apkt == NULL  %d , vpkt == NULL %d " ,(aPkt == NULL ) , (vPkt == NULL) );
-        if(av_compare_ts(aPkt->pts , audioOutStream->time_base , vPkt->pts , videoOutStream->time_base) < 0){
+        LOGE(" apts %lld , vpts %lld " , apts , vpts);
+        if(av_compare_ts(apts, audioOutStream->time_base , vpts , videoOutStream->time_base) < 0){
+            LOGE("++++++++++++++++++ audio writeing ");
+            apts = aPkt->pts;
             result = av_interleaved_write_frame(afc_output ,aPkt );
             if(result < 0){
                 LOGE(" audio av_interleaved_write_frame faild ! %s " , av_err2str(result));
@@ -190,7 +196,10 @@ void VideoJoint::run() {
             audioQue.pop();
         }
         else{
+            LOGE("---------------- video writeing ");
+            vpts = vPkt->pts;
             result = av_interleaved_write_frame(afc_output ,vPkt );
+
             if(result < 0){
                 LOGE(" video av_interleaved_write_frame faild ! %s", av_err2str(result));
             }
@@ -254,11 +263,28 @@ AVPacket *VideoJoint::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
     return NULL;
 }
 
+AVFrame* VideoJoint::getAudioFrame(uint8_t *data , int size){
+    AVFrame* frame = av_frame_alloc();
+    frame->nb_samples = aCtxE->frame_size;
+    frame->format = sampleFormat;
+    frame->channels = channel;
+    frame->channel_layout = outChannelLayout;
+    int result = av_frame_get_buffer(frame , 0);
+    if(result < 0){
+        LOGE(" av_frame_get_buffer FAILD ! %s " , av_err2str(result));
+        return NULL;
+    }
+    memcpy(frame->data[0] , data , size);
+    frame->pts = audioSampleCount * aCalDuration;
+    return frame;
+}
+
 void VideoJoint::startDecode() {
     //开始解码
-    FILE *tempR = fopen("sdcard/FFmpeg/temp.pcm" , "wb+");
     int result = 0;
     AVPacket *pkt = av_packet_alloc();
+    uint8_t *audioBuffer = (uint8_t *)malloc(aCtxE->frame_size * av_get_bytes_per_sample(sampleFormat));
+    LOGE(" ******* audioBuffer size %d " , (aCtxE->frame_size * av_get_bytes_per_sample(sampleFormat)));
     while (!isExit) {
         if(audioQue.size() > audioQueMax || videoQue.size() > videoQueMax){
             threadSleep(2);
@@ -272,25 +298,24 @@ void VideoJoint::startDecode() {
         }
         AVFrame *frame = NULL;
         if (pkt->stream_index == videoIndexInput) {
-//            frame = deocdePacket(pkt, vCtxD);
-//            if (frame != NULL) {
-//                //修改分辨率
-//                sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
-//                          0, frame->height, outVFrame->data, outVFrame->linesize);
-//                outVFrame->pts = frame->pts;
-//                av_frame_free(&frame);
-//                AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
-//                if (vPkt != NULL) {
-//                    //放入队列
-////                    result = av_write_frame(afc_output , vPkt);
-////                    if(result < 0){
-////                        LOGE(" av_write_frame faild ! %s " , av_err2str(result));
-////                    }
-////                    av_packet_free(&vPkt);
-////                    vPkt->stream_index = videoIndexOutput;
-////                    addQueue(vPkt);
-//                }
-//            }
+            frame = deocdePacket(pkt, vCtxD);
+            if (frame != NULL) {
+                //修改分辨率
+                sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
+                          0, frame->height, outVFrame->data, outVFrame->linesize);
+                outVFrame->pts = videoFrameCount * vCalDuration;
+                videoFrameCount++;
+                av_frame_free(&frame);
+                AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
+                if (vPkt != NULL) {
+                    //放入队列
+                    LOGE(" VIDEO B_PTS %lld" , vPkt->pts);
+                    av_packet_rescale_ts(vPkt , timeBaseFFmpeg , videoOutStream->time_base);
+                    LOGE(" VIDEO A_PTS %lld" , vPkt->pts);
+                    vPkt->stream_index = videoIndexOutput;
+                    videoQue.push(vPkt);
+                }
+            }
         } else if (pkt->stream_index == audioIndexInput) {
             frame = deocdePacket(pkt, aCtxD);
             if (frame != NULL) {
@@ -300,71 +325,41 @@ void VideoJoint::startDecode() {
                     LOGE(" swr_convert faild ! %s  ", av_err2str(result));
                     continue;
                 }
-                char *tempAudio = (char *)malloc(result * av_get_bytes_per_sample(sampleFormat));
-                memcpy(tempAudio , audioOutBuffer , result * av_get_bytes_per_sample(sampleFormat) );
-                av_audio_fifo_write(audioFifo , (void **)&tempAudio , result);
+                memcpy(audioBuffer , audioOutBuffer , result * av_get_bytes_per_sample(sampleFormat) );
+                av_audio_fifo_write(audioFifo , (void **)&audioBuffer , result);
                 result = av_audio_fifo_size(audioFifo);
-                LOGE(" av_audio_fifo_size %d " , result);
-
                 if(result < aCtxE->frame_size){
                     continue;
                 }
-                uint8_t *getBuffer = (uint8_t *)malloc(result * av_get_bytes_per_sample(sampleFormat));
-                result = av_audio_fifo_read(audioFifo , (void **)&getBuffer , aCtxE->frame_size);
+                result = av_audio_fifo_read(audioFifo , (void **)&audioBuffer , aCtxE->frame_size);
+                int dataSize = result * av_get_bytes_per_sample(sampleFormat);
                 if(result != aCtxE->frame_size){
                     LOGE(" av_audio_fifo_read FAILD ! ");
                     continue;
                 }
-                outAFrame->data[0] = getBuffer;
+                outAFrame = getAudioFrame(audioBuffer , dataSize);
+                if(outAFrame == NULL){
+                    continue;
+                }
                 audioSampleCount += aCtxE->frame_size;
-                outAFrame->pts = audioSampleCount * av_q2d(aCtxE->time_base) * 1000;
-                outAFrame->nb_samples = result;
                 AVPacket *aPkt = encodeFrame(outAFrame, aCtxE);
-                //这里释放还有点问题
-//                free(getBuffer);
-                free(outAFrame->data[0]);
+                av_frame_free(&outAFrame);
                 if (aPkt != NULL) {
                     //放入队列
-                    av_packet_rescale_ts(pkt , audioOutStream->time_base , afc_input->streams[audioIndexInput]->time_base);
-                    aPkt->duration = 0;
-                    LOGE(" PTS %lld , DTS %lld , duration %lld " , aPkt->pts , aPkt->dts , aPkt->duration);
-                    aPkt->stream_index = audioOutStream->index;
-                    result = av_write_frame(afc_output , aPkt);
-                    if(result < 0){
-                        LOGE(" av_write_frame faild ! %s " , av_err2str(result));
-                    }
-                    av_packet_free(&aPkt);
-//                    aPkt->stream_index = audioIndexOutput;
-//                    addQueue(aPkt);
+                    LOGE(" AUDIO B_PTS %lld " ,aPkt->pts );
+                    av_packet_rescale_ts(aPkt ,timeBaseFFmpeg, audioOutStream->time_base );
+                    LOGE(" AUDIO A_PTS %lld " ,aPkt->pts );
+                    aPkt->stream_index = audioIndexOutput;
+                    audioQue.push(aPkt);
                 }
                 av_frame_free(&frame);
             }
         }
     }
     LOGE(" .........................read end .................. !");
-    av_write_trailer(afc_output);
 }
 
 
-void VideoJoint::addQueue(AVPacket *pkt) {
-    if (pkt->stream_index == videoIndexOutput) {
-        pkt->pts = av_rescale_q_rnd(pkt->pts, afc_input->streams[videoIndexInput]->time_base,
-                                    videoOutStream->time_base,
-                                    AV_ROUND_NEAR_INF);
-        pkt->dts = av_rescale_q_rnd(pkt->dts, afc_input->streams[videoIndexInput]->time_base,
-                                    videoOutStream->time_base,
-                                    AV_ROUND_NEAR_INF);
-        videoQue.push(pkt);
-    } else if (pkt->stream_index == audioIndexOutput) {
-        pkt->pts = av_rescale_q_rnd(pkt->pts, afc_input->streams[audioIndexInput]->time_base,
-                                     audioOutStream->time_base,
-                                     AV_ROUND_NEAR_INF);
-        pkt->dts = av_rescale_q_rnd(pkt->dts, afc_input->streams[audioIndexInput]->time_base,
-                                    audioOutStream->time_base,
-                                    AV_ROUND_NEAR_INF);
-        audioQue.push(pkt);
-    }
-}
 
 
 int VideoJoint::initInput(char *path) {
@@ -459,9 +454,9 @@ int VideoJoint::initOutput(char *path) {
         return -1;
     }
     afot = afc_output->oformat;
-//    if (addVideoOutputStream(outWidth, outHeight) < 0) {
-//        return -1;
-//    }
+    if (addVideoOutputStream(outWidth, outHeight) < 0) {
+        return -1;
+    }
     if (addAudioOutputStream() < 0) {
         return -1;
     }
@@ -495,22 +490,7 @@ int VideoJoint::initOutput(char *path) {
         LOGE(" av_frame_make_writable FAILD ! ");
         return -1;
     }
-    outAFrame = av_frame_alloc();
-    outAFrame->sample_rate = sampleRate;
-    outAFrame->format = sampleFormat;
-    outAFrame->channel_layout = outChannelLayout;
-    outAFrame->channels = channel;
-    outAFrame->nb_samples = nbSample;
-    result = av_frame_get_buffer(outAFrame, 0);
-    if (result < 0) {
-        LOGE("outAFrame av_frame_get_buffer FAILD ! %s ", av_err2str(result));
-        return -1;
-    }
-    result = av_frame_make_writable(outAFrame);
-    if (result < 0) {
-        LOGE(" outAFrame av_frame_make_writable FAILD ! ");
-        return -1;
-    }
+
     LOGE(" INIT OUTPUT SUCCESS !");
 
     return 1;
@@ -543,8 +523,8 @@ int VideoJoint::addVideoOutputStream(int width, int height) {
     }
 
     vCtxE->bit_rate = 400000;
-    vCtxE->time_base = (AVRational) {1, 25};
-    vCtxE->framerate = (AVRational) {25, 1};
+    vCtxE->time_base = (AVRational) {1, outFrameRate};
+    vCtxE->framerate = (AVRational) {outFrameRate, 1};
     vCtxE->gop_size = 10;
 //    vCtxE->max_b_frames = 1;
     vCtxE->pix_fmt = AV_PIX_FMT_YUV420P;

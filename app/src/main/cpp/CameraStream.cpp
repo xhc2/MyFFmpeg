@@ -300,7 +300,7 @@ void CameraStream::encodeVideoFrame() {
     sws_scale(sws, (const uint8_t *const *) framePic->data, framePic->linesize,
               0, height, outFrame->data, outFrame->linesize);
 //    //os->time_base 就是将一秒钟分成了多少份，看帧率是多少。然后看一帧占多少份。
-    vpts = av_rescale_q(count * vCalDuration, timeBaseFFmpeg, videoOS->time_base);//count * (videoOS->time_base.den) / ((videoOS->time_base.num) * 25)  ;
+    vpts = av_rescale_q(count * vCalDuration, timeBaseFFmpeg, videoOS->time_base);
     LOGE(" SET VIDEO PTS %lld " , vpts );
     outFrame->pts = vpts;
 
@@ -395,7 +395,6 @@ void CameraStream::writeAudioPacket() {
             myData->drop();
             return ;
         }
-
         pkt->stream_index = audioIndex;
         wapts = av_rescale_q(pkt->pts ,  audioOS->time_base ,timeBaseFFmpeg);
         LOGE(" WRITE AUDIO PTS %lld ", wapts);
@@ -417,7 +416,6 @@ int CameraStream::startRecord() {
         LOGE(" should init first  ");
         return -1;
     }
-
 }
 
 int CameraStream::pauseRecord() {
@@ -451,8 +449,6 @@ void CameraStream::run() {
             threadSleep(3);
             continue;
         }
-//        writeVideoPacket();
-//        writeAudioPacket();
         //这里比较是需要时间基单位相同
         if (av_compare_ts(wapts, audioOS->time_base, wvpts, videoOS->time_base) < 0) {
             writeAudioPacket();
@@ -481,7 +477,6 @@ CameraStream::~CameraStream() {
     if(aCodeCtx != NULL){
         avcodec_free_context(&aCodeCtx);
     }
-
     if(vCodeCtx != NULL){
         avcodec_free_context(&vCodeCtx);
     }

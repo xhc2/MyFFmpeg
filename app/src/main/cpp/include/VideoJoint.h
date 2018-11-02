@@ -56,6 +56,7 @@ private :
 
     int outWidth ;
     int outHeight;
+    int outFrameRate ;
 
     SwsContext *sws;
     SwrContext *swc;
@@ -64,6 +65,8 @@ private :
     AVFrame *outAFrame ;
 
     int audioSampleCount ;
+    int videoFrameCount ;
+    int64_t vCalDuration , aCalDuration;
 
     bool readEnd ;
 
@@ -73,7 +76,10 @@ private :
     int channel ;
     int nbSample ;
 
+    int64_t apts , vpts;
+
     uint8_t *audioOutBuffer;
+    AVRational timeBaseFFmpeg;
 
     queue<AVPacket *> audioQue;
     queue<AVPacket *> videoQue;
@@ -98,7 +104,7 @@ private :
     AVPacket *encodeFrame(AVFrame *frame , AVCodecContext *encode);
     AVFrame *deocdePacket(AVPacket *packet , AVCodecContext *decode );
     void startDecode();
-    void addQueue(AVPacket *pkt);
+    AVFrame *getAudioFrame(uint8_t *data , int size);
 
 public :
     VideoJoint(vector <char *> inputPath ,   const char *output , int outWidth , int outHeight);
@@ -115,8 +121,6 @@ public :
 
     ~VideoJoint();
 
-    void test();
-    void test2();
 
     virtual void run();
 };
