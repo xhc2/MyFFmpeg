@@ -26,44 +26,38 @@ using namespace std;
 class VideoJoint : public MyThread {
 
 private :
-    char *outPath;
-    vector <char *> inputPaths;
 
+    //input
+    vector <char *> inputPaths;
     int videoIndexInput;
     int audioIndexInput;
+    AVCodec *videoCodecD;
+    AVCodec *audioCodecD;
+    AVCodecContext *aCtxD;
+    AVCodecContext *vCtxD;
+    AVFormatContext *afc_input;
+    SwsContext *sws;
+    SwrContext *swc;
+    bool decodeEnd ;
 
+
+    //output
+    char *outPath;
     int videoIndexOutput;
     int audioIndexOutput;
-
-    AVCodec *videoCodecD;
     AVCodec *videoCodecE;
-
     AVCodec *audioCodecE;
-    AVCodec *audioCodecD;
-
-    AVCodecContext *aCtxD;
     AVCodecContext *aCtxE;
-
-    AVCodecContext *vCtxD;
     AVCodecContext *vCtxE;
-
-    AVFormatContext *afc_input;
     AVFormatContext *afc_output;
     AVOutputFormat *afot;
-
     AVStream *audioOutStream ;
     AVStream *videoOutStream ;
-
     int outWidth ;
     int outHeight;
     int outFrameRate ;
-
-    SwsContext *sws;
-    SwrContext *swc;
-
     AVFrame *outVFrame ;
     AVFrame *outAFrame ;
-
     int audioSampleCount ;
     int videoFrameCount ;
     int64_t vCalDuration , aCalDuration;
@@ -101,10 +95,13 @@ private :
 
     int addVideoOutputStream(int width , int height);
     int addAudioOutputStream();
+
     AVPacket *encodeFrame(AVFrame *frame , AVCodecContext *encode);
     AVFrame *deocdePacket(AVPacket *packet , AVCodecContext *decode );
     void startDecode();
     AVFrame *getAudioFrame(uint8_t *data , int size);
+    void destroyOther();
+    void clearAllQue();
 
 public :
     VideoJoint(vector <char *> inputPath ,   const char *output , int outWidth , int outHeight);

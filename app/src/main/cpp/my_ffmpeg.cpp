@@ -416,8 +416,7 @@ VideoJoint *vj;
 extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_startJoint(JNIEnv *env, jclass type, jobjectArray paths,
-                                                      jstring output_, jint outWidth,
-                                                      jint outHeight) {
+                                                      jstring output_, jint outWidth, jint outHeight) {
     const char *output = env->GetStringUTFChars(output_, 0);
     int size = env->GetArrayLength(paths);
 
@@ -453,5 +452,8 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyJoint(JNIEnv *env, jclass type) {
 
-
+    if(vj != NULL){
+        delete vj;
+        vj = NULL;
+    }
 }

@@ -28,7 +28,6 @@ VideoJoint::VideoJoint(vector<char *> inputPath, const char *output, int outWidt
     strcpy(this->outPath, output);
     LOGE(" OUTPUT path %s ", this->outPath);
     initValue();
-
 }
 
 void VideoJoint::destroyAudioFifo(){
@@ -84,8 +83,8 @@ void VideoJoint::initValue() {
     aCalDuration = (double)(AV_TIME_BASE) * (1 / av_q2d(sampleRateAv));
     vCalDuration = (double)(AV_TIME_BASE) * (1 / av_q2d((AVRational){ outFrameRate , 1 }));
     readEnd = false;
+    decodeEnd = false;
     timeBaseFFmpeg = (AVRational){ 1, AV_TIME_BASE };
-
     apts = 0;
     vpts = 0;
 }
@@ -152,17 +151,27 @@ void VideoJoint::startJoint() {
         LOGE(" init output faild !");
         return;
     }
-    for (int i = 0; i < inputPaths.size(); ++i) {
+    for (int i = 0 ; i < inputPaths.size() && !isExit ; ++i) {
         destroyInput();
-        LOGE(" INPUT path %s ", inputPaths.at(i));
+        LOGE(" \n\n\n\n\n\n\n\nINPUT path %s \n\n\n\n\n\n\n\n", inputPaths.at(i));
         result = initInput(inputPaths.at(i));
         if (result < 0) {
             LOGE(" initinput faild !");
             return;
         }
         startDecode();
-        break;
+        while(true){
+            //等待清空缓存，不然后面的视频会少帧
+            if(audioQue.size() > 0 && videoQue.size() > 0){
+                continue;
+            } else break;
+        }
+
+        LOGE("\n\n\n\n\n\n CLEAR ALL QUEQUE \n\n\n\n\n\n");
+        clearAllQue();
     }
+
+    readEnd = true;
 }
 
 void VideoJoint::run() {
@@ -173,10 +182,12 @@ void VideoJoint::run() {
             threadSleep(2);
             continue;
         }
-//        LOGE(" videoQue %d ， audioQue %d  " , videoQue.size() , audioQue.size());
+
+        pthread_mutex_lock(&mutex_pthread);
+        LOGE(" videoQue %d ， audioQue %d  " , videoQue.size() , audioQue.size());
         if(audioQue.size() <= 0 || videoQue.size() <= 0){
+            pthread_mutex_unlock(&mutex_pthread);
             if(readEnd){
-                LOGE("------------- read end ing -------------");
                 break;
             }
             continue;
@@ -184,9 +195,9 @@ void VideoJoint::run() {
 
         AVPacket *aPkt = audioQue.front();
         AVPacket *vPkt = videoQue.front();
+        pthread_mutex_unlock(&mutex_pthread);
         LOGE(" apts %lld , vpts %lld " , apts , vpts);
         if(av_compare_ts(apts, audioOutStream->time_base , vpts , videoOutStream->time_base) < 0){
-            LOGE("++++++++++++++++++ audio writeing ");
             apts = aPkt->pts;
             result = av_interleaved_write_frame(afc_output ,aPkt );
             if(result < 0){
@@ -196,7 +207,6 @@ void VideoJoint::run() {
             audioQue.pop();
         }
         else{
-            LOGE("---------------- video writeing ");
             vpts = vPkt->pts;
             result = av_interleaved_write_frame(afc_output ,vPkt );
 
@@ -207,7 +217,7 @@ void VideoJoint::run() {
             videoQue.pop();
         }
     }
-    LOGE("------------- read end ing -------------");
+    LOGE("+++++++++++++++++++++++++++++++++++++ ALL END +++++++++++++++++++++++++++++++++++++");
     av_write_trailer(afc_output);
 }
 
@@ -281,10 +291,10 @@ AVFrame* VideoJoint::getAudioFrame(uint8_t *data , int size){
 
 void VideoJoint::startDecode() {
     //开始解码
+    decodeEnd = false;
     int result = 0;
     AVPacket *pkt = av_packet_alloc();
     uint8_t *audioBuffer = (uint8_t *)malloc(aCtxE->frame_size * av_get_bytes_per_sample(sampleFormat));
-    LOGE(" ******* audioBuffer size %d " , (aCtxE->frame_size * av_get_bytes_per_sample(sampleFormat)));
     while (!isExit) {
         if(audioQue.size() > audioQueMax || videoQue.size() > videoQueMax){
             threadSleep(2);
@@ -293,7 +303,6 @@ void VideoJoint::startDecode() {
         result = av_read_frame(afc_input, pkt);
         if (result < 0) {
             LOGE(" ************* startDecode av_read_frame FAILD ! %s ", av_err2str(result));
-            readEnd = true;
             break;
         }
         AVFrame *frame = NULL;
@@ -309,9 +318,7 @@ void VideoJoint::startDecode() {
                 AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
                 if (vPkt != NULL) {
                     //放入队列
-                    LOGE(" VIDEO B_PTS %lld" , vPkt->pts);
                     av_packet_rescale_ts(vPkt , timeBaseFFmpeg , videoOutStream->time_base);
-                    LOGE(" VIDEO A_PTS %lld" , vPkt->pts);
                     vPkt->stream_index = videoIndexOutput;
                     videoQue.push(vPkt);
                 }
@@ -346,9 +353,7 @@ void VideoJoint::startDecode() {
                 av_frame_free(&outAFrame);
                 if (aPkt != NULL) {
                     //放入队列
-                    LOGE(" AUDIO B_PTS %lld " ,aPkt->pts );
                     av_packet_rescale_ts(aPkt ,timeBaseFFmpeg, audioOutStream->time_base );
-                    LOGE(" AUDIO A_PTS %lld " ,aPkt->pts );
                     aPkt->stream_index = audioIndexOutput;
                     audioQue.push(aPkt);
                 }
@@ -356,6 +361,9 @@ void VideoJoint::startDecode() {
             }
         }
     }
+    free(audioBuffer);
+    av_packet_free(&pkt);
+    decodeEnd = true;
     LOGE(" .........................read end .................. !");
 }
 
@@ -633,11 +641,53 @@ void VideoJoint::destroyOutput() {
         avformat_free_context(afc_output);
         afc_output = NULL;
     }
+    if(audioOutBuffer != NULL){
+        free(audioOutBuffer);
+        audioOutBuffer = NULL;
+    }
+    destroyAudioFifo();
+    destroySwrContext();
+    destroySwsContext();
+
+}
+
+void VideoJoint::clearAllQue(){
+    pthread_mutex_lock(&mutex_pthread);
+    for(int i = 0 ; i < audioQue.size() ; ++i){
+        AVPacket *pkt = audioQue.front();
+        av_packet_free(&pkt);
+        audioQue.pop();
+    }
+    for(int i = 0 ; i < videoQue.size() ; ++i){
+        AVPacket *pkt = videoQue.front();
+        av_packet_free(&pkt);
+        videoQue.pop();
+    }
+    pthread_mutex_unlock(&mutex_pthread);
+}
+
+void VideoJoint::destroyOther(){
+    apts = 0;
+    vpts = 0;
+    free(this->outPath);
+    for(int i = 0 ; i < inputPaths.size() ; ++i){
+        free(inputPaths.at(i));
+    }
+    inputPaths.clear();
 }
 
 
 VideoJoint::~VideoJoint() {
+    this->isExit = true;
+    while(true){
+        if(decodeEnd){
+            break;
+        }
+    }
+    destroyOther();
+    join();
     destroyOutput();
     destroyInput();
+    clearAllQue();
     //还需释放其他路径等
 }
