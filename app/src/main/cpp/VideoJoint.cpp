@@ -141,7 +141,6 @@ void VideoJoint::destroySwsContext() {
 
 void VideoJoint::startJoint() {
     av_register_all();
-    avcodec_register_all();
 #ifdef DEBUG
     av_log_set_callback(custom_log);
 #endif
@@ -166,9 +165,10 @@ void VideoJoint::startJoint() {
                 continue;
             } else break;
         }
-
         LOGE("\n\n\n\n\n\n CLEAR ALL QUEQUE \n\n\n\n\n\n");
         clearAllQue();
+        //test
+        break;
     }
 
     readEnd = true;
@@ -328,6 +328,7 @@ void VideoJoint::startDecode() {
             if (frame != NULL) {
                 result = swr_convert(swc, &audioOutBuffer, nbSample ,
                                      (const uint8_t **) frame->data, frame->nb_samples);
+                av_frame_free(&frame);
                 if (result < 0) {
                     LOGE(" swr_convert faild ! %s  ", av_err2str(result));
                     continue;
@@ -357,7 +358,7 @@ void VideoJoint::startDecode() {
                     aPkt->stream_index = audioIndexOutput;
                     audioQue.push(aPkt);
                 }
-                av_frame_free(&frame);
+
             }
         }
     }
@@ -469,7 +470,6 @@ int VideoJoint::initOutput(char *path) {
     if (addAudioOutputStream() < 0) {
         return -1;
     }
-
     if (!(afot->flags & AVFMT_NOFILE)) {
         result = avio_open(&afc_output->pb, path, AVIO_FLAG_WRITE);
         if (result < 0) {
@@ -518,7 +518,6 @@ int VideoJoint::addVideoOutputStream(int width, int height) {
         return -1;
     }
     videoCodecE = avcodec_find_encoder(afot->video_codec);
-
     if (videoCodecE == NULL) {
         LOGE("VIDEO avcodec_find_encoder FAILD ! ");
         return -1;
@@ -572,6 +571,7 @@ int VideoJoint::addAudioOutputStream() {
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
+
     LOGE(" afot->audio_codec   %d " , afot->audio_codec );
 
     audioCodecE = avcodec_find_encoder(afot->audio_codec);
@@ -685,7 +685,7 @@ void VideoJoint::destroyOther(){
 
 
 VideoJoint::~VideoJoint() {
-    this->isExit = true;
+    this->stop();
     while(true){
         if(decodeEnd){
             break;
@@ -696,5 +696,21 @@ VideoJoint::~VideoJoint() {
     destroyOutput();
     destroyInput();
     clearAllQue();
-    //还需释放其他路径等
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

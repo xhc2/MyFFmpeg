@@ -105,19 +105,12 @@ private :
 
 public :
     VideoJoint(vector <char *> inputPath ,   const char *output , int outWidth , int outHeight);
-
     void startJoint();
-
     int initInput(char *path);
-
     void destroyInput();
-
     void destroyOutput();
-
     int initOutput(char *path);
-
     ~VideoJoint();
-
 
     virtual void run();
 };
