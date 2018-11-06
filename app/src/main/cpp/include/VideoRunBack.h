@@ -38,7 +38,7 @@ private :
     AVStream *videoOutStream;
     AVStream *audioOutStream;
     int gopCount;
-
+    int gopFrameCount ;
     //input
     AVFormatContext *afc_input;
     int gopSize;
@@ -63,10 +63,13 @@ private :
 
     int addAudioOutputStream();
 
+    AVPacket *encodeFrame(AVFrame *frame , AVCodecContext *encode);
+    AVFrame *deocdePacket(AVPacket *packet , AVCodecContext *decode );
+    void writeFrame2File(AVFrame *frame , FILE *file);
 public :
     VideoRunBack(const char *inputPath, const char *outPath);
 
-    void startBackParse();
+    int startBackParse();
     virtual void run();
     ~VideoRunBack();
 };
