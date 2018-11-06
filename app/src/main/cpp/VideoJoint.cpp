@@ -358,7 +358,6 @@ void VideoJoint::startDecode() {
                     aPkt->stream_index = audioIndexOutput;
                     audioQue.push(aPkt);
                 }
-
             }
         }
     }
@@ -463,6 +462,7 @@ int VideoJoint::initOutput(char *path) {
         LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
         return -1;
     }
+
     afot = afc_output->oformat;
     if (addVideoOutputStream(outWidth, outHeight) < 0) {
         return -1;

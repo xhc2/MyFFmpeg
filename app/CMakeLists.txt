@@ -36,7 +36,7 @@ add_library( my_ffmpeg
             src/main/cpp/OpenGlTest.cpp
             src/main/cpp/VideoJoint.cpp
             src/main/cpp/EditParent.cpp
-
+            src/main/cpp/VideoRunBack.cpp
             )
 
 

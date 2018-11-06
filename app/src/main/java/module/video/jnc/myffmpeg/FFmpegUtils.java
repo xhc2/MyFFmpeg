@@ -88,6 +88,13 @@ public class FFmpegUtils {
     //opengl test
     public static native void openGlTest(String path, Object glSurfaceView);
     public static native void openDestroy();
+
+    //视频倒放
+    public static native void startBackRun(String inputPath , String output);
+    public static native void destroyBackRun();
+
+
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

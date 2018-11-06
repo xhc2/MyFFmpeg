@@ -256,7 +256,6 @@ void VideoClip::startClip() {
     avcodec_register_all();
 #ifdef DEBUG
     av_log_set_callback(custom_log);
-    LOGE(" dubug ");
 #endif
     if (initInput() < 0) {
         LOGE(" INIT INPUT FAILD ");
@@ -291,7 +290,6 @@ void VideoClip::startClip() {
                 if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
                     AVPacket *newPkt = encodeFrame(frame);
                     if (newPkt != NULL) {
-//                        LOGE("WRITE VIDEO ");
                         write_frame(videoStream, videoOutStream, newPkt);
                         av_packet_free(&newPkt);
                     }

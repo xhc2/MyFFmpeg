@@ -24,7 +24,8 @@ public class TestActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         super.run();
-                        FFmpegUtils.startJoint( paths , "sdcard/FFmpeg/testjoint.ts" , 1280 , 720);
+                        FFmpegUtils.startBackRun("sdcard/FFmpeg/test.mp4" , "sdcard/FFmpeg/outBackRun.mp4");
+
                     }
                 }.start();
 
@@ -35,7 +36,8 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                FFmpegUtils.destroyClip();
-                FFmpegUtils.destroyJoint();
+//                FFmpegUtils.destroyJoint();
+                FFmpegUtils.destroyBackRun();
             }
         });
     }

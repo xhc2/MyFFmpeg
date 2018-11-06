@@ -16,6 +16,7 @@
 #include <aacparse.h>
 #include <OpenGlTest.h>
 #include <VideoJoint.h>
+#include <VideoRunBack.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -455,5 +456,30 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyJoint(JNIEnv *env, jclass type
     if(vj != NULL){
         delete vj;
         vj = NULL;
+    }
+}
+
+VideoRunBack *vb;
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_startBackRun(JNIEnv *env, jclass type,
+                                                        jstring inputPath_, jstring output_) {
+    const char *inputPath = env->GetStringUTFChars(inputPath_, 0);
+    const char *output = env->GetStringUTFChars(output_, 0);
+    if(vb == NULL){
+        vb = new VideoRunBack(inputPath , output);
+    }
+    vb->startBackParse();
+    env->ReleaseStringUTFChars(inputPath_, inputPath);
+    env->ReleaseStringUTFChars(output_, output);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyBackRun(JNIEnv *env, jclass type) {
+
+    if(vb != NULL){
+        delete vb;
     }
 }
