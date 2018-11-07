@@ -1,7 +1,7 @@
 /**
  * 倒放
  * 视频部分：
- * 找到一个gop然后顺序解码
+ * 找到一个gop然后顺序解码（实践发现是找不到的一个gop有多少帧）
  * 一个解码的gop
  * 然后写入yuv文件中，然后倒序读入中进行编码
  * 音频部分：
@@ -45,6 +45,7 @@ void VideoRunBack::initValue(){
     inputDuration = 0 ;
     gopDuration = 0;
     gopCount = 0 ;
+    ffmpegTimeBase = (AVRational){1 , AV_TIME_BASE};
 }
 
 
@@ -97,8 +98,12 @@ int VideoRunBack::initInput(){
     }
 
     gopSize = vCtxD->gop_size;
-    inputDuration = afc_input->duration;
+    inputDuration = videoinputStream->duration;
+
     gopDuration = (int64_t)(((float)gopSize / (float)videoinputStream->nb_frames) * inputDuration);
+    frameDuration = inputDuration / videoinputStream->nb_frames ;
+
+    LOGE(" FRAME DURATION %lld , %f " , frameDuration , frameDuration * av_q2d(ffmpegTimeBase));
     if(gopDuration <= 0 ){
         LOGE(" GOP DURATION FAILD ! gopsize  %d , duration %lld , gopDuration %lld " , gopSize , inputDuration , gopDuration);
         return -1;
@@ -125,8 +130,6 @@ int VideoRunBack::initOutput() {
         LOGE(" addAudioOutputStream ");
         return -1;
     }
-
-
 
     return 1;
 }
@@ -244,7 +247,7 @@ AVPacket *VideoRunBack::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
 
 
 int VideoRunBack::startBackParse(){
-    LOGE(" ------------------------------------------- " );
+    LOGE(" -------------------start------------------------ " );
     av_register_all();
 #ifdef DEBUG
     av_log_set_callback(custom_log);
@@ -264,40 +267,63 @@ int VideoRunBack::startBackParse(){
         return -1;
     }
     int yuvSize = inWidth * inHeight * 3 / 2;
+
+
     char *readBuffer = (char *)malloc(yuvSize);
     AVPacket *pkt = av_packet_alloc();
 
-    result = av_seek_frame(afc_input , -1 , inputDuration , AVSEEK_FLAG_BACKWARD  );
+    result = av_seek_frame(afc_input , videoIndexInput , inputDuration , AVSEEK_FLAG_BACKWARD  );
     if(result < 0){
         LOGE(" av_seek_frame %s " , av_err2str(result));
         return  -1;
     }
     int64_t firstGopPts = 0;
+    int64_t nextKeyFramePts = inputDuration;
+    int64_t tempPts = 0;
     //test
     while(true){
         result = av_read_frame(afc_input, pkt);
         if(result < 0){
-            LOGE(" av_read_frame FAILD %s " , av_err2str(result));
-            break;
+            LOGE(" av_read_frame FAILD %s  \n\n\n" , av_err2str(result));
+            LOGE(" SEEK TO %lld \n\n\n" , (firstGopPts - frameDuration));
+            result = av_seek_frame(afc_input , -1 , firstGopPts - frameDuration  , AVSEEK_FLAG_BACKWARD  );
+            if(result < 0){
+                LOGE(" SEEK FAILD MAYBE FINISH ");
+                return -1;
+            }
+            nextKeyFramePts = firstGopPts;
+            firstGopPts = 0;
+            continue;
         }
         if(pkt->stream_index == audioIndexInput) {
             continue;
         }
         if(pkt->stream_index == videoIndexInput) {
-            LOGE(" PTS %lld " , pkt->pts);
+            LOGE("gopFrameCount %d , PTS %lld   " ,
+                 gopFrameCount ,  av_rescale_q(pkt->pts ,  videoinputStream->time_base , ffmpegTimeBase));
+            if(pkt->flags == AV_PKT_FLAG_KEY){
+                LOGE(" KEY FRAME ");
+            }
             gopFrameCount ++;
             if(firstGopPts == 0){
-                firstGopPts = av_rescale_q(pkt->pts , videoinputStream->time_base , (AVRational){1 , AV_TIME_BASE});
+                firstGopPts = pkt->pts ;// av_rescale_q(pkt->pts ,  videoinputStream->time_base , ffmpegTimeBase);
+
                 LOGE(" FIRST PTS %lld " , firstGopPts);
             }
         }
-        if(gopFrameCount % gopSize == 0){
-            LOGE(" gopFrameCount %d " , gopFrameCount);
-            gopCount ++;
-            av_seek_frame(afc_input , -1 , firstGopPts - gopDuration / 2  , AVSEEK_FLAG_BACKWARD  );
+        LOGE(" pkt->pts  pts %lld , nextpts %lld " , pkt->pts  , nextKeyFramePts);
+        if(pkt->pts >= nextKeyFramePts){
+            //完成了一个区间
+            LOGE(" SEEK TO %lld \n\n\n" , (firstGopPts - frameDuration));
+            result = av_seek_frame(afc_input , videoIndexInput , firstGopPts - frameDuration  , AVSEEK_FLAG_BACKWARD  );
+            if(result < 0){
+                LOGE(" SEEK FAILD MAYBE FINISH ");
+                return -1;
+            }
+            nextKeyFramePts = firstGopPts;
             firstGopPts = 0;
-            LOGE(" \n\n\n ");
         }
+
         if(gopFrameCount >= videoinputStream->nb_frames){
             break;
         }
