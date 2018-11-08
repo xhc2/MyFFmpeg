@@ -52,7 +52,7 @@ private :
     int inWidth ;
     int inHeight;
     int64_t inputDuration;
-    int64_t gopDuration ;
+//    int64_t gopDuration ;
     int64_t frameDuration ;
     AVRational ffmpegTimeBase;
     int initInput();

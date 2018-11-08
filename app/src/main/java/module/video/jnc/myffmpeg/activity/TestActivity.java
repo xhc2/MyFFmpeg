@@ -24,7 +24,7 @@ public class TestActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         super.run();
-                        FFmpegUtils.startBackRun("sdcard/FFmpeg/test.mp4" , "sdcard/FFmpeg/outBackRun.mp4");
+                        FFmpegUtils.startBackRun("sdcard/FFmpeg/test.flv" , "sdcard/FFmpeg/outBackRun.mp4");
 
                     }
                 }.start();

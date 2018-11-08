@@ -9,27 +9,29 @@
  *
  * 输出部分尽量和原文件保持一致（采样率，声道，之类的）
  *
+ * seek的操作需要容器支持
+ * http://bbs.chinaffmpeg.com/forum.php?mod=viewthread&tid=14
  */
 
 #include <my_log.h>
 #include "VideoRunBack.h"
 
-VideoRunBack::VideoRunBack(const char* path ,const char* outPath){
+VideoRunBack::VideoRunBack(const char *path, const char *outPath) {
 
     int inputLen = strlen(path);
-    inputLen ++;
-    this->inputPath = (char *)malloc(inputLen);
-    strcpy(this->inputPath , path);
+    inputLen++;
+    this->inputPath = (char *) malloc(inputLen);
+    strcpy(this->inputPath, path);
 
     int len = strlen(outPath);
     len++;
-    this->outPath = (char *)malloc(len);
-    strcpy(this->outPath , outPath);
+    this->outPath = (char *) malloc(len);
+    strcpy(this->outPath, outPath);
     initValue();
 
 }
 
-void VideoRunBack::initValue(){
+void VideoRunBack::initValue() {
     afc_output = NULL;
     afc_input = NULL;
     videoCodecD = NULL;
@@ -42,15 +44,15 @@ void VideoRunBack::initValue(){
     audioOutStream = NULL;
     videoOutStream = NULL;
     gopFrameCount = 0;
-    inputDuration = 0 ;
-    gopDuration = 0;
-    gopCount = 0 ;
-    ffmpegTimeBase = (AVRational){1 , AV_TIME_BASE};
+    inputDuration = 0;
+    gopCount = 0;
+    ffmpegTimeBase = (AVRational) {1, AV_TIME_BASE};
+    frameDuration = 0;
 }
 
 
-int VideoRunBack::initInput(){
-    int result ;
+int VideoRunBack::initInput() {
+    int result;
     result = avformat_open_input(&afc_input, inputPath, 0, 0);
     if (result != 0) {
         LOGE("avformat_open_input FAILD !");
@@ -68,7 +70,7 @@ int VideoRunBack::initInput(){
             videoinputStream = stream;
             inWidth = stream->codecpar->width;
             inHeight = stream->codecpar->height;
-            LOGE(" inwidth %d , inheight %d " , inWidth , inHeight);
+            LOGE(" inwidth %d , inheight %d ", inWidth, inHeight);
             videoCodecD = avcodec_find_decoder(stream->codecpar->codec_id);
         } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             audioIndexInput = i;
@@ -81,6 +83,7 @@ int VideoRunBack::initInput(){
         LOGE(" 没找到视频解码器 ");
         return -1;
     }
+    LOGE(" videoCodecD %s ", videoCodecD->name);
     vCtxD = avcodec_alloc_context3(videoCodecD);
     if (!vCtxD) {
         LOGE("vc AVCodecContext FAILD ! ");
@@ -96,37 +99,31 @@ int VideoRunBack::initInput(){
         LOGE(" decode avcodec_open2 Faild !");
         return -1;
     }
-
-    gopSize = vCtxD->gop_size;
-    inputDuration = videoinputStream->duration;
-
-    gopDuration = (int64_t)(((float)gopSize / (float)videoinputStream->nb_frames) * inputDuration);
-    frameDuration = inputDuration / videoinputStream->nb_frames ;
-
-    LOGE(" FRAME DURATION %lld , %f " , frameDuration , frameDuration * av_q2d(ffmpegTimeBase));
-    if(gopDuration <= 0 ){
-        LOGE(" GOP DURATION FAILD ! gopsize  %d , duration %lld , gopDuration %lld " , gopSize , inputDuration , gopDuration);
+    int64_t duration = (int64_t) (afc_input->duration * av_q2d(ffmpegTimeBase));
+    if (duration > 60) {
+        LOGE(" duration > 60 !");
         return -1;
     }
-    LOGE(" inputduration %lld , gopDuration %lld " ,inputDuration ,  gopDuration);
+
+    LOGE(" inputduration %lld ", afc_input->duration);
     return 1;
 }
 
 int VideoRunBack::initOutput() {
-    int result ;
+    int result;
     result = avformat_alloc_output_context2(&afc_output, NULL, NULL, outPath);
     if (result < 0 || afc_output == NULL) {
         LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
         return -1;
     }
     afot = afc_output->oformat;
-    result = addVideoOutputStream(inWidth , inHeight);
-    if(result < 0){
+    result = addVideoOutputStream(inWidth, inHeight);
+    if (result < 0) {
         LOGE(" addVideoOutputStream FAILD ! ");
         return -1;
     }
     result = addAudioOutputStream();
-    if(result < 0){
+    if (result < 0) {
         LOGE(" addAudioOutputStream ");
         return -1;
     }
@@ -135,7 +132,7 @@ int VideoRunBack::initOutput() {
 }
 
 
-int VideoRunBack::addVideoOutputStream(int width , int height){
+int VideoRunBack::addVideoOutputStream(int width, int height) {
     int result = 0;
     videoOutStream = avformat_new_stream(afc_output, NULL);
     if (videoOutStream == NULL) {
@@ -189,12 +186,12 @@ int VideoRunBack::addVideoOutputStream(int width , int height){
     return 1;
 }
 
-void VideoRunBack::run(){
+void VideoRunBack::run() {
 
 
 }
 
-int VideoRunBack::addAudioOutputStream(){
+int VideoRunBack::addAudioOutputStream() {
 
     return 1;
 }
@@ -222,7 +219,7 @@ AVFrame *VideoRunBack::deocdePacket(AVPacket *packet, AVCodecContext *decode) {
 
 
 AVPacket *VideoRunBack::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
-    if(frame == NULL || encode == NULL){
+    if (frame == NULL || encode == NULL) {
         return NULL;
     }
     int result = 0;
@@ -246,161 +243,186 @@ AVPacket *VideoRunBack::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
 }
 
 
-int VideoRunBack::startBackParse(){
-    LOGE(" -------------------start------------------------ " );
+int VideoRunBack::startBackParse() {
+    LOGE(" -------------------start------------------------ ");
     av_register_all();
 #ifdef DEBUG
     av_log_set_callback(custom_log);
 #endif
     int result = 0;
     char *tempYuv = "sdcard/FFmpeg/temp.yuv";
-    FILE *fCache = fopen(tempYuv ,"wb+");
-    FILE *testFile = fopen("sdcard/FFmpeg/test.yuv" , "wb");
+    FILE *fCache = fopen(tempYuv, "wb+");
+    FILE *testFile = fopen("sdcard/FFmpeg/test.yuv", "wb");
     result = initInput();
-    if(result < 0){
+    if (result < 0) {
         LOGE(" initInput faild ! ");
         return -1;
     }
     result = initOutput();
-    if(result < 0){
+    if (result < 0) {
         LOGE(" initOutput faild ! ");
         return -1;
     }
-    int yuvSize = inWidth * inHeight * 3 / 2;
-
-
-    char *readBuffer = (char *)malloc(yuvSize);
     AVPacket *pkt = av_packet_alloc();
-
-    result = av_seek_frame(afc_input , videoIndexInput , inputDuration , AVSEEK_FLAG_BACKWARD  );
-    if(result < 0){
-        LOGE(" av_seek_frame %s " , av_err2str(result));
-        return  -1;
-    }
-    int64_t firstGopPts = 0;
-    int64_t nextKeyFramePts = inputDuration;
-    int64_t tempPts = 0;
-    //test
-    while(true){
+    int frameCount = 0;
+    int64_t videoStreamDuration = 0;
+    int64_t videoStartTime = 0;
+    while (true) {
         result = av_read_frame(afc_input, pkt);
-        if(result < 0){
-            LOGE(" av_read_frame FAILD %s  \n\n\n" , av_err2str(result));
-            LOGE(" SEEK TO %lld \n\n\n" , (firstGopPts - frameDuration));
-            result = av_seek_frame(afc_input , -1 , firstGopPts - frameDuration  , AVSEEK_FLAG_BACKWARD  );
-            if(result < 0){
-                LOGE(" SEEK FAILD MAYBE FINISH ");
-                return -1;
-            }
-            nextKeyFramePts = firstGopPts;
-            firstGopPts = 0;
-            continue;
-        }
-        if(pkt->stream_index == audioIndexInput) {
-            continue;
-        }
-        if(pkt->stream_index == videoIndexInput) {
-            LOGE("gopFrameCount %d , PTS %lld   " ,
-                 gopFrameCount ,  av_rescale_q(pkt->pts ,  videoinputStream->time_base , ffmpegTimeBase));
-            if(pkt->flags == AV_PKT_FLAG_KEY){
-                LOGE(" KEY FRAME ");
-            }
-            gopFrameCount ++;
-            if(firstGopPts == 0){
-                firstGopPts = pkt->pts ;// av_rescale_q(pkt->pts ,  videoinputStream->time_base , ffmpegTimeBase);
-
-                LOGE(" FIRST PTS %lld " , firstGopPts);
-            }
-        }
-        LOGE(" pkt->pts  pts %lld , nextpts %lld " , pkt->pts  , nextKeyFramePts);
-        if(pkt->pts >= nextKeyFramePts){
-            //完成了一个区间
-            LOGE(" SEEK TO %lld \n\n\n" , (firstGopPts - frameDuration));
-            result = av_seek_frame(afc_input , videoIndexInput , firstGopPts - frameDuration  , AVSEEK_FLAG_BACKWARD  );
-            if(result < 0){
-                LOGE(" SEEK FAILD MAYBE FINISH ");
-                return -1;
-            }
-            nextKeyFramePts = firstGopPts;
-            firstGopPts = 0;
-        }
-
-        if(gopFrameCount >= videoinputStream->nb_frames){
+        if (result < 0) {
             break;
         }
+
+        if (pkt->stream_index == videoIndexInput) {
+            if (videoStartTime == 0) {
+                videoStartTime = pkt->pts;
+            }
+            frameCount++;
+            videoStreamDuration = pkt->pts;
+        }
     }
+    frameDuration = videoStreamDuration / frameCount;
+    LOGE(" frameCount %d , videoStreamDuration %lld  , frameDuration %d  , startTime %lld ",
+         frameCount, videoStreamDuration, frameDuration, videoStartTime);
 
+    int yuvSize = inWidth * inHeight * 3 / 2;
+    char *readBuffer = (char *) malloc(yuvSize);
 
-//    while(true){
-//
-//        result = av_read_frame(afc_input, pkt);
-//        if(result < 0){
-//            LOGE(" av_read_frame FAILD %s " , av_err2str(result));
-//            break;
-//        }
-//        if(pkt->stream_index == audioIndexInput) {
-//            continue;
-//        }
-//        if(pkt->stream_index == videoIndexInput){
-//            gopFrameCount ++;
-//            LOGE(" PTS %lld " , pkt->pts);
-////            LOGE(" gopFrameCount %d " , gopFrameCount);
-//        }
-//        AVFrame *vFrame = deocdePacket(pkt , vCtxD);
-//        if(vFrame != NULL){
-//            writeFrame2File(vFrame , fCache);
-//            av_frame_free(&vFrame);
-//        }
-//        if((gopFrameCount % gopSize ) == 0){
-//            gopCount ++;
-//            result = av_seek_frame(afc_input , videoIndexInput , inputDuration - (gopCount * gopDuration) , AVSEEK_FLAG_BACKWARD  );
-//            if(result < 0){
-//                LOGE(" av_seek_frame %s " , av_err2str(result));
-//                break;
+    int64_t firstGopPts = -1;
+    int64_t nextKeyFramePts = videoStreamDuration;
+    int backFrame = 3;
+    result = av_seek_frame(afc_input, videoIndexInput,
+                           (videoStreamDuration - backFrame * frameDuration), AVSEEK_FLAG_BACKWARD);
+    if (result < 0) {
+        LOGE(" av_seek_frame %s ", av_err2str(result));
+        return -1;
+    }
+    int backFrameCount = 0;
+    int writeFrame = 0;
+    while (true) {
+        result = av_read_frame(afc_input, pkt);
+        if (result < 0) {
+            LOGE(" SEEK TO %lld \n\n\n", (firstGopPts - backFrame * frameDuration));
+            result = av_seek_frame(afc_input, videoIndexInput,
+                                   (firstGopPts - backFrame * frameDuration), AVSEEK_FLAG_BACKWARD);
+            if (result < 0) {
+                LOGE(" SEEK FAILD MAYBE FINISH ");
+                return -1;
+            }
+            nextKeyFramePts = firstGopPts;
+            firstGopPts = -1;
+            continue;
+        }
+        if (pkt->stream_index == audioIndexInput) {
+            continue;
+        }
+        if (pkt->stream_index == videoIndexInput) {
+            gopFrameCount++;
+            if (firstGopPts == -1) {
+                firstGopPts = pkt->pts;
+                LOGE(" FIRST PTS %lld ", firstGopPts);
+            }
+//            AVFrame *vFrame = deocdePacket(pkt, vCtxD);
+            result = avcodec_send_packet(vCtxD, pkt);
+            if (result < 0) {
+                LOGE("  avcodec_send_packet %s ", av_err2str(result));
+//                return NULL;
+//                continue;
+            }
+
+            while (result >= 0) {
+                AVFrame *vFrame = av_frame_alloc();
+                result = avcodec_receive_frame(vCtxD, vFrame);
+                if (result < 0) {
+//                    LOGE(" avcodec_receive_frame  faild %s ", av_err2str(result));
+                    av_frame_free(&vFrame);
+                    vFrame = NULL;
+//                    return NULL;
+                }
+//                return vFrame;
+                if (vFrame != NULL) {
+                    backFrameCount++;
+                    writeFrame2File(vFrame, fCache);
+                    av_frame_free(&vFrame);
+                    vFrame = NULL;
+                }
+            }
+
+//            if (vFrame != NULL) {
+//                backFrameCount++;
+//                writeFrame2File(vFrame, fCache);
+//                av_frame_free(&vFrame);
 //            }
-//            int frameCount = gopSize;
-//            while(true){
+        }
+        if (pkt->pts >= nextKeyFramePts) {
+            //完成了一个区间
+            LOGE(" SEEK TO %lld \n\n\n", (firstGopPts - backFrame * frameDuration));
+            result = av_seek_frame(afc_input, videoIndexInput,
+                                   (firstGopPts - backFrame * frameDuration), AVSEEK_FLAG_BACKWARD);
+            if (result < 0) {
+                LOGE(" SEEK FAILD MAYBE FINISH ");
+                return -1;
+            }
+            nextKeyFramePts = firstGopPts;
+            firstGopPts = -1;
+
+//            while (true) {
 //                //清空其中的数据
-//                vFrame = deocdePacket(NULL , vCtxD);
-//                if(vFrame == NULL){
-//                    avformat_flush(afc_input);
+//                result = avcodec_send_packet(vCtxD, NULL);
+//                if(result < 0){
+//                    LOGE(" send error %s " , av_err2str(result));
+//                }
+//                AVFrame *vFrame = av_frame_alloc();
+//                result = avcodec_receive_frame(vCtxD, vFrame);
+//                if(result < 0){
+//                    av_frame_free(&vFrame);
 //                    break;
 //                }
-//                else{
-//                    writeFrame2File(vFrame , fCache);
+//                else if(vFrame != NULL){
+//                    backFrameCount++;
+//                    LOGE(" FLUSH backFrameCount %d " , backFrameCount);
+//                    writeFrame2File(vFrame, fCache);
+//                    av_frame_free(&vFrame);
 //                }
 //            }
-//            fflush(fCache);
-//            //这里开始倒序读取
-//            while(true){
-//                frameCount --;
-//                fseek(fCache , yuvSize * frameCount , SEEK_SET);
-//                fread(readBuffer , 1 , yuvSize , fCache);
-//                fwrite(readBuffer , 1 , yuvSize , testFile);
-//                LOGE(" frameCount %d " , frameCount);
-//
-//                if(frameCount == 0){
-//                    break;
-//                }
-//            }
-//            //重开
-//            fclose(fCache);
-//            fCache = fopen(tempYuv , "wb+");
-//
-//        }
-//        if(gopFrameCount >= videoinputStream->nb_frames){
-//            break;
-//        }
-//    }
-    LOGE(" END ");
+//            LOGE(" backFrameCount %d " , backFrameCount);
+            fflush(fCache);
+//            ftell()
+            //开始倒序读取
+            while (true) {
+                backFrameCount--;
+                fseek(fCache, yuvSize * backFrameCount, SEEK_SET);
+                fread(readBuffer, 1, yuvSize, fCache);
+                fwrite(readBuffer, 1, yuvSize, testFile);
+//                LOGE(" backFrameCount %d ", backFrameCount);
+                writeFrame ++;
+                if (backFrameCount <= 0) {
+                    LOGE(" backFrameCount break %d " , backFrameCount);
+                    break;
+                }
+            }
+            backFrameCount = 0;
+            fclose(fCache);
+            fCache = fopen(tempYuv, "wb+");
+
+            if (gopFrameCount >= frameCount) {
+                break;
+            }
+        }
+    }
+    LOGE(" END write frame %d " ,writeFrame);
     return 1;
 }
-void VideoRunBack::writeFrame2File(AVFrame *vFrame , FILE *file){
-    fwrite(vFrame->data[0] , 1 , vFrame->linesize[0] * inHeight , file);
-    fwrite(vFrame->data[1] , 1 , vFrame->linesize[1] * inHeight / 2 , file);
-    fwrite(vFrame->data[2] , 1 , vFrame->linesize[2] * inHeight / 2, file);
+
+void VideoRunBack::writeFrame2File(AVFrame *vFrame, FILE *file) {
+    gopCount ++;
+    LOGE(" gopCount %d , pts %lld " , gopCount ,vFrame->pts );
+    fwrite(vFrame->data[0], 1, vFrame->linesize[0] * inHeight, file);
+    fwrite(vFrame->data[1], 1, vFrame->linesize[1] * inHeight / 2, file);
+    fwrite(vFrame->data[2], 1, vFrame->linesize[2] * inHeight / 2, file);
 }
 
 
-VideoRunBack::~VideoRunBack(){
+VideoRunBack::~VideoRunBack() {
 
 }
