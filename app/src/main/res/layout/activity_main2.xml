@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.MainActivity">
+
+    <LinearLayout
+        android:id="@+id/ll_oper"
+        android:weightSum="3"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="65dp">
+
+        <Button
+            android:id="@+id/bt_edit"
+            android:text="视频编辑"
+            android:drawableTop="@mipmap/video_edit"
+            style="@style/home_button" />
+        <Button
+            android:id="@+id/bt_other"
+            android:text="其他练习"
+            android:drawableTop="@mipmap/other"
+            style="@style/home_button"/>
+        <Button
+            android:id="@+id/bt_play"
+            android:text="播放器"
+            android:drawableTop="@mipmap/player"
+            style="@style/home_button" />
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/line"
+        android:layout_above="@id/ll_oper"
+        android:background="#000000"
+        android:layout_width="match_parent"
+        android:layout_height="1px"/>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/view_pager"
+        android:layout_above="@id/line"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+
+</RelativeLayout>
+
+

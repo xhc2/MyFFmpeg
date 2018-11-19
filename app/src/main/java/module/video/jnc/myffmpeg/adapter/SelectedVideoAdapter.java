@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import java.util.List;
+
+import module.video.jnc.myffmpeg.R;
 
 public class SelectedVideoAdapter extends MyBaseAdapter<String , SelectedVideoAdapter.ViewHolder> {
 

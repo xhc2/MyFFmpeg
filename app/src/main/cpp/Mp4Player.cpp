@@ -54,6 +54,13 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win ,  CallJava *cj){
     yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
     seekFile = new SeekFile(afc  , audio_index , video_index );
 
+    readAVPackage->setThreadName("ReadAVPackage");
+    decodeVideo->setThreadName("decodeVideo");
+    decodeAudio->setThreadName("decodeAudio");
+    audioPlayer->setThreadName("audioPlayer");
+    seekFile->setThreadName("seekFile");
+
+
     readAVPackage->addNotify(decodeVideo);
     readAVPackage->addNotify(decodeAudio);
     decodeAudio->addNotify(audioPlayer);
@@ -93,7 +100,6 @@ int Mp4Player::initFFmpeg(const char* path) {
 
     int result = 0;
     av_register_all();
-    avcodec_register_all();
     avformat_network_init();
     LOGE(" play path %s " , path);
     result = avformat_open_input(&afc, path , 0, 0);
@@ -163,6 +169,9 @@ int Mp4Player::initFFmpeg(const char* path) {
         cj->callStr(" 没找到视频解码器 ");
         return RESULT_FAILD;
     }
+
+    LOGE(" audio code name %s  " , audioCode->name);
+    LOGE(" video code name %s  " , videoCode->name);
 
     ac = avcodec_alloc_context3(audioCode);
     if (!ac) {
@@ -350,6 +359,7 @@ Mp4Player::~Mp4Player(){
         avformat_close_input(&afc);
     }
 
+    LOGE(" DESTROY MP4PLAYER SUCCESS ! ");
 
 }
 

@@ -1,15 +1,16 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.List;
 
+import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.bean.FileBean;
 
 public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapter.ViewHolder>{
@@ -40,17 +41,23 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
         else{
             holder.imgChoise.setImageDrawable(null);
         }
+        holder.tvName.setText(getFileName(fileBean.getPath()));
         displayImageView(holder.imgVideo , "file:///mnt"+fileBean.getPath());
 
     }
-
+    private String getFileName(String name){
+        String[] strs = name.split("/");
+        return strs[strs.length - 1];
+    }
     class ViewHolder extends RecyclerView.ViewHolder{
         ImageView imgVideo;
         ImageView imgChoise;
+        TextView tvName;
         public ViewHolder(View itemView) {
             super(itemView);
             imgVideo = itemView.findViewById(R.id.img_video);
             imgChoise = itemView.findViewById(R.id.img_choise);
+            tvName = itemView.findViewById(R.id.tv_name);
         }
     }
 

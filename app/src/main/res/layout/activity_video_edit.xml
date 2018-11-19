@@ -10,10 +10,11 @@
     <module.video.jnc.myffmpeg.widget.TitleBar
         android:id="@+id/title"
         style="@style/title_bar"
-        app:title_text="视频编辑" />
+        app:title_text="视频编辑"
+        app:show_back="false"
+        />
 
     <ImageView
-        android:src="@mipmap/dark"
         android:layout_marginTop="30dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"

@@ -8,6 +8,7 @@
 
 
 ReadAVPackage::ReadAVPackage(AVFormatContext *afc  , int audioIndex , int videoIndex){
+
     this->afc = afc;
     this->audioIndex = audioIndex;
     this->videoIndex = videoIndex;

@@ -16,7 +16,7 @@ class MyThread
 {
 private:
     pthread_t pid;
-
+    char *threadName;
 private:
     static void * start_thread(void *arg);                                                       //静态成员函数
 public:
@@ -27,7 +27,9 @@ public:
     void setPause();
     void setPlay();
     void join();
+    void setThreadName(const char* name);
     MyThread();
+    MyThread(const char* name);
     ~MyThread();
     void  threadSleep(int mis);
     pthread_mutex_t mutex_pthread ;

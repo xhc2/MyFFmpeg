@@ -79,7 +79,7 @@ void AudioPlayer::update(MyData *mydata){
 }
 
 AudioPlayer::~AudioPlayer(){
-
+    LOGE(" AudioPlayer destory ! start ");
     if(playAudioTemp != NULL){
         free(playAudioTemp);
     }

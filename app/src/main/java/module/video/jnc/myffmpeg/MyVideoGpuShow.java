@@ -41,7 +41,6 @@ public class MyVideoGpuShow extends GLSurfaceView implements SurfaceHolder.Callb
     }
 
 
-
     class MyThread extends Thread {
         String path ;
         MyThread(String path){

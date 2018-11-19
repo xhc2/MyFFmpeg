@@ -13,16 +13,14 @@ void Notify::removeNotify( ){
     listN.clear();
 }
 
-
 void Notify::notify(MyData *mydata) {
     for(int i = 0 ;i < listN.size() ; ++ i){
         listN.at(i)->update(mydata);
     }
 }
 
-
-
 Notify::~Notify(){
-    removeNotify();
     LOGE(" DESTORY NOTIFY ");
+    removeNotify();
+
 }

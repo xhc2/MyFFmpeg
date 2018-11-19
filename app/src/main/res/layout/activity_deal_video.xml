@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:orientation="vertical"
     android:background="#ffffff"
+    android:gravity="center_horizontal"
     android:layout_height="match_parent"
     tools:context=".activity.VideoClipActivity">
 
@@ -14,15 +15,14 @@
         app:title_text="视频剪辑"
         app:right_text="确定"/>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="30dp"
-        android:background="#3366ff"
-        />
 
+
+    <module.video.jnc.myffmpeg.MyVideoGpuShow
+        android:id="@+id/play_gl_surfaceview"
+        android:layout_width="320dp"
+        android:layout_height="165dp"
+        android:layout_marginTop="30dp"
+        />
 
     <View
         android:layout_width="match_parent"

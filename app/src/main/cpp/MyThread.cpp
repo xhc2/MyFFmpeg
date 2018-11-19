@@ -9,54 +9,86 @@
 
 
 MyThread::MyThread() {
-    pthread_mutex_init(&mutex_pthread , NULL);
+    pthread_mutex_init(&mutex_pthread, NULL);
     pause = false;
     isExit = false;
     pid = NULL;
+    threadName = NULL;
 }
 
-
-int MyThread::start()
-{
+MyThread::MyThread(const char *name) {
+    pthread_mutex_init(&mutex_pthread, NULL);
+    pause = false;
     isExit = false;
-    if(pthread_create(&pid,NULL,start_thread,(void *)this) != 0)                 //创建一个线程(必须是全局函数)
+    pid = NULL;
+    int len = strlen(name);
+    len++;
+    threadName = (char *) malloc(len);
+    strcpy(threadName, name);
+}
+
+void MyThread::setThreadName(const char *name) {
+    int len = strlen(name);
+    len++;
+    threadName = (char *) malloc(len);
+    strcpy(threadName, name);
+}
+
+int MyThread::start() {
+    isExit = false;
+    if (pthread_create(&pid, NULL, start_thread, (void *) this) !=
+        0)                 //创建一个线程(必须是全局函数)
     {
         return -1;
     }
     return 0;
 }
 
-void MyThread::stop(){
+void MyThread::stop() {
+    if (threadName != NULL) {
+        LOGE(" THREAD STOP %s ", threadName);
+    }
+
     isExit = true;
 }
 
 void MyThread::threadSleep(int mis) {
     av_usleep(1000 * mis);
 }
-void MyThread::join(){
-    if(pid == NULL){
+
+void MyThread::join() {
+    if (threadName != NULL) {
+        LOGE(" thread_join  %s ", threadName);
+    }
+    if (pid == NULL) {
         LOGE("join thread faild ! may be thread not started !");
-        return ;
+        return;
     }
     void *t;
-    pthread_join(pid , &t);
+    pthread_join(pid, &t);
 }
-void MyThread::setPause(){
+
+void MyThread::setPause() {
     pause = true;
 }
-void MyThread::setPlay(){
+
+void MyThread::setPlay() {
     pause = false;
 }
 
 
-void* MyThread::start_thread(void *arg) //静态成员函数只能访问静态变量或静态函数，通过传递this指针进行调用
+void *MyThread::start_thread(void *arg) //静态成员函数只能访问静态变量或静态函数，通过传递this指针进行调用
 {
-    MyThread *ptr = (MyThread *)arg;
+    MyThread *ptr = (MyThread *) arg;
     ptr->run();
     return 0;   //线程的实体是run
 }
 
-MyThread::~MyThread(){
-    pthread_mutex_destroy(&mutex_pthread);
+MyThread::~MyThread() {
     LOGE(" DESTROY THREAD ");
+    pthread_mutex_destroy(&mutex_pthread);
+    if (threadName != NULL) {
+        free(threadName);
+    }
+
 }

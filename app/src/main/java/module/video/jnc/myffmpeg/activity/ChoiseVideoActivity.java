@@ -2,25 +2,23 @@ package module.video.jnc.myffmpeg.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import module.video.jnc.myffmpeg.ChoiseVideoAdapter;
+import module.video.jnc.myffmpeg.adapter.ChoiseVideoAdapter;
 import module.video.jnc.myffmpeg.bean.FileBean;
 import module.video.jnc.myffmpeg.widget.DividerGridItemDecoration;
-import module.video.jnc.myffmpeg.MyBaseAdapter;
+import module.video.jnc.myffmpeg.adapter.MyBaseAdapter;
 import module.video.jnc.myffmpeg.R;
-import module.video.jnc.myffmpeg.SelectedVideoAdapter;
+import module.video.jnc.myffmpeg.adapter.SelectedVideoAdapter;
 import module.video.jnc.myffmpeg.widget.TitleBar;
 
 public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.OnRecyleItemClick<FileBean> {
@@ -73,6 +71,7 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
                 Intent intent = new Intent(action);
                 intent.putStringArrayListExtra("videos" , listSelected);
                 startActivity(intent);
+                finish();
             }
         });
     }

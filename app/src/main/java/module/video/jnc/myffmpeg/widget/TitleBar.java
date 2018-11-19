@@ -21,6 +21,7 @@ public class TitleBar extends RelativeLayout{
     private TextView tvTitle;
     private String title ;
     private String rightText;
+    private boolean showBack;
     public TitleBar(Context context) {
         this(context , null);
     }
@@ -34,6 +35,7 @@ public class TitleBar extends RelativeLayout{
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.title_bar);
         title = array.getString(R.styleable.title_bar_title_text);
         rightText= array.getString(R.styleable.title_bar_right_text);
+        showBack = array.getBoolean(R.styleable.title_bar_show_back , true);
         array.recycle();
         init();
     }
@@ -50,18 +52,30 @@ public class TitleBar extends RelativeLayout{
         if(!TextUtils.isEmpty(title)){
             tvTitle.setText(title);
         }
-
         this.addView(tvTitle);
-
-        ImageView back = new ImageView(getContext());
-        back.setImageResource(R.mipmap.back);
-        LayoutParams backParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT , ViewGroup.LayoutParams.MATCH_PARENT);
-        back.setLayoutParams(backParams);
         int dp5 = DensityUtils.dip2px(getContext() , 5);
-        back.setPadding(dp5 , 0 , dp5 , 0);
-        back.setImageResource(R.mipmap.back);
-        back.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        this.addView(back);
+        if(showBack){
+            ImageView back = new ImageView(getContext());
+            back.setImageResource(R.mipmap.back);
+            LayoutParams backParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT , ViewGroup.LayoutParams.MATCH_PARENT);
+            back.setLayoutParams(backParams);
+
+            back.setPadding(dp5 , 0 , dp5 , 0);
+            back.setImageResource(R.mipmap.back);
+            back.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            this.addView(back);
+            back.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(getContext() instanceof Activity){
+                        ((Activity) getContext()).finish();
+                    }
+                }
+            });
+        }
+
+
+
 
         if(!TextUtils.isEmpty(rightText)){
             TextView tvRight = new TextView(getContext());
@@ -84,14 +98,8 @@ public class TitleBar extends RelativeLayout{
             });
         }
 
-        back.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(getContext() instanceof Activity){
-                    ((Activity) getContext()).finish();
-                }
-            }
-        });
+
+
     }
 
     private RightClickInter rightClickInter;

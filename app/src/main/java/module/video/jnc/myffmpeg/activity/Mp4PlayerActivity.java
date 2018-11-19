@@ -7,6 +7,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import module.video.jnc.myffmpeg.FFmpegUtils;
+import module.video.jnc.myffmpeg.MyRender;
 import module.video.jnc.myffmpeg.MyVideoGpuShow;
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.tool.Constant;
@@ -48,7 +50,7 @@ import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
  */
 
 public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
-        AdapterView.OnItemClickListener, FFmpegUtils.Lis, GLSurfaceView.Renderer {
+        AdapterView.OnItemClickListener, FFmpegUtils.Lis {
 
     private static final int PLAY = 1;
     private static final int PAUSE = 2;
@@ -68,6 +70,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     private FileAdater adater;
     private List<File> listFile = new ArrayList<>();
     private float videoDuration;
+    private String playPath;
+
     private Handler handler = new Handler(new Handler.Callback() {
 
         @Override
@@ -104,19 +108,13 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_mp4_player);
         myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
-
         myVideoGpuShow.setEGLContextClientVersion(2);
         myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        myVideoGpuShow.setRenderer(this);//android 8.0需要设置
+        myVideoGpuShow.setRenderer(new MyRender());//android 8.0需要设置
         myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
 
-        seekBar = (SeekBar) findViewById(R.id.seek_bar);
-        btPlay = (TextView) findViewById(R.id.bt_play_button);
-        tvSpeed = (TextView) findViewById(R.id.bt_play_speed);
 
-        rlTopBar = (RelativeLayout) findViewById(R.id.rl_topbar);
-        tvTime = (TextView) findViewById(R.id.time);
-        rlBottomBar = (RelativeLayout) findViewById(R.id.rl_bottom_bar);
+        findViewById();
 
         myVideoGpuShow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,7 +130,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
 
             @Override
             public void onClick(View v) {
-
                 if (popupWindow == null || !popupWindow.isShowing()) {
                     popWindowShow();
                 } else {
@@ -164,13 +161,13 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 startActivity(intent);
             }
         });
-        findViewById(R.id.ib_video_cart).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Mp4PlayerActivity.this, VideoEditActivity.class);
-                startActivity(intent);
-            }
-        });
+//        findViewById(R.id.ib_video_cart).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(Mp4PlayerActivity.this, VideoEditActivity.class);
+//                startActivity(intent);
+//            }
+//        });
 
 
         btPlay.setOnClickListener(new View.OnClickListener() {
@@ -223,6 +220,35 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
             }
         });
         FFmpegUtils.addNativeNotify(this);
+
+
+        Intent intent = getIntent();
+        playPath = intent.getStringExtra("path");
+
+
+    }
+
+    private void findViewById(){
+        seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        btPlay = (TextView) findViewById(R.id.bt_play_button);
+        tvSpeed = (TextView) findViewById(R.id.bt_play_speed);
+
+        rlTopBar = (RelativeLayout) findViewById(R.id.rl_topbar);
+        tvTime = (TextView) findViewById(R.id.time);
+        rlBottomBar = (RelativeLayout) findViewById(R.id.rl_bottom_bar);
+    }
+
+
+    /**
+     * 可以用来判断activity是否被加载完毕
+     * @param hasFocus
+     */
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus && !TextUtils.isEmpty(playPath)){
+            playVideo(playPath);
+        }
     }
 
     private void playVideo(String path) {
@@ -245,6 +271,8 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         String cur = String.valueOf(curD);
         tvTime.setText(String.format(getString(R.string.time), cur, vd));
     }
+
+
 
     @Override
     public void onClick(View v) {
@@ -412,7 +440,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                 holder = (ViewHolder) view.getTag();
             }
             if (i == 0) {
-                holder.tv.setText("rtmp 网络流 rtmp://live.hkstv.hk.lxdns.com/live/hks");
+                holder.tv.setText("rtmp://live.hkstv.hk.lxdns.com/live/hks");
             } else {
                 holder.tv.setText(listFile.get(i - 1).getName());
             }
@@ -451,6 +479,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     protected void onResume() {
         super.onResume();
         myVideoGpuShow.onResume();
+
     }
 
     @Override
@@ -481,18 +510,5 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     }
 
 
-    @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 
-    }
-
-    @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height) {
-
-    }
-
-    @Override
-    public void onDrawFrame(GL10 gl) {
-
-    }
 }

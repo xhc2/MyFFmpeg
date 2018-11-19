@@ -14,7 +14,7 @@ extern "C" {
 }
 
 
-class ReadAVPackage : public MyThread ,public Notify{
+class ReadAVPackage : public MyThread ,public Notify {
 
 private :
     void run();

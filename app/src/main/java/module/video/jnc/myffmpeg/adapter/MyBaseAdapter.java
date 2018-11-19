@@ -1,4 +1,4 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,6 +13,8 @@ import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import module.video.jnc.myffmpeg.R;
 
 public abstract class MyBaseAdapter<T, V extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<V> {
 

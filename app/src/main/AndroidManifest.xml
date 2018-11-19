@@ -18,11 +18,10 @@
         android:roundIcon="@mipmap/logo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <!--android:screenOrientation="landscape"-->
+
         <activity
-            android:name="module.video.jnc.myffmpeg.activity.TestActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            >
+            android:name=".activity.MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -36,11 +35,11 @@
         <activity android:name=".activity.FlvParseActivity" />
         <activity android:name=".activity.HardCodeActivity" />
         <activity android:name=".activity.HardMuxerCameraActivity" />
-        <activity android:name=".activity.VideoEditActivity" />
         <activity android:name=".activity.ChoiseVideoActivity" />
         <activity android:name=".activity.VideoClipActivity">
             <intent-filter>
                 <action android:name="xhc.video.clip" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -53,6 +52,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activity.Mp4PlayerActivity"
+            android:screenOrientation="landscape" />
     </application>
 
 </manifest>

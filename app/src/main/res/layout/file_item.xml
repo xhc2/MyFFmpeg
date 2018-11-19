@@ -19,4 +19,13 @@
         android:layout_width="20dp"
         android:layout_height="20dp" />
 
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="match_parent"
+        android:background="#55000000"
+        android:textColor="#ffffff"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_height="20dp" />
+
 </RelativeLayout>
