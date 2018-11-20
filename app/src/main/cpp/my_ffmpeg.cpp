@@ -381,6 +381,14 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startClip(JNIEnv *env, jclass type, j
     env->ReleaseStringUTFChars(output_, output);
 }
 
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getClipProgress(JNIEnv *env, jclass type) {
+    if (vc != NULL) {
+        return vc->getClipProgress();
+    }
+    return -1;
+}
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -388,6 +396,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyClip(JNIEnv *env, jclass type)
     if (vc != NULL) {
         delete vc;
     }
+    vc = NULL;
 }
 
 
@@ -483,3 +492,4 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyBackRun(JNIEnv *env, jclass ty
         delete vb;
     }
 }
+

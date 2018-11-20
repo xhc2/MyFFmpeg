@@ -2,6 +2,8 @@ package module.video.jnc.myffmpeg.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 import module.video.jnc.myffmpeg.FFmpegUtils;
@@ -16,7 +18,7 @@ import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 public class VideoClipActivity extends VideoEditParentActivity   {
 
     private MyVideoGpuShow myVideoGpuShow;
-
+    private int clipProgress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,6 +29,8 @@ public class VideoClipActivity extends VideoEditParentActivity   {
             public void clickRight() {
                 //右键点击
                 showDialog("loading");
+                startClip(5 , 10);
+                startProgressThread();
             }
         });
         myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
@@ -41,14 +45,12 @@ public class VideoClipActivity extends VideoEditParentActivity   {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if(hasFocus && listPath.size() > 0){
-            startThread();
+            startPlayThread();
         }
     }
     private StartPlayThraed playThread;
-    private void stopThread(){
-    }
-    private void startThread(){
-        stopThread();
+
+    private void startPlayThread(){
         playThread = new StartPlayThraed();
         playThread.start();
     }
@@ -61,15 +63,72 @@ public class VideoClipActivity extends VideoEditParentActivity   {
                 FFmpegUtils.destroyMp4Play();
                 playVideo(listPath.get(0));
             }
-
         }
     }
 
+    private ClipThread clipThread ;
+
     private void startClip(int startSecond , int endSecond){
-        if(listPath.size() > 0){
-            FFmpegUtils.startClip(listPath.get(0) , "sdcard/FFmpeg/ClipOutput.mp4" ,startSecond , endSecond );
+        if(clipThread == null){
+            clipThread = new ClipThread(startSecond , endSecond);
+            clipThread.start();
+        }
+    }
+
+    class ClipThread extends Thread{
+        int startSecond ;
+        int endSecond ;
+        ClipThread(int startSecond , int endSecond){
+            this.startSecond = startSecond;
+            this.endSecond = endSecond;
         }
 
+        @Override
+        public void run() {
+            super.run();
+            if(listPath.size() > 0){
+                FFmpegUtils.startClip(listPath.get(0) , "sdcard/FFmpeg/ClipOutput.mp4" ,startSecond , endSecond );
+            }
+        }
+    }
+
+    private ProgressThread progressThread ;
+
+    private void startProgressThread(){
+        stopProgressThread();
+        progressThread = new ProgressThread();
+        progressThread.progressFlag = true;
+        progressThread.start();
+    }
+
+    private void stopProgressThread(){
+        if(progressThread != null){
+            progressThread.progressFlag = false;
+            try {
+                progressThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        progressThread = null;
+    }
+
+    class ProgressThread extends Thread{
+        boolean progressFlag = false;
+        @Override
+        public void run() {
+            super.run();
+            while(progressFlag){
+                clipProgress = FFmpegUtils.getClipProgress();
+                Log.e("xhc" , " clipProgress "+ clipProgress);
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
     }
 
 
@@ -104,7 +163,9 @@ public class VideoClipActivity extends VideoEditParentActivity   {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopProgressThread();
         FFmpegUtils.destroyClip();
         FFmpegUtils.destroyMp4Play();
+
     }
 }

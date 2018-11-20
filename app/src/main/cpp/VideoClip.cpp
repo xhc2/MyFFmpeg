@@ -22,6 +22,7 @@ VideoClip::VideoClip(const char *path, const char *output, int startSecond, int 
     outputPathLen++;
     this->outputPath = (char *) malloc(outputPathLen);
     strcpy(this->outputPath, output);
+    progress = 0;
 
 }
 
@@ -239,7 +240,7 @@ void VideoClip::write_frame(AVStream *inStream, AVStream *outStream, AVPacket *p
                                    AV_ROUND_NEAR_INF);
     packet->duration = av_rescale_q(packet->duration, inStream->time_base, outStream->time_base);
     if(packet->stream_index == video_index){
-        LOGE(" PTS %lld  , DTS %lld , duration %lld " , packet->pts  , packet->dts , packet->duration);
+//        LOGE(" PTS %lld  , DTS %lld , duration %lld " , packet->pts  , packet->dts , packet->duration);
 
     }
 
@@ -248,6 +249,9 @@ void VideoClip::write_frame(AVStream *inStream, AVStream *outStream, AVPacket *p
     }
 }
 
+int VideoClip::getClipProgress(){
+    return progress;
+}
 
 void VideoClip::startClip() {
 
@@ -290,6 +294,11 @@ void VideoClip::startClip() {
                 if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
                     AVPacket *newPkt = encodeFrame(frame);
                     if (newPkt != NULL) {
+//                        LOGE(" pts %lld , startSecond %d , endSecond %d  " , pts , startSecond , endSecond);
+                        LOGE(" %f " , ((float)(pts - startSecond * 1000) / 1000 ));
+                        progress = (int)((float)(pts - startSecond * 1000) / 1000 / (endSecond - startSecond) * 100);
+                        progress --; //100表示完全搞定。可以直接播放
+                        LOGE(" progress %d " , progress);
                         write_frame(videoStream, videoOutStream, newPkt);
                         av_packet_free(&newPkt);
                     }
@@ -311,7 +320,7 @@ void VideoClip::startClip() {
         }
     }
     av_write_trailer(afc_output);
-
+    progress = 100;
 }
 
 

@@ -50,10 +50,11 @@ private :
     void write_frame(AVStream *inStream , AVStream *outStream , AVPacket *packet);
     int width ;
     int height ;
-
+    int progress ; // max = 100;
 public :
     VideoClip(const char* path , const char* output , int startSecond , int endSecond);
     void startClip();
+    int getClipProgress();
     ~VideoClip();
 
 };

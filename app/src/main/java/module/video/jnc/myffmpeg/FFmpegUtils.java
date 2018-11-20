@@ -78,6 +78,7 @@ public class FFmpegUtils {
 
     //视频剪辑
     public static native void startClip(String path , String output ,   int start , int end);
+    public static native int getClipProgress();
     public static native void destroyClip();
 
     //视频拼接
