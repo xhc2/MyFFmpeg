@@ -17,6 +17,7 @@
 #include <OpenGlTest.h>
 #include <VideoJoint.h>
 #include <VideoRunBack.h>
+#include <CurrentTimeBitmap.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -493,3 +494,35 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyBackRun(JNIEnv *env, jclass ty
     }
 }
 
+CurrentTimeBitmap *cb = NULL;
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyCurrentBitmap(JNIEnv *env, jclass type) {
+
+    if(cb != NULL){
+        delete cb;
+    }
+    cb = NULL;
+}
+
+
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass type, jstring path_,
+                                                           jfloat time, jint outWidth,
+                                                           jint outHeight) {
+    const char *path = env->GetStringUTFChars(path_, 0);
+
+
+    if(cb == NULL){
+        cb = new CurrentTimeBitmap(path , outWidth , outHeight);
+    }
+    char*result = cb->getCurrentBitmap(time);
+    env->ReleaseStringUTFChars(path_, path);
+
+    jbyteArray javaArray =
+
+    return javaArray;
+}

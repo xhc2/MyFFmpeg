@@ -37,6 +37,7 @@ add_library( my_ffmpeg
             src/main/cpp/VideoJoint.cpp
             src/main/cpp/EditParent.cpp
             src/main/cpp/VideoRunBack.cpp
+            src/main/cpp/CurrentTimeBitmap.cpp
             )
 
 

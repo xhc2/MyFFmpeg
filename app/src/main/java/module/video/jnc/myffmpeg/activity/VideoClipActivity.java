@@ -31,6 +31,7 @@ public class VideoClipActivity extends VideoEditParentActivity   {
                 showDialog("loading");
                 startClip(5 , 10);
                 startProgressThread();
+                FFmpegUtils.getCurrentBitmp(listPath.get(0)  , 8.5f , 300 , 300 );
             }
         });
         myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
@@ -48,6 +49,7 @@ public class VideoClipActivity extends VideoEditParentActivity   {
             startPlayThread();
         }
     }
+
     private StartPlayThraed playThread;
 
     private void startPlayThread(){

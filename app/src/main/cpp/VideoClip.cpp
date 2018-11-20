@@ -294,11 +294,8 @@ void VideoClip::startClip() {
                 if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
                     AVPacket *newPkt = encodeFrame(frame);
                     if (newPkt != NULL) {
-//                        LOGE(" pts %lld , startSecond %d , endSecond %d  " , pts , startSecond , endSecond);
-                        LOGE(" %f " , ((float)(pts - startSecond * 1000) / 1000 ));
                         progress = (int)((float)(pts - startSecond * 1000) / 1000 / (endSecond - startSecond) * 100);
                         progress --; //100表示完全搞定。可以直接播放
-                        LOGE(" progress %d " , progress);
                         write_frame(videoStream, videoOutStream, newPkt);
                         av_packet_free(&newPkt);
                     }
