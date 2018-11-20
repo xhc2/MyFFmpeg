@@ -112,7 +112,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         myVideoGpuShow.setRenderer(new MyRender());//android 8.0需要设置
         myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
-
+        //test
 
         findViewById();
 
