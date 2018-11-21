@@ -10,22 +10,31 @@
     <module.video.jnc.myffmpeg.widget.TitleBar
         android:id="@+id/title"
         style="@style/title_bar"
-        app:title_text="视频编辑"
         app:show_back="false"
-        />
+        app:title_text="视频编辑" />
 
     <ImageView
-        android:layout_marginTop="30dp"
+        android:id="@+id/img_bmp"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:scaleType="fitXY"
-        android:layout_width="match_parent"
-        android:layout_height="140dp"/>
+        android:layout_marginTop="20dp"
+        android:scaleType="fitXY" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:text="编辑"
+        android:textColor="#000000"
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         android:weightSum="5">
 
@@ -57,51 +66,90 @@
             android:text="播放速度" />
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:background="#333333" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="特效滤镜"
+        android:textColor="#000000"
+        android:textStyle="bold" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
-        android:layout_marginTop="20dp"
-        android:weightSum="3">
+        android:weightSum="4">
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
-            android:text="视频剪辑" />
+            android:text="视频滤镜" />
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
-            android:text="视频拼接" />
+            android:text="视频主题" />
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
-            android:text="视频裁剪" />
+            android:text="图片水印" />
+
+        <TextView
+            style="@style/edit_button"
+            android:drawableTop="@mipmap/edit"
+            android:text="文字水印" />
 
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp"
+        android:background="#333333"  />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:text="视频制作"
+        android:textColor="#333333"
+        android:textStyle="bold" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginTop="20dp"
+        android:orientation="horizontal"
         android:weightSum="3">
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
-            android:text="视频剪辑" />
+            android:text="实时配音" />
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
-            android:text="视频拼接" />
+            android:text="实时字幕" />
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
-            android:text="视频裁剪" />
+            android:text="视频倒放" />
 
     </LinearLayout>
 </LinearLayout>

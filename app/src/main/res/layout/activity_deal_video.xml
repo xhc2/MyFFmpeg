@@ -1,39 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:orientation="vertical"
+    android:layout_height="match_parent"
     android:background="#ffffff"
     android:gravity="center_horizontal"
-    android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".activity.VideoClipActivity">
 
     <module.video.jnc.myffmpeg.widget.TitleBar
         android:id="@+id/title"
         style="@style/title_bar"
-        app:title_text="视频剪辑"
-        app:right_text="确定"/>
-
+        app:right_text="确定"
+        app:title_text="视频剪辑" />
 
 
     <module.video.jnc.myffmpeg.MyVideoGpuShow
         android:id="@+id/play_gl_surfaceview"
         android:layout_width="320dp"
         android:layout_height="165dp"
-        android:layout_marginTop="30dp"
-        />
+        android:layout_below="@id/title"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp" />
 
-    <View
+    <RelativeLayout
+        android:id="@+id/rl_time"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/play_gl_surfaceview"
+        android:layout_marginTop="10dp"
+       >
+
+        <TextView
+            android:id="@+id/tv_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开始时间:"
+            android:textColor="#4444BB"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_start"
+            android:text="结束时间:"
+            android:textColor="#4444BB"
+            android:textSize="14sp" />
+    </RelativeLayout>
+
+
+    <module.video.jnc.myffmpeg.widget.ClipBar
+        android:id="@+id/clip_bar"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="25dp"
+        android:layout_below="@id/rl_time"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="50dp"
-        android:background="#3366ff"
-        />
+        android:layout_marginTop="70dp" />
 
 
-
-
-</LinearLayout>
+</RelativeLayout>

@@ -7,24 +7,25 @@
 #include "AudioPlayer.h"
 
 
-AudioPlayer::AudioPlayer(int simpleRate , int channel){
-    this->simpleRate = simpleRate ;
+AudioPlayer::AudioPlayer(int simpleRate, int channel) {
+    this->simpleRate = simpleRate;
     this->channel = channel;
-    playAudioTemp = (char *)malloc(1024 * 2 * channel);
+    playAudioTemp = (char *) malloc(1024 * 2 * channel);
     maxFrame = 140;
     pts = 0;
-    sonicRead = new SonicRead(simpleRate , channel , 1.0f, &audioFrameQue , &mutex_pthread);
+    sonicRead = new SonicRead(simpleRate, channel, 1.0f, &audioFrameQue, &mutex_pthread);
     initAudio();
 }
 
-void AudioPlayer::run(){
+void AudioPlayer::run() {
     audioPlayDelay();
 }
+
 //暂停或者播放
 int AudioPlayer::pause_audio(bool myPauseFlag) {
     if (iplayer != NULL) {
         SLresult re = (*iplayer)->SetPlayState(iplayer, myPauseFlag ? SL_PLAYSTATE_PAUSED
-                                                                            : SL_PLAYSTATE_PLAYING);
+                                                                    : SL_PLAYSTATE_PLAYING);
         if (re != SL_RESULT_SUCCESS) {
             LOGE("SetPlayState pause FAILD ");
             return -1;
@@ -34,12 +35,12 @@ int AudioPlayer::pause_audio(bool myPauseFlag) {
     return 0;
 }
 
-void AudioPlayer::pauseAudio(){
+void AudioPlayer::pauseAudio() {
     (*pcmQue)->Clear(pcmQue);
     pause_audio(true);
 }
 
-void AudioPlayer::playAudio(){
+void AudioPlayer::playAudio() {
     pause_audio(false);
 }
 
@@ -47,8 +48,8 @@ void AudioPlayer::audioPlayDelay() {
     //设置为播放状态,第一次为了保证队列中有数据，所以需要延迟点播放
     pthread_mutex_lock(&mutex_pthread);
     int a = 1;
-    while(!isExit && !pause){
-        if(!audioFrameQue.empty()){
+    while (!isExit && !pause) {
+        if (!audioFrameQue.empty()) {
             (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
             (*pcmQue)->Enqueue(pcmQue, &a, 1);
             break;
@@ -58,68 +59,33 @@ void AudioPlayer::audioPlayDelay() {
     pthread_mutex_unlock(&mutex_pthread);
 }
 
-void AudioPlayer::update(MyData *mydata){
-    if(mydata->data == NULL || mydata->size <= 0 || !mydata->isAudio){
-        return ;
+void AudioPlayer::update(MyData *mydata) {
+    if (mydata->data == NULL || mydata->size <= 0 || !mydata->isAudio) {
+        return;
     }
-    while(!isExit){
-        if(pause){
+    while (!isExit) {
+        if (pause) {
             break;
         }
 
-        if(audioFrameQue.size() < maxFrame){
+        if (audioFrameQue.size() < maxFrame) {
             audioFrameQue.push(mydata);
             break;
-        }
-        else{
+        } else {
             threadSleep(1);
             continue;
         }
     }
 }
 
-AudioPlayer::~AudioPlayer(){
-    LOGE(" AudioPlayer destory ! start ");
-    if(playAudioTemp != NULL){
-        free(playAudioTemp);
-    }
-    pts = 0;
-    if (iplayer && (*iplayer)) {
-        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
-    }
-    if (pcmQue != NULL) {
-        (*pcmQue)->Clear(pcmQue);
-    }
-    if (player != NULL) {
-        (*player)->Destroy(player);
-        player = NULL;
-        iplayer = NULL;
-        pcmQue = NULL;
-    }
 
-    if (mix != NULL) {
-        (*mix)->Destroy(mix);
-        mix = NULL;
-    }
-    if (engineOpenSL != NULL) {
-        (*engineOpenSL)->Destroy(engineOpenSL);
-        engineOpenSL = NULL;
-        eng = NULL;
-    }
-    if(sonicRead != NULL){
-        delete sonicRead;
-    }
-    LOGE("AudioPlayer destory ! ");
-}
-
-
-void AudioPlayer::clearQue(){
+void AudioPlayer::clearQue() {
     LOGE(" AudioPlayer::clearQue ");
-    while(!isExit){
+    while (!isExit) {
 
-        if(!audioFrameQue.empty()){
+        if (!audioFrameQue.empty()) {
             MyData *myData = audioFrameQue.front();
-            if(myData !=NULL){
+            if (myData != NULL) {
                 myData->drop();
             }
             audioFrameQue.pop();
@@ -132,19 +98,21 @@ void AudioPlayer::clearQue(){
 void AudioPlayer::seekStart() {
 
 }
+
 void AudioPlayer::seekFinish() {
 
 }
-int AudioPlayer::sonicFlush(){
+
+int AudioPlayer::sonicFlush() {
     return sonicRead->sonicFlush();
 }
 
-void AudioPlayer::changeSpeed(float speed){
+void AudioPlayer::changeSpeed(float speed) {
     sonicRead->changeSpeed(speed);
 }
 
 void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
-    AudioPlayer *ap = (AudioPlayer *)context;
+    AudioPlayer *ap = (AudioPlayer *) context;
 //    if(!ap->audioFrameQue.empty()){
 //        MyData *myData = ap->audioFrameQue.front();
 //        ap->audioFrameQue.pop();
@@ -156,11 +124,11 @@ void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 //        delete  myData;
 //    }
 
-    int size = ap->sonicRead->dealAudio( &ap->getBuf ,  ap->pts);
+    int size = ap->sonicRead->dealAudio(&ap->getBuf, ap->pts);
 
 
-    if(size > 0 &&  ap->getBuf != NULL){
-        (*bf)->Enqueue(bf, ap->getBuf  , size );
+    if (size > 0 && ap->getBuf != NULL) {
+        (*bf)->Enqueue(bf, ap->getBuf, size);
     }
 }
 
@@ -193,7 +161,7 @@ int AudioPlayer::initAudio() {
     SLDataFormat_PCM pcm_ = {
             SL_DATAFORMAT_PCM,
             1,
-            getSimpleRate(simpleRate) ,
+            getSimpleRate(simpleRate),
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT,
@@ -205,7 +173,7 @@ int AudioPlayer::initAudio() {
     const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
     const SLboolean req[] = {SL_BOOLEAN_TRUE};
     re = (*eng)->CreateAudioPlayer(eng, &player, &ds, &audioSink,
-                                       sizeof(ids) / sizeof(SLInterfaceID), ids, req);
+                                   sizeof(ids) / sizeof(SLInterfaceID), ids, req);
     if (re != SL_RESULT_SUCCESS) {
         LOGE("CreateAudioPlayer FAILD ");
         return RESULT_FAILD;
@@ -228,9 +196,9 @@ int AudioPlayer::initAudio() {
     return RESULT_SUCCESS;
 }
 
-SLuint32 AudioPlayer::getSimpleRate(int sampleRate){
+SLuint32 AudioPlayer::getSimpleRate(int sampleRate) {
 
-    switch (sampleRate){
+    switch (sampleRate) {
         case 44100:
             return SL_SAMPLINGRATE_44_1;
         case 48000:
@@ -266,3 +234,44 @@ SLEngineItf AudioPlayer::createOpenSL() {
     return en;
 }
 
+
+AudioPlayer::~AudioPlayer() {
+    LOGE(" AudioPlayer destory ! start ");
+    if (playAudioTemp != NULL) {
+        free(playAudioTemp);
+    }
+    pts = 0;
+    LOGE(" SetPlayState start ");
+    if (iplayer && (*iplayer)) {
+        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
+    }
+    LOGE("    (*pcmQue)->Clear(pcmQue); ");
+    if (pcmQue != NULL) {
+        (*pcmQue)->Clear(pcmQue);
+    }
+    LOGE("       (*player)->Destroy(player); ");
+    if (player != NULL) {
+        //这里有啥问题
+        (*player)->Destroy(player);
+        player = NULL;
+        iplayer = NULL;
+        pcmQue = NULL;
+    }
+    LOGE("      (*mix)->Destroy(mix); ");
+    if (mix != NULL) {
+        (*mix)->Destroy(mix);
+        mix = NULL;
+    }
+    LOGE("    (*engineOpenSL)->Destroy(engineOpenSL); ");
+    if (engineOpenSL != NULL) {
+        (*engineOpenSL)->Destroy(engineOpenSL);
+        engineOpenSL = NULL;
+        eng = NULL;
+    }
+    LOGE("      delete sonicRead; ");
+    if (sonicRead != NULL) {
+        delete sonicRead;
+    }
+
+    LOGE("AudioPlayer destory ! ");
+}

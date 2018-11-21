@@ -5,10 +5,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import module.video.jnc.myffmpeg.widget.LoadProgressDialog;
+
 public class BaseActivity extends AppCompatActivity {
 
     private ProgressDialog dialog;
-
+    private LoadProgressDialog progressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +32,25 @@ public class BaseActivity extends AppCompatActivity {
 
     protected void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    protected void showLoadPorgressDialog(String msg){
+        if(progressDialog == null){
+            progressDialog = new LoadProgressDialog(this , msg);
+        }
+        progressDialog.show();
+    }
+
+    protected void dismissLoadPorgressDialog(){
+        if(progressDialog != null && progressDialog.isShowing()){
+            progressDialog.dismiss();
+        }
+    }
+
+    protected void setLoadPorgressDialogProgress(int progress){
+        if(progressDialog != null && progressDialog.isShowing()){
+            progressDialog.setProgress(progress);
+        }
     }
 
 

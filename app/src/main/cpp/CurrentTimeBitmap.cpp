@@ -43,7 +43,7 @@ AVFrame *CurrentTimeBitmap::deocdePacket(AVPacket *packet) {
 
 int CurrentTimeBitmap::initSwsContext(int inWidth, int inHeight, int inpixFmt) {
     sws = sws_getContext(inWidth, inHeight, (AVPixelFormat) inpixFmt, outWidth, outHeight,
-                         AV_PIX_FMT_RGB565BE, SWS_BILINEAR, NULL, NULL, NULL);
+                         AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
     if (sws == NULL) {
         return -1;
     }
@@ -55,7 +55,7 @@ char* CurrentTimeBitmap::getCurrentBitmap(float time) {
                                (time / 1000) * AV_TIME_BASE * afc->start_time,
                                AVSEEK_FLAG_BACKWARD);
     int64_t pts = 0;
-//    FILE *out = fopen("sdcard/FFmpeg/test.bmp" , "wb+");
+    FILE *out = fopen("sdcard/FFmpeg/test.bmp" , "wb+");
     while (true) {
         AVPacket *packet = av_packet_alloc();
         result = av_read_frame(afc, packet);
@@ -75,9 +75,9 @@ char* CurrentTimeBitmap::getCurrentBitmap(float time) {
                     sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
                               0, frame->height, outVFrame->data, outVFrame->linesize);
                     LOGE(" FIND FRAME  linesize %d , height %d " , outVFrame->linesize[0] , outVFrame->height);
-//                    fwrite(outVFrame->data[0] , 1 , outVFrame->linesize[0] * outVFrame->height ,out );
-//                    fclose(out);
-                    char bmp[outVFrame->linesize[0] * outVFrame->height] ;
+                    fwrite(outVFrame->data[0] , 1 , outVFrame->width * outVFrame->height * 3 ,out );
+                    fclose(out);
+//                    char bmp[outVFrame->linesize[0] * outVFrame->height] ;
 
                     av_frame_free(&frame);
                     break;
@@ -88,7 +88,7 @@ char* CurrentTimeBitmap::getCurrentBitmap(float time) {
         }
     }
 
-
+    return NULL;
 }
 
 

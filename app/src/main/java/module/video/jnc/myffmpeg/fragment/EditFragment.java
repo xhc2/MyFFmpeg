@@ -1,17 +1,22 @@
 package module.video.jnc.myffmpeg.fragment;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.activity.ChoiseVideoActivity;
 
 public class EditFragment extends Fragment implements View.OnClickListener{
+
+    private ImageView imgBmp;
 
     public EditFragment() {
     }
@@ -27,6 +32,8 @@ public class EditFragment extends Fragment implements View.OnClickListener{
         super.onViewCreated(view, savedInstanceState);
         view.findViewById(R.id.tv_video_edit).setOnClickListener(this);
         view.findViewById(R.id.tv_video_joint).setOnClickListener(this);
+        imgBmp = view.findViewById(R.id.img_bmp);
+//        BitmapFactory.de
     }
 
     @Override

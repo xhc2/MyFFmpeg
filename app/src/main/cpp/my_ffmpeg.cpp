@@ -522,7 +522,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass t
     char*result = cb->getCurrentBitmap(time);
     env->ReleaseStringUTFChars(path_, path);
 
-    jbyteArray javaArray =
+//    jbyteArray javaArray =
 
-    return javaArray;
+    return NULL;
 }
