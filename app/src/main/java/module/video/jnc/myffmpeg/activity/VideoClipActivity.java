@@ -1,13 +1,18 @@
 package module.video.jnc.myffmpeg.activity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,9 +35,13 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     private TextView tvEnd;
     private int startTime ;
     private int endTime;
-
+    private int outWidth = 100;
+    private int outHeight = 100;
+    private final static int BMP_HEAD = 54 ;
     private final static int PROGRESS = 0;
-
+    private boolean activityFoucsFlag = false;
+    private byte[] buffer = new byte[outWidth * outHeight * 3 + BMP_HEAD];
+    private ImageView img ;
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -59,7 +68,16 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FFmpegUtils.getCurrentBitmp(listPath.get(0), 8.5f, 300, 300);
+//                FFmpegUtils.getCurrentBitmp(listPath.get(0), 8.5f, 300, 300);
+                FFmpegUtils.getCurrentBitmp( 8.5f , buffer);
+                try {
+                    FileOutputStream fos = new FileOutputStream("sdcard/FFmpeg/java.bmp");
+                    fos.write(buffer);
+                    fos.close();
+                    img.setImageBitmap(BitmapFactory.decodeByteArray(buffer , 0 , buffer.length));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -72,6 +90,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
         tvStart = findViewById(R.id.tv_start);
         tvEnd = findViewById(R.id.tv_end);
+        img = findViewById(R.id.img);
     }
 
     private void init() {
@@ -82,7 +101,6 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
                 showLoadPorgressDialog("请稍等...");
                 startClip(startTime, endTime);
                 startProgressThread();
-                FFmpegUtils.getCurrentBitmp(listPath.get(0), 8.5f, 300, 300);
             }
         });
         clipBar.setTouchCallBack(this);
@@ -90,14 +108,16 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         myVideoGpuShow.setRenderer(new MyRender());//android 8.0需要设置
         myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
+        FFmpegUtils.initCurrentBitmp(listPath.get(0) , outWidth , outHeight);
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
+        activityFoucsFlag = true;
         Log.e("xhc" , "  onWindowFocusChanged  ");
-        if (hasFocus && listPath.size() > 0) {
-//            startPlayThread();
+        if (!activityFoucsFlag & hasFocus && listPath.size() > 0) {
+            startPlayThread();
         }
     }
 
@@ -221,19 +241,26 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
         stopProgressThread();
         FFmpegUtils.destroyClip();
         FFmpegUtils.destroyMp4Play();
+        FFmpegUtils.destroyCurrentBitmap();
     }
+
 
     @Override
     public void moveStart(float screenStartX, int startProgress) {
-        tvStart.setText("开始时间： "+((float) startProgress / clipBar.getMaxProgress()) * FFmpegUtils.getDuration());
+        float startTime = ((float) startProgress / clipBar.getMaxProgress()) * FFmpegUtils.getDuration();
+        tvStart.setText("开始时间： "+ startTime);
+
+
     }
 
     @Override
     public void moveEnd(float screenEndX, int endProgress) {
-        tvEnd.setText("结束时间： "+((float)endProgress / clipBar.getMaxProgress()) * FFmpegUtils.getDuration());
+        float endTime = ((float)endProgress / clipBar.getMaxProgress()) * FFmpegUtils.getDuration();
+        tvEnd.setText("结束时间： "+ endTime);
     }
 
     @Override

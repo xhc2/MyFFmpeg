@@ -47,7 +47,10 @@ private :
     int outWidth ;
     int outHeight;
     AVPixelFormat outPix;
-    AVFrame *outVFrame;
+//    AVFrame *outVFrame;
+    uint8_t *outRgbdata[4];
+    int outRgbLineSize[4];
+
     SwsContext *sws;
     int initFFmpeg(const char *path);
     AVFrame *deocdePacket(AVPacket *packet);
@@ -55,10 +58,9 @@ private :
     void yuv2Bitmap(/*uint8_t *yuv , int sWidth , int sHeight , int dWidth , int dHeight*/);
     uint8_t *yuv2Bmp(AVFrame *pFrameRGB, int width, int height, int *bmpSize );
     uint8_t * yuv2Bmp(uint8_t *rgb24_buffer, int width, int height , int *bmpSize);
-    void testYuv2Bitmap();
 public:
 
-    char* getCurrentBitmap(float time);
+    void getCurrentBitmap(float time , uint8_t *bufferResult);
 
     CurrentTimeBitmap(const char* path , int outWidth , int outHeight);
 

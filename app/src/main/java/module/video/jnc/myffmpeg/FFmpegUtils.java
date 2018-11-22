@@ -95,7 +95,8 @@ public class FFmpegUtils {
     public static native void destroyBackRun();
 
     //获取当前时间图片
-    public static native byte[] getCurrentBitmp(String path , float time , int outWidth , int outHeight);
+    public static native int initCurrentBitmp(String path ,   int outWidth , int outHeight );
+    public static native float getCurrentBitmp(float time  , byte[] result);
     public static native void destroyCurrentBitmap();
 
 

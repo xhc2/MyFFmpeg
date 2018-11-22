@@ -509,22 +509,28 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyCurrentBitmap(JNIEnv *env, jcl
 }
 
 
-
 extern "C"
-JNIEXPORT jbyteArray JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass type, jstring path_,
-                                                           jfloat time, jint outWidth,
-                                                           jint outHeight) {
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initCurrentBitmp(JNIEnv *env, jclass type, jstring path_,
+                                                            jint outWidth, jint outHeight) {
     const char *path = env->GetStringUTFChars(path_, 0);
-
 
     if(cb == NULL){
         cb = new CurrentTimeBitmap(path , outWidth , outHeight);
     }
-    char*result = cb->getCurrentBitmap(time);
     env->ReleaseStringUTFChars(path_, path);
+    return 1;
+}
 
-//    jbyteArray javaArray =
 
-    return NULL;
+extern "C"
+JNIEXPORT jfloat JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass type, jfloat time,
+                                                           jbyteArray result_) {
+    jbyte *result = env->GetByteArrayElements(result_, NULL);
+
+    cb->getCurrentBitmap(time , (uint8_t *)result);
+
+    env->ReleaseByteArrayElements(result_, result, 0);
+    return time;
 }
