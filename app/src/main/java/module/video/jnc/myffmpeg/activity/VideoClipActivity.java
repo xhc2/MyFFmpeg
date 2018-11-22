@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -55,7 +56,12 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         setContentView(R.layout.activity_deal_video);
         findViewById();
         init();
-
+        findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FFmpegUtils.getCurrentBitmp(listPath.get(0), 8.5f, 300, 300);
+            }
+        });
     }
 
 
@@ -91,7 +97,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         super.onWindowFocusChanged(hasFocus);
         Log.e("xhc" , "  onWindowFocusChanged  ");
         if (hasFocus && listPath.size() > 0) {
-            startPlayThread();
+//            startPlayThread();
         }
     }
 

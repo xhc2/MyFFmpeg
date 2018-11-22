@@ -62,4 +62,10 @@
         android:layout_marginTop="70dp" />
 
 
+    <Button
+        android:id="@+id/bt_start"
+        android:layout_below="@id/clip_bar"
+        android:text="start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </RelativeLayout>

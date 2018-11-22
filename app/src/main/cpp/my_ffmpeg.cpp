@@ -32,10 +32,12 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type, jstring path_,
                                                        jobject glSurfaceView) {
 
+
     if (mp4Player == NULL) {
         if (cj == NULL) {
             cj = new CallJava(env, type);
         }
+
         const char *path = env->GetStringUTFChars(path_, 0);
         ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
         mp4Player = new Mp4Player(path, win, cj);

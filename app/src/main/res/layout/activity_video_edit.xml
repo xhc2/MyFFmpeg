@@ -134,7 +134,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
-        android:weightSum="3">
+        android:weightSum="4">
 
         <TextView
             style="@style/edit_button"
@@ -151,5 +151,9 @@
             android:drawableTop="@mipmap/edit"
             android:text="视频倒放" />
 
+        <TextView
+            style="@style/edit_button"
+            android:drawableTop="@mipmap/edit"
+            android:text="gif生成" />
     </LinearLayout>
 </LinearLayout>
