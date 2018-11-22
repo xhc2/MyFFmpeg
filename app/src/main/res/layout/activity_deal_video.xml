@@ -51,15 +51,23 @@
             android:textSize="14sp" />
     </RelativeLayout>
 
+    <ImageView
+        android:id="@+id/img"
+        android:layout_below="@id/rl_time"
+        android:src="@mipmap/right_arrow"
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerCrop"
+        android:layout_width="50dp"
+        android:layout_height="50dp" />
 
     <module.video.jnc.myffmpeg.widget.ClipBar
         android:id="@+id/clip_bar"
         android:layout_width="match_parent"
         android:layout_height="25dp"
-        android:layout_below="@id/rl_time"
+        android:layout_below="@id/img"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="70dp" />
+        android:layout_marginTop="5dp" />
 
 
     <Button
@@ -69,12 +77,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <ImageView
-        android:id="@+id/img"
-        android:layout_below="@id/bt_start"
-        android:src="@mipmap/right_arrow"
-        android:layout_centerHorizontal="true"
-        android:scaleType="centerCrop"
-        android:layout_width="100dp"
-        android:layout_height="100dp" />
+
+
 </RelativeLayout>

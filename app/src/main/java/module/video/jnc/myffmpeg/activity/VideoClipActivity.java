@@ -42,6 +42,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     private boolean activityFoucsFlag = false;
     private byte[] buffer = new byte[outWidth * outHeight * 3 + BMP_HEAD];
     private ImageView img ;
+
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -69,11 +70,9 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
             @Override
             public void onClick(View v) {
 //                FFmpegUtils.getCurrentBitmp(listPath.get(0), 8.5f, 300, 300);
-                FFmpegUtils.getCurrentBitmp( 8.5f , buffer);
+                FFmpegUtils.getCurrentBitmp( startTime , buffer);
                 try {
-                    FileOutputStream fos = new FileOutputStream("sdcard/FFmpeg/java.bmp");
-                    fos.write(buffer);
-                    fos.close();
+
                     img.setImageBitmap(BitmapFactory.decodeByteArray(buffer , 0 , buffer.length));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -252,9 +251,10 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     @Override
     public void moveStart(float screenStartX, int startProgress) {
         float startTime = ((float) startProgress / clipBar.getMaxProgress()) * FFmpegUtils.getDuration();
+        img.setX(screenStartX);
         tvStart.setText("开始时间： "+ startTime);
-
-
+        FFmpegUtils.getCurrentBitmp( startTime , buffer);
+        img.setImageBitmap(BitmapFactory.decodeByteArray(buffer, 0 , buffer.length) );
     }
 
     @Override
