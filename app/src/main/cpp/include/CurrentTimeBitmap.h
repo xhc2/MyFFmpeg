@@ -61,6 +61,7 @@ private :
 public:
 
     void getCurrentBitmap(float time , uint8_t *bufferResult);
+    void getCurrentBitmapKeyFrame(float time , uint8_t *bufferResult);
 
     CurrentTimeBitmap(const char* path , int outWidth , int outHeight);
 

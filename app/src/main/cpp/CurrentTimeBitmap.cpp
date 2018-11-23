@@ -59,6 +59,50 @@ int CurrentTimeBitmap::initSwsContext(int inWidth, int inHeight, int inpixFmt) {
     return 1;
 }
 
+
+
+void CurrentTimeBitmap::getCurrentBitmapKeyFrame(float time , uint8_t *bufferResult){
+    int result = 0;
+    result = av_seek_frame(afc, -1,
+                           (time / 1000) * AV_TIME_BASE * afc->start_time,
+                           AVSEEK_FLAG_BACKWARD);
+//    int64_t pts = 0;
+    while (true) {
+        AVPacket *packet = av_packet_alloc();
+        result = av_read_frame(afc, packet);
+        if (result < 0) {
+            LOGE(" ********************** READ FRAME FAILD *********************");
+            av_packet_free(&packet);
+            break;
+        }
+        if (packet->stream_index == video_index) {
+            AVFrame *frame = deocdePacket(packet);
+            if (frame != NULL) {
+//                pts = (int64_t) (frame->pts * av_q2d(afc->streams[video_index]->time_base) *
+//                                 1000);
+//                if ((pts >= time * 1000)) {
+                    sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
+                              0, frame->height, outRgbdata, outRgbLineSize);
+                    LOGE("------------------------------------ FIND FRAME ------------------------- " );
+                    int size = 0;
+                    uint8_t *bmp = yuv2Bmp(outRgbdata[0], outWidth, outHeight, &size);
+                    if (bmp != NULL) {
+                        av_packet_free(&packet);
+                        av_frame_free(&frame);
+                        memcpy(bufferResult , bmp , size);
+                        free(bmp);
+                        return ;
+                    }
+//                }
+                av_frame_free(&frame);
+            }
+        }
+        av_packet_free(&packet);
+    }
+};
+
+
+//这个会到指定时间地方
 void CurrentTimeBitmap::getCurrentBitmap(float time , uint8_t *bufferResult) {
     int result = 0;
     result = av_seek_frame(afc, -1,

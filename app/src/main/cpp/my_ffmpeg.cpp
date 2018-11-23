@@ -529,7 +529,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass t
                                                            jbyteArray result_) {
     jbyte *result = env->GetByteArrayElements(result_, NULL);
 
-    cb->getCurrentBitmap(time , (uint8_t *)result);
+    cb->getCurrentBitmapKeyFrame(time , (uint8_t *)result);
 
     env->ReleaseByteArrayElements(result_, result, 0);
     return time;

@@ -16,6 +16,8 @@ public class LoadProgressDialog extends Dialog {
     public LoadProgressDialog(@NonNull Context context , String msg) {
         super(context , R.style.dialog);
         setContentView(R.layout.dig_load_progress_layout);
+//        setCancelable(false);
+        setCanceledOnTouchOutside(false);
         this.msg = msg;
         init();
 

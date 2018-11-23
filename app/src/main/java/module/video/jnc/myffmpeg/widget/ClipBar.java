@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -86,7 +85,6 @@ public class ClipBar extends View {
             endPX = width - touchBarWidth;
         }
 
-        Log.e("xhc" , " onMeasure ");
     }
 
     @Override
@@ -109,12 +107,10 @@ public class ClipBar extends View {
                 if (moveStart) {
                     if ((tempX + touchBarWidth) < endPX && tempX >= 0) {
                         startPX = tempX;
-                        Log.e("xhc" ," touch event "+startPX);
                         invalidate();
                         if(callBack != null){
                             callBack.moveStart(event.getRawX() , (int)((startPX / width) * MAXPROGRESS));
                         }
-                        Log.e("xhc" ," touch event 2"+startPX);
 
                     }
                 } else if (moveEnd) {
@@ -172,7 +168,6 @@ public class ClipBar extends View {
     private void drawStartBar(Canvas canvas){
         rectStart = new RectF(startPX, 0, touchBarWidth + startPX, height);
         canvas.drawRoundRect(rectStart, roundCorner, roundCorner, paintTouchBar);
-        Log.e("xhc" , " draw start "+startPX);
     }
 
     private void drawEndBar(Canvas canvas){

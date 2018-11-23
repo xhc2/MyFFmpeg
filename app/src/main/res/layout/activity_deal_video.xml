@@ -54,7 +54,6 @@
     <ImageView
         android:id="@+id/img"
         android:layout_below="@id/rl_time"
-        android:src="@mipmap/right_arrow"
         android:layout_centerHorizontal="true"
         android:scaleType="centerCrop"
         android:layout_width="50dp"
@@ -74,6 +73,7 @@
         android:id="@+id/bt_start"
         android:layout_below="@id/clip_bar"
         android:text="start"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
