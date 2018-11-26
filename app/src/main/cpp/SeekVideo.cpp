@@ -144,5 +144,6 @@ void SeekFile::run() {
 }
 
 SeekFile::~SeekFile() {
+
 }
 

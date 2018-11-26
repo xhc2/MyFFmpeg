@@ -106,7 +106,8 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
             public void clickRight() {
                 //右键点击
                 if (clipFlag) {
-                    showToast("正在裁剪中，请稍等");
+//                    showToast("正在裁剪中，请稍等");
+                    showLoadPorgressDialog("处理中...");
                     return;
                 }
                 if (startTime == -1 || endTime == -1 || startTime >= endTime || startTime < 0 || endTime > FFmpegUtils.getDuration()) {
