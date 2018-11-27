@@ -243,15 +243,6 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_pauseRecord(JNIEnv *env, jclass type)
 
     return 1;
 }
-extern "C"
-JNIEXPORT jint JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
-    createEngine();
-    createBufferQueueAudioPlayer();
-    startPlayTest();
-    return 1;
-
-}
 
 SRSLibRtmp *srs;
 extern "C"
@@ -429,7 +420,8 @@ VideoJoint *vj;
 extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_startJoint(JNIEnv *env, jclass type, jobjectArray paths,
-                                                      jstring output_, jint outWidth, jint outHeight) {
+                                                      jstring output_, jint outWidth,
+                                                      jint outHeight) {
     const char *output = env->GetStringUTFChars(output_, 0);
     int size = env->GetArrayLength(paths);
 
@@ -465,7 +457,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyJoint(JNIEnv *env, jclass type) {
 
-    if(vj != NULL){
+    if (vj != NULL) {
         delete vj;
         vj = NULL;
     }
@@ -479,8 +471,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startBackRun(JNIEnv *env, jclass type
                                                         jstring inputPath_, jstring output_) {
     const char *inputPath = env->GetStringUTFChars(inputPath_, 0);
     const char *output = env->GetStringUTFChars(output_, 0);
-    if(vb == NULL){
-        vb = new VideoRunBack(inputPath , output);
+    if (vb == NULL) {
+        vb = new VideoRunBack(inputPath, output);
     }
     vb->startBackParse();
     env->ReleaseStringUTFChars(inputPath_, inputPath);
@@ -491,7 +483,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyBackRun(JNIEnv *env, jclass type) {
 
-    if(vb != NULL){
+    if (vb != NULL) {
         delete vb;
     }
 }
@@ -502,7 +494,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyCurrentBitmap(JNIEnv *env, jclass type) {
 
-    if(cb != NULL){
+    if (cb != NULL) {
         delete cb;
     }
     cb = NULL;
@@ -515,8 +507,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initCurrentBitmp(JNIEnv *env, jclass 
                                                             jint outWidth, jint outHeight) {
     const char *path = env->GetStringUTFChars(path_, 0);
 
-    if(cb == NULL){
-        cb = new CurrentTimeBitmap(path , outWidth , outHeight);
+    if (cb == NULL) {
+        cb = new CurrentTimeBitmap(path, outWidth, outHeight);
     }
     env->ReleaseStringUTFChars(path_, path);
     return 1;
@@ -529,8 +521,45 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass t
                                                            jbyteArray result_) {
     jbyte *result = env->GetByteArrayElements(result_, NULL);
 
-    cb->getCurrentBitmapKeyFrame(time , (uint8_t *)result);
+    cb->getCurrentBitmapKeyFrame(time, (uint8_t *) result);
 
     env->ReleaseByteArrayElements(result_, result, 0);
     return time;
+}
+//test
+AudioPlayer *a = NULL;
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
+//    createEngine();
+//    createBufferQueueAudioPlayer();
+//    startPlayTest();
+    FILE *file = fopen("sdcard/FFmpeg/test_2c_441_16.pcm", "r");
+    fseek(file , -2048 * 500 , SEEK_END );
+    a = new AudioPlayer(44100, 2);
+    a->start();
+    while (true) {
+        char *temp = (char *) malloc(2048);
+        int len = fread(temp, 1, 2048, file);
+        if (len != 2048) {
+            a->update(NULL);
+            break;
+        }
+        MyData *myData = new MyData();
+        myData->data = temp;
+        myData->size = 2048;
+        myData->isAudio = true;
+        a->update(myData);
+    }
+
+    return 1;
+
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
+
+    delete a;
+    LOGE(" DELETE AUDIO PLAYER ");
+    return 1;
 }

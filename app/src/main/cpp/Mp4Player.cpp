@@ -50,6 +50,7 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win ,  CallJava *cj){
     readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
     decodeVideo = new DecodeVideoThread(afc , vc , video_index);
     decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
+    LOGE(" SIMPALERATE %d , outChanner %d " , simpleRate , outChannel);
     audioPlayer = new AudioPlayer(simpleRate , outChannel);
     yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
     seekFile = new SeekFile(afc  , audio_index , video_index );

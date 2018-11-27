@@ -21,15 +21,20 @@ private :
     SLObjectItf mix ;
     SLObjectItf player ;
     SLAndroidSimpleBufferQueueItf pcmQue;
-    SLEngineItf createOpenSL();
-    int initAudio();
+
+
     int simpleRate ;
     int channel;
     int maxFrame;
+    SLEnvironmentalReverbItf outputMixEnvironmentalReverb;
+//
     void audioPlayDelay();
     int pause_audio(bool myPauseFlag);
     SLuint32 getSimpleRate(int sampleRate);
-
+    int initAudio();
+    int createOpenSL();
+    int createAudioPlayer();
+    int createMix();
 public :
     std::queue<MyData *> audioFrameQue;
     char *playAudioTemp;

@@ -9,6 +9,8 @@
 
 AudioPlayer::AudioPlayer(int simpleRate, int channel) {
     finishFlag = false;
+    outputMixEnvironmentalReverb = NULL ;
+//    reverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
     this->simpleRate = simpleRate;
     this->channel = channel;
     playAudioTemp = (char *) malloc(1024 * 2 * channel);
@@ -144,48 +146,48 @@ void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     }
 }
 
-int AudioPlayer::initAudio() {
-    //创建引擎
-    eng = createOpenSL();
-    if (!eng) {
-        LOGE("createSL FAILD ");
-    }
-    //2.创建混音器
-    mix = NULL;
+
+int AudioPlayer::createAudioPlayer() {
     SLresult re = 0;
-    re = (*eng)->CreateOutputMix(eng, &mix, 0, 0, 0);
-    if (re != SL_RESULT_SUCCESS) {
-        LOGE("CreateOutputMix FAILD ");
-        return RESULT_FAILD;
-    }
-    re = (*mix)->Realize(mix, SL_BOOLEAN_FALSE);
-    if (re != SL_RESULT_SUCCESS) {
-        LOGE("Realize FAILD ");
-        return RESULT_FAILD;
-    }
     SLDataLocator_OutputMix outmix = {SL_DATALOCATOR_OUTPUTMIX, mix};
     SLDataSink audioSink = {&outmix, 0};
 
     //配置音频信息
-    SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 10};
+    SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
 
     //音频格式
     SLDataFormat_PCM pcm_ = {
             SL_DATAFORMAT_PCM,
-            1,
+            2,
             getSimpleRate(simpleRate),
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
-            SL_SPEAKER_FRONT_LEFT,
+            SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
             SL_BYTEORDER_LITTLEENDIAN //字节序，小端
     };
+//    SLDataFormat_PCM pcm_ = {
+//            SL_DATAFORMAT_PCM,
+//            1,
+//            getSimpleRate(simpleRate),
+//            SL_PCMSAMPLEFORMAT_FIXED_16,
+//            SL_PCMSAMPLEFORMAT_FIXED_16,
+//            SL_SPEAKER_FRONT_LEFT ,
+//            SL_BYTEORDER_LITTLEENDIAN //字节序，小端
+//    };
+
     SLDataSource ds = {&que, &pcm_};
 
     //创建播放器
-    const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
-    const SLboolean req[] = {SL_BOOLEAN_TRUE};
+//    const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
+//    const SLboolean req[] = {SL_BOOLEAN_TRUE};
+
+    const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME, SL_IID_EFFECTSEND,
+            /*SL_IID_MUTESOLO,*/};
+    const SLboolean req[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE,
+            /*SL_BOOLEAN_TRUE,*/ };
+
     re = (*eng)->CreateAudioPlayer(eng, &player, &ds, &audioSink,
-                                   sizeof(ids) / sizeof(SLInterfaceID), ids, req);
+                                   3, ids, req);
     if (re != SL_RESULT_SUCCESS) {
         LOGE("CreateAudioPlayer FAILD ");
         return RESULT_FAILD;
@@ -203,7 +205,56 @@ int AudioPlayer::initAudio() {
     }
 
     (*pcmQue)->RegisterCallback(pcmQue, audioPlayerCallBack, this);
+    return RESULT_SUCCESS;
+}
 
+int AudioPlayer::createMix() {
+    //2.创建混音器
+    mix = NULL;
+    SLresult re = 0;
+
+    const SLInterfaceID ids[1] = {SL_IID_ENVIRONMENTALREVERB};
+    const SLboolean req[1] = {SL_BOOLEAN_FALSE};
+    re = (*eng)->CreateOutputMix(eng, &mix, 1, ids, req);
+//    re = (*eng)->CreateOutputMix(eng, &mix, 0, 0, 0);
+
+    if (re != SL_RESULT_SUCCESS) {
+        LOGE("CreateOutputMix FAILD ");
+        return RESULT_FAILD;
+    }
+    re = (*mix)->Realize(mix, SL_BOOLEAN_FALSE);
+    if (re != SL_RESULT_SUCCESS) {
+        LOGE("Realize FAILD ");
+        return RESULT_FAILD;
+    }
+    re = (*mix)->GetInterface(mix, SL_IID_ENVIRONMENTALREVERB,
+                                              &outputMixEnvironmentalReverb);
+
+    if (SL_RESULT_SUCCESS == re) {
+        SLEnvironmentalReverbSettings reverbSettings  = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
+        re = (*outputMixEnvironmentalReverb)->SetEnvironmentalReverbProperties(
+                outputMixEnvironmentalReverb, &reverbSettings);
+    }
+    return RESULT_SUCCESS;
+}
+
+int AudioPlayer::initAudio() {
+    //创建引擎
+    int result = createOpenSL();
+    if (!eng || result < 0) {
+        LOGE("createSL FAILD ");
+        return RESULT_FAILD;
+    }
+    result = createMix();
+    if (result < 0) {
+        LOGE("createMix FAILD ");
+        return RESULT_FAILD;
+    }
+    result = createAudioPlayer();
+    if (result < 0) {
+        LOGE("createAudioPlayer FAILD ");
+        return RESULT_FAILD;
+    }
     LOGE(" OpenSles init SUCCESS ");
     return RESULT_SUCCESS;
 }
@@ -224,53 +275,51 @@ SLuint32 AudioPlayer::getSimpleRate(int sampleRate) {
         case 48000:
             return SL_SAMPLINGRATE_48;
         default:
-            LOGE(" audio player getSimpleRate faild !");
+            LOGE("xxxxxxxxxxxxxxxxxxxxxxxxxxx audio player getSimpleRate faild ! xxxxxxxxxxxxxxxxxxxxxxxxxxx");
             break;
     }
 
     return SL_SAMPLINGRATE_48;
 }
 
-SLEngineItf AudioPlayer::createOpenSL() {
+int AudioPlayer::createOpenSL() {
     SLresult re = 0;
-    SLEngineItf en = NULL;
+//    SLEngineItf en = NULL;
 
     re = slCreateEngine(&engineOpenSL, 0, 0, 0, 0, 0);
 
     if (re != SL_RESULT_SUCCESS) {
         LOGE("slCreateEngine FAILD ");
-        return NULL;
+        return -1;
     }
 
     re = (*engineOpenSL)->Realize(engineOpenSL, SL_BOOLEAN_FALSE);
     if (re != SL_RESULT_SUCCESS) {
         LOGE("Realize FAILD ");
-        return NULL;
+        return -1;
     }
 
-    re = (*engineOpenSL)->GetInterface(engineOpenSL, SL_IID_ENGINE, &en);
+    re = (*engineOpenSL)->GetInterface(engineOpenSL, SL_IID_ENGINE, &eng);
     if (re != SL_RESULT_SUCCESS) {
         LOGE("GetInterface FAILD ");
-        return NULL;
+        return -1;
     }
-    return en;
+    return 0;
 }
 
 
 AudioPlayer::~AudioPlayer() {
     LOGE(" AudioPlayer destory ! start ");
-    if (playAudioTemp != NULL) {
-        free(playAudioTemp);
-    }
+
     pts = 0;
     LOGE(" SetPlayState start ");
-    if (iplayer && (*iplayer)) {
-        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
-    }
+//    if (iplayer && (*iplayer)) {
+//        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
+//    }
     LOGE("    (*pcmQue)->Clear(pcmQue); ");
-    if (pcmQue != NULL) {
-        (*pcmQue)->Clear(pcmQue);
-    }
+//    if (pcmQue != NULL) {
+//        (*pcmQue)->Clear(pcmQue);
+//    }
     LOGE("       (*player)->Destroy(player); ");
     if (player != NULL) {
         //当视频播放完毕，这里有点问题,会被阻塞掉
@@ -294,6 +343,8 @@ AudioPlayer::~AudioPlayer() {
     if (sonicRead != NULL) {
         delete sonicRead;
     }
-
+    if (playAudioTemp != NULL) {
+        free(playAudioTemp);
+    }
     LOGE("AudioPlayer destory ! ");
 }

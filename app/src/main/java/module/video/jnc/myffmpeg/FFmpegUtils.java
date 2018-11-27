@@ -59,7 +59,7 @@ public class FFmpegUtils {
     public static native int rtmpDestroy();
     public static native int startRecord();
     public static native int pauseRecord();
-    public static native int test();
+
 
     //srs_lib_rtmp
     public static native int srsTest(String path);
@@ -99,8 +99,9 @@ public class FFmpegUtils {
     public static native float getCurrentBitmp(float time  , byte[] result);
     public static native void destroyCurrentBitmap();
 
-
-
+    //测试部分
+    public static native int test();
+    public static native int test2();
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

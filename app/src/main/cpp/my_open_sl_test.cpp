@@ -53,6 +53,7 @@ void createEngine() {
     // create output mix, with environmental reverb specified as a non-required interface 设置混音器
     const SLInterfaceID ids[1] = {SL_IID_ENVIRONMENTALREVERB};
     const SLboolean req[1] = {SL_BOOLEAN_FALSE};
+
     result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 1, ids, req);
     assert(SL_RESULT_SUCCESS == result);
     (void) result;
@@ -79,6 +80,11 @@ void createEngine() {
 void createBufferQueueAudioPlayer() {
 
     SLresult result;
+
+    // configure audio sink
+    SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
+    SLDataSink audioSnk = {&loc_outmix, NULL};
+
     // configure audio source
     SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
     //单声道，44100
@@ -91,42 +97,39 @@ void createBufferQueueAudioPlayer() {
                                    SL_BYTEORDER_LITTLEENDIAN};
     SLDataSource audioSrc = {&loc_bufq, &format_pcm};
 
-    // configure audio sink
-    SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
-    SLDataSink audioSnk = {&loc_outmix, NULL};
 
     const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME, SL_IID_EFFECTSEND,
             /*SL_IID_MUTESOLO,*/};
     const SLboolean req[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE,
             /*SL_BOOLEAN_TRUE,*/ };
-
+    LOGE(" sizeof(ids) / sizeof(SLInterfaceID) %d ", (sizeof(ids) / sizeof(SLInterfaceID)));
     result = (*engineEngine)->CreateAudioPlayer(engineEngine, &bqPlayerObject, &audioSrc, &audioSnk,
                                                 3, ids, req);
-    if(SL_RESULT_SUCCESS != result){
+    if (SL_RESULT_SUCCESS != result) {
         LOGE(" CreateAudioPlayer FAILD !");
     }
 
     // realize the player
     result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-    if(SL_RESULT_SUCCESS != result){
+    if (SL_RESULT_SUCCESS != result) {
         LOGE("  (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE); FAILD !");
     }
 
     // get the play interface
     result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-    if(SL_RESULT_SUCCESS != result){
+    if (SL_RESULT_SUCCESS != result) {
         LOGE("  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay); FAILD !");
     }
 
     // get the buffer queue interface
     result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE,
                                              &bqPlayerBufferQueue);
-    if(SL_RESULT_SUCCESS != result){
+    if (SL_RESULT_SUCCESS != result) {
         LOGE("  (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, FAILD !");
     }
     // register callback on the buffer queue
     result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, NULL);
-    if(SL_RESULT_SUCCESS != result){
+    if (SL_RESULT_SUCCESS != result) {
         LOGE("  (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue,  FAILD !");
     }
 
@@ -141,12 +144,12 @@ void createBufferQueueAudioPlayer() {
 
 // this callback handler is called every time a buffer finishes playing
 void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
-    LOGE(" bqPlayerCallback BACK  size %d  " ,pcmTempQue.size() );
-    if(pcmTempQue.size() > 0){
+    LOGE(" bqPlayerCallback BACK  size %d  ", pcmTempQue.size());
+    if (pcmTempQue.size() > 0) {
         char *buffer = pcmTempQue.front();
         pcmTempQue.pop();
         SLresult result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, 2048);
-        if(result != SL_RESULT_SUCCESS){
+        if (result != SL_RESULT_SUCCESS) {
             LOGE(" bqPlayerCallback BACK FAILD  ");
         }
     }
@@ -187,16 +190,53 @@ void startPlayTest() {
             break;
         }
         pcmTempQue.push(buffer);
-        if(count = 1){
+        if (count = 1) {
             SLresult result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-            if(result != SL_RESULT_SUCCESS){
+            if (result != SL_RESULT_SUCCESS) {
                 LOGE("XXXXXXXXXXXXXXXXXXXXX PLAY FAILD !XXXXXXXXXXXXXXXXXXXXXXX");
             }
-             result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, 2048);
-            if(result != SL_RESULT_SUCCESS){
+            result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, 2048);
+            if (result != SL_RESULT_SUCCESS) {
                 LOGE("XXXXXXXXXXXXXXXXXXXXX Enqueue FAILD !XXXXXXXXXXXXXXXXXXXXXXX");
             }
         }
     }
     LOGE(" --------------END-------------- ");
+}
+
+void destroyOpenSlTest() {
+    (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_STOPPED);
+
+    LOGE("    (*pcmQue)->Clear(pcmQue); ");
+    if (bqPlayerBufferQueue != NULL) {
+        (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
+    }
+
+    if (bqPlayerObject != NULL) {
+        (*bqPlayerObject)->Destroy(bqPlayerObject);
+        bqPlayerObject = NULL;
+        bqPlayerPlay = NULL;
+        bqPlayerBufferQueue = NULL;
+    }
+
+
+    // destroy output mix object, and invalidate all associated interfaces
+    if (outputMixObject != NULL) {
+        (*outputMixObject)->Destroy(outputMixObject);
+        outputMixObject = NULL;
+        outputMixEnvironmentalReverb = NULL;
+    }
+
+    if (engineObject != NULL) {
+        (*engineObject)->Destroy(engineObject);
+        engineObject = NULL;
+        engineEngine = NULL;
+    }
+    while (pcmTempQue.size() > 0) {
+
+        pcmTempQue.pop();
+
+    }
+    LOGE("DESTROY SUCCESS !");
+
 }

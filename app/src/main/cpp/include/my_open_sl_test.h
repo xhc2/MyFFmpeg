@@ -10,4 +10,5 @@ void createEngine();
 void createBufferQueueAudioPlayer();
 void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
 void startPlayTest();
+void destroyOpenSlTest();
 #endif //MYFFMPEG_MY_OPEN_SL_TEST_H
