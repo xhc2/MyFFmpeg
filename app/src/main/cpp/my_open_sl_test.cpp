@@ -141,11 +141,14 @@ void createBufferQueueAudioPlayer() {
 
 // this callback handler is called every time a buffer finishes playing
 void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
-
+    LOGE(" bqPlayerCallback BACK  size %d  " ,pcmTempQue.size() );
     if(pcmTempQue.size() > 0){
         char *buffer = pcmTempQue.front();
         pcmTempQue.pop();
         SLresult result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, 2048);
+        if(result != SL_RESULT_SUCCESS){
+            LOGE(" bqPlayerCallback BACK FAILD  ");
+        }
     }
 
 
@@ -179,16 +182,19 @@ void startPlayTest() {
         count++;
         char *buffer = (char *) malloc(2048);
         int len = fread(buffer, 1, 2048, Fpcm);
-        LOGE(" len %d " , len );
         if (len != 2048) {
 
             break;
         }
         pcmTempQue.push(buffer);
-        if(count = 2){
+        if(count = 1){
             SLresult result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
             if(result != SL_RESULT_SUCCESS){
                 LOGE("XXXXXXXXXXXXXXXXXXXXX PLAY FAILD !XXXXXXXXXXXXXXXXXXXXXXX");
+            }
+             result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, 2048);
+            if(result != SL_RESULT_SUCCESS){
+                LOGE("XXXXXXXXXXXXXXXXXXXXX Enqueue FAILD !XXXXXXXXXXXXXXXXXXXXXXX");
             }
         }
     }
