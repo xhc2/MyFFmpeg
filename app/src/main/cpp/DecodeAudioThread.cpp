@@ -94,7 +94,7 @@ DecodeAudioThread::DecodeAudioThread(queue<MyData> *audioFrameQue , queue<AVPack
 
     swc = swr_alloc_set_opts(NULL,
                              av_get_default_channel_layout(1),
-                             AV_SAMPLE_FMT_S16, ac->sample_rate,
+                             AV_SAMPLE_FMT_S16, /*ac->sample_rate*/44100,
                              av_get_default_channel_layout(ac->channels),
                              ac->sample_fmt, ac->sample_rate,
                              0, 0);

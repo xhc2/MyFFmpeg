@@ -20,7 +20,7 @@
         android:theme="@style/AppTheme.NoActionBar">
 
         <activity
-            android:name=".activity.MainActivity"
+            android:name="module.video.jnc.myffmpeg.activity.TestActivity"
             android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -18,6 +18,7 @@
 #include <VideoJoint.h>
 #include <VideoRunBack.h>
 #include <CurrentTimeBitmap.h>
+#include <my_open_sl_test.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -245,10 +246,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_pauseRecord(JNIEnv *env, jclass type)
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
-
-    // TODO
-    DecodeTest *dt = new DecodeTest();
-
+    createEngine();
+    createBufferQueueAudioPlayer();
+    startPlayTest();
     return 1;
 
 }

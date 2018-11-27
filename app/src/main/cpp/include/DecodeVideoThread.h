@@ -26,6 +26,7 @@ private:
     AVFormatContext *afc;
     int videoIndex;
     FILE *file ;
+    bool finishFlag ;
 public :
     void update(MyData *mydata);
     DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc  ,int videoIndex);

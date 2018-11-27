@@ -29,6 +29,7 @@ private :
     void audioPlayDelay();
     int pause_audio(bool myPauseFlag);
     SLuint32 getSimpleRate(int sampleRate);
+
 public :
     std::queue<MyData *> audioFrameQue;
     char *playAudioTemp;
@@ -46,6 +47,7 @@ public :
     short *getBuf;
     SonicRead *sonicRead;
     void clearQue();
+    bool finishFlag ;
 };
 
 #endif //MYFFMPEG_AUDIOPLAYER_H

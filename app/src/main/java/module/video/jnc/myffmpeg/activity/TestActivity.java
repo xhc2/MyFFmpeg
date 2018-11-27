@@ -18,16 +18,18 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                FFmpegUtils.test();
+
+
 //                FFmpegUtils.startClip("sdcard/FFmpeg/test.mp4" ,"sdcard/FFmpeg/test_clip.mp4" , 12,24);
-
-                new Thread(){
-                    @Override
-                    public void run() {
-                        super.run();
-                        FFmpegUtils.startBackRun("sdcard/FFmpeg/test.flv" , "sdcard/FFmpeg/outBackRun.mp4");
-
-                    }
-                }.start();
+//                new Thread(){
+//                    @Override
+//                    public void run() {
+//                        super.run();
+//                        FFmpegUtils.startBackRun("sdcard/FFmpeg/test.flv" , "sdcard/FFmpeg/outBackRun.mp4");
+//
+//                    }
+//                }.start();
 
             }
         });
@@ -37,7 +39,7 @@ public class TestActivity extends AppCompatActivity {
             public void onClick(View v) {
 //                FFmpegUtils.destroyClip();
 //                FFmpegUtils.destroyJoint();
-                FFmpegUtils.destroyBackRun();
+//                FFmpegUtils.destroyBackRun();
             }
         });
     }

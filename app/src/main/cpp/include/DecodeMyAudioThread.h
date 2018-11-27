@@ -30,6 +30,7 @@ private:
     AVFrame *aframe;
     uint8_t *play_audio_temp;
     Utils utils;
+    bool finishFlag ;
 
 public :
     DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex );

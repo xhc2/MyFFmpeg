@@ -11,6 +11,7 @@ DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc 
     this->vc = vc;
     vframe = av_frame_alloc();
     this->videoIndex = videoIndex;
+    finishFlag = false;
 //    file = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
 }
 
@@ -24,9 +25,13 @@ void DecodeVideoThread::run() {
             threadSleep(50);
             continue;
         }
-
+//        LOGE(" videoPktQue %d " , videoPktQue.size());
         if (videoPktQue.empty()) {
 //            LOGE(" VIDEO PACKAGE NULL ");
+            if(finishFlag){
+                pts = -100;
+                LOGE(" video finish  ");
+            }
             threadSleep(2);
             continue;
         }
@@ -114,6 +119,12 @@ void DecodeVideoThread::clearQue(){
 
 
 void DecodeVideoThread::update(MyData *mydata) {
+    if(mydata == NULL){
+//        LOGE(" video play finish ");
+        finishFlag = true;
+        return ;
+    }
+
     if (mydata->isAudio) return ;
 //    pthread_mutex_lock(&mutex_pthread);
     while (!isExit) {

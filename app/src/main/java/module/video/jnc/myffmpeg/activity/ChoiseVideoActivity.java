@@ -32,7 +32,8 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
     private RecyclerView rcChoiseView;
     private TitleBar titleBar ;
     private ArrayList<String> listSelected = new ArrayList<>();
-    private int choiseNum;
+    private int choiseNum;//选择视频的最大数
+    private int choiseMin; //选择视频最小数
     private String action ;
 
 
@@ -43,6 +44,8 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
         Intent intent = getIntent();
         if(intent != null){
             choiseNum = intent.getIntExtra("choise_num" , 1);
+            choiseMin = intent.getIntExtra("choise_min" , 1);
+
             action = intent.getStringExtra("action");
         }
 
@@ -67,7 +70,10 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
                     showToast("请选择视频！");
                     return ;
                 }
-                Log.e("xhc" , "action "+action);
+                if(listSelected.size() < choiseMin){
+                    showToast("至少选择 "+choiseMin+" 个视频！");
+                    return ;
+                }
                 Intent intent = new Intent(action);
                 intent.putStringArrayListExtra("videos" , listSelected);
                 startActivity(intent);

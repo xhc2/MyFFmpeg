@@ -4,10 +4,10 @@
 
 #ifndef MYFFMPEG_MY_OPEN_SL_TEST_H
 #define MYFFMPEG_MY_OPEN_SL_TEST_H
+#include <queue>
 
-
-int play_audio(const char* path);
-
-int pause(bool flag);
-int openslDestroy();
+void createEngine();
+void createBufferQueueAudioPlayer();
+void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
+void startPlayTest();
 #endif //MYFFMPEG_MY_OPEN_SL_TEST_H

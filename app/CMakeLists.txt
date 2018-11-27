@@ -38,6 +38,7 @@ add_library( my_ffmpeg
             src/main/cpp/EditParent.cpp
             src/main/cpp/VideoRunBack.cpp
             src/main/cpp/CurrentTimeBitmap.cpp
+            src/main/cpp/my_open_sl_test.cpp
             )
 
 

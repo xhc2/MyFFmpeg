@@ -32,7 +32,6 @@ import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
 public class VideoClipActivity extends VideoEditParentActivity implements ClipBar.TouchCallBack {
 
-    private MyVideoGpuShow myVideoGpuShow;
     private int clipProgress;
     private ClipBar clipBar;
     private TextView tvStart;

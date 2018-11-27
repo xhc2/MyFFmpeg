@@ -6,15 +6,19 @@
 #include "DecodeMyAudioThread.h"
 
 
-void DeocdeMyAudioThread::run(){
+void DeocdeMyAudioThread::run() {
     int result = 0;
-    while(!isExit){
-        if(pause){
+    while (!isExit) {
+        if (pause) {
             threadSleep(2);
             continue;
         }
-        if(audioPktQue.empty()){
+        if (audioPktQue.empty()) {
 //            LOGE(" AUDIO PACKAGE NULL ");
+            if(finishFlag){
+                //播放完毕了。
+                this->notify(NULL);
+            }
             threadSleep(2);
             continue;
         }
@@ -49,12 +53,12 @@ void DeocdeMyAudioThread::run(){
             //音频部分需要自己维护一个缓冲区，通过他自己回调的方式处理
             //size = 一个sample多少个字节 * 有多少个sample。
             myData->size = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) *
-                          aframe->nb_samples;
+                           aframe->nb_samples;
             myData->data = (char *) malloc(myData->size);
             memcpy(myData->data, play_audio_temp, myData->size);
             myData->isAudio = true;
             myData->pts = utils.getConvertPts(aframe->pts,
-                                       afc->streams[audioIndex]->time_base);
+                                              afc->streams[audioIndex]->time_base);
 
             this->notify(myData);
         }
@@ -62,12 +66,12 @@ void DeocdeMyAudioThread::run(){
 
 }
 
-void DeocdeMyAudioThread::clearQue(){
-    while(!isExit){
+void DeocdeMyAudioThread::clearQue() {
+    while (!isExit) {
 
-        if(!audioPktQue.empty()){
+        if (!audioPktQue.empty()) {
             AVPacket *pkt = audioPktQue.front();
-            if(pkt != NULL){
+            if (pkt != NULL) {
                 av_packet_free(&pkt);
             }
             audioPktQue.pop();
@@ -77,43 +81,50 @@ void DeocdeMyAudioThread::clearQue(){
     }
 }
 
-void DeocdeMyAudioThread::update(MyData *mydata){
-    if(!mydata->isAudio)return ;
+void DeocdeMyAudioThread::update(MyData *mydata) {
+
+    if(NULL == mydata){
+        //播放完毕
+//        LOGE(" audio play finish ");
+        finishFlag = true;
+        return ;
+    }
+    if (!mydata->isAudio)return;
 //    pthread_mutex_lock(&mutex_pthread);
-    while(!isExit){
+    while (!isExit) {
 //        LOGE(" AUDIO 阻塞 ");
-        if(pause){
+        if (pause) {
             //目前有两种暂停情况。用户手动暂停视频，和用户seek暂停视频。丢掉一帧问题不大，但是可以解决掉
             //暂停时可以阻塞的情况
             break;
         }
-            if(audioPktQue.size() < maxPackage){
-                audioPktQue.push(mydata->pkt);
-                break;
-            }
-            else{
-                threadSleep(2);
-            }
+        if (audioPktQue.size() < maxPackage) {
+            audioPktQue.push(mydata->pkt);
+            break;
+        } else {
+            threadSleep(2);
+        }
 
     }
 //    pthread_mutex_unlock(&mutex_pthread);
 
 }
 
-void DeocdeMyAudioThread::setQueue(queue<AVPacket *> aq){
-    for(int i = 0 ; i < aq.size() ; ++i){
+void DeocdeMyAudioThread::setQueue(queue<AVPacket *> aq) {
+    for (int i = 0; i < aq.size(); ++i) {
         audioPktQue.push(aq.front());
         aq.pop();
     }
 }
 
-DeocdeMyAudioThread::DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *afc  , int audioIndex  ){
+DeocdeMyAudioThread::DeocdeMyAudioThread(AVCodecContext *ac, AVFormatContext *afc, int audioIndex) {
+    finishFlag = false;
     maxPackage = 130;
     this->ac = ac;
     this->afc = afc;
     this->audioIndex = audioIndex;
     aframe = av_frame_alloc();
-    play_audio_temp = (uint8_t *)malloc(1024 * 2 * 1);
+    play_audio_temp = (uint8_t *) malloc(1024 * 2 * 1);
     //重采样
     swc = swr_alloc_set_opts(NULL,
                              av_get_default_channel_layout(1),
@@ -126,12 +137,12 @@ DeocdeMyAudioThread::DeocdeMyAudioThread( AVCodecContext *ac ,AVFormatContext *a
     }
 }
 
-DeocdeMyAudioThread::~DeocdeMyAudioThread(){
+DeocdeMyAudioThread::~DeocdeMyAudioThread() {
 
-    if(aframe != NULL){
+    if (aframe != NULL) {
         av_frame_free(&aframe);
     }
-    if(swc != NULL){
+    if (swc != NULL) {
         swr_free(&swc);
     }
 

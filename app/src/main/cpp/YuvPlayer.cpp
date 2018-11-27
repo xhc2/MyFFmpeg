@@ -115,7 +115,7 @@ int YuvPlayer::showYuv(uint8_t *buf_y, uint8_t *buf_u, uint8_t *buf_v) {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     //窗口显示
     eglSwapBuffers(display, winsurface);
-    ////纹理的修改和显示
+    //纹理的修改和显示
 
     return RESULT_SUCCESS;
 }

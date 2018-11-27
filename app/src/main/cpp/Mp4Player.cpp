@@ -256,11 +256,22 @@ void Mp4Player::pauseVA(){
     }
 }
 
+//获取的视频部分。如果音频的长度大于视频的长度，那么这个就不准确了。
 int Mp4Player::getProgress(){
-    if(audioPlayer == NULL || audioPlayer->pts == 0 || videoDuration == 0){
+    if(decodeVideo == NULL || videoDuration == 0){
         return 0;
     }
-    return (int)((float)audioPlayer->pts / (float)videoDuration * 100);
+    if(decodeVideo->pts == -100){
+        return -100;
+    }
+    if(audioPlayer != NULL){
+        if(audioPlayer->pts == -100){
+
+            return -100;
+        }
+    }
+
+    return (int)((float)decodeVideo->pts / (float)videoDuration * 100); //只看了视频部分
 }
 
 float Mp4Player::getDuration(){

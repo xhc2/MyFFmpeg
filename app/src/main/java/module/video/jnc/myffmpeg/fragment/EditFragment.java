@@ -49,6 +49,7 @@ public class EditFragment extends Fragment implements View.OnClickListener{
             case R.id.tv_video_joint:
                 //视频拼接
                 intent.putExtra("choise_num" , 3);
+                intent.putExtra("choise_min" , 2);
                 intent.putExtra("action" , "xhc.video.joint");
                 startActivity(intent);
                 break;

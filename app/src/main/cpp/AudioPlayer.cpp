@@ -8,6 +8,7 @@
 
 
 AudioPlayer::AudioPlayer(int simpleRate, int channel) {
+    finishFlag = false;
     this->simpleRate = simpleRate;
     this->channel = channel;
     playAudioTemp = (char *) malloc(1024 * 2 * channel);
@@ -60,6 +61,14 @@ void AudioPlayer::audioPlayDelay() {
 }
 
 void AudioPlayer::update(MyData *mydata) {
+    if (mydata == NULL) {
+        finishFlag = true;
+        LOGE(" audio player que.size %d ", audioFrameQue.size());
+        if (audioFrameQue.size() <= 0) {
+            pts = -100;
+        }
+        return;
+    }
     if (mydata->data == NULL || mydata->size <= 0 || !mydata->isAudio) {
         return;
     }
@@ -67,7 +76,6 @@ void AudioPlayer::update(MyData *mydata) {
         if (pause) {
             break;
         }
-
         if (audioFrameQue.size() < maxFrame) {
             audioFrameQue.push(mydata);
             break;
@@ -125,7 +133,11 @@ void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 //    }
 
     int size = ap->sonicRead->dealAudio(&ap->getBuf, ap->pts);
-
+//    LOGE(" AUDIO PLAY SIZE %d , finishflag %d" , size , ap->finishFlag);
+    if (size == -100 && ap->finishFlag) {
+        ap->pts = -100;
+        return;
+    }
 
     if (size > 0 && ap->getBuf != NULL) {
         (*bf)->Enqueue(bf, ap->getBuf, size);
@@ -199,11 +211,21 @@ int AudioPlayer::initAudio() {
 SLuint32 AudioPlayer::getSimpleRate(int sampleRate) {
 
     switch (sampleRate) {
+        case 8000:
+            return SL_SAMPLINGRATE_8;
+        case 11025:
+            return SL_SAMPLINGRATE_11_025;
+        case 12000:
+            return SL_SAMPLINGRATE_12;
+        case 16000:
+            return SL_SAMPLINGRATE_16;
         case 44100:
             return SL_SAMPLINGRATE_44_1;
         case 48000:
             return SL_SAMPLINGRATE_48;
-
+        default:
+            LOGE(" audio player getSimpleRate faild !");
+            break;
     }
 
     return SL_SAMPLINGRATE_48;
@@ -251,7 +273,7 @@ AudioPlayer::~AudioPlayer() {
     }
     LOGE("       (*player)->Destroy(player); ");
     if (player != NULL) {
-        //这里有啥问题
+        //当视频播放完毕，这里有点问题,会被阻塞掉
         (*player)->Destroy(player);
         player = NULL;
         iplayer = NULL;

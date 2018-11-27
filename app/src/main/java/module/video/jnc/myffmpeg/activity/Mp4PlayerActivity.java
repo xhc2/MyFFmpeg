@@ -49,7 +49,7 @@ import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
  * http://ffmpeg.org/doxygen/3.4/index.html
  */
 
-public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
+public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListener,
         AdapterView.OnItemClickListener, FFmpegUtils.Lis {
 
     private static final int PLAY = 1;
@@ -84,6 +84,11 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
                     }
                     break;
                 case 2:
+                    if(progress == -100){
+                        showToast("播放完成！");
+                        finish();
+                        break;
+                    }
                     setTime(progress);
                     seekBar.setProgress(progress);
                     break;
@@ -142,7 +147,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         findViewById(R.id.ib_more).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDialog();
+                /*showDialog();*/
             }
         });
 
@@ -307,7 +312,7 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
         tvSpeed.setText(speed + "X");
     }
 
-    private Dialog dialog;
+//    private Dialog dialog;
 
     private void getFileList() {
         File[] files = Constant.rootVideoFile.listFiles();
@@ -319,30 +324,30 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     }
 
 
-    private void createDialog() {
-        if (dialog == null) {
-            dialog = new Dialog(this, R.style.dialog);
-            dialog.setContentView(R.layout.dialog_listview_layout);
-            getFileList();
-            adater = new FileAdater();
-            ListView listView = dialog.findViewById(R.id.listview);
-            listView.setAdapter(adater);
-            listView.setOnItemClickListener(this);
-        }
-    }
+//    private void createDialog() {
+//        if (dialog == null) {
+//            dialog = new Dialog(this, R.style.dialog);
+//            dialog.setContentView(R.layout.dialog_listview_layout);
+//            getFileList();
+//            adater = new FileAdater();
+//            ListView listView = dialog.findViewById(R.id.listview);
+//            listView.setAdapter(adater);
+//            listView.setOnItemClickListener(this);
+//        }
+//    }
 
-    private void showDialog() {
-        createDialog();
-        if (!dialog.isShowing()) {
-            dialog.show();
-        }
-    }
+//    private void showDialog() {
+//        createDialog();
+//        if (!dialog.isShowing()) {
+//            dialog.show();
+//        }
+//    }
 
-    private void dismissDialog() {
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
-        }
-    }
+//    private void dismissDialog() {
+//        if (dialog != null && dialog.isShowing()) {
+//            dialog.dismiss();
+//        }
+//    }
 
     private void popWindowShow() {
         if (popupWindow == null) {
@@ -479,7 +484,6 @@ public class Mp4PlayerActivity extends Activity implements View.OnClickListener,
     protected void onResume() {
         super.onResume();
         myVideoGpuShow.onResume();
-
     }
 
     @Override
