@@ -83,6 +83,7 @@ public class FFmpegUtils {
 
     //视频拼接
     public static native void startJoint(String[] paths , String output  , int outWidth , int outHeight);
+    public static native int getJointProgress();
     public static native void destroyJoint();
 
 

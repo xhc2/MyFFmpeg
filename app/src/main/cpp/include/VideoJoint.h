@@ -71,6 +71,8 @@ private :
     int nbSample ;
 
     int64_t apts , vpts;
+    int64_t lastVideoPts  ;
+
 
     uint8_t *audioOutBuffer;
     AVRational timeBaseFFmpeg;
@@ -80,6 +82,10 @@ private :
 
     int audioQueMax ;
     int videoQueMax ;
+
+    int maxProgressPerVideo;
+    int progress;
+    int decodePosition;
 
     AVAudioFifo *audioFifo;
 
@@ -102,10 +108,11 @@ private :
     AVFrame *getAudioFrame(uint8_t *data , int size);
     void destroyOther();
     void clearAllQue();
-
+    void setProgress();
 public :
     VideoJoint(vector <char *> inputPath ,   const char *output , int outWidth , int outHeight);
     void startJoint();
+    int getProgress();
     int initInput(char *path);
     void destroyInput();
     void destroyOutput();

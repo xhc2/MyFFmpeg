@@ -75,19 +75,6 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         findViewById();
         init();
 
-//        findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-////                FFmpegUtils.getCurrentBitmp(listPath.get(0), 8.5f, 300, 300);
-//                FFmpegUtils.getCurrentBitmp( startTime , buffer);
-//                try {
-//
-//                    img.setImageBitmap(BitmapFactory.decodeByteArray(buffer , 0 , buffer.length));
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
     }
 
     private void findViewById() {

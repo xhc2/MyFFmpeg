@@ -453,6 +453,16 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startJoint(JNIEnv *env, jclass type, 
     vj->startJoint();
     env->ReleaseStringUTFChars(output_, output);
 }
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getJointProgress(JNIEnv *env, jclass type) {
+
+    // TODO
+    if(vj != NULL){
+        return vj->getProgress();
+    }
+    return -1;
+}
 
 extern "C"
 JNIEXPORT void JNICALL

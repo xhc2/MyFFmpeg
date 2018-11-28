@@ -101,7 +101,6 @@ void NewAudioPlayer::audioPlayDelay() {
 
 void audioPlayCallBack2(SLAndroidSimpleBufferQueueItf bf, void *context) {
     NewAudioPlayer *ap = (NewAudioPlayer *) context;
-    LOGE("   audioPlayCallBack2   ");
     int size = ap->sonicRead->dealAudio(&ap->getBuf, ap->pts);
     if(ap->getBuf == NULL){
         return ;
@@ -213,7 +212,7 @@ void NewAudioPlayer::createBufferQueueAudioPlayer() {
 void NewAudioPlayer::update(MyData *mydata) {
     if (mydata == NULL) {
         finishFlag = true;
-        LOGE(" audio player que.size %d ", audioFrameQue.size());
+//        LOGE(" audio player que.size %d ", audioFrameQue.size());
         if (audioFrameQue.size() <= 0) {
             pts = -100;
         }

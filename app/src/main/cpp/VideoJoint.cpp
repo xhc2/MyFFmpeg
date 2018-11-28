@@ -30,16 +30,16 @@ VideoJoint::VideoJoint(vector<char *> inputPath, const char *output, int outWidt
     initValue();
 }
 
-void VideoJoint::destroyAudioFifo(){
-    if(audioFifo != NULL){
+void VideoJoint::destroyAudioFifo() {
+    if (audioFifo != NULL) {
         av_audio_fifo_free(audioFifo);
         audioFifo = NULL;
     }
 }
 
-void VideoJoint::allocAudioFifo(AVSampleFormat sample_fmt  ,  int channels, int nb_samples){
-    if(audioFifo == NULL){
-        audioFifo = av_audio_fifo_alloc(sample_fmt ,channels , nb_samples);
+void VideoJoint::allocAudioFifo(AVSampleFormat sample_fmt, int channels, int nb_samples) {
+    if (audioFifo == NULL) {
+        audioFifo = av_audio_fifo_alloc(sample_fmt, channels, nb_samples);
     }
 };
 
@@ -47,6 +47,9 @@ void VideoJoint::allocAudioFifo(AVSampleFormat sample_fmt  ,  int channels, int 
 void VideoJoint::initValue() {
     videoIndexInput = -1;
     audioIndexInput = -1;
+    progress = 0;
+    decodePosition = 0;
+    lastVideoPts = 0;
     videoCodecD = NULL;
     videoCodecE = NULL;
     audioCodecE = NULL;
@@ -63,7 +66,7 @@ void VideoJoint::initValue() {
     sws = NULL;
     swc = NULL;
 
-    audioFifo = NULL ;
+    audioFifo = NULL;
     sampleRate = 44100;
     sampleFormat = AV_SAMPLE_FMT_FLTP;
     outChannelLayout = AV_CH_LAYOUT_MONO;
@@ -79,12 +82,14 @@ void VideoJoint::initValue() {
     videoFrameCount = 0;
     outFrameRate = 25;
 
-    AVRational sampleRateAv = (AVRational){ sampleRate , 1 };
-    aCalDuration = (double)(AV_TIME_BASE) * (1 / av_q2d(sampleRateAv));
-    vCalDuration = (double)(AV_TIME_BASE) * (1 / av_q2d((AVRational){ outFrameRate , 1 }));
+    maxProgressPerVideo = (int) ((float) 100 / inputPaths.size());
+
+    AVRational sampleRateAv = (AVRational) {sampleRate, 1};
+    aCalDuration = (double) (AV_TIME_BASE) * (1 / av_q2d(sampleRateAv));
+    vCalDuration = (double) (AV_TIME_BASE) * (1 / av_q2d((AVRational) {outFrameRate, 1}));
     readEnd = false;
     decodeEnd = false;
-    timeBaseFFmpeg = (AVRational){ 1, AV_TIME_BASE };
+    timeBaseFFmpeg = (AVRational) {1, AV_TIME_BASE};
     apts = 0;
     vpts = 0;
 }
@@ -150,44 +155,48 @@ void VideoJoint::startJoint() {
         LOGE(" init output faild !");
         return;
     }
-    for (int i = 0 ; i < inputPaths.size() && !isExit ; ++i) {
+    for (int i = 0; i < inputPaths.size() && !isExit; ++i) {
+        decodePosition = i;
         destroyInput();
         LOGE(" \n\n\n\n\n\n\n\nINPUT path %s \n\n\n\n\n\n\n\n", inputPaths.at(i));
         result = initInput(inputPaths.at(i));
         if (result < 0) {
+            progress = -1;
             LOGE(" initinput faild !");
             return;
         }
         startDecode();
-        while(true){
+        while (true) {
             //等待清空缓存，不然后面的视频会少帧
-            if(audioQue.size() > 0 && videoQue.size() > 0){
+            if (audioQue.size() > 0 && videoQue.size() > 0) {
+                threadSleep(2);
                 continue;
             } else break;
         }
+        lastVideoPts = vpts;
         LOGE("\n\n\n\n\n\n CLEAR ALL QUEQUE \n\n\n\n\n\n");
         clearAllQue();
         //test
-        break;
+//        break;
     }
-
+    progress = 100;
     readEnd = true;
 }
 
 void VideoJoint::run() {
     int result = 0;
-    while(!isExit){
+    while (!isExit) {
 
-        if(this->pause || audioOutStream == NULL || videoOutStream == NULL){
+        if (this->pause || audioOutStream == NULL || videoOutStream == NULL) {
             threadSleep(2);
             continue;
         }
 
         pthread_mutex_lock(&mutex_pthread);
         LOGE(" videoQue %d ， audioQue %d  " , videoQue.size() , audioQue.size());
-        if(audioQue.size() <= 0 || videoQue.size() <= 0){
+        if (audioQue.size() <= 0 || videoQue.size() <= 0) {
             pthread_mutex_unlock(&mutex_pthread);
-            if(readEnd){
+            if (readEnd) {
                 break;
             }
             continue;
@@ -196,21 +205,21 @@ void VideoJoint::run() {
         AVPacket *aPkt = audioQue.front();
         AVPacket *vPkt = videoQue.front();
         pthread_mutex_unlock(&mutex_pthread);
-        LOGE(" apts %lld , vpts %lld " , apts , vpts);
-        if(av_compare_ts(apts, audioOutStream->time_base , vpts , videoOutStream->time_base) < 0){
+//        LOGE(" apts %lld , vpts %lld ", apts, vpts);
+        if (av_compare_ts(apts, audioOutStream->time_base, vpts, videoOutStream->time_base) < 0) {
             apts = aPkt->pts;
-            result = av_interleaved_write_frame(afc_output ,aPkt );
-            if(result < 0){
-                LOGE(" audio av_interleaved_write_frame faild ! %s " , av_err2str(result));
+            result = av_interleaved_write_frame(afc_output, aPkt);
+            if (result < 0) {
+                LOGE(" audio av_interleaved_write_frame faild ! %s ", av_err2str(result));
             }
             av_packet_free(&aPkt);
             audioQue.pop();
-        }
-        else{
+        } else {
             vpts = vPkt->pts;
-            result = av_interleaved_write_frame(afc_output ,vPkt );
+            result = av_interleaved_write_frame(afc_output, vPkt);
+            setProgress();
 
-            if(result < 0){
+            if (result < 0) {
                 LOGE(" video av_interleaved_write_frame faild ! %s", av_err2str(result));
             }
             av_packet_free(&vPkt);
@@ -220,6 +229,32 @@ void VideoJoint::run() {
     LOGE("+++++++++++++++++++++++++++++++++++++ ALL END +++++++++++++++++++++++++++++++++++++");
     av_write_trailer(afc_output);
 }
+
+/**
+ * 获取进度
+ * 1.如果有两个视频合并。那么每一个视频的maxProgress = 50
+ * @return
+ */
+int VideoJoint::getProgress() {
+
+    return progress;
+}
+
+void VideoJoint::setProgress() {
+
+    int64_t tempPts = av_rescale_q_rnd((vpts - lastVideoPts), videoOutStream->time_base,
+                                       timeBaseFFmpeg,
+                                       AV_ROUND_NEAR_INF);
+
+    progress = (int) ((float) tempPts / afc_input->duration * maxProgressPerVideo) +
+               decodePosition * maxProgressPerVideo;
+    LOGE(" RESULT %f  ， tempPts %lld ， duration %lld , progress %d ", (tempPts * 1.0f / afc_input->duration),
+         tempPts, afc_input->duration , progress);
+//    LOGE(" RESULT %d" , ((int) (  tempPts * 1.0f / afc_input->duration * maxProgressPerVideo)));
+//    LOGE(" progress %d  , tempPts %lld , duration %lld  , maxProgressPerVideo %d ",
+//         progress, tempPts, afc_input->duration , maxProgressPerVideo);
+}
+
 
 AVFrame *VideoJoint::deocdePacket(AVPacket *packet, AVCodecContext *decode) {
 
@@ -244,16 +279,16 @@ AVFrame *VideoJoint::deocdePacket(AVPacket *packet, AVCodecContext *decode) {
 
 
 AVPacket *VideoJoint::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
-    if(frame == NULL || encode == NULL){
+    if (frame == NULL || encode == NULL) {
         return NULL;
     }
     int result = 0;
     result = avcodec_send_frame(encode, frame);
     if (result < 0) {
-        if (!avcodec_is_open(encode) ){
+        if (!avcodec_is_open(encode)) {
             LOGE(" avcodec_is_open ");
         }
-        if(!av_codec_is_encoder(encode->codec)){
+        if (!av_codec_is_encoder(encode->codec)) {
             LOGE(" av_codec_is_encoder ");
         }
         LOGE(" avcodec_send_frame faild ! %s ", av_err2str(result));
@@ -273,18 +308,18 @@ AVPacket *VideoJoint::encodeFrame(AVFrame *frame, AVCodecContext *encode) {
     return NULL;
 }
 
-AVFrame* VideoJoint::getAudioFrame(uint8_t *data , int size){
-    AVFrame* frame = av_frame_alloc();
+AVFrame *VideoJoint::getAudioFrame(uint8_t *data, int size) {
+    AVFrame *frame = av_frame_alloc();
     frame->nb_samples = aCtxE->frame_size;
     frame->format = sampleFormat;
     frame->channels = channel;
     frame->channel_layout = outChannelLayout;
-    int result = av_frame_get_buffer(frame , 0);
-    if(result < 0){
-        LOGE(" av_frame_get_buffer FAILD ! %s " , av_err2str(result));
+    int result = av_frame_get_buffer(frame, 0);
+    if (result < 0) {
+        LOGE(" av_frame_get_buffer FAILD ! %s ", av_err2str(result));
         return NULL;
     }
-    memcpy(frame->data[0] , data , size);
+    memcpy(frame->data[0], data, size);
     frame->pts = audioSampleCount * aCalDuration;
     return frame;
 }
@@ -294,9 +329,10 @@ void VideoJoint::startDecode() {
     decodeEnd = false;
     int result = 0;
     AVPacket *pkt = av_packet_alloc();
-    uint8_t *audioBuffer = (uint8_t *)malloc(aCtxE->frame_size * av_get_bytes_per_sample(sampleFormat));
+    uint8_t *audioBuffer = (uint8_t *) malloc(
+            aCtxE->frame_size * av_get_bytes_per_sample(sampleFormat));
     while (!isExit) {
-        if(audioQue.size() > audioQueMax || videoQue.size() > videoQueMax){
+        if (audioQue.size() > audioQueMax || videoQue.size() > videoQueMax) {
             threadSleep(2);
             continue;
         }
@@ -318,7 +354,7 @@ void VideoJoint::startDecode() {
                 AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
                 if (vPkt != NULL) {
                     //放入队列
-                    av_packet_rescale_ts(vPkt , timeBaseFFmpeg , videoOutStream->time_base);
+                    av_packet_rescale_ts(vPkt, timeBaseFFmpeg, videoOutStream->time_base);
                     vPkt->stream_index = videoIndexOutput;
                     videoQue.push(vPkt);
                 }
@@ -326,27 +362,27 @@ void VideoJoint::startDecode() {
         } else if (pkt->stream_index == audioIndexInput) {
             frame = deocdePacket(pkt, aCtxD);
             if (frame != NULL) {
-                result = swr_convert(swc, &audioOutBuffer, nbSample ,
+                result = swr_convert(swc, &audioOutBuffer, nbSample,
                                      (const uint8_t **) frame->data, frame->nb_samples);
                 av_frame_free(&frame);
                 if (result < 0) {
                     LOGE(" swr_convert faild ! %s  ", av_err2str(result));
                     continue;
                 }
-                memcpy(audioBuffer , audioOutBuffer , result * av_get_bytes_per_sample(sampleFormat) );
-                av_audio_fifo_write(audioFifo , (void **)&audioBuffer , result);
+                memcpy(audioBuffer, audioOutBuffer, result * av_get_bytes_per_sample(sampleFormat));
+                av_audio_fifo_write(audioFifo, (void **) &audioBuffer, result);
                 result = av_audio_fifo_size(audioFifo);
-                if(result < aCtxE->frame_size){
+                if (result < aCtxE->frame_size) {
                     continue;
                 }
-                result = av_audio_fifo_read(audioFifo , (void **)&audioBuffer , aCtxE->frame_size);
+                result = av_audio_fifo_read(audioFifo, (void **) &audioBuffer, aCtxE->frame_size);
                 int dataSize = result * av_get_bytes_per_sample(sampleFormat);
-                if(result != aCtxE->frame_size){
+                if (result != aCtxE->frame_size) {
                     LOGE(" av_audio_fifo_read FAILD ! ");
                     continue;
                 }
-                outAFrame = getAudioFrame(audioBuffer , dataSize);
-                if(outAFrame == NULL){
+                outAFrame = getAudioFrame(audioBuffer, dataSize);
+                if (outAFrame == NULL) {
                     continue;
                 }
                 audioSampleCount += aCtxE->frame_size;
@@ -354,7 +390,7 @@ void VideoJoint::startDecode() {
                 av_frame_free(&outAFrame);
                 if (aPkt != NULL) {
                     //放入队列
-                    av_packet_rescale_ts(aPkt ,timeBaseFFmpeg, audioOutStream->time_base );
+                    av_packet_rescale_ts(aPkt, timeBaseFFmpeg, audioOutStream->time_base);
                     aPkt->stream_index = audioIndexOutput;
                     audioQue.push(aPkt);
                 }
@@ -366,8 +402,6 @@ void VideoJoint::startDecode() {
     decodeEnd = true;
     LOGE(" .........................read end .................. !");
 }
-
-
 
 
 int VideoJoint::initInput(char *path) {
@@ -572,14 +606,14 @@ int VideoJoint::addAudioOutputStream() {
         return -1;
     }
 
-    LOGE(" afot->audio_codec   %d " , afot->audio_codec );
+    LOGE(" afot->audio_codec   %d ", afot->audio_codec);
 
     audioCodecE = avcodec_find_encoder(afot->audio_codec);
     if (audioCodecE == NULL) {
         LOGE(" audioCodecE NULL ");
         return -1;
     }
-    LOGE("AUDIO CODEC NAME %s " , audioCodecE->name);
+    LOGE("AUDIO CODEC NAME %s ", audioCodecE->name);
     aCtxE = avcodec_alloc_context3(audioCodecE);
 
     if (aCtxE == NULL) {
@@ -588,12 +622,12 @@ int VideoJoint::addAudioOutputStream() {
     }
     sampleFormat = AV_SAMPLE_FMT_S16;
     aCtxE->bit_rate = 64000;
-    aCtxE->sample_fmt =  sampleFormat;
+    aCtxE->sample_fmt = sampleFormat;
     aCtxE->sample_rate = sampleRate;
     aCtxE->channel_layout = outChannelLayout;
     aCtxE->channels = channel;
     aCtxE->time_base = (AVRational) {1, sampleRate};
-    aCtxE->codec_type = AVMEDIA_TYPE_AUDIO ;
+    aCtxE->codec_type = AVMEDIA_TYPE_AUDIO;
     audioOutStream->time_base = aCtxE->time_base;
 
     result = avcodec_parameters_from_context(audioOutStream->codecpar, aCtxE);
@@ -608,9 +642,9 @@ int VideoJoint::addAudioOutputStream() {
     }
 
     destroyAudioFifo();
-    allocAudioFifo(sampleFormat , channel , aCtxE->frame_size * 2);
+    allocAudioFifo(sampleFormat, channel, aCtxE->frame_size * 2);
 
-    LOGE(" INIT OUTPUT SUCCESS AUDIO  ! aCtxE->Frame.size %d " , aCtxE->frame_size);
+    LOGE(" INIT OUTPUT SUCCESS AUDIO  ! aCtxE->Frame.size %d ", aCtxE->frame_size);
     return 1;
 }
 
@@ -642,14 +676,14 @@ void VideoJoint::destroyOutput() {
         avformat_free_context(afc_output);
         afc_output = NULL;
     }
-    if(audioOutBuffer != NULL){
+    if (audioOutBuffer != NULL) {
         free(audioOutBuffer);
         audioOutBuffer = NULL;
     }
-    if(outVFrame != NULL){
+    if (outVFrame != NULL) {
         av_frame_free(&outVFrame);
     }
-    if(outAFrame != NULL){
+    if (outAFrame != NULL) {
         av_frame_free(&outAFrame);
     }
     destroyAudioFifo();
@@ -658,14 +692,14 @@ void VideoJoint::destroyOutput() {
 
 }
 
-void VideoJoint::clearAllQue(){
+void VideoJoint::clearAllQue() {
     pthread_mutex_lock(&mutex_pthread);
-    for(int i = 0 ; i < audioQue.size() ; ++i){
+    for (int i = 0; i < audioQue.size(); ++i) {
         AVPacket *pkt = audioQue.front();
         av_packet_free(&pkt);
         audioQue.pop();
     }
-    for(int i = 0 ; i < videoQue.size() ; ++i){
+    for (int i = 0; i < videoQue.size(); ++i) {
         AVPacket *pkt = videoQue.front();
         av_packet_free(&pkt);
         videoQue.pop();
@@ -673,11 +707,11 @@ void VideoJoint::clearAllQue(){
     pthread_mutex_unlock(&mutex_pthread);
 }
 
-void VideoJoint::destroyOther(){
+void VideoJoint::destroyOther() {
     apts = 0;
     vpts = 0;
     free(this->outPath);
-    for(int i = 0 ; i < inputPaths.size() ; ++i){
+    for (int i = 0; i < inputPaths.size(); ++i) {
         free(inputPaths.at(i));
     }
     inputPaths.clear();
@@ -686,8 +720,8 @@ void VideoJoint::destroyOther(){
 
 VideoJoint::~VideoJoint() {
     this->stop();
-    while(true){
-        if(decodeEnd){
+    while (true) {
+        if (decodeEnd) {
             break;
         }
     }

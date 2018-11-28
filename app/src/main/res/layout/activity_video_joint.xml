@@ -8,12 +8,19 @@
     android:gravity="center_horizontal"
     tools:context=".activity.VideoJointActivity">
 
+
+
     <module.video.jnc.myffmpeg.widget.TitleBar
         android:id="@+id/title"
         style="@style/title_bar"
         app:title_text="视频拼接"
         app:right_text="确定"/>
-
+    <TextView
+        android:text="生成路径 sdcard/FFmpeg/videojoint.flv"
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:textColor="#4444BB"
+        android:layout_height="wrap_content" />
     <module.video.jnc.myffmpeg.MyVideoGpuShow
         android:id="@+id/play_gl_surfaceview"
         android:layout_width="320dp"
