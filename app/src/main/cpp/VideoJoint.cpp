@@ -166,18 +166,13 @@ void VideoJoint::startJoint() {
             return;
         }
         startDecode();
-        while (true) {
+        while (audioQue.size() > 0 && videoQue.size() > 0) {
             //等待清空缓存，不然后面的视频会少帧
-            if (audioQue.size() > 0 && videoQue.size() > 0) {
-                threadSleep(2);
-                continue;
-            } else break;
+            threadSleep(2);
         }
         lastVideoPts = vpts;
-        LOGE("\n\n\n\n\n\n CLEAR ALL QUEQUE \n\n\n\n\n\n");
         clearAllQue();
-        //test
-//        break;
+        LOGE("\n\n\n\n\n\n CLEAR ALL QUEQUE \n\n\n\n\n\n");
     }
     progress = 100;
     readEnd = true;
@@ -694,16 +689,23 @@ void VideoJoint::destroyOutput() {
 
 void VideoJoint::clearAllQue() {
     pthread_mutex_lock(&mutex_pthread);
-    for (int i = 0; i < audioQue.size(); ++i) {
+//    for (int i = 0; i < audioQue.size(); ++i) {
+//        AVPacket *pkt = audioQue.front();
+//        av_packet_free(&pkt);
+//        audioQue.pop();
+//    }
+    while(!audioQue.empty()){
         AVPacket *pkt = audioQue.front();
         av_packet_free(&pkt);
         audioQue.pop();
     }
-    for (int i = 0; i < videoQue.size(); ++i) {
+    while(!videoQue.empty()){
         AVPacket *pkt = videoQue.front();
         av_packet_free(&pkt);
         videoQue.pop();
     }
+
+    LOGE(" \n\n\n\n\n\n CLEAR CLEAR ALL QUE video %d , audio %d \n\n\n\n\n\n " ,videoQue.size() ,audioQue.size()  );
     pthread_mutex_unlock(&mutex_pthread);
 }
 
