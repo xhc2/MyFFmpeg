@@ -35,9 +35,19 @@ private :
     int createOpenSL();
     int createAudioPlayer();
     int createMix();
+
+    int sonicFlush();
+    void seekStart();
+    void seekFinish();
 public :
     std::queue<MyData *> audioFrameQue;
+    int64_t pts;
+    short *getBuf;
+    SonicRead *sonicRead;
+    bool finishFlag ;
     char *playAudioTemp;
+
+
     void pauseAudio();
     void playAudio();
     AudioPlayer(int simpleRate , int channel);
@@ -45,14 +55,9 @@ public :
     void changeSpeed(float speed);
     void update(MyData *mydata);
     void run();
-    int sonicFlush();
-    void seekStart();
-    void seekFinish();
-    int64_t pts;
-    short *getBuf;
-    SonicRead *sonicRead;
     void clearQue();
-    bool finishFlag ;
+
+
 };
 
 #endif //MYFFMPEG_AUDIOPLAYER_H

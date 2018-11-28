@@ -39,6 +39,8 @@ add_library( my_ffmpeg
             src/main/cpp/VideoRunBack.cpp
             src/main/cpp/CurrentTimeBitmap.cpp
             src/main/cpp/my_open_sl_test.cpp
+            src/main/cpp/NewAudioPlayer.cpp
+
             )
 
 

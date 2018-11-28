@@ -9,14 +9,13 @@
 
 AudioPlayer::AudioPlayer(int simpleRate, int channel) {
     finishFlag = false;
-    outputMixEnvironmentalReverb = NULL ;
 //    reverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
     this->simpleRate = simpleRate;
     this->channel = channel;
     playAudioTemp = (char *) malloc(1024 * 2 * channel);
     maxFrame = 140;
     pts = 0;
-    sonicRead = new SonicRead(simpleRate, channel, 1.0f, &audioFrameQue, &mutex_pthread);
+    sonicRead = new SonicRead(simpleRate, channel, 1.0f, &audioFrameQue );
     initAudio();
 }
 
@@ -76,6 +75,7 @@ void AudioPlayer::update(MyData *mydata) {
     }
     while (!isExit) {
         if (pause) {
+            mydata->drop();
             break;
         }
         if (audioFrameQue.size() < maxFrame) {
@@ -136,10 +136,10 @@ void audioPlayerCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     int size = ap->sonicRead->dealAudio(&ap->getBuf, ap->pts);
 //    LOGE(" AUDIO PLAY SIZE %d , finishflag %d" , size , ap->finishFlag);
-    if (size == -100 && ap->finishFlag) {
-        ap->pts = -100;
-        return;
-    }
+//    if (size == -100 && ap->finishFlag) {
+//        ap->pts = -100;
+//        return;
+//    }
 
     if (size > 0 && ap->getBuf != NULL) {
         (*bf)->Enqueue(bf, ap->getBuf, size);
@@ -229,7 +229,11 @@ int AudioPlayer::createMix() {
     }
     re = (*mix)->GetInterface(mix, SL_IID_ENVIRONMENTALREVERB,
                                               &outputMixEnvironmentalReverb);
-
+    LOGE(" RESULT %d " , re);
+    if (re != SL_RESULT_SUCCESS) {
+        LOGE(" (*mix)->GetInterface(mix) FAILD ");
+        return RESULT_FAILD;
+    }
     if (SL_RESULT_SUCCESS == re) {
         SLEnvironmentalReverbSettings reverbSettings  = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
         re = (*outputMixEnvironmentalReverb)->SetEnvironmentalReverbProperties(
@@ -309,17 +313,19 @@ int AudioPlayer::createOpenSL() {
 
 
 AudioPlayer::~AudioPlayer() {
-    LOGE(" AudioPlayer destory ! start ");
 
     pts = 0;
-    LOGE(" SetPlayState start ");
-//    if (iplayer && (*iplayer)) {
-//        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
-//    }
-    LOGE("    (*pcmQue)->Clear(pcmQue); ");
-//    if (pcmQue != NULL) {
-//        (*pcmQue)->Clear(pcmQue);
-//    }
+    if (iplayer && (*iplayer)) {
+        (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_STOPPED);
+    }
+    if (pcmQue != NULL) {
+        (*pcmQue)->Clear(pcmQue);
+    }
+    LOGE("      delete sonicRead; ");
+    if (sonicRead != NULL) {
+        delete sonicRead;
+    }
+
     LOGE("       (*player)->Destroy(player); ");
     if (player != NULL) {
         //当视频播放完毕，这里有点问题,会被阻塞掉
@@ -339,12 +345,9 @@ AudioPlayer::~AudioPlayer() {
         engineOpenSL = NULL;
         eng = NULL;
     }
-    LOGE("      delete sonicRead; ");
-    if (sonicRead != NULL) {
-        delete sonicRead;
-    }
+
     if (playAudioTemp != NULL) {
         free(playAudioTemp);
     }
-    LOGE("AudioPlayer destory ! ");
+    LOGE(" AudioPlayer destory success ! ");
 }

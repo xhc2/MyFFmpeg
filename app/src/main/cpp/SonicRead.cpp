@@ -6,8 +6,7 @@
 #include <my_log.h>
 #include "unistd.h"
 
-SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *audioFrameQue , pthread_mutex_t *mutex_pthread) {
-    this->mutex_pthread = mutex_pthread;
+SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *audioFrameQue ) {
     tempoStream = sonicCreateStream(samplerate, channel);
     this->sampleRate = samplerate ;
     this->channel = channel;
@@ -20,7 +19,6 @@ SonicRead::SonicRead(int samplerate, int channel, float speed, queue<MyData *> *
     playAudioBuffer = (short *) malloc(putBufferSize);
     getAudioBuffer = (short *) malloc(getBufferSize);
     isExit = false;
-//    filePcm = fopen("sdcard/FFmpeg/filepcm.pcm" , "wb+");
 }
 
 void SonicRead::changeSpeed(float speed){
@@ -29,6 +27,7 @@ void SonicRead::changeSpeed(float speed){
 
 int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
     while (!isExit) {
+        LOGE(" dealAudio ");
         if (audioFrameQue->empty()) {
             if(sonicFlush() <= 0){
                 break;
@@ -108,6 +107,7 @@ void SonicRead::createSonicRead(){
     sonicSetRate(tempoStream, 1.0);
 }
 SonicRead::~SonicRead() {
+    isExit = true;
     if(playAudioBuffer != NULL){
         free(playAudioBuffer);
     }

@@ -19,6 +19,7 @@
 #include <VideoRunBack.h>
 #include <CurrentTimeBitmap.h>
 #include <my_open_sl_test.h>
+#include <NewAudioPlayer.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -527,16 +528,20 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass t
     return time;
 }
 //test
-AudioPlayer *a = NULL;
+NewAudioPlayer *a = NULL;
+// AudioPlayer  *a = NULL;
+FILE *file ;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
 //    createEngine();
 //    createBufferQueueAudioPlayer();
 //    startPlayTest();
-    FILE *file = fopen("sdcard/FFmpeg/test_2c_441_16.pcm", "r");
+    file = fopen("sdcard/FFmpeg/test_2c_441_16.pcm", "r");
     fseek(file , -2048 * 500 , SEEK_END );
-    a = new AudioPlayer(44100, 2);
+    a = new NewAudioPlayer(44100 , 2);
+//    a = new AudioPlayer(44100 , 2);
+    a->changeSpeed(1.0f);
     a->start();
     while (true) {
         char *temp = (char *) malloc(2048);
@@ -558,7 +563,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
-
+    fclose(file);
     delete a;
     LOGE(" DELETE AUDIO PLAYER ");
     return 1;
