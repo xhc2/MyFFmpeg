@@ -319,6 +319,9 @@ AVFrame *VideoJoint::getAudioFrame(uint8_t *data, int size) {
     return frame;
 }
 
+/**
+ * 这里有可能是音频的2声道重采样成1声道，采样个数减少。然后视频有延后
+ */
 void VideoJoint::startDecode() {
     //开始解码
     decodeEnd = false;
@@ -689,11 +692,6 @@ void VideoJoint::destroyOutput() {
 
 void VideoJoint::clearAllQue() {
     pthread_mutex_lock(&mutex_pthread);
-//    for (int i = 0; i < audioQue.size(); ++i) {
-//        AVPacket *pkt = audioQue.front();
-//        av_packet_free(&pkt);
-//        audioQue.pop();
-//    }
     while(!audioQue.empty()){
         AVPacket *pkt = audioQue.front();
         av_packet_free(&pkt);
