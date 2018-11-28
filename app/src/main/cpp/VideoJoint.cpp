@@ -188,7 +188,7 @@ void VideoJoint::run() {
         }
 
         pthread_mutex_lock(&mutex_pthread);
-        LOGE(" videoQue %d ， audioQue %d  " , videoQue.size() , audioQue.size());
+        LOGE(" videoQue %d ， audioQue %d  ", videoQue.size(), audioQue.size());
         if (audioQue.size() <= 0 || videoQue.size() <= 0) {
             pthread_mutex_unlock(&mutex_pthread);
             if (readEnd) {
@@ -243,13 +243,14 @@ void VideoJoint::setProgress() {
 
     progress = (int) ((float) tempPts / afc_input->duration * maxProgressPerVideo) +
                decodePosition * maxProgressPerVideo;
-    if(progress > 0){
+    if (progress > 0) {
         //progress 避免直接生成100。100是作为所有完成的标志
-        progress --;
+        progress--;
 
     }
-    LOGE(" RESULT %f  ， tempPts %lld ， duration %lld , progress %d ", (tempPts * 1.0f / afc_input->duration),
-         tempPts, afc_input->duration , progress);
+    LOGE(" RESULT %f  ， tempPts %lld ， duration %lld , progress %d ",
+         (tempPts * 1.0f / afc_input->duration),
+         tempPts, afc_input->duration, progress);
 }
 
 
@@ -694,18 +695,19 @@ void VideoJoint::destroyOutput() {
 
 void VideoJoint::clearAllQue() {
     pthread_mutex_lock(&mutex_pthread);
-    while(!audioQue.empty()){
+    while (!audioQue.empty()) {
         AVPacket *pkt = audioQue.front();
         av_packet_free(&pkt);
         audioQue.pop();
     }
-    while(!videoQue.empty()){
+    while (!videoQue.empty()) {
         AVPacket *pkt = videoQue.front();
         av_packet_free(&pkt);
         videoQue.pop();
     }
 
-    LOGE(" \n\n\n\n\n\n CLEAR CLEAR ALL QUE video %d , audio %d \n\n\n\n\n\n " ,videoQue.size() ,audioQue.size()  );
+    LOGE(" \n\n\n\n\n\n CLEAR CLEAR ALL QUE video %d , audio %d \n\n\n\n\n\n ", videoQue.size(),
+         audioQue.size());
     pthread_mutex_unlock(&mutex_pthread);
 }
 
@@ -722,10 +724,9 @@ void VideoJoint::destroyOther() {
 
 VideoJoint::~VideoJoint() {
     this->stop();
-    while (true) {
-        if (decodeEnd) {
-            break;
-        }
+    while (!decodeEnd) {
+        //让解码部分执行完毕。
+        break;
     }
     destroyOther();
     join();
