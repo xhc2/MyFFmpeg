@@ -243,11 +243,13 @@ void VideoJoint::setProgress() {
 
     progress = (int) ((float) tempPts / afc_input->duration * maxProgressPerVideo) +
                decodePosition * maxProgressPerVideo;
+    if(progress > 0){
+        //progress 避免直接生成100。100是作为所有完成的标志
+        progress --;
+
+    }
     LOGE(" RESULT %f  ， tempPts %lld ， duration %lld , progress %d ", (tempPts * 1.0f / afc_input->duration),
          tempPts, afc_input->duration , progress);
-//    LOGE(" RESULT %d" , ((int) (  tempPts * 1.0f / afc_input->duration * maxProgressPerVideo)));
-//    LOGE(" progress %d  , tempPts %lld , duration %lld  , maxProgressPerVideo %d ",
-//         progress, tempPts, afc_input->duration , maxProgressPerVideo);
 }
 
 
