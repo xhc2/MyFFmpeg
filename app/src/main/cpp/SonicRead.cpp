@@ -27,7 +27,6 @@ void SonicRead::changeSpeed(float speed){
 
 int SonicRead::dealAudio(short **getBuf , int64_t &pts) {
     while (!isExit) {
-        LOGE(" dealAudio ");
         if (audioFrameQue->empty()) {
             if(sonicFlush() <= 0){
                 break;
@@ -95,17 +94,17 @@ int SonicRead::reciveSample(short *getBuf, int lenByte) {
     return bytesRead;
 }
 
-void SonicRead::destroySonicRead(){
-    sonicDestroyStream(tempoStream);
-    tempoStream = NULL;
-}
-void SonicRead::createSonicRead(){
-    tempoStream = sonicCreateStream(sampleRate, channel);
-    LOGE(" SONIC CREATE SUCCESS ? %d " , (tempoStream == NULL));
-    sonicSetSpeed(tempoStream, 1.0);
-    sonicSetPitch(tempoStream, 1.0);
-    sonicSetRate(tempoStream, 1.0);
-}
+//void SonicRead::destroySonicRead(){
+//    sonicDestroyStream(tempoStream);
+//    tempoStream = NULL;
+//}
+//void SonicRead::createSonicRead(){
+//    tempoStream = sonicCreateStream(sampleRate, channel);
+//    LOGE(" SONIC CREATE SUCCESS ? %d " , (tempoStream == NULL));
+//    sonicSetSpeed(tempoStream, 1.0);
+//    sonicSetPitch(tempoStream, 1.0);
+//    sonicSetRate(tempoStream, 1.0);
+//}
 SonicRead::~SonicRead() {
     isExit = true;
     if(playAudioBuffer != NULL){

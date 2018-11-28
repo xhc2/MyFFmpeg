@@ -14,6 +14,7 @@
 #include "YuvPlayer.h"
 #include "SeekFile.h"
 #include "CallJava.h"
+#include "NewAudioPlayer.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -38,7 +39,8 @@ private :
     ReadAVPackage *readAVPackage;
     DecodeVideoThread *decodeVideo;
     DeocdeMyAudioThread *decodeAudio;
-    AudioPlayer *audioPlayer;
+//    AudioPlayer *audioPlayer;
+    NewAudioPlayer *audioPlayer;
     YuvPlayer *yuvPlayer;
     void run();
     SeekFile *seekFile;

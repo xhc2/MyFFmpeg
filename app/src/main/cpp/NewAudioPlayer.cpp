@@ -16,8 +16,6 @@ NewAudioPlayer::NewAudioPlayer(int sampleRate, int channelCount) {
     this->channelCount = channelCount;
     maxFrame = 140;
     pts = 0;
-//    playAudioTempSize = 1024 * 2 * channelCount;
-//    playAudioTemp = (char *) malloc(playAudioTempSize);
     createEngine();
     createBufferQueueAudioPlayer();
     sonicRead = new SonicRead(sampleRate, channelCount, 1.0f, &audioFrameQue );
@@ -75,10 +73,6 @@ void NewAudioPlayer::createEngine() {
         const SLEnvironmentalReverbSettings reverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
         result = (*outputMixEnvironmentalReverb)->SetEnvironmentalReverbProperties(
                 outputMixEnvironmentalReverb, &reverbSettings);
-//        if (result != SL_RESULT_SUCCESS) {
-//            LOGE("  SetEnvironmentalReverbProperties faild ! ");
-//            return;
-//        }
     }
     LOGE(" create engine success !");
 }
@@ -107,8 +101,7 @@ void NewAudioPlayer::audioPlayDelay() {
 
 void audioPlayCallBack2(SLAndroidSimpleBufferQueueItf bf, void *context) {
     NewAudioPlayer *ap = (NewAudioPlayer *) context;
-
-    LOGE(" audioPlayCallBack2 ");
+    LOGE("   audioPlayCallBack2   ");
     int size = ap->sonicRead->dealAudio(&ap->getBuf, ap->pts);
     if(ap->getBuf == NULL){
         return ;
@@ -116,7 +109,6 @@ void audioPlayCallBack2(SLAndroidSimpleBufferQueueItf bf, void *context) {
     if (size > 0 &&  ap->getBuf != NULL) {
         (*bf)->Enqueue(bf, ap->getBuf, size);
     }
-
 }
 
 
@@ -155,12 +147,21 @@ void NewAudioPlayer::createBufferQueueAudioPlayer() {
     SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
     //单声道，44100
     SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,
-                                   2,
+                                   1,
                                    getSimpleRate(sampleRate),
                                    SL_PCMSAMPLEFORMAT_FIXED_16,
                                    SL_PCMSAMPLEFORMAT_FIXED_16,
-                                   SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+                                   SL_SPEAKER_FRONT_LEFT  ,
                                    SL_BYTEORDER_LITTLEENDIAN};
+
+//    SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,
+//                                   2,
+//                                   getSimpleRate(sampleRate),
+//                                   SL_PCMSAMPLEFORMAT_FIXED_16,
+//                                   SL_PCMSAMPLEFORMAT_FIXED_16,
+//                                   SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+//                                   SL_BYTEORDER_LITTLEENDIAN};
+
     SLDataSource audioSrc = {&loc_bufq, &format_pcm};
 
 
@@ -173,18 +174,21 @@ void NewAudioPlayer::createBufferQueueAudioPlayer() {
                                                 3, ids, req);
     if (SL_RESULT_SUCCESS != result) {
         LOGE(" CreateAudioPlayer FAILD !");
+        return ;
     }
 
     // realize the player
     result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
     if (SL_RESULT_SUCCESS != result) {
         LOGE("  (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE); FAILD !");
+        return ;
     }
 
     // get the play interface
     result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
     if (SL_RESULT_SUCCESS != result) {
         LOGE("  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay); FAILD !");
+        return ;
     }
 
     // get the buffer queue interface
@@ -192,12 +196,14 @@ void NewAudioPlayer::createBufferQueueAudioPlayer() {
                                              &bqPlayerBufferQueue);
     if (SL_RESULT_SUCCESS != result) {
         LOGE("  (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, FAILD !");
+        return ;
     }
     // register callback on the buffer queue
     result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, audioPlayCallBack2,
                                                       this);
     if (SL_RESULT_SUCCESS != result) {
         LOGE("  (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue,  FAILD !");
+        return ;
     }
 
     LOGE(" create player success !");
@@ -276,9 +282,10 @@ NewAudioPlayer::~NewAudioPlayer() {
     if (bqPlayerBufferQueue != NULL) {
         (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
     }
-
     if (sonicRead != NULL) {
+//        dealAudio();
         delete sonicRead;
+        sonicRead = NULL;
     }
     if (bqPlayerObject != NULL) {
         (*bqPlayerObject)->Destroy(bqPlayerObject);

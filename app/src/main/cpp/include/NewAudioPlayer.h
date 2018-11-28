@@ -8,6 +8,7 @@
 #include "my_data.h"
 #include "MyThread.h"
 #include "SonicRead.h"
+#include "Notify.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #include <queue>
@@ -15,7 +16,7 @@
 
 
 
-class NewAudioPlayer : public MyThread{
+class NewAudioPlayer : public MyThread  , public Notify {
 private :
 
     SLObjectItf engineObject;

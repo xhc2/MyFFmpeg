@@ -34,8 +34,8 @@ public :
     void changeSpeed(float speed);
     int reciveSample(short *getBuf , int lenByte);
     int dealAudio(short **getBuf , int64_t  &pts);
-    void destroySonicRead();
-    void createSonicRead();
+//    void destroySonicRead();
+//    void createSonicRead();
 };
 
 #endif //MYFFMPEG_SONICREAD_H
