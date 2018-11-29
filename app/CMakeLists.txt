@@ -40,7 +40,7 @@ add_library( my_ffmpeg
             src/main/cpp/CurrentTimeBitmap.cpp
             src/main/cpp/my_open_sl_test.cpp
             src/main/cpp/NewAudioPlayer.cpp
-
+            src/main/cpp/NewVideoJoint.cpp
             )
 
 

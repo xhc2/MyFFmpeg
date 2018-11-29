@@ -4,6 +4,8 @@
 #include "VideoJoint.h"
 
 /**
+ * 这个方式测试后发现，会有视频帧丢失，并且视频会有延迟。经检索后发现有几种无损拼接的方式。
+ *
  * 拼接所有不一定的视频都是相同的分辨率
  * 所以所有输入的视频都需要把分辨率转成相同的。
  * 流程
@@ -16,6 +18,8 @@
  * 7.编码
  * 8.混合
  */
+
+
 
 VideoJoint::VideoJoint(vector<char *> inputPath, const char *output, int outWidth, int outHeight) {
     this->outWidth = outWidth;
@@ -171,7 +175,9 @@ void VideoJoint::startJoint() {
             threadSleep(2);
         }
         lastVideoPts = vpts;
+
         clearAllQue();
+        av_audio_fifo_reset(audioFifo); //清空缓存
         LOGE("\n\n\n\n\n\n CLEAR ALL QUEQUE \n\n\n\n\n\n");
     }
     progress = 100;
@@ -641,7 +647,6 @@ int VideoJoint::addAudioOutputStream() {
         LOGE(" audio Could not open codec %s ", av_err2str(result));
         return -1;
     }
-
     destroyAudioFifo();
     allocAudioFifo(sampleFormat, channel, aCtxE->frame_size * 2);
 
