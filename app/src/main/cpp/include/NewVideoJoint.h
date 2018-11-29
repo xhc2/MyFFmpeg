@@ -5,4 +5,13 @@
 #ifndef MYFFMPEG_NEWVIDEOJOINT_H
 #define MYFFMPEG_NEWVIDEOJOINT_H
 
+
+class NewVideoJoint{
+private :
+public :
+    NewVideoJoint();
+    ~NewVideoJoint();
+
+};
+
 #endif //MYFFMPEG_NEWVIDEOJOINT_H
