@@ -101,6 +101,7 @@
             android:text="视频主题" />
 
         <TextView
+            android:id="@+id/tv_watermark"
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
             android:text="图片水印" />

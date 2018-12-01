@@ -100,9 +100,17 @@ public class FFmpegUtils {
     public static native float getCurrentBitmp(float time  , byte[] result);
     public static native void destroyCurrentBitmap();
 
+
+    public static native void initBitmapWaterMark( String videoPath  , String logoPath   , int x , int y);
+    public static native int bitmapWaterMarkStart();
+    public static native int bitmapWaterMarkDestroy();
+
     //测试部分
     public static native int test();
     public static native int test2();
+
+
+
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);

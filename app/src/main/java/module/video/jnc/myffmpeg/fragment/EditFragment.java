@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.activity.ChoiseVideoActivity;
 
@@ -32,6 +33,7 @@ public class EditFragment extends Fragment implements View.OnClickListener{
         super.onViewCreated(view, savedInstanceState);
         view.findViewById(R.id.tv_video_edit).setOnClickListener(this);
         view.findViewById(R.id.tv_video_joint).setOnClickListener(this);
+        view.findViewById(R.id.tv_watermark).setOnClickListener(this);
         imgBmp = view.findViewById(R.id.img_bmp);
 //        BitmapFactory.de
     }
@@ -52,6 +54,10 @@ public class EditFragment extends Fragment implements View.OnClickListener{
 //                intent.putExtra("choise_min" , 2);
                 intent.putExtra("action" , "xhc.video.joint");
                 startActivity(intent);
+                break;
+            case R.id.tv_watermark:
+                FFmpegUtils.initBitmapWaterMark("sdcard/FFmpeg/test.mp4" , "sdcard/FFmpeg/my_logo.png" , 10 , 10);
+                FFmpegUtils.bitmapWaterMarkStart();
                 break;
         }
     }

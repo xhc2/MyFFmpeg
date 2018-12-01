@@ -23,7 +23,7 @@
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
-
+#include "BitmapWaterMark.h"
 
 Mp4Player *mp4Player = NULL;
 PublishStream *ps = NULL;
@@ -458,7 +458,7 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_getJointProgress(JNIEnv *env, jclass type) {
 
     // TODO
-    if(vj != NULL){
+    if (vj != NULL) {
         return vj->getProgress();
     }
     return -1;
@@ -537,10 +537,12 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass t
     env->ReleaseByteArrayElements(result_, result, 0);
     return time;
 }
+
+
 //test
 NewAudioPlayer *a = NULL;
 // AudioPlayer  *a = NULL;
-FILE *file ;
+FILE *file;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
@@ -548,8 +550,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
 //    createBufferQueueAudioPlayer();
 //    startPlayTest();
     file = fopen("sdcard/FFmpeg/test_2c_441_16.pcm", "r");
-    fseek(file , -2048 * 500 , SEEK_END );
-    a = new NewAudioPlayer(44100 , 2);
+    fseek(file, -2048 * 500, SEEK_END);
+    a = new NewAudioPlayer(44100, 2);
 //    a = new AudioPlayer(44100 , 2);
     a->changeSpeed(1.0f);
     a->start();
@@ -570,6 +572,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
     return 1;
 
 }
+
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
@@ -577,4 +581,39 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
     delete a;
     LOGE(" DELETE AUDIO PLAYER ");
     return 1;
+}
+
+BitmapWaterMark *bwm = NULL ;
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initBitmapWaterMark(JNIEnv *env, jclass type,
+                                                               jstring videoPath_,
+                                                               jstring logoPath_,  jint x, jint y) {
+    const char *videoPath = env->GetStringUTFChars(videoPath_, 0);
+    const char *logoPath = env->GetStringUTFChars(logoPath_, 0);
+
+    // TODO
+    bwm = new BitmapWaterMark(videoPath , logoPath , x , y);
+    env->ReleaseStringUTFChars(videoPath_, videoPath);
+    env->ReleaseStringUTFChars(logoPath_, logoPath);
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkStart(JNIEnv *env, jclass type) {
+
+    if(bwm != NULL){
+        bwm->startWaterMark();
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkDestroy(JNIEnv *env, jclass type) {
+    if(bwm != NULL){
+        delete bwm;
+    }
+    return 0;
 }
