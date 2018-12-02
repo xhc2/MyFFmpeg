@@ -22,12 +22,12 @@ import module.video.jnc.myffmpeg.adapter.SelectedVideoAdapter;
 import module.video.jnc.myffmpeg.widget.TitleBar;
 
 public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.OnRecyleItemClick<FileBean> {
-
+    private static final String root = "sdcard/FFmpeg/";
     private RecyclerView recyclerView ;
     private ChoiseVideoAdapter adapter ;
     private SelectedVideoAdapter selectedVideoAdapter;
     private List<FileBean> listFile = new ArrayList<FileBean>();
-    private static final String root = "sdcard/FFmpeg/";
+
     private String[] videoMIME = {"mp4" , "flv" , "rmvb" , "ts"};
     private RecyclerView rcChoiseView;
     private TitleBar titleBar ;
@@ -35,7 +35,7 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
     private int choiseNum;//选择视频的最大数
     private int choiseMin; //选择视频最小数
     private String action ;
-
+    private String picPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +43,10 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
         setContentView(R.layout.activity_choise_video);
         Intent intent = getIntent();
         if(intent != null){
-            choiseNum = intent.getIntExtra("choise_num" , 1);
-            choiseMin = intent.getIntExtra("choise_min" , 1);
-
+            choiseNum = intent.getIntExtra("choise_max_video" , 1);
+            choiseMin = intent.getIntExtra("choise_min_video" , 1);
             action = intent.getStringExtra("action");
+            picPath = intent.getStringExtra("pic") ;
         }
 
         recyclerView = findViewById(R.id.recycler_view);
@@ -74,8 +74,13 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
                     showToast("至少选择 "+choiseMin+" 个视频！");
                     return ;
                 }
-                Intent intent = new Intent(action);
+
+                Intent intent = new Intent();//getIntent();
+                intent.setAction(action);
                 intent.putStringArrayListExtra("videos" , listSelected);
+                if(!TextUtils.isEmpty(picPath)){
+                    intent.putExtra("pic" , picPath);
+                }
                 startActivity(intent);
                 finish();
             }

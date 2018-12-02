@@ -27,14 +27,13 @@ private :
     queue<AVPacket *> videoQue;
     AVFormatContext *afcOutput;
     AVCodecContext *vCtxE;
-    AVCodecContext *aCtxE;
     bool readEnd;
     int buildOutput(  const char *outputPath);
 public :
     BitmapWaterMark(const char *videoInputPath,  const char *outputPath, const char *logoPath, int x, int y);
     void run();
     void startWaterMark();
-
+    void clearAllQue();
     ~BitmapWaterMark();
 };
 

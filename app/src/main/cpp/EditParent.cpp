@@ -129,7 +129,7 @@ int EditParent::initOutput(const char* ouput ,AVFormatContext **ctx){
     return 1;
 }
 
-int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , int outW , int outH ){
+int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , AVCodecParameters codecpar){
     int result = 0;
     AVStream *videoOutStream = avformat_new_stream(afc_output, NULL);
     if (videoOutStream == NULL) {
@@ -141,6 +141,11 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext
     if (afot->video_codec == AV_CODEC_ID_NONE) {
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
+    }
+
+    avcodec_parameters_copy(videoOutStream->codecpar , &codecpar);
+    if(vCtxE == NULL){
+        return videoOutputStreamIndex;
     }
     AVCodec *videoCodecE = avcodec_find_encoder(afot->video_codec);
     if (videoCodecE == NULL) {
@@ -162,8 +167,8 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext
 //    vCtxE->max_b_frames = 1;
     (*vCtxE)->pix_fmt = AV_PIX_FMT_YUV420P;
     (*vCtxE)->codec_type = AVMEDIA_TYPE_VIDEO;
-    (*vCtxE)->width = outW;
-    (*vCtxE)->height = outH;
+    (*vCtxE)->width = codecpar.width;
+    (*vCtxE)->height = codecpar.height;
 
     result = avcodec_parameters_from_context(videoOutStream->codecpar, *vCtxE);
 
@@ -182,7 +187,7 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext
     LOGE(" INIT OUTPUT SUCCESS VIDEO !");
     return videoOutputStreamIndex;
 }
-int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , int sampleRate , uint64_t outChannelLayout){
+int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE ,AVCodecParameters codecpar){
     int result = 0;
     AVStream *audioOutStream = avformat_new_stream(afc_output, NULL);
     if (audioOutStream == NULL) {
@@ -195,9 +200,11 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
-
     LOGE(" afot->audio_codec   %d ", afot->audio_codec);
-
+    avcodec_parameters_copy(audioOutStream->codecpar , &codecpar);
+    if(aCtxE == NULL){
+        return audioOutputStreamIndex;
+    }
     AVCodec *audioCodecE = avcodec_find_encoder(afot->audio_codec);
     if (audioCodecE == NULL) {
         LOGE(" audioCodecE NULL ");
@@ -210,14 +217,14 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext
         LOGE("AUDIO avcodec_alloc_context3 FAILD !");
         return -1;
     }
-    int channel = av_get_channel_layout_nb_channels(outChannelLayout);
+    int channel = av_get_channel_layout_nb_channels(codecpar.channel_layout);
     AVSampleFormat sampleFormat = AV_SAMPLE_FMT_FLTP;
     (*aCtxE)->bit_rate = 64000;
     (*aCtxE)->sample_fmt = sampleFormat;
-    (*aCtxE)->sample_rate = sampleRate;
-    (*aCtxE)->channel_layout = outChannelLayout;
+    (*aCtxE)->sample_rate = codecpar.sample_rate;
+    (*aCtxE)->channel_layout = codecpar.channel_layout;
     (*aCtxE)->channels = channel;
-    (*aCtxE)->time_base = (AVRational) {1, sampleRate};
+    (*aCtxE)->time_base = (AVRational) {1, codecpar.sample_rate};
     (*aCtxE)->codec_type = AVMEDIA_TYPE_AUDIO;
     audioOutStream->time_base = (*aCtxE)->time_base;
 

@@ -13,6 +13,7 @@ import android.widget.ImageView;
 
 import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.activity.ChoisePicActivity;
 import module.video.jnc.myffmpeg.activity.ChoiseVideoActivity;
 
 public class EditFragment extends Fragment implements View.OnClickListener{
@@ -41,23 +42,32 @@ public class EditFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onClick(View v) {
         Intent intent = new Intent();
-        intent.setClass(getActivity() , ChoiseVideoActivity.class);
+
         switch (v.getId()){
             case R.id.tv_video_edit:
-                intent.putExtra("choise_num" , 1);
+                intent.setClass(getActivity() , ChoiseVideoActivity.class);
+                intent.putExtra("choise_max_video" , 1);
                 intent.putExtra("action" , "xhc.video.clip");
                 startActivity(intent);
                 break;
             case R.id.tv_video_joint:
                 //视频拼接
-                intent.putExtra("choise_num" , 3);
-//                intent.putExtra("choise_min" , 2);
+                intent.setClass(getActivity() , ChoiseVideoActivity.class);
+                intent.putExtra("choise_max_video" , 3);
+                intent.putExtra("choise_min_video" , 2);
                 intent.putExtra("action" , "xhc.video.joint");
                 startActivity(intent);
                 break;
             case R.id.tv_watermark:
-                FFmpegUtils.initBitmapWaterMark("sdcard/FFmpeg/test.mp4" , "sdcard/FFmpeg/testfilter.mp4" ,"sdcard/FFmpeg/my_logo.png" , 10 , 10);
-                FFmpegUtils.bitmapWaterMarkStart();
+                intent.setClass(getActivity() , ChoisePicActivity.class);
+                intent.putExtra("choise_max_num_pic" , 1);
+                intent.putExtra("choise_max_video" , 1);
+                intent.putExtra("action" , "xhc.video.water_mark");
+                intent.putExtra("action_next" , "module.video.jnc.myffmpeg.choisevideo");
+
+                startActivity(intent);
+//                FFmpegUtils.initBitmapWaterMark("sdcard/FFmpeg/vbaobao.ts" , "sdcard/FFmpeg/testfilter.mp4" ,"sdcard/FFmpeg/my_logo.png" , 10 , 10);
+//                FFmpegUtils.bitmapWaterMarkStart();
                 break;
         }
     }

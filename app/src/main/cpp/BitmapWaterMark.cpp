@@ -48,18 +48,14 @@ int BitmapWaterMark::buildOutput(const char *outputPath){
         LOGE(" initOutput faild !");
         return -1;
     }
-
-    result = addOutputVideoStream(afcOutput , &vCtxE , decCtx->width ,decCtx->height);
+    result = addOutputVideoStream(afcOutput , &vCtxE ,  *fmtCtx->streams[videoStreamIndex]->codecpar);
     if(result < 0 || vCtxE == NULL){
         LOGE("addOutputVideoStream FAILD !");
         return -1;
     }
     videoOutputStreamIndex = result;
-
-    int sampleRate = fmtCtx->streams[audioStreamIndex]->codecpar->sample_rate;
-    uint64_t channelLayout = fmtCtx->streams[audioStreamIndex]->codecpar->channel_layout;
-    result = addOutputAudioStream(afcOutput , &aCtxE , sampleRate ,channelLayout );
-    if(result < 0 || aCtxE == NULL){
+    result = addOutputAudioStream(afcOutput , NULL , *fmtCtx->streams[audioStreamIndex]->codecpar );
+    if(result < 0 ){
         LOGE("addOutputAudioStream FAILD !");
         return -1;
     }
@@ -71,6 +67,8 @@ int BitmapWaterMark::buildOutput(const char *outputPath){
     }
     return 1;
 }
+
+
 void BitmapWaterMark::startWaterMark() {
 
     AVFrame *frame;
@@ -87,7 +85,6 @@ void BitmapWaterMark::startWaterMark() {
         }
         if(packet->stream_index == audioStreamIndex){
             av_packet_rescale_ts(packet, fmtCtx->streams[audioStreamIndex]->time_base, afcOutput->streams[getAudioOutputStreamIndex()]->time_base);
-//            LOGE(" AUDIO PTS %lld " , );
             audioQue.push(packet);
         }
         else if (packet->stream_index == videoStreamIndex) {
@@ -104,7 +101,6 @@ void BitmapWaterMark::startWaterMark() {
                 while (true) {
                     ret = av_buffersink_get_frame(buffersink_ctx, filt_frame);
                     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-//                        LOGE("av_buffersink_get_frame FAILD ! %s ", av_err2str(ret));
                         break;
                     }
 
@@ -114,11 +110,7 @@ void BitmapWaterMark::startWaterMark() {
                     }
                     filt_frame->pts = filt_frame->best_effort_timestamp;
                     AVPacket *filtPkt = encodeFrame(filt_frame , vCtxE);
-//                    LOGE(" filter frame %lld" , filt_frame->pts);
-
                     if(filtPkt != NULL){
-//                        LOGE(" TIME BASE NULL %d " , (buffersink_ctx->outputs[0] == NULL));
-//                        LOGE(" timebase den %d , num %d " , fmtCtx->streams[videoStreamIndex]->time_base.den , fmtCtx->streams[videoStreamIndex]->time_base.num);
                         av_packet_rescale_ts(filtPkt, fmtCtx->streams[videoStreamIndex]->time_base/*buffersink_ctx->inputs[0]->time_base*/, afcOutput->streams[getVideoOutputStreamIndex()]->time_base);
                         videoQue.push(filtPkt);
                     }
@@ -127,7 +119,7 @@ void BitmapWaterMark::startWaterMark() {
             }
         }
     }
-
+    av_frame_free(&filt_frame);
     LOGE(" END ");
 }
 
@@ -175,7 +167,41 @@ void BitmapWaterMark::run(){
     writeTrail(afcOutput);
 }
 
-
+void BitmapWaterMark::clearAllQue(){
+    while(!audioQue.empty()){
+        AVPacket *pkt = audioQue.front();
+        if(pkt != NULL){
+            av_packet_free(&pkt);
+        }
+        audioQue.pop();
+    }
+    while(!videoQue.empty()){
+        AVPacket *pkt = videoQue.front();
+        if(pkt != NULL){
+            av_packet_free(&pkt);
+        }
+        videoQue.pop();
+    }
+}
 BitmapWaterMark::~BitmapWaterMark() {
-
+    this->stop();
+    this->join();
+    clearAllQue();
+     
+    if(fmtCtx != NULL){
+        avformat_close_input(&fmtCtx);
+        fmtCtx = NULL;
+    }
+    if(decCtx != NULL){
+        avcodec_free_context(&decCtx);
+        decCtx = NULL;
+    }
+    if(afcOutput != NULL){
+        avformat_free_context(afcOutput);
+        afcOutput = NULL;
+    }
+    if(vCtxE != NULL){
+        avcodec_free_context(&vCtxE);
+        vCtxE = NULL;
+    }
 }

@@ -10,40 +10,6 @@ FilterParent::FilterParent() {
     avfilter_register_all();
 }
 
-//int FilterParent::open_input_file(const char *filename) {
-//    int ret;
-//    AVCodec *dec;
-//    fmt_ctx = NULL;
-//    if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)) < 0) {
-//        LOGE("avformat_open_input FAILD !");
-//        return ret;
-//    }
-//    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0) {
-//        LOGE("avformat_find_stream_info FAILD !");
-//        return ret;
-//    }
-//    /* select the video stream */
-//    ret = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, &dec, 0);
-//    if (ret < 0) {
-//        LOGE("av_find_best_stream FAILD !");
-//        return ret;
-//    }
-//    video_stream_index = ret;
-//    /* create decoding context */
-//    dec_ctx = avcodec_alloc_context3(dec);
-//    if (!dec_ctx)
-//        return AVERROR(ENOMEM);
-//    avcodec_parameters_to_context(dec_ctx, fmt_ctx->streams[video_stream_index]->codecpar);
-////    av_opt_set_int(dec_ctx, "refcounted_frames", 1, 0);
-//    /* init the video decoder */
-//    if ((ret = avcodec_open2(dec_ctx, dec, NULL)) < 0) {
-//        LOGE("avcodec_open2 FAILD !");
-//        return ret;
-//    }
-//    return 1;
-//}
-
-
 
 int  FilterParent::init_filters(const char *filters_descr ,AVFormatContext *fmt_ctx , AVCodecContext *dec_ctx) {
     char args[512];

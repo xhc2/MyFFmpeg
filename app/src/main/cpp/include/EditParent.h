@@ -43,8 +43,8 @@ protected:
     int videoOutputStreamIndex;
     int audioOutputStreamIndex;
     int initOutput(const char* ouput , AVFormatContext **ctx);
-    int addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , int outW , int outH);
-    int addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , int sampleRate , uint64_t outChannelLayout);
+    int addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , AVCodecParameters codecpar);
+    int addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , AVCodecParameters codecpar);
     int  writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath);
     int getVideoOutputStreamIndex();
     int getAudioOutputStreamIndex();
