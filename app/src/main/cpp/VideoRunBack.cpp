@@ -247,7 +247,7 @@ int VideoRunBack::startBackParse() {
     LOGE(" -------------------start------------------------ ");
     av_register_all();
 #ifdef DEBUG
-    av_log_set_callback(custom_log);
+//    av_log_set_callback(custom_log);
 #endif
     int result = 0;
     char *tempYuv = "sdcard/FFmpeg/temp.yuv";

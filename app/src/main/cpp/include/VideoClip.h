@@ -42,7 +42,6 @@ private :
     char* path;
     char* outputPath;
 
-
     int addVideoOutputStream(int width , int height);
     int addAudioOutputStream();
     AVFrame *deocdePacket(AVPacket *packet);

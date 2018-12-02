@@ -56,7 +56,7 @@ public class EditFragment extends Fragment implements View.OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.tv_watermark:
-                FFmpegUtils.initBitmapWaterMark("sdcard/FFmpeg/test.mp4" , "sdcard/FFmpeg/my_logo.png" , 10 , 10);
+                FFmpegUtils.initBitmapWaterMark("sdcard/FFmpeg/test.mp4" , "sdcard/FFmpeg/testfilter.mp4" ,"sdcard/FFmpeg/my_logo.png" , 10 , 10);
                 FFmpegUtils.bitmapWaterMarkStart();
                 break;
         }

@@ -101,7 +101,7 @@ public class FFmpegUtils {
     public static native void destroyCurrentBitmap();
 
 
-    public static native void initBitmapWaterMark( String videoPath  , String logoPath   , int x , int y);
+    public static native void initBitmapWaterMark( String videoPath  ,String outputPath ,  String logoPath   , int x , int y);
     public static native int bitmapWaterMarkStart();
     public static native int bitmapWaterMarkDestroy();
 

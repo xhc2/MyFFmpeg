@@ -583,27 +583,29 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
     return 1;
 }
 
-BitmapWaterMark *bwm = NULL ;
+BitmapWaterMark *bwm = NULL;
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initBitmapWaterMark(JNIEnv *env, jclass type,
                                                                jstring videoPath_,
-                                                               jstring logoPath_,  jint x, jint y) {
+                                                               jstring ouputPath_,
+                                                               jstring logoPath_, jint x, jint y) {
     const char *videoPath = env->GetStringUTFChars(videoPath_, 0);
     const char *logoPath = env->GetStringUTFChars(logoPath_, 0);
-
+    const char *outPath = env->GetStringUTFChars(ouputPath_, 0);
     // TODO
-    bwm = new BitmapWaterMark(videoPath , logoPath , x , y);
+    bwm = new BitmapWaterMark(videoPath, outPath, logoPath, x, y);
     env->ReleaseStringUTFChars(videoPath_, videoPath);
     env->ReleaseStringUTFChars(logoPath_, logoPath);
+    env->ReleaseStringUTFChars(ouputPath_, outPath);
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkStart(JNIEnv *env, jclass type) {
 
-    if(bwm != NULL){
+    if (bwm != NULL) {
         bwm->startWaterMark();
     }
     return 0;
@@ -612,7 +614,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkStart(JNIEnv *env, jcl
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkDestroy(JNIEnv *env, jclass type) {
-    if(bwm != NULL){
+    if (bwm != NULL) {
         delete bwm;
     }
     return 0;

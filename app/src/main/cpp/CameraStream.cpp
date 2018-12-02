@@ -60,7 +60,7 @@ int CameraStream::initFFmpeg() {
     av_register_all();
     avformat_network_init();
 #ifdef DEBUG
-    av_log_set_callback(custom_log);
+//    av_log_set_callback(custom_log);
 #endif
     result = avformat_alloc_output_context2(&afc, NULL, "flv", url);
     if (result < 0 || afc == NULL) {

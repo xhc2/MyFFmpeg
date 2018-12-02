@@ -151,7 +151,7 @@ void VideoJoint::destroySwsContext() {
 void VideoJoint::startJoint() {
     av_register_all();
 #ifdef DEBUG
-    av_log_set_callback(custom_log);
+//    av_log_set_callback(custom_log);
 #endif
     this->start();
     int result = initOutput(this->outPath);

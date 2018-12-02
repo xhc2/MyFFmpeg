@@ -6,13 +6,29 @@
 #define MYFFMPEG_BITMAPWATERMARK_H
 
 #include "FilterParent.h"
+#include "EditParent.h"
+#include <queue>
 
-class BitmapWaterMark : public FilterParent{
+using namespace std;
+
+class BitmapWaterMark : public FilterParent {
 private :
+    const char *filter_descr = "movie=%s[wm];[in][wm]overlay=%d:%d[out]";
+    AVFormatContext *fmtCtx;
+    AVCodecContext *decCtx;
+    int videoStreamIndex;
+    int audioStreamIndex;
+    queue<AVPacket *> audioQue;
 
+    //输出相关
+    AVFormatContext *afcOutput;
+    AVCodecContext *vCtxE;
+    int buildOutput(  const char *outputPath);
 public :
-    BitmapWaterMark(const char *videoPath , const char* logoPath , int x , int y);
+    BitmapWaterMark(const char *videoInputPath,  const char *outputPath, const char *logoPath, int x, int y);
+
     void startWaterMark();
+
     ~BitmapWaterMark();
 };
 

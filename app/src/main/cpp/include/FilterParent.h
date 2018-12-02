@@ -5,6 +5,8 @@
 #ifndef MYFFMPEG_FILTERPARENT_H
 #define MYFFMPEG_FILTERPARENT_H
 
+#include "EditParent.h"
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -14,22 +16,15 @@ extern "C" {
 #include <libavutil/opt.h>
 };
 
-class FilterParent {
-
+class FilterParent : public EditParent{
+private :
+    AVFilterGraph *filter_graph;
 protected :
-    AVFormatContext *fmt_ctx;
-    AVCodecContext *dec_ctx;
     AVFilterContext *buffersink_ctx;
     AVFilterContext *buffersrc_ctx;
-    AVFilterGraph *filter_graph;
-    int video_stream_index = -1;
-    int64_t last_pts = AV_NOPTS_VALUE;
 public :
     FilterParent();
-    int open_input_file(const char *filename);
-    int init_filters(const char *filters_descr);
-    int64_t getVideoDuration();
-    AVFrame* decodePacket(AVCodecContext *dec_ctx , AVPacket *packet);
+    int init_filters(const char *filters_descr,AVFormatContext *fmt_ctx,AVCodecContext *dec_ctx);
 
     ~FilterParent();
 };

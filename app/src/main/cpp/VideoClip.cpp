@@ -259,7 +259,7 @@ void VideoClip::startClip() {
     av_register_all();
     avcodec_register_all();
 #ifdef DEBUG
-    av_log_set_callback(custom_log);
+//    av_log_set_callback(custom_log);
 #endif
     if (initInput() < 0) {
         LOGE(" INIT INPUT FAILD ");
