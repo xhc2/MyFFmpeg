@@ -73,7 +73,8 @@ public class VideoJointActivity extends VideoEditParentActivity {
         myVideoGpuShow = (MyVideoGpuShow) findViewById(R.id.play_gl_surfaceview);
     }
 
-    private void init() {
+    protected void init() {
+        super.init();
         titleBar.setRightClickInter(new TitleBar.RightClickInter() {
             @Override
             public void clickRight() {
@@ -88,10 +89,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
                 showLoadPorgressDialog("正在拼接...");
             }
         });
-        myVideoGpuShow.setEGLContextClientVersion(2);
-        myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        myVideoGpuShow.setRenderer(new MyRender());//android 8.0需要设置
-        myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
+
         outWidth = 1280;
         outHeight = 720;
     }
@@ -219,45 +217,45 @@ public class VideoJointActivity extends VideoEditParentActivity {
         }
     }
 
-    //播放的线程
-    private StartPlayThraed playThread;
-
-    private void startPlayThread(String path) {
-        playThread = new StartPlayThraed(path);
-        playThread.start();
-    }
-
-    private void stopPlayThread() {
-        FFmpegUtils.destroyMp4Play();
-        if (playThread != null) {
-            try {
-                playThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    class StartPlayThraed extends Thread {
-
-        String playPath;
-
-        StartPlayThraed(String playPath) {
-            this.playPath = playPath;
-        }
-
-        @Override
-        public void run() {
-            super.run();
-            synchronized (VideoClipActivity.class) {
-                playVideo(this.playPath);
-            }
-        }
-    }
-
-    private void playVideo(String path) {
-        myVideoGpuShow.setPlayPath(path);
-    }
+//    //播放的线程
+//    private StartPlayThraed playThread;
+//
+//    private void startPlayThread(String path) {
+//        playThread = new StartPlayThraed(path);
+//        playThread.start();
+//    }
+//
+//    private void stopPlayThread() {
+//        FFmpegUtils.destroyMp4Play();
+//        if (playThread != null) {
+//            try {
+//                playThread.join();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+//
+//    class StartPlayThraed extends Thread {
+//
+//        String playPath;
+//
+//        StartPlayThraed(String playPath) {
+//            this.playPath = playPath;
+//        }
+//
+//        @Override
+//        public void run() {
+//            super.run();
+//            synchronized (VideoClipActivity.class) {
+//                playVideo(this.playPath);
+//            }
+//        }
+//    }
+//
+//    private void playVideo(String path) {
+//        myVideoGpuShow.setPlayPath(path);
+//    }
 
     @Override
     public void onBackPressed() {
@@ -279,7 +277,6 @@ public class VideoJointActivity extends VideoEditParentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopPlayThread();
         stopProgressThread();
         stopJointThread();
         stopJointProgress();

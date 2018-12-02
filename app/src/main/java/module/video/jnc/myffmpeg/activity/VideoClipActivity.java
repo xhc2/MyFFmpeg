@@ -43,7 +43,6 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     private final static int BMP_HEAD = 54;
     private final static int PROGRESS = 0;
     private final static int GETCURRENTBITMAP = 1;
-    private boolean activityFoucsFlag = false;
     private byte[] buffer = new byte[outWidth * outHeight * 3 + BMP_HEAD];
     private ImageView img;
 
@@ -86,7 +85,8 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         img = findViewById(R.id.img);
     }
 
-    private void init() {
+    protected void init() {
+        super.init();
         titleBar.setRightClickInter(new TitleBar.RightClickInter() {
             @Override
             public void clickRight() {
@@ -106,10 +106,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
             }
         });
         clipBar.setTouchCallBack(this);
-        myVideoGpuShow.setEGLContextClientVersion(2);
-        myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        myVideoGpuShow.setRenderer(new MyRender());//android 8.0需要设置
-        myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
+
         FFmpegUtils.initCurrentBitmp(listPath.get(0), outWidth, outHeight);
     }
 
@@ -119,35 +116,11 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
 
         if (!activityFoucsFlag & hasFocus && listPath.size() > 0) {
             activityFoucsFlag = true;
-            startPlayThread();
+            startPlayThread(listPath.get(0));
         }
     }
 
-    //播放的线程
-    private StartPlayThraed playThread;
-    private void startPlayThread() {
-        playThread = new StartPlayThraed();
-        playThread.start();
-    }
-    private void stopPlayThread() {
-        if (playThread != null) {
-            try {
-                playThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    class StartPlayThraed extends Thread {
-        @Override
-        public void run() {
-            super.run();
-            synchronized (VideoClipActivity.class) {
-                FFmpegUtils.destroyMp4Play();
-                playVideo(listPath.get(0));
-            }
-        }
-    }
+
 
 
     //具体裁剪的线程
@@ -271,9 +244,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         }
     }
 
-    private void playVideo(String path) {
-        myVideoGpuShow.setPlayPath(path);
-    }
+
 
 
     @Override
@@ -319,7 +290,6 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     protected void onDestroy() {
         super.onDestroy();
         stopProgressThread();
-        stopPlayThread();
         stopClipThread();
         FFmpegUtils.destroyClip();
         FFmpegUtils.destroyMp4Play();
