@@ -8,16 +8,22 @@
 BitmapWaterMark::BitmapWaterMark(const char *videoPath,  const char *outputPath, const char *logoPath, int x, int y) {
     fmtCtx = NULL;
     int result = open_input_file(videoPath, &fmtCtx);
-    if (result < 0) {
+    if (result < 0 || fmtCtx == NULL) {
         LOGE(" open_input_file faild ! ");
         return;
     }
     result = getVideoDecodeContext(fmtCtx, &decCtx);
-    if (result < 0) {
+    if (result < 0 || decCtx == NULL) {
         LOGE(" getVideoDecodeContext faild ! ");
         return;
     }
     videoStreamIndex = result;
+    audioStreamIndex = getAudioStreamIndex(fmtCtx);
+    if(audioStreamIndex == -1){
+        LOGE(" find audio Stream faild ! ");
+        return ;
+    }
+    LOGE(" INPUT VIDEO STREAM INDEX %d , AUDIO STREAM INDEX %d " , videoStreamIndex , audioStreamIndex);
     result =  buildOutput(outputPath);
     if(result < 0){
         LOGE(" buildOutput faild !");
@@ -30,6 +36,9 @@ BitmapWaterMark::BitmapWaterMark(const char *videoPath,  const char *outputPath,
         LOGE(" init_filters FAILD !");
         return;
     }
+    vpts = 0 ;
+    apts = 0;
+    readEnd = false;
     LOGE(" BitmapWaterMark SUCCESS !");
 }
 
@@ -39,11 +48,22 @@ int BitmapWaterMark::buildOutput(const char *outputPath){
         LOGE(" initOutput faild !");
         return -1;
     }
-    result = addOutputVideoStream(afcOutput , &vCtxE , decCtx->width , decCtx->height);
-    if(result < 0){
+
+    result = addOutputVideoStream(afcOutput , &vCtxE , decCtx->width ,decCtx->height);
+    if(result < 0 || vCtxE == NULL){
         LOGE("addOutputVideoStream FAILD !");
         return -1;
     }
+    videoOutputStreamIndex = result;
+
+    int sampleRate = fmtCtx->streams[audioStreamIndex]->codecpar->sample_rate;
+    uint64_t channelLayout = fmtCtx->streams[audioStreamIndex]->codecpar->channel_layout;
+    result = addOutputAudioStream(afcOutput , &aCtxE , sampleRate ,channelLayout );
+    if(result < 0 || aCtxE == NULL){
+        LOGE("addOutputAudioStream FAILD !");
+        return -1;
+    }
+    audioOutputStreamIndex = result;
     result = writeOutoutHeader(afcOutput , outputPath);
     if(result < 0   ){
         LOGE(" writeOutoutHeader FAILD !");
@@ -52,19 +72,27 @@ int BitmapWaterMark::buildOutput(const char *outputPath){
     return 1;
 }
 void BitmapWaterMark::startWaterMark() {
-    AVPacket *packet = av_packet_alloc();
+
     AVFrame *frame;
     AVFrame *filt_frame = av_frame_alloc();
     int ret = 0;
+    start();
     while (true) {
+        AVPacket *packet = av_packet_alloc();
         if ((ret = av_read_frame(fmtCtx, packet)) < 0) {
-            av_packet_unref(packet);
+            av_packet_free(&packet);
+            readEnd = true;
             LOGE(" READ FRAME FAILD !");
             break;
         }
-
-        if (packet->stream_index == videoStreamIndex) {
+        if(packet->stream_index == audioStreamIndex){
+            av_packet_rescale_ts(packet, fmtCtx->streams[audioStreamIndex]->time_base, afcOutput->streams[getAudioOutputStreamIndex()]->time_base);
+//            LOGE(" AUDIO PTS %lld " , );
+            audioQue.push(packet);
+        }
+        else if (packet->stream_index == videoStreamIndex) {
             frame = decodePacket(decCtx, packet);
+            av_packet_free(&packet);
             if (frame != NULL) {
                 if (av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF) <
                     0) {
@@ -76,7 +104,7 @@ void BitmapWaterMark::startWaterMark() {
                 while (true) {
                     ret = av_buffersink_get_frame(buffersink_ctx, filt_frame);
                     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                        LOGE("av_buffersink_get_frame FAILD ! %s ", av_err2str(ret));
+//                        LOGE("av_buffersink_get_frame FAILD ! %s ", av_err2str(ret));
                         break;
                     }
 
@@ -84,26 +112,67 @@ void BitmapWaterMark::startWaterMark() {
                         LOGE("GET FRAME FAILD !");
                         break;
                     }
-                    int ySize = filt_frame->width * filt_frame->height;
-//                    buffersink_ctx->inputs[0]->time_base
-                    LOGE("WRITE FRAME ...linesize 0 %d , linesize 1 %d , linesize 2 %d ",
-                         filt_frame->linesize[0], filt_frame->linesize[1], filt_frame->linesize[2]);
+                    filt_frame->pts = filt_frame->best_effort_timestamp;
                     AVPacket *filtPkt = encodeFrame(filt_frame , vCtxE);
+//                    LOGE(" filter frame %lld" , filt_frame->pts);
+
                     if(filtPkt != NULL){
-                        av_write_frame( afcOutput, filtPkt);
-                        av_packet_free(&filtPkt);
+//                        LOGE(" TIME BASE NULL %d " , (buffersink_ctx->outputs[0] == NULL));
+//                        LOGE(" timebase den %d , num %d " , fmtCtx->streams[videoStreamIndex]->time_base.den , fmtCtx->streams[videoStreamIndex]->time_base.num);
+                        av_packet_rescale_ts(filtPkt, fmtCtx->streams[videoStreamIndex]->time_base/*buffersink_ctx->inputs[0]->time_base*/, afcOutput->streams[getVideoOutputStreamIndex()]->time_base);
+                        videoQue.push(filtPkt);
                     }
-//                    fwrite(filt_frame->data[0], 1, ySize, fileOut);
-//                    fwrite(filt_frame->data[1], 1, ySize / 4, fileOut);
-//                    fwrite(filt_frame->data[2], 1, ySize / 4, fileOut);
                     av_frame_unref(filt_frame);
                 }
             }
         }
-        av_packet_unref(packet);
+    }
+
+    LOGE(" END ");
+}
+
+void BitmapWaterMark::run(){
+    int result ;
+    while(!isExit){
+        if (this->pause ) {
+            threadSleep(2);
+            continue;
+        }
+        pthread_mutex_lock(&mutex_pthread);
+        LOGE(" videoQue %d ， audioQue %d  ", videoQue.size(), audioQue.size());
+        if (audioQue.size() <= 0 || videoQue.size() <= 0) {
+            pthread_mutex_unlock(&mutex_pthread);
+            if(readEnd){
+                break;
+            }
+            continue;
+        }
+
+        AVPacket *aPkt = audioQue.front();
+        AVPacket *vPkt = videoQue.front();
+        pthread_mutex_unlock(&mutex_pthread);
+
+        if (av_compare_ts(apts, afcOutput->streams[audioOutputStreamIndex]->time_base, vpts,  afcOutput->streams[videoOutputStreamIndex]->time_base) < 0) {
+            apts = aPkt->pts;
+            result = av_interleaved_write_frame(afcOutput, aPkt);
+            if (result < 0) {
+                LOGE(" audio av_interleaved_write_frame faild ! %s ", av_err2str(result));
+            }
+            av_packet_free(&aPkt);
+            audioQue.pop();
+        } else {
+            vpts = vPkt->pts;
+            result = av_interleaved_write_frame(afcOutput, vPkt);
+
+            if (result < 0) {
+                LOGE(" video av_interleaved_write_frame faild ! %s", av_err2str(result));
+            }
+            av_packet_free(&vPkt);
+            videoQue.pop();
+        }
+
     }
     writeTrail(afcOutput);
-    LOGE(" END ");
 }
 
 

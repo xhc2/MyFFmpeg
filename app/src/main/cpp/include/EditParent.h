@@ -36,16 +36,18 @@ protected:
     int getVideoDecodeContext( AVFormatContext *ps,    AVCodecContext **dec_ctx); //获取视频解码器，并返回videoStreamIndex;
     AVFrame* decodePacket(AVCodecContext *decode , AVPacket *packet);
     AVPacket *encodeFrame(AVFrame *frame ,AVCodecContext *vCtxE );
-    int getVideoStreamIndex();
-    int getAudioStreamIndex();
+    int getVideoStreamIndex(AVFormatContext *fmt_ctx);
+    int getAudioStreamIndex(AVFormatContext *fmt_ctx);
 
     //输出,编码 相关
     int videoOutputStreamIndex;
     int audioOutputStreamIndex;
     int initOutput(const char* ouput , AVFormatContext **ctx);
     int addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , int outW , int outH);
-    int addOutputAudioStream();
+    int addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , int sampleRate , uint64_t outChannelLayout);
     int  writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath);
+    int getVideoOutputStreamIndex();
+    int getAudioOutputStreamIndex();
     int  writeTrail(AVFormatContext *afc_output );
     ~EditParent();
 

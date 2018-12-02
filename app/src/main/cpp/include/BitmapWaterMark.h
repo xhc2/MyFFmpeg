@@ -7,26 +7,32 @@
 
 #include "FilterParent.h"
 #include "EditParent.h"
+#include "MyThread.h"
 #include <queue>
 
 using namespace std;
 
-class BitmapWaterMark : public FilterParent {
+class BitmapWaterMark : public FilterParent ,MyThread{
 private :
     const char *filter_descr = "movie=%s[wm];[in][wm]overlay=%d:%d[out]";
     AVFormatContext *fmtCtx;
     AVCodecContext *decCtx;
     int videoStreamIndex;
     int audioStreamIndex;
-    queue<AVPacket *> audioQue;
 
     //输出相关
+    int64_t vpts ;
+    int64_t apts ;
+    queue<AVPacket *> audioQue;
+    queue<AVPacket *> videoQue;
     AVFormatContext *afcOutput;
     AVCodecContext *vCtxE;
+    AVCodecContext *aCtxE;
+    bool readEnd;
     int buildOutput(  const char *outputPath);
 public :
     BitmapWaterMark(const char *videoInputPath,  const char *outputPath, const char *logoPath, int x, int y);
-
+    void run();
     void startWaterMark();
 
     ~BitmapWaterMark();

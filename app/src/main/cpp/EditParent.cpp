@@ -21,6 +21,8 @@ EditParent::EditParent() {
 #endif
     videoStreamIndex = -1;
     audioStreamIndex = -1;
+    videoOutputStreamIndex = -1;
+    audioOutputStreamIndex = -1;
 }
 
 int EditParent::open_input_file(const char *filename, AVFormatContext **fmt_ctx) {
@@ -55,7 +57,6 @@ int EditParent::getVideoDecodeContext(AVFormatContext *fmt_ctx, AVCodecContext *
     if (!dec_ctx)
         return AVERROR(ENOMEM);
     avcodec_parameters_to_context(*dec_ctx, fmt_ctx->streams[videoStreamIndex]->codecpar);
-//    av_opt_set_int(dec_ctx, "refcounted_frames", 1, 0);
     /* init the video decoder */
     if ((ret = avcodec_open2(*dec_ctx, dec, NULL)) < 0) {
         LOGE("avcodec_open2 FAILD !");
@@ -104,11 +105,16 @@ AVPacket *EditParent::encodeFrame(AVFrame *frame ,AVCodecContext *vCtxE ) {
     }
     return NULL;
 }
-int EditParent::getVideoStreamIndex(){
-
+int EditParent::getVideoStreamIndex(AVFormatContext *fmt_ctx){
+    if(videoStreamIndex == -1){
+        videoStreamIndex = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+    }
     return videoStreamIndex ;
 }
-int EditParent::getAudioStreamIndex(){
+int EditParent::getAudioStreamIndex(AVFormatContext *fmt_ctx){
+    if(audioStreamIndex == -1){
+        audioStreamIndex = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+    }
     return audioStreamIndex;
 }
 
@@ -174,11 +180,68 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext
     }
 
     LOGE(" INIT OUTPUT SUCCESS VIDEO !");
-    return 1;
+    return videoOutputStreamIndex;
 }
-int addOutputAudioStream(){
+int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , int sampleRate , uint64_t outChannelLayout){
+    int result = 0;
+    AVStream *audioOutStream = avformat_new_stream(afc_output, NULL);
+    if (audioOutStream == NULL) {
+        LOGE(" VIDEO STREAM NULL ");
+        return -1;
+    }
+    AVOutputFormat *afot = afc_output->oformat;
+    audioOutputStreamIndex = audioOutStream->index;
+    if (afot->audio_codec == AV_CODEC_ID_NONE) {
+        LOGE(" VIDEO AV_CODEC_ID_NONE ");
+        return -1;
+    }
 
-    return 1;
+    LOGE(" afot->audio_codec   %d ", afot->audio_codec);
+
+    AVCodec *audioCodecE = avcodec_find_encoder(afot->audio_codec);
+    if (audioCodecE == NULL) {
+        LOGE(" audioCodecE NULL ");
+        return -1;
+    }
+    LOGE("AUDIO CODEC NAME %s ", audioCodecE->name);
+    *aCtxE = avcodec_alloc_context3(audioCodecE);
+
+    if ( *aCtxE == NULL) {
+        LOGE("AUDIO avcodec_alloc_context3 FAILD !");
+        return -1;
+    }
+    int channel = av_get_channel_layout_nb_channels(outChannelLayout);
+    AVSampleFormat sampleFormat = AV_SAMPLE_FMT_FLTP;
+    (*aCtxE)->bit_rate = 64000;
+    (*aCtxE)->sample_fmt = sampleFormat;
+    (*aCtxE)->sample_rate = sampleRate;
+    (*aCtxE)->channel_layout = outChannelLayout;
+    (*aCtxE)->channels = channel;
+    (*aCtxE)->time_base = (AVRational) {1, sampleRate};
+    (*aCtxE)->codec_type = AVMEDIA_TYPE_AUDIO;
+    audioOutStream->time_base = (*aCtxE)->time_base;
+
+    result = avcodec_parameters_from_context(audioOutStream->codecpar, *aCtxE);
+    if (result < 0) {
+        LOGE(" avcodec_parameters_from_context FAILD ! ");
+        return -1;
+    }
+    result = avcodec_open2( *aCtxE, audioCodecE, NULL);
+    if (result < 0) {
+        LOGE(" audio Could not open codec %s ", av_err2str(result));
+        return -1;
+    }
+
+    LOGE(" INIT OUTPUT SUCCESS AUDIO   ");
+    return audioOutputStreamIndex;
+}
+
+int EditParent::getVideoOutputStreamIndex(){
+
+    return videoOutputStreamIndex;
+}
+int EditParent::getAudioOutputStreamIndex(){
+    return audioOutputStreamIndex;
 }
 
 int EditParent::writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath){

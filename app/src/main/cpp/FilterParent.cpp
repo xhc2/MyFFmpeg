@@ -52,7 +52,7 @@ int  FilterParent::init_filters(const char *filters_descr ,AVFormatContext *fmt_
     AVFilter *buffersink = avfilter_get_by_name("buffersink");
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs = avfilter_inout_alloc();
-    int videoStreamIndex = getVideoStreamIndex();
+    int videoStreamIndex = getVideoStreamIndex(fmt_ctx);
     if(videoStreamIndex < 0){
         LOGE(" getVideoStreamIndex FAILD ! ");
         return -1;
