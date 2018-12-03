@@ -27,20 +27,21 @@ import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
 /**
  * 水印控件 / myVideoGpuShow = 水印 / 视频宽度。这样水印的位置才能放的准确
+ * const char *filter_descr = ;
  */
-public class WaterMarkActivity extends VideoEditParentActivity implements View.OnTouchListener , FFmpegUtils.Lis  {
+public class WaterMarkActivity extends VideoEditParentActivity implements View.OnTouchListener, FFmpegUtils.Lis {
 
     private ImageView img;
     private TextView tvPosition;
     private float x;
     private float y;
-    private int waterX , waterY;
-    private String logoPath ;
-    private Bitmap bitmap ;
+    private int waterX, waterY;
+    private String logoPath;
+    private Bitmap bitmap;
     private static final int PROGRESS = 2;
     private static final int CHANGE_IMAGE = 3;
-    private int videoWidthPx ;
-    private int videoHeightPx ;
+    private int videoWidthPx;
+    private int videoHeightPx;
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -50,16 +51,17 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
                         dismissLoadPorgressDialog();
                         showToast("已完成");
                         stopProgressThread();
+                        FFmpegUtils.videoFilterDestroy();
                         break;
                     }
                     setLoadPorgressDialogProgress(progress);
                     break;
                 case CHANGE_IMAGE:
 
-                    int imgWidth = (int)(((float)myVideoGpuShow.getWidth() / videoWidthPx) * bitmap.getWidth() );
-                    int imgHeight = (int)(((float)myVideoGpuShow.getHeight() / videoHeightPx) * bitmap.getHeight() );
-                    Log.e("xhc" , " width "+imgWidth+" height "+imgHeight);
-                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)img.getLayoutParams();
+                    int imgWidth = (int) (((float) myVideoGpuShow.getWidth() / videoWidthPx) * bitmap.getWidth());
+                    int imgHeight = (int) (((float) myVideoGpuShow.getHeight() / videoHeightPx) * bitmap.getHeight());
+                    Log.e("xhc", " width " + imgWidth + " height " + imgHeight);
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) img.getLayoutParams();
                     params.width = imgWidth;
                     params.height = imgHeight;
                     img.setLayoutParams(params);
@@ -86,7 +88,7 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
 
     protected void init() {
         super.init();
-        waterX = 0 ;
+        waterX = 0;
         waterY = 0;
         FFmpegUtils.addNativeNotify(this);
         titleBar.setRightClickInter(new TitleBar.RightClickInter() {
@@ -106,7 +108,7 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
         });
         myVideoGpuShow.setOnTouchListener(this);
         Intent intent = getIntent();
-        if(intent != null){
+        if (intent != null) {
             logoPath = intent.getStringExtra("pic");
             bitmap = BitmapFactory.decodeFile(logoPath);
             img.setImageBitmap(bitmap);
@@ -132,23 +134,23 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
             case MotionEvent.ACTION_MOVE:
                 x = event.getX();
                 y = event.getY();
-                if(x < 0 ){
+                if (x < 0) {
                     x = 0;
                 }
-                if(y < 0){
-                    y = 0 ;
+                if (y < 0) {
+                    y = 0;
                 }
-                if((x + img.getWidth()) > myVideoGpuShow.getWidth()){
-                    x = myVideoGpuShow.getWidth() - img.getWidth() ;
+                if ((x + img.getWidth()) > myVideoGpuShow.getWidth()) {
+                    x = myVideoGpuShow.getWidth() - img.getWidth();
                 }
-                if((y + img.getHeight()) > myVideoGpuShow.getHeight()){
+                if ((y + img.getHeight()) > myVideoGpuShow.getHeight()) {
                     y = myVideoGpuShow.getHeight() - img.getHeight();
                 }
 
                 img.setX((int) x);
                 img.setY((int) y);
-                waterX = (int)((x / myVideoGpuShow.getWidth() ) * FFmpegUtils.getVideoWidth());
-                waterY = (int)((y / myVideoGpuShow.getHeight() ) * FFmpegUtils.getVideoHeight());
+                waterX = (int) ((x / myVideoGpuShow.getWidth()) * FFmpegUtils.getVideoWidth());
+                waterY = (int) ((y / myVideoGpuShow.getHeight()) * FFmpegUtils.getVideoHeight());
                 tvPosition.setText(" x坐标： " + waterX + ", y坐标：" + waterY);
                 break;
             case MotionEvent.ACTION_UP:
@@ -159,14 +161,16 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
 
     //打水印线程相关
     WaterMarkThread waterMarkThread;
-    private void startWaterMarkThread(){
+
+    private void startWaterMarkThread() {
         stopWaterMarkThread();
         waterMarkThread = new WaterMarkThread();
         waterMarkThread.start();
     }
-    private void stopWaterMarkThread(){
-        FFmpegUtils.bitmapWaterMarkDestroy();
-        if(waterMarkThread != null){
+
+    private void stopWaterMarkThread() {
+        FFmpegUtils.videoFilterDestroy();
+        if (waterMarkThread != null) {
             try {
                 waterMarkThread.join();
             } catch (InterruptedException e) {
@@ -175,28 +179,33 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
             waterMarkThread = null;
         }
     }
-    class WaterMarkThread extends Thread{
+
+    class WaterMarkThread extends Thread {
         @Override
         public void run() {
             super.run();
             FileUtils.makeWaterDir();
             dealFlag = true;
-            FFmpegUtils.initBitmapWaterMark(listPath.get(0) ,
-                    FileUtils.APP_WATER_MARK + "water_mark"+System.currentTimeMillis()+".mp4",
-                    logoPath , waterX , waterY );
-            FFmpegUtils.bitmapWaterMarkStart();
+            String filterDes = String.format("movie=%s[wm];[in][wm]overlay=%d:%d[out]", logoPath, waterX, waterY);
+            Log.e("xhc", "filter Des: " + filterDes);
+            FFmpegUtils.initVideoFilter(listPath.get(0),
+                    FileUtils.APP_WATER_MARK + "water_mark" + System.currentTimeMillis() + ".mp4", filterDes, new int[]{-1, -1});
+            FFmpegUtils.videoFilterStart();
+
             dealFlag = false;
         }
     }
 
     //查看水印进度相关
     private ProgressThread progressThread;
+
     private void startProgressThread() {
         stopProgressThread();
         progressThread = new ProgressThread();
         progressThread.progressFlag = true;
         progressThread.start();
     }
+
     private void stopProgressThread() {
         if (progressThread != null) {
             progressThread.progressFlag = false;
@@ -216,7 +225,7 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
         public void run() {
             super.run();
             while (progressFlag) {
-                progress = FFmpegUtils.getWaterMarkProgress();
+                progress = FFmpegUtils.getVideoFilterProgress();
                 handler.sendEmptyMessage(PROGRESS);
                 try {
                     sleep(1000);
@@ -226,28 +235,27 @@ public class WaterMarkActivity extends VideoEditParentActivity implements View.O
             }
         }
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         bitmap.recycle();
         stopWaterMarkThread();
         stopProgressThread();
+        FFmpegUtils.removeNotify(this);
         handler.removeCallbacksAndMessages(null);
     }
 
 
     @Override
     public void nativeNotify(String str) {
-        //metadata:width=%d,height=%d
-        if(!FFmpegUtils.isShowToastMsg(str) && !TextUtils.isEmpty(str) && str.startsWith("metadata:width=")){
+        if (!TextUtils.isEmpty(str) && !FFmpegUtils.isShowToastMsg(str) && str.startsWith("metadata:width=")) {
             String[] strs = str.split(",");
-            String strWidth = strs[0].replace("metadata:width=" , "") ;
-            String strHeight = strs[1].replace("height=" , "");
-
+            String strWidth = strs[0].replace("metadata:width=", "");
+            String strHeight = strs[1].replace("height=", "");
             try {
                 videoWidthPx = Integer.parseInt(strWidth);
                 videoHeightPx = Integer.parseInt(strHeight);
-
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }

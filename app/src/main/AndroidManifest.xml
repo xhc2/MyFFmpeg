@@ -21,7 +21,7 @@
 
         <!-- module.video.jnc.myffmpeg.activity.TestActivity -->
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".activity.TestActivity"
             android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,12 +39,14 @@
         <activity android:name=".activity.ChoiseVideoActivity">
             <intent-filter>
                 <action android:name="module.video.jnc.myffmpeg.choisevideo" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity android:name=".activity.VideoClipActivity">
             <intent-filter>
                 <action android:name="xhc.video.clip" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -63,12 +65,17 @@
         <activity android:name=".activity.WaterMarkActivity">
             <intent-filter>
                 <action android:name="xhc.video.water_mark" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
-
-        <!--                         provider                        -->
+        <activity android:name=".activity.VideoCropActivity">
+            <intent-filter>
+                <action android:name="xhc.video.crop" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <!-- provider -->
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="module.video.jnc.myffmpeg.fileProvider"
@@ -78,6 +85,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/temp_provider" />
         </provider>
+
 
     </application>
 

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    tools:context=".activity.VideoClipActivity">
+
+    <module.video.jnc.myffmpeg.widget.TitleBar
+        android:id="@+id/title"
+        style="@style/title_bar"
+        app:right_text="确定"
+        app:title_text="视频裁剪" />
+
+    <TextView
+        android:id="@+id/tv_warn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:padding="5dp"
+        android:text="请拖动你想裁剪的区域"
+        android:textColor="#4444BB" />
+
+    <TextView
+        android:id="@+id/tv_position"
+        android:layout_below="@id/tv_warn"
+        android:textColor="#4444BB"
+        android:layout_marginTop="10dp"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <FrameLayout
+        android:layout_width="320dp"
+        android:layout_height="165dp"
+        android:layout_below="@id/tv_position"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp">
+
+        <module.video.jnc.myffmpeg.MyVideoGpuShow
+            android:id="@+id/play_gl_surfaceview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+
+</RelativeLayout>

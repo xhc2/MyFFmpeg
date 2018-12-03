@@ -3,10 +3,13 @@
 //
 
 #include <my_log.h>
-#include "BitmapWaterMark.h"
+#include "VideoFilter.h"
 
-BitmapWaterMark::BitmapWaterMark(const char *videoPath, const char *outputPath,
-                                 const char *logoPath, int x, int y) {
+VideoFilter::VideoFilter(const char *videoPath, const char *outputPath,
+                         const char *filter_descr ,int* params , int paramsSize ) {
+    paramsSet = (int *)malloc(paramsSize * sizeof(int));
+    memcpy(paramsSet , params, paramsSize * sizeof(int));
+    paramsSetSize = paramsSize;
     fmtCtx = NULL;
     int result = open_input_file(videoPath, &fmtCtx);
     if (result < 0 || fmtCtx == NULL) {
@@ -31,9 +34,7 @@ BitmapWaterMark::BitmapWaterMark(const char *videoPath, const char *outputPath,
         LOGE(" buildOutput faild !");
         return;
     }
-    char outChar[512];
-    sprintf(outChar, filter_descr, logoPath, x, y);
-    result = init_filters(outChar, fmtCtx, decCtx);
+    result = init_filters(filter_descr, fmtCtx, decCtx);
     if (result < 0) {
         LOGE(" init_filters FAILD !");
         return;
@@ -43,23 +44,29 @@ BitmapWaterMark::BitmapWaterMark(const char *videoPath, const char *outputPath,
     readEnd = false;
     decodeFlag = false;
     duration = fmtCtx->duration; //总时间
-    LOGE(" BitmapWaterMark SUCCESS !");
+
+    LOGE(" VideoFilter SUCCESS !");
 
 }
 
-int BitmapWaterMark::buildOutput(const char *outputPath) {
+int VideoFilter::buildOutput(const char *outputPath) {
     int result = initOutput(outputPath, &afcOutput);
     if (result < 0) {
         LOGE(" initOutput faild !");
         return -1;
     }
-    result = addOutputVideoStream(afcOutput, &vCtxE, *fmtCtx->streams[videoStreamIndex]->codecpar);
+    AVCodecParameters codecpar;
+    avcodec_parameters_copy(&codecpar ,  fmtCtx->streams[videoStreamIndex]->codecpar);
+    parseVideoParams(paramsSet , paramsSetSize ,&codecpar);
+    LOGE(" paramsSet %d , paramsSet %d " , paramsSet[0] , paramsSet[1]);
+    LOGE(" VIDEO WIDTH %d , VIDEO HEIGHT %d " ,codecpar.width , codecpar.height );
+    result = addOutputVideoStream(afcOutput, &vCtxE, codecpar);
     if (result < 0 || vCtxE == NULL) {
         LOGE("addOutputVideoStream FAILD !");
         return -1;
     }
     videoOutputStreamIndex = result;
-    result = addOutputAudioStream(afcOutput, NULL, *fmtCtx->streams[audioStreamIndex]->codecpar);
+    result = addOutputAudioStream(afcOutput, NULL , *fmtCtx->streams[audioStreamIndex]->codecpar);
     if (result < 0) {
         LOGE("addOutputAudioStream FAILD !");
         return -1;
@@ -74,7 +81,7 @@ int BitmapWaterMark::buildOutput(const char *outputPath) {
 }
 
 
-void BitmapWaterMark::startWaterMark() {
+void VideoFilter::startWaterMark() {
 
     AVFrame *frame;
     AVFrame *filt_frame = av_frame_alloc();
@@ -133,7 +140,7 @@ void BitmapWaterMark::startWaterMark() {
 }
 
 
-void BitmapWaterMark::run() {
+void VideoFilter::run() {
     int result;
     while (!isExit) {
         if (this->pause) {
@@ -187,7 +194,7 @@ void BitmapWaterMark::run() {
     writeTrail(afcOutput);
 }
 
-void BitmapWaterMark::clearAllQue() {
+void VideoFilter::clearAllQue() {
     while (!audioQue.empty()) {
         AVPacket *pkt = audioQue.front();
         if (pkt != NULL) {
@@ -204,9 +211,10 @@ void BitmapWaterMark::clearAllQue() {
     }
 }
 
-BitmapWaterMark::~BitmapWaterMark() {
+VideoFilter::~VideoFilter() {
     this->stop();
     this->join();
+    free(paramsSet);
     while (decodeFlag) {
         //等待解码循环完毕。否则释放了各种编解码器，然后循环还在继续解码会有异常。
     }
@@ -228,4 +236,5 @@ BitmapWaterMark::~BitmapWaterMark() {
         avcodec_free_context(&vCtxE);
         vCtxE = NULL;
     }
+
 }

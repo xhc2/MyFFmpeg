@@ -6,7 +6,7 @@
 #define MYFFMPEG_EDITPARENT_H
 
 #include <stdio.h>
-
+#include <vector>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -19,7 +19,7 @@ extern "C" {
 #define DEBUG
 
 
-
+using namespace std;
 
 class EditParent {
 
@@ -50,6 +50,7 @@ protected:
     int addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , AVCodecParameters codecpar);
     int addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , AVCodecParameters codecpar);
     int  writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath);
+    int parseVideoParams(int* params , int size , AVCodecParameters *codecpar);
     int getVideoOutputStreamIndex();
     int getAudioOutputStreamIndex();
     int  writeTrail(AVFormatContext *afc_output );

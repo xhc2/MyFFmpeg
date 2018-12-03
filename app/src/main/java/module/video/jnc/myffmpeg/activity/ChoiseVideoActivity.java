@@ -52,7 +52,7 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
         recyclerView = findViewById(R.id.recycler_view);
         rcChoiseView = findViewById(R.id.rl_choise);
         titleBar = findViewById(R.id.title);
-        findFile(FileUtils.APP_ROOT);
+        findFile(FileUtils.APP_VIDEO);
         adapter = new ChoiseVideoAdapter(listFile  , this);
         recyclerView.setLayoutManager(new GridLayoutManager(this , 3));
         recyclerView.addItemDecoration(new DividerGridItemDecoration(this));

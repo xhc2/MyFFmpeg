@@ -23,7 +23,7 @@
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
-#include "BitmapWaterMark.h"
+#include "VideoFilter.h"
 
 Mp4Player *mp4Player = NULL;
 PublishStream *ps = NULL;
@@ -57,7 +57,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getVideoWidth(JNIEnv *env, jclass typ
     if (mp4Player != NULL) {
         return mp4Player->getVideoWidth();
     }
-    return 0 ;
+    return 0;
 }
 
 extern "C"
@@ -471,6 +471,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startJoint(JNIEnv *env, jclass type, 
         char *temp = (char *) malloc(charLen);
         strcpy(temp, chars);
         inputPaths.push_back(temp);
+        env->ReleaseStringUTFChars(obja, chars);
     }
 
     if (vj == NULL) {
@@ -611,53 +612,59 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
     return 1;
 }
 
-BitmapWaterMark *bwm = NULL;
+VideoFilter *bwm = NULL;
+
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_initBitmapWaterMark(JNIEnv *env, jclass type,
-                                                               jstring videoPath_,
-                                                               jstring ouputPath_,
-                                                               jstring logoPath_, jint x, jint y) {
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoFilter(JNIEnv *env, jclass type,
+                                                           jstring videoPath_, jstring outputPath_,
+                                                           jstring filterDescr_,
+                                                           jintArray params_) {
     const char *videoPath = env->GetStringUTFChars(videoPath_, 0);
-    const char *logoPath = env->GetStringUTFChars(logoPath_, 0);
-    const char *outPath = env->GetStringUTFChars(ouputPath_, 0);
-    // TODO
-    bwm = new BitmapWaterMark(videoPath, outPath, logoPath, x, y);
+    const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
+    const char *filterDescr = env->GetStringUTFChars(filterDescr_, 0);
+    jint *params = env->GetIntArrayElements(params_, NULL);
+    int size = env->GetArrayLength(params_);
+    if(bwm == NULL){
+        bwm = new VideoFilter(videoPath, outputPath, filterDescr , params , size);
+    }
     env->ReleaseStringUTFChars(videoPath_, videoPath);
-    env->ReleaseStringUTFChars(logoPath_, logoPath);
-    env->ReleaseStringUTFChars(ouputPath_, outPath);
+    env->ReleaseStringUTFChars(outputPath_, outputPath);
+    env->ReleaseStringUTFChars(filterDescr_, filterDescr);
+    env->ReleaseIntArrayElements(params_, params, 0);
+
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkStart(JNIEnv *env, jclass type) {
+Java_module_video_jnc_myffmpeg_FFmpegUtils_videoFilterStart(JNIEnv *env, jclass type) {
 
+    // TODO
     if (bwm != NULL) {
         bwm->startWaterMark();
     }
-    return 0;
+    return 1;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkDestroy(JNIEnv *env, jclass type) {
-    if (bwm != NULL) {
-        delete bwm;
-
-    }
-    bwm = NULL;
-    return 0;
-}
-
-
-extern "C"
-JNIEXPORT jint JNICALL
-Java_module_video_jnc_myffmpeg_FFmpegUtils_getWaterMarkProgress(JNIEnv *env, jclass type) {
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getVideoFilterProgress(JNIEnv *env, jclass type) {
 
     // TODO
     if (bwm != NULL) {
-       return  bwm->getProgress();
+        return bwm->getProgress();
     }
     return -1;
+
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_videoFilterDestroy(JNIEnv *env, jclass type) {
+
+    // TODO
+    if (bwm != NULL) {
+        delete bwm;
+    }
+    bwm = NULL;
+    return 0;
 }

@@ -12,10 +12,10 @@
 
 using namespace std;
 
-class BitmapWaterMark : public FilterParent ,MyThread{
+class VideoFilter : public FilterParent ,MyThread{
 private :
     bool decodeFlag ;
-    const char *filter_descr = "movie=%s[wm];[in][wm]overlay=%d:%d[out]";
+
     AVFormatContext *fmtCtx;
     AVCodecContext *decCtx;
     int videoStreamIndex;
@@ -31,12 +31,14 @@ private :
     bool readEnd;
     int buildOutput(  const char *outputPath);
     int64_t duration ;
+    int *paramsSet;
+    int paramsSetSize;
 public :
-    BitmapWaterMark(const char *videoInputPath,  const char *outputPath, const char *logoPath, int x, int y);
+    VideoFilter(const char *videoInputPath,  const char *outputPath, const char *filter_descr  ,int* params , int paramsSize);
     void run();
     void startWaterMark();
     void clearAllQue();
-    ~BitmapWaterMark();
+    ~VideoFilter();
 };
 
 #endif //MYFFMPEG_BITMAPWATERMARK_H

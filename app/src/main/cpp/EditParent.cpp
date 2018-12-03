@@ -27,8 +27,8 @@ EditParent::EditParent() {
     timeBaseFFmpeg = (AVRational) {1, AV_TIME_BASE};
 }
 
-int EditParent::getProgress(){
-    LOGE(" progress %d " , progress);
+int EditParent::getProgress() {
+    LOGE(" progress %d ", progress);
     return progress;
 }
 
@@ -38,7 +38,7 @@ int EditParent::open_input_file(const char *filename, AVFormatContext **fmt_ctx)
         LOGE("avformat_open_input FAILD !");
         return ret;
     }
-    if(fmt_ctx == NULL){
+    if (fmt_ctx == NULL) {
         LOGE("alloc fmt_ctx  FAILD !");
         return -1;
     }
@@ -72,7 +72,7 @@ int EditParent::getVideoDecodeContext(AVFormatContext *fmt_ctx, AVCodecContext *
     return videoStreamIndex;
 }
 
-AVFrame* EditParent::decodePacket(AVCodecContext *decode , AVPacket *packet){
+AVFrame *EditParent::decodePacket(AVCodecContext *decode, AVPacket *packet) {
     int result = avcodec_send_packet(decode, packet);
     if (result < 0) {
         LOGE("  avcodec_send_packet %s ", av_err2str(result));
@@ -93,7 +93,7 @@ AVFrame* EditParent::decodePacket(AVCodecContext *decode , AVPacket *packet){
 }
 
 
-AVPacket *EditParent::encodeFrame(AVFrame *frame ,AVCodecContext *vCtxE ) {
+AVPacket *EditParent::encodeFrame(AVFrame *frame, AVCodecContext *vCtxE) {
     int result = 0;
     result = avcodec_send_frame(vCtxE, frame);
     if (result < 0) {
@@ -112,21 +112,23 @@ AVPacket *EditParent::encodeFrame(AVFrame *frame ,AVCodecContext *vCtxE ) {
     }
     return NULL;
 }
-int EditParent::getVideoStreamIndex(AVFormatContext *fmt_ctx){
-    if(videoStreamIndex == -1){
+
+int EditParent::getVideoStreamIndex(AVFormatContext *fmt_ctx) {
+    if (videoStreamIndex == -1) {
         videoStreamIndex = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
     }
-    return videoStreamIndex ;
+    return videoStreamIndex;
 }
-int EditParent::getAudioStreamIndex(AVFormatContext *fmt_ctx){
-    if(audioStreamIndex == -1){
+
+int EditParent::getAudioStreamIndex(AVFormatContext *fmt_ctx) {
+    if (audioStreamIndex == -1) {
         audioStreamIndex = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
     }
     return audioStreamIndex;
 }
 
 
-int EditParent::initOutput(const char* ouput ,AVFormatContext **ctx){
+int EditParent::initOutput(const char *ouput, AVFormatContext **ctx) {
     int result = 0;
     result = avformat_alloc_output_context2(ctx, NULL, NULL, ouput);
     if (result < 0 || ctx == NULL) {
@@ -136,7 +138,8 @@ int EditParent::initOutput(const char* ouput ,AVFormatContext **ctx){
     return 1;
 }
 
-int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , AVCodecParameters codecpar){
+int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext **vCtxE,
+                                     AVCodecParameters codecpar) {
     int result = 0;
     AVStream *videoOutStream = avformat_new_stream(afc_output, NULL);
     if (videoOutStream == NULL) {
@@ -150,8 +153,8 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext
         return -1;
     }
 
-    avcodec_parameters_copy(videoOutStream->codecpar , &codecpar);
-    if(vCtxE == NULL){
+    avcodec_parameters_copy(videoOutStream->codecpar, &codecpar);
+    if (vCtxE == NULL) {
         return videoOutputStreamIndex;
     }
     AVCodec *videoCodecE = avcodec_find_encoder(afot->video_codec);
@@ -194,7 +197,9 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext
     LOGE(" INIT OUTPUT SUCCESS VIDEO !");
     return videoOutputStreamIndex;
 }
-int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE ,AVCodecParameters codecpar){
+
+int EditParent::addOutputAudioStream(AVFormatContext *afc_output, AVCodecContext **aCtxE,
+                                     AVCodecParameters codecpar) {
     int result = 0;
     AVStream *audioOutStream = avformat_new_stream(afc_output, NULL);
     if (audioOutStream == NULL) {
@@ -208,8 +213,8 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext
         return -1;
     }
     LOGE(" afot->audio_codec   %d ", afot->audio_codec);
-    avcodec_parameters_copy(audioOutStream->codecpar , &codecpar);
-    if(aCtxE == NULL){
+    avcodec_parameters_copy(audioOutStream->codecpar, &codecpar);
+    if (aCtxE == NULL) {
         return audioOutputStreamIndex;
     }
     AVCodec *audioCodecE = avcodec_find_encoder(afot->audio_codec);
@@ -220,7 +225,7 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext
     LOGE("AUDIO CODEC NAME %s ", audioCodecE->name);
     *aCtxE = avcodec_alloc_context3(audioCodecE);
 
-    if ( *aCtxE == NULL) {
+    if (*aCtxE == NULL) {
         LOGE("AUDIO avcodec_alloc_context3 FAILD !");
         return -1;
     }
@@ -240,7 +245,7 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext
         LOGE(" avcodec_parameters_from_context FAILD ! ");
         return -1;
     }
-    result = avcodec_open2( *aCtxE, audioCodecE, NULL);
+    result = avcodec_open2(*aCtxE, audioCodecE, NULL);
     if (result < 0) {
         LOGE(" audio Could not open codec %s ", av_err2str(result));
         return -1;
@@ -250,16 +255,44 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext
     return audioOutputStreamIndex;
 }
 
-int EditParent::getVideoOutputStreamIndex(){
+/**
+ * 这里的规则，请看FFmpegUtils 的注释
+ * @param params
+ * @param size
+ * @param codecpar
+ * @return
+ */
+int EditParent::parseVideoParams(int *params, int size, AVCodecParameters *codecpar) {
+    for (int i = 0; i < size; ++i) {
+        switch (i) {
+            case 0:
+                if (params[0] != -1) {
+                    codecpar->width = params[0];
+                }
+
+                break;
+            case 1:
+                if (params[1] != -1) {
+                    codecpar->height = params[1];
+                }
+                break;
+        }
+
+    }
+    return 1;
+}
+
+int EditParent::getVideoOutputStreamIndex() {
 
     return videoOutputStreamIndex;
 }
-int EditParent::getAudioOutputStreamIndex(){
+
+int EditParent::getAudioOutputStreamIndex() {
     return audioOutputStreamIndex;
 }
 
-int EditParent::writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath){
-    int result ;
+int EditParent::writeOutoutHeader(AVFormatContext *afc_output, const char *outputPath) {
+    int result;
     if (!(afc_output->oformat->flags & AVFMT_NOFILE)) {
         result = avio_open(&afc_output->pb, outputPath, AVIO_FLAG_WRITE);
         if (result < 0) {
@@ -276,7 +309,7 @@ int EditParent::writeOutoutHeader(AVFormatContext *afc_output , const char* outp
     return 1;
 }
 
-int  EditParent::writeTrail(AVFormatContext *afc_output ){
+int EditParent::writeTrail(AVFormatContext *afc_output) {
     av_write_trailer(afc_output);
     return 1;
 }

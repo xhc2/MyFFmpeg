@@ -103,11 +103,35 @@ public class FFmpegUtils {
     public static native float getCurrentBitmp(float time  , byte[] result);
     public static native void destroyCurrentBitmap();
 
+    //视频打图片水印部分
+//    public static native void initBitmapWaterMark( String videoPath  ,String outputPath ,  String filterDescr);
+//    public static native int bitmapWaterMarkStart();
+//    public static native int getWaterMarkProgress();
+//    public static native int bitmapWaterMarkDestroy();
 
-    public static native void initBitmapWaterMark( String videoPath  ,String outputPath ,  String logoPath   , int x , int y);
-    public static native int bitmapWaterMarkStart();
-    public static native int getWaterMarkProgress();
-    public static native int bitmapWaterMarkDestroy();
+    /**
+     * @param params 作以下规定 -1 ，代表默认
+     *               int[] = {
+     *                      width , height
+     *               }
+     *               e.g ,列如第一个参数就是width ， 第二个参数是height
+     *               int[] = {
+     *                     640 , 360
+     *               }
+     *
+     */
+    public static native void initVideoFilter( String videoPath  ,String outputPath ,  String filterDescr , int[] params);
+    public static native int videoFilterStart();
+    public static native int getVideoFilterProgress();
+    public static native int videoFilterDestroy();
+
+
+    //视频裁剪相关
+////    public static native int initVideoCrop(String videoPath , String outputPath , int x , int y , int w , int h);
+////    public static native int startCrop();
+////    public static native int getCropProgress();
+//    public static native int destroyCrop();
+
 
     //测试部分
     public static native int test();

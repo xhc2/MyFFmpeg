@@ -9,8 +9,9 @@ import java.io.IOException;
 
 public class FileUtils {
     public static final String APP_ROOT = "sdcard/FFmpeg/";
+    public static final String APP_VIDEO = "sdcard/FFmpeg/video/";
     public static final String APP_WATER_MARK = "sdcard/FFmpeg/water_mark/";
-
+    public static final String APP_CROP = "sdcard/FFmpeg/crop/";
     public static String saveFileToWaterMark(String name, byte[] buffer) {
         File file = new File(APP_WATER_MARK);
         if (!file.exists()) {
@@ -65,5 +66,10 @@ public class FileUtils {
             file.mkdirs();
         }
     }
-
+    public static void makeCropDir(){
+        File file = new File(APP_CROP);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
 }
