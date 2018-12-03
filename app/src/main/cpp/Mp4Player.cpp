@@ -20,12 +20,11 @@
 #include <YuvPlayer.h>
 
 
-
-Mp4Player::Mp4Player(const char* path , ANativeWindow* win ,  CallJava *cj){
-    this->cj = cj ;
-     video_index = -1;
+Mp4Player::Mp4Player(const char *path, ANativeWindow *win, CallJava *cj) {
+    this->cj = cj;
+    video_index = -1;
     audio_index = -1;
-    outChannel = 1 ;
+    outChannel = 1;
 
     videoCode = NULL;
     audioCode = NULL;
@@ -39,21 +38,21 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win ,  CallJava *cj){
     vc = NULL;
     //必须显式的置null，不然avformat_open_input要报错。
     afc = NULL;
-    videoDuration = 0 ;
+    videoDuration = 0;
 
 
     LOGE("------------------------------START-------------------------------");
     int result = initFFmpeg(path);
-    if(result < 0){
-        return ;
+    if (result < 0) {
+        return;
     }
-    readAVPackage = new ReadAVPackage(afc , audio_index , video_index);
-    decodeVideo = new DecodeVideoThread(afc , vc , video_index);
-    decodeAudio = new DeocdeMyAudioThread(ac , afc , audio_index);
-    LOGE(" SIMPALERATE %d , outChanner %d " , simpleRate , outChannel);
-    audioPlayer = new NewAudioPlayer(simpleRate , outChannel);
-    yuvPlayer = new YuvPlayer(win , outWidth , outHeight);
-    seekFile = new SeekFile(afc  , audio_index , video_index );
+    readAVPackage = new ReadAVPackage(afc, audio_index, video_index);
+    decodeVideo = new DecodeVideoThread(afc, vc, video_index);
+    decodeAudio = new DeocdeMyAudioThread(ac, afc, audio_index);
+    LOGE(" SIMPALERATE %d , outChanner %d ", simpleRate, outChannel);
+    audioPlayer = new NewAudioPlayer(simpleRate, outChannel);
+    yuvPlayer = new YuvPlayer(win, outWidth, outHeight);
+    seekFile = new SeekFile(afc, audio_index, video_index);
 
     readAVPackage->setThreadName("ReadAVPackage");
     decodeVideo->setThreadName("decodeVideo");
@@ -76,11 +75,11 @@ Mp4Player::Mp4Player(const char* path , ANativeWindow* win ,  CallJava *cj){
     LOGE("init Mp4Player SUCCESS ");
 }
 
-void Mp4Player::seekStart(){
+void Mp4Player::seekStart() {
     pauseVA();
 }
 
-void Mp4Player::seek(float progress){
+void Mp4Player::seek(float progress) {
     int result = avformat_flush(afc);
     if (result < 0) {
         LOGE(" avformat_flush result %d ", result);
@@ -92,18 +91,18 @@ void Mp4Player::seek(float progress){
     avcodec_flush_buffers(vc);
     avcodec_flush_buffers(ac);
     clearAllQue();
-    seekFile->seek(progress , audioPlayer->pts ,  decodeVideo->pts);
+    seekFile->seek(progress, audioPlayer->pts, decodeVideo->pts);
     decodeVideo->apts = audioPlayer->pts;
     playVA();
 }
 
-int Mp4Player::initFFmpeg(const char* path) {
+int Mp4Player::initFFmpeg(const char *path) {
 
     int result = 0;
     av_register_all();
     avformat_network_init();
-    LOGE(" play path %s " , path);
-    result = avformat_open_input(&afc, path , 0, 0);
+    LOGE(" play path %s ", path);
+    result = avformat_open_input(&afc, path, 0, 0);
     if (result != 0) {
         LOGE("avformat_open_input failed!:%s", av_err2str(result));
         cj->callStr("不支持播放！");
@@ -139,7 +138,7 @@ int Mp4Player::initFFmpeg(const char* path) {
 
             videoCode = avcodec_find_decoder(avStream->codecpar->codec_id);
 
-            if(avStream->codecpar->format != AV_PIX_FMT_YUV420P){
+            if (avStream->codecpar->format != AV_PIX_FMT_YUV420P) {
                 //先暂时不支持 yuv420p以外的格式
                 cj->callStr("目前只支持yuv420p的格式");
                 return RESULT_FAILD;
@@ -161,18 +160,20 @@ int Mp4Player::initFFmpeg(const char* path) {
             }
         }
     }
-
-    if(audioCode == NULL){
+    char metadata[512];
+    sprintf(metadata ,"metadata:width=%d,height=%d" , afc->streams[video_index]->codecpar->width , afc->streams[video_index]->codecpar->height );
+    cj->callStr(metadata);
+    if (audioCode == NULL) {
         cj->callStr(" 没找到音频解码器 ");
         return RESULT_FAILD;
     }
-    if(videoCode == NULL){
+    if (videoCode == NULL) {
         cj->callStr(" 没找到视频解码器 ");
         return RESULT_FAILD;
     }
 
-    LOGE(" audio code name %s  " , audioCode->name);
-    LOGE(" video code name %s  " , videoCode->name);
+    LOGE(" audio code name %s  ", audioCode->name);
+    LOGE(" video code name %s  ", videoCode->name);
 
     ac = avcodec_alloc_context3(audioCode);
     if (!ac) {
@@ -214,83 +215,97 @@ int Mp4Player::initFFmpeg(const char* path) {
     return RESULT_SUCCESS;
 }
 
-void Mp4Player::run(){
-    while(!isExit){
-        if(pause){
+void Mp4Player::run() {
+    while (!isExit) {
+        if (pause) {
             threadSleep(1);
             continue;
         }
         //在外面把同步处理了。
-        if(audioPlayer != NULL && decodeVideo != NULL){
+        if (audioPlayer != NULL && decodeVideo != NULL) {
             decodeVideo->apts = audioPlayer->pts;
         }
     }
 }
 
-void Mp4Player::changeSpeed(float speed){
-    if(audioPlayer != NULL){
+void Mp4Player::changeSpeed(float speed) {
+    if (audioPlayer != NULL) {
         audioPlayer->changeSpeed(speed);
     }
 }
 
-void Mp4Player::clearAllQue(){
+void Mp4Player::clearAllQue() {
     decodeVideo->clearQue();
     decodeAudio->clearQue();
     audioPlayer->clearQue();
 }
 
-void Mp4Player::pauseVA(){
+void Mp4Player::pauseVA() {
 
     this->setPause();
-    if(readAVPackage != NULL){
+    if (readAVPackage != NULL) {
         readAVPackage->setPause();
     }
-    if(audioPlayer != NULL){
+    if (audioPlayer != NULL) {
         audioPlayer->pauseAudio();
-         audioPlayer->setPause();
+        audioPlayer->setPause();
     }
-    if(decodeAudio != NULL){
+    if (decodeAudio != NULL) {
         decodeAudio->setPause();
     }
-    if(decodeVideo != NULL){
+    if (decodeVideo != NULL) {
         decodeVideo->setPause();
     }
 }
 
 //获取的视频部分。如果音频的长度大于视频的长度，那么这个就不准确了。
-int Mp4Player::getProgress(){
-    if(decodeVideo == NULL || videoDuration == 0){
+int Mp4Player::getProgress() {
+    if (decodeVideo == NULL || videoDuration == 0) {
         return 0;
     }
-    if(decodeVideo->pts == -100){
+    if (decodeVideo->pts == -100) {
         return -100;
     }
-    if(audioPlayer != NULL){
-        if(audioPlayer->pts == -100){
+    if (audioPlayer != NULL) {
+        if (audioPlayer->pts == -100) {
 
             return -100;
         }
     }
 
-    return (int)((float)decodeVideo->pts / (float)videoDuration * 100); //只看了视频部分
+    return (int) ((float) decodeVideo->pts / (float) videoDuration * 100); //只看了视频部分
 }
 
-float Mp4Player::getDuration(){
+float Mp4Player::getDuration() {
     return videoDuration / 1000;
 }
+// 416 235
+int Mp4Player::getVideoWidth() {
+    if(afc != NULL){
+        return afc->streams[video_index]->codecpar->width;
+    }
+    return 0;
+}
 
-void Mp4Player::playVA(){
+int Mp4Player::getVideoHeight() {
+    if(afc != NULL){
+        return afc->streams[video_index]->codecpar->height;
+    }
+    return 0;
+}
+
+void Mp4Player::playVA() {
     LOGE(" PLAY NOW ");
-    if(readAVPackage != NULL){
+    if (readAVPackage != NULL) {
         readAVPackage->setPlay();
     }
-    if(decodeVideo != NULL){
+    if (decodeVideo != NULL) {
         decodeVideo->setPlay();
     }
-    if(decodeAudio != NULL){
+    if (decodeAudio != NULL) {
         decodeAudio->setPlay();
     }
-    if(audioPlayer != NULL){
+    if (audioPlayer != NULL) {
 //        audioPlayer->stop();
         audioPlayer->setPlay();
         audioPlayer->start();
@@ -298,66 +313,66 @@ void Mp4Player::playVA(){
     this->setPlay();
 }
 
-Mp4Player::~Mp4Player(){
+Mp4Player::~Mp4Player() {
 
     LOGE("---------destroy Mp4Player------------");
     videoDuration = -1;
     this->stop();
-    if(seekFile != NULL){
+    if (seekFile != NULL) {
         seekFile->stop();
     }
-    if(audioPlayer != NULL){
+    if (audioPlayer != NULL) {
         audioPlayer->stop();
     }
 
-    if(decodeAudio != NULL){
+    if (decodeAudio != NULL) {
         decodeAudio->stop();
         decodeAudio->removeNotify();
     }
-    if(decodeVideo != NULL){
+    if (decodeVideo != NULL) {
         decodeVideo->stop();
         decodeVideo->removeNotify();
     }
-    if(readAVPackage != NULL){
+    if (readAVPackage != NULL) {
         readAVPackage->stop();
         readAVPackage->removeNotify();
     }
 
     this->join();
 
-    if(audioPlayer != NULL) {
+    if (audioPlayer != NULL) {
         audioPlayer->join();
     }
-    if(decodeAudio != NULL) {
+    if (decodeAudio != NULL) {
         decodeAudio->join();
     }
-    if(decodeVideo != NULL) {
+    if (decodeVideo != NULL) {
         decodeVideo->join();
     }
 
-    if(readAVPackage != NULL) {
+    if (readAVPackage != NULL) {
         readAVPackage->join();
     }
-    if(seekFile != NULL) {
+    if (seekFile != NULL) {
         seekFile->join();
     }
 
-    if(yuvPlayer != NULL){
+    if (yuvPlayer != NULL) {
         delete yuvPlayer;
     }
-    if(audioPlayer != NULL){
+    if (audioPlayer != NULL) {
         delete audioPlayer;
     }
-    if(decodeAudio != NULL){
+    if (decodeAudio != NULL) {
         delete decodeAudio;
     }
-    if( decodeVideo!= NULL){
+    if (decodeVideo != NULL) {
         delete decodeVideo;
     }
-    if(readAVPackage != NULL){
+    if (readAVPackage != NULL) {
         delete readAVPackage;
     }
-    if(seekFile != NULL){
+    if (seekFile != NULL) {
         delete seekFile;
     }
 

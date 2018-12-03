@@ -1,6 +1,7 @@
 package module.video.jnc.myffmpeg;
 
 import android.opengl.GLSurfaceView;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -46,6 +47,8 @@ public class FFmpegUtils {
     public static native int changeSpeed(float speed);
     public static native int seekStart();
     public static native int seek(float progress);
+    public static native int getVideoWidth();
+    public static native int getVideoHeight();
 
 
     //rtmp推流部分
@@ -103,6 +106,7 @@ public class FFmpegUtils {
 
     public static native void initBitmapWaterMark( String videoPath  ,String outputPath ,  String logoPath   , int x , int y);
     public static native int bitmapWaterMarkStart();
+    public static native int getWaterMarkProgress();
     public static native int bitmapWaterMarkDestroy();
 
     //测试部分
@@ -110,11 +114,20 @@ public class FFmpegUtils {
     public static native int test2();
 
 
-
+    //给本地回调，是在jni层调用的方法
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){
             lis.nativeNotify(str);
         }
     }
-
+    //判断本地回调的数据是否是用来显示的
+    public static boolean isShowToastMsg(String msg){
+        if(TextUtils.isEmpty(msg)){
+            return false;
+        }
+        if(msg.startsWith("metadata")){
+            return false;
+        }
+        return true;
+    }
 }

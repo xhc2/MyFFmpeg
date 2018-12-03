@@ -15,6 +15,7 @@ import java.util.List;
 
 import module.video.jnc.myffmpeg.adapter.ChoiseVideoAdapter;
 import module.video.jnc.myffmpeg.bean.FileBean;
+import module.video.jnc.myffmpeg.tool.FileUtils;
 import module.video.jnc.myffmpeg.widget.DividerGridItemDecoration;
 import module.video.jnc.myffmpeg.adapter.MyBaseAdapter;
 import module.video.jnc.myffmpeg.R;
@@ -22,7 +23,6 @@ import module.video.jnc.myffmpeg.adapter.SelectedVideoAdapter;
 import module.video.jnc.myffmpeg.widget.TitleBar;
 
 public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.OnRecyleItemClick<FileBean> {
-    private static final String root = "sdcard/FFmpeg/";
     private RecyclerView recyclerView ;
     private ChoiseVideoAdapter adapter ;
     private SelectedVideoAdapter selectedVideoAdapter;
@@ -52,7 +52,7 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
         recyclerView = findViewById(R.id.recycler_view);
         rcChoiseView = findViewById(R.id.rl_choise);
         titleBar = findViewById(R.id.title);
-        findFile(root);
+        findFile(FileUtils.APP_ROOT);
         adapter = new ChoiseVideoAdapter(listFile  , this);
         recyclerView.setLayoutManager(new GridLayoutManager(this , 3));
         recyclerView.addItemDecoration(new DividerGridItemDecoration(this));
@@ -87,20 +87,18 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
         });
     }
 
+    //先不递归了。
     private void findFile(String root){
         File file = new File(root);
         if(file.isDirectory()){
             File[] files = file.listFiles();
             if(files == null) return ;
             for(File f : files){
-                findFile(f.getAbsolutePath());
-            }
-        }
-        else{
-            if(isVideo(file.getAbsolutePath())){
-                FileBean fb = new FileBean();
-                fb.setPath(file.getAbsolutePath());
-                listFile.add(fb);
+                if(isVideo(f.getAbsolutePath())){
+                    FileBean fb = new FileBean();
+                    fb.setPath(f.getAbsolutePath());
+                    listFile.add(fb);
+                }
             }
         }
     }

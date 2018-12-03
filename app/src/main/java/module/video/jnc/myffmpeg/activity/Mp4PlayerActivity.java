@@ -499,10 +499,12 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
 
     @Override
     public void nativeNotify(String str) {
-        Message msg = new Message();
-        msg.what = 4;
-        msg.obj = str;
-        handler.sendMessage(msg);
+        if(FFmpegUtils.isShowToastMsg(str)){
+            Message msg = new Message();
+            msg.what = 4;
+            msg.obj = str;
+            handler.sendMessage(msg);
+        }
     }
 
     @Override

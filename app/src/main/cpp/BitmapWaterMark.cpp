@@ -5,7 +5,8 @@
 #include <my_log.h>
 #include "BitmapWaterMark.h"
 
-BitmapWaterMark::BitmapWaterMark(const char *videoPath,  const char *outputPath, const char *logoPath, int x, int y) {
+BitmapWaterMark::BitmapWaterMark(const char *videoPath, const char *outputPath,
+                                 const char *logoPath, int x, int y) {
     fmtCtx = NULL;
     int result = open_input_file(videoPath, &fmtCtx);
     if (result < 0 || fmtCtx == NULL) {
@@ -19,15 +20,16 @@ BitmapWaterMark::BitmapWaterMark(const char *videoPath,  const char *outputPath,
     }
     videoStreamIndex = result;
     audioStreamIndex = getAudioStreamIndex(fmtCtx);
-    if(audioStreamIndex == -1){
+    if (audioStreamIndex == -1) {
         LOGE(" find audio Stream faild ! ");
-        return ;
+        return;
     }
-    LOGE(" INPUT VIDEO STREAM INDEX %d , AUDIO STREAM INDEX %d " , videoStreamIndex , audioStreamIndex);
-    result =  buildOutput(outputPath);
-    if(result < 0){
+    LOGE(" INPUT VIDEO STREAM INDEX %d , AUDIO STREAM INDEX %d ", videoStreamIndex,
+         audioStreamIndex);
+    result = buildOutput(outputPath);
+    if (result < 0) {
         LOGE(" buildOutput faild !");
-        return ;
+        return;
     }
     char outChar[512];
     sprintf(outChar, filter_descr, logoPath, x, y);
@@ -36,32 +38,35 @@ BitmapWaterMark::BitmapWaterMark(const char *videoPath,  const char *outputPath,
         LOGE(" init_filters FAILD !");
         return;
     }
-    vpts = 0 ;
+    vpts = 0;
     apts = 0;
     readEnd = false;
+    decodeFlag = false;
+    duration = fmtCtx->duration; //总时间
     LOGE(" BitmapWaterMark SUCCESS !");
+
 }
 
-int BitmapWaterMark::buildOutput(const char *outputPath){
-    int result = initOutput(outputPath , &afcOutput);
-    if(result < 0){
+int BitmapWaterMark::buildOutput(const char *outputPath) {
+    int result = initOutput(outputPath, &afcOutput);
+    if (result < 0) {
         LOGE(" initOutput faild !");
         return -1;
     }
-    result = addOutputVideoStream(afcOutput , &vCtxE ,  *fmtCtx->streams[videoStreamIndex]->codecpar);
-    if(result < 0 || vCtxE == NULL){
+    result = addOutputVideoStream(afcOutput, &vCtxE, *fmtCtx->streams[videoStreamIndex]->codecpar);
+    if (result < 0 || vCtxE == NULL) {
         LOGE("addOutputVideoStream FAILD !");
         return -1;
     }
     videoOutputStreamIndex = result;
-    result = addOutputAudioStream(afcOutput , NULL , *fmtCtx->streams[audioStreamIndex]->codecpar );
-    if(result < 0 ){
+    result = addOutputAudioStream(afcOutput, NULL, *fmtCtx->streams[audioStreamIndex]->codecpar);
+    if (result < 0) {
         LOGE("addOutputAudioStream FAILD !");
         return -1;
     }
     audioOutputStreamIndex = result;
-    result = writeOutoutHeader(afcOutput , outputPath);
-    if(result < 0   ){
+    result = writeOutoutHeader(afcOutput, outputPath);
+    if (result < 0) {
         LOGE(" writeOutoutHeader FAILD !");
         return -1;
     }
@@ -75,7 +80,8 @@ void BitmapWaterMark::startWaterMark() {
     AVFrame *filt_frame = av_frame_alloc();
     int ret = 0;
     start();
-    while (true) {
+    decodeFlag = true;
+    while (!isExit) {
         AVPacket *packet = av_packet_alloc();
         if ((ret = av_read_frame(fmtCtx, packet)) < 0) {
             av_packet_free(&packet);
@@ -83,11 +89,11 @@ void BitmapWaterMark::startWaterMark() {
             LOGE(" READ FRAME FAILD !");
             break;
         }
-        if(packet->stream_index == audioStreamIndex){
-            av_packet_rescale_ts(packet, fmtCtx->streams[audioStreamIndex]->time_base, afcOutput->streams[getAudioOutputStreamIndex()]->time_base);
+        if (packet->stream_index == audioStreamIndex) {
+            av_packet_rescale_ts(packet, fmtCtx->streams[audioStreamIndex]->time_base,
+                                 afcOutput->streams[getAudioOutputStreamIndex()]->time_base);
             audioQue.push(packet);
-        }
-        else if (packet->stream_index == videoStreamIndex) {
+        } else if (packet->stream_index == videoStreamIndex) {
             frame = decodePacket(decCtx, packet);
             av_packet_free(&packet);
             if (frame != NULL) {
@@ -109,9 +115,11 @@ void BitmapWaterMark::startWaterMark() {
                         break;
                     }
                     filt_frame->pts = filt_frame->best_effort_timestamp;
-                    AVPacket *filtPkt = encodeFrame(filt_frame , vCtxE);
-                    if(filtPkt != NULL){
-                        av_packet_rescale_ts(filtPkt, fmtCtx->streams[videoStreamIndex]->time_base/*buffersink_ctx->inputs[0]->time_base*/, afcOutput->streams[getVideoOutputStreamIndex()]->time_base);
+                    AVPacket *filtPkt = encodeFrame(filt_frame, vCtxE);
+                    if (filtPkt != NULL) {
+                        av_packet_rescale_ts(filtPkt,
+                                             fmtCtx->streams[videoStreamIndex]->time_base/*buffersink_ctx->inputs[0]->time_base*/,
+                                             afcOutput->streams[getVideoOutputStreamIndex()]->time_base);
                         videoQue.push(filtPkt);
                     }
                     av_frame_unref(filt_frame);
@@ -120,21 +128,22 @@ void BitmapWaterMark::startWaterMark() {
         }
     }
     av_frame_free(&filt_frame);
+    decodeFlag = false;
     LOGE(" END ");
 }
 
-void BitmapWaterMark::run(){
-    int result ;
-    while(!isExit){
-        if (this->pause ) {
+
+void BitmapWaterMark::run() {
+    int result;
+    while (!isExit) {
+        if (this->pause) {
             threadSleep(2);
             continue;
         }
         pthread_mutex_lock(&mutex_pthread);
-        LOGE(" videoQue %d ， audioQue %d  ", videoQue.size(), audioQue.size());
         if (audioQue.size() <= 0 || videoQue.size() <= 0) {
             pthread_mutex_unlock(&mutex_pthread);
-            if(readEnd){
+            if (readEnd) {
                 break;
             }
             continue;
@@ -144,7 +153,8 @@ void BitmapWaterMark::run(){
         AVPacket *vPkt = videoQue.front();
         pthread_mutex_unlock(&mutex_pthread);
 
-        if (av_compare_ts(apts, afcOutput->streams[audioOutputStreamIndex]->time_base, vpts,  afcOutput->streams[videoOutputStreamIndex]->time_base) < 0) {
+        if (av_compare_ts(apts, afcOutput->streams[audioOutputStreamIndex]->time_base, vpts,
+                          afcOutput->streams[videoOutputStreamIndex]->time_base) < 0) {
             apts = aPkt->pts;
             result = av_interleaved_write_frame(afcOutput, aPkt);
             if (result < 0) {
@@ -156,6 +166,15 @@ void BitmapWaterMark::run(){
             vpts = vPkt->pts;
             result = av_interleaved_write_frame(afcOutput, vPkt);
 
+            int64_t tempPts = av_rescale_q_rnd(vpts,
+                                               afcOutput->streams[videoOutputStreamIndex]->time_base,
+                                               timeBaseFFmpeg,
+                                               AV_ROUND_NEAR_INF);
+            progress = ((float) tempPts / duration) * 100;
+            if (progress > 0) {
+                //progress 避免直接生成100。100是作为所有完成的标志
+                progress--;
+            }
             if (result < 0) {
                 LOGE(" video av_interleaved_write_frame faild ! %s", av_err2str(result));
             }
@@ -164,43 +183,48 @@ void BitmapWaterMark::run(){
         }
 
     }
+    progress = 100;
     writeTrail(afcOutput);
 }
 
-void BitmapWaterMark::clearAllQue(){
-    while(!audioQue.empty()){
+void BitmapWaterMark::clearAllQue() {
+    while (!audioQue.empty()) {
         AVPacket *pkt = audioQue.front();
-        if(pkt != NULL){
+        if (pkt != NULL) {
             av_packet_free(&pkt);
         }
         audioQue.pop();
     }
-    while(!videoQue.empty()){
+    while (!videoQue.empty()) {
         AVPacket *pkt = videoQue.front();
-        if(pkt != NULL){
+        if (pkt != NULL) {
             av_packet_free(&pkt);
         }
         videoQue.pop();
     }
 }
+
 BitmapWaterMark::~BitmapWaterMark() {
     this->stop();
     this->join();
+    while (decodeFlag) {
+        //等待解码循环完毕。否则释放了各种编解码器，然后循环还在继续解码会有异常。
+    }
     clearAllQue();
-     
-    if(fmtCtx != NULL){
+
+    if (fmtCtx != NULL) {
         avformat_close_input(&fmtCtx);
         fmtCtx = NULL;
     }
-    if(decCtx != NULL){
+    if (decCtx != NULL) {
         avcodec_free_context(&decCtx);
         decCtx = NULL;
     }
-    if(afcOutput != NULL){
+    if (afcOutput != NULL) {
         avformat_free_context(afcOutput);
         afcOutput = NULL;
     }
-    if(vCtxE != NULL){
+    if (vCtxE != NULL) {
         avcodec_free_context(&vCtxE);
         vCtxE = NULL;
     }

@@ -91,7 +91,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
             @Override
             public void clickRight() {
                 //右键点击
-                if (clipFlag) {
+                if (dealFlag) {
 //                    showToast("正在裁剪中，请稍等");
                     showLoadPorgressDialog("处理中...");
                     return;
@@ -125,7 +125,6 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
 
     //具体裁剪的线程
     private ClipThread clipThread;
-    private boolean clipFlag = false;
     private void startClip(int startSecond, int endSecond) {
         if (clipThread == null) {
             clipThread = new ClipThread(startSecond, endSecond);
@@ -153,9 +152,9 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         public void run() {
             super.run();
             if (listPath.size() > 0) {
-                clipFlag = true;
+                dealFlag = true;
                 FFmpegUtils.startClip(listPath.get(0), "sdcard/FFmpeg/ClipOutput.mp4", startSecond, endSecond);
-                clipFlag = false;
+                dealFlag = false;
             }
         }
     }
@@ -226,23 +225,23 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        Log.e("xhc" , " onbackPress");
-        if(clipFlag){
-            showAlertDialog(null, "放弃裁剪?", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dismissLoadPorgressDialog();
-                    dialog.dismiss();
-                    finish();
-                }
-            });
-        }
-        else{
-            super.onBackPressed();
-        }
-    }
+//    @Override
+//    public void onBackPressed() {
+//        Log.e("xhc" , " onbackPress");
+//        if(dealFlag){
+//            showAlertDialog(null, "放弃裁剪?", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dismissLoadPorgressDialog();
+//                    dialog.dismiss();
+//                    finish();
+//                }
+//            });
+//        }
+//        else{
+//            super.onBackPressed();
+//        }
+//    }
 
 
 

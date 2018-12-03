@@ -51,15 +51,39 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initMp4Play(JNIEnv *env, jclass type,
 
 extern "C"
 JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getVideoWidth(JNIEnv *env, jclass type) {
+
+    // TODO
+    if (mp4Player != NULL) {
+        return mp4Player->getVideoWidth();
+    }
+    return 0 ;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getVideoHeight(JNIEnv *env, jclass type) {
+
+    // TODO
+    if (mp4Player != NULL) {
+        return mp4Player->getVideoHeight();
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyMp4Play(JNIEnv *env, jclass type) {
     if (mp4Player != NULL) {
         delete mp4Player;
-        mp4Player = NULL;
+
     }
+    mp4Player = NULL;
     if (cj != NULL) {
         delete cj;
-        cj = NULL;
+
     }
+    cj = NULL;
     return 1;
 
 }
@@ -158,12 +182,14 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
     // TODO
     if (ps != NULL) {
         delete ps;
-        ps = NULL;
+
     }
+    ps = NULL;
     if (cj != NULL) {
         delete cj;
-        cj = NULL;
+
     }
+    cj = NULL;
     return 1;
 }
 CameraStream *cs = NULL;
@@ -470,8 +496,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyJoint(JNIEnv *env, jclass type
 
     if (vj != NULL) {
         delete vj;
-        vj = NULL;
+
     }
+    vj = NULL;
 }
 
 VideoRunBack *vb;
@@ -497,6 +524,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyBackRun(JNIEnv *env, jclass ty
     if (vb != NULL) {
         delete vb;
     }
+    vb = NULL;
 }
 
 CurrentTimeBitmap *cb = NULL;
@@ -616,6 +644,20 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_bitmapWaterMarkDestroy(JNIEnv *env, jclass type) {
     if (bwm != NULL) {
         delete bwm;
+
     }
+    bwm = NULL;
     return 0;
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getWaterMarkProgress(JNIEnv *env, jclass type) {
+
+    // TODO
+    if (bwm != NULL) {
+       return  bwm->getProgress();
+    }
+    return -1;
 }

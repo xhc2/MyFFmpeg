@@ -25,6 +25,10 @@ class EditParent {
 
 public :
     static void custom_log(void *ptr, int level, const char *fmt, va_list vl);
+    int getProgress();
+//    int getVideoWidth(AVCodecParameters *coder);
+//    int getVideoHeight(AVCodecParameters *coder);
+
 protected:
 
 
@@ -51,6 +55,10 @@ protected:
     int  writeTrail(AVFormatContext *afc_output );
     ~EditParent();
 
+    //进度
+    int progress;
+
+    AVRational timeBaseFFmpeg;
 private :
 
 };

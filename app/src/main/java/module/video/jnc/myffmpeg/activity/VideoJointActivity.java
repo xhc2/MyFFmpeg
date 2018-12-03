@@ -21,14 +21,12 @@ import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
 public class VideoJointActivity extends VideoEditParentActivity {
 
-    private boolean activityFoucsFlag = false;
     private int playProgress;
     private int jointProgress;
     private int playCount;
     private static final String outPath = "sdcard/FFmpeg/videojoint.flv";
     private int outWidth;
     private int outHeight;
-    private boolean joinFlag  ;
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -79,7 +77,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
             @Override
             public void clickRight() {
                 //右键点击
-                if (joinFlag) {
+                if (dealFlag) {
 //                    showToast("正在裁剪中，请稍等");
                     showLoadPorgressDialog("正在拼接...");
                     return;
@@ -125,11 +123,11 @@ public class VideoJointActivity extends VideoEditParentActivity {
         @Override
         public void run() {
             super.run();
-            joinFlag = true;
+            dealFlag = true;
             String path[] = new String[listPath.size()];
             listPath.toArray(path);
             FFmpegUtils.startJoint(path , outPath, outWidth, outHeight);
-            joinFlag = false;
+            dealFlag = false;
         }
     }
 
@@ -257,23 +255,23 @@ public class VideoJointActivity extends VideoEditParentActivity {
 //        myVideoGpuShow.setPlayPath(path);
 //    }
 
-    @Override
-    public void onBackPressed() {
-        Log.e("xhc" , " onbackPress");
-        if(joinFlag){
-            showAlertDialog(null, "放弃拼接?", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dismissLoadPorgressDialog();
-                    dialog.dismiss();
-                    finish();
-                }
-            });
-        }
-        else{
-            super.onBackPressed();
-        }
-    }
+//    @Override
+//    public void onBackPressed() {
+//        Log.e("xhc" , " onbackPress");
+//        if(joinFlag){
+//            showAlertDialog(null, "放弃拼接?", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dismissLoadPorgressDialog();
+//                    dialog.dismiss();
+//                    finish();
+//                }
+//            });
+//        }
+//        else{
+//            super.onBackPressed();
+//        }
+//    }
     @Override
     protected void onDestroy() {
         super.onDestroy();

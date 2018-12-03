@@ -56,6 +56,8 @@ public :
     ~Mp4Player();
     int getProgress();
     float getDuration();
+    int getVideoWidth();
+    int getVideoHeight();
 };
 
 #endif //MYFFMPEG_MP4PLAYER_H

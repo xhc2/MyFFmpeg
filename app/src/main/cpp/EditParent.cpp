@@ -23,6 +23,13 @@ EditParent::EditParent() {
     audioStreamIndex = -1;
     videoOutputStreamIndex = -1;
     audioOutputStreamIndex = -1;
+    progress = 0;
+    timeBaseFFmpeg = (AVRational) {1, AV_TIME_BASE};
+}
+
+int EditParent::getProgress(){
+    LOGE(" progress %d " , progress);
+    return progress;
 }
 
 int EditParent::open_input_file(const char *filename, AVFormatContext **fmt_ctx) {
@@ -273,6 +280,19 @@ int  EditParent::writeTrail(AVFormatContext *afc_output ){
     av_write_trailer(afc_output);
     return 1;
 }
+
+//int EditParent::getVideoWidth(AVCodecParameters *coder){
+//    if(coder != NULL){
+//        return coder->width;
+//    }
+//    return 0;
+//}
+//int EditParent::getVideoHeight(AVCodecParameters *coder){
+//    if(coder != NULL){
+//        return coder->height;
+//    }
+//    return 0;
+//}
 
 EditParent::~EditParent() {
 

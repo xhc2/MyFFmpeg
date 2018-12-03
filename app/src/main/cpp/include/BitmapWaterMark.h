@@ -14,6 +14,7 @@ using namespace std;
 
 class BitmapWaterMark : public FilterParent ,MyThread{
 private :
+    bool decodeFlag ;
     const char *filter_descr = "movie=%s[wm];[in][wm]overlay=%d:%d[out]";
     AVFormatContext *fmtCtx;
     AVCodecContext *decCtx;
@@ -29,6 +30,7 @@ private :
     AVCodecContext *vCtxE;
     bool readEnd;
     int buildOutput(  const char *outputPath);
+    int64_t duration ;
 public :
     BitmapWaterMark(const char *videoInputPath,  const char *outputPath, const char *logoPath, int x, int y);
     void run();

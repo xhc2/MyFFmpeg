@@ -59,4 +59,11 @@ public class FileUtils {
         return APP_WATER_MARK + name;
     }
 
+    public static void makeWaterDir(){
+        File file = new File(APP_WATER_MARK);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
 }

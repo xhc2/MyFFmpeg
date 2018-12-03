@@ -15,6 +15,7 @@
         app:right_text="确定"
         app:title_text="视频水印" />
     <TextView
+        android:id="@+id/tv_warn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
@@ -22,13 +23,21 @@
         android:text="请拖动水印到你想要的位置！"
         android:textColor="#4444BB" />
 
+    <TextView
+        android:id="@+id/tv_position"
+        android:layout_below="@id/tv_warn"
+        android:textColor="#4444BB"
+        android:layout_marginTop="10dp"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <FrameLayout
         android:layout_width="320dp"
         android:layout_height="165dp"
-        android:layout_below="@id/title"
+        android:layout_below="@id/tv_position"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp">
+        android:layout_marginTop="30dp">
 
         <module.video.jnc.myffmpeg.MyVideoGpuShow
             android:id="@+id/play_gl_surfaceview"
@@ -37,8 +46,8 @@
 
         <ImageView
             android:id="@+id/img_water_mark"
-            android:layout_width="40dp"
-            android:layout_height="20dp"
+            android:layout_width="60dp"
+            android:layout_height="30dp"
             android:src="@mipmap/home_banner" />
     </FrameLayout>
 

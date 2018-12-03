@@ -83,10 +83,12 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
 
     @Override
     public void nativeNotify(String str) {
-        Message msg = new Message();
-        msg.what = 1;
-        msg.obj = str;
-        handler.sendMessage(msg);
+        if(FFmpegUtils.isShowToastMsg(str)){
+            Message msg = new Message();
+            msg.what = 1;
+            msg.obj = str;
+            handler.sendMessage(msg);
+        }
     }
 
     @Override

@@ -1,7 +1,9 @@
 package module.video.jnc.myffmpeg.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +20,12 @@ public class VideoEditParentActivity extends BaseActivity {
     protected TitleBar titleBar;
     protected MyVideoGpuShow myVideoGpuShow;
     protected boolean activityFoucsFlag = false;
-
+    protected boolean dealFlag ;
+    protected int progress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        dealFlag = false;
         Intent intent = getIntent();
         ArrayList<String> tempVideos = intent.getStringArrayListExtra("videos");
         if (tempVideos != null) {
@@ -31,7 +34,23 @@ public class VideoEditParentActivity extends BaseActivity {
 
 
     }
-
+    @Override
+    public void onBackPressed() {
+        Log.e("xhc" , " onbackPress");
+        if(dealFlag){
+            showAlertDialog(null, "放弃编辑?", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dismissLoadPorgressDialog();
+                    dialog.dismiss();
+                    finish();
+                }
+            });
+        }
+        else{
+            super.onBackPressed();
+        }
+    }
     protected void init() {
         myVideoGpuShow.setEGLContextClientVersion(2);
         myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
