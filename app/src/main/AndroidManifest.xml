@@ -69,11 +69,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity android:name=".activity.SingleFilterActivity" />
         <activity android:name=".activity.VideoWaterMarkActivity">
             <intent-filter>
                 <action android:name="xhc.video.water_mark" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -88,7 +88,7 @@
                 android:resource="@xml/temp_provider" />
         </provider>
 
-
+        <activity android:name=".activity.VideoSpecialActivity"></activity>
     </application>
 
 </manifest>

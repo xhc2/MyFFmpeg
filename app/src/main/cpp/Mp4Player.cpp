@@ -19,7 +19,12 @@
 #include <android/native_window.h>
 #include <YuvPlayer.h>
 
-
+/**
+ * 发现播放一次就有1m左右的内存泄漏
+ * @param path
+ * @param win
+ * @param cj
+ */
 Mp4Player::Mp4Player(const char *path, ANativeWindow *win, CallJava *cj) {
     this->cj = cj;
     video_index = -1;
@@ -49,7 +54,6 @@ Mp4Player::Mp4Player(const char *path, ANativeWindow *win, CallJava *cj) {
     readAVPackage = new ReadAVPackage(afc, audio_index, video_index);
     decodeVideo = new DecodeVideoThread(afc, vc, video_index);
     decodeAudio = new DeocdeMyAudioThread(ac, afc, audio_index);
-    LOGE(" SIMPALERATE %d , outChanner %d ", simpleRate, outChannel);
     audioPlayer = new NewAudioPlayer(simpleRate, outChannel);
     yuvPlayer = new YuvPlayer(win, outWidth, outHeight);
     seekFile = new SeekFile(afc, audio_index, video_index);
@@ -121,10 +125,10 @@ int Mp4Player::initFFmpeg(const char *path) {
 
     LOGE(" video duration %lld ", videoDuration);
 
-//    if(videoDuration <= 0){
-//        cj->callStr("请检查文件是否被损坏");
-//        return RESULT_FAILD;
-//    }
+    if(videoDuration <= 0){
+        cj->callStr("请检查文件是否被损坏");
+        return RESULT_FAILD;
+    }
 
     for (int i = 0; i < afc->nb_streams; ++i) {
         AVStream *avStream = afc->streams[i];
@@ -150,7 +154,6 @@ int Mp4Player::initFFmpeg(const char *path) {
         } else if (avStream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             //音频
             audio_index = i;
-
             this->simpleRate = avStream->codecpar->sample_rate;
             LOGE("audio samplerate %d ", avStream->codecpar->sample_rate);
             audioCode = avcodec_find_decoder(avStream->codecpar->codec_id);
@@ -160,9 +163,7 @@ int Mp4Player::initFFmpeg(const char *path) {
             }
         }
     }
-    char metadata[512];
-    sprintf(metadata ,"metadata:width=%d,height=%d" , afc->streams[video_index]->codecpar->width , afc->streams[video_index]->codecpar->height );
-    cj->callStr(metadata);
+
     if (audioCode == NULL) {
         cj->callStr(" 没找到音频解码器 ");
         return RESULT_FAILD;
@@ -171,6 +172,10 @@ int Mp4Player::initFFmpeg(const char *path) {
         cj->callStr(" 没找到视频解码器 ");
         return RESULT_FAILD;
     }
+    //回调java层
+    char metadata[512];
+    sprintf(metadata ,"metadata:width=%d,height=%d" , afc->streams[video_index]->codecpar->width , afc->streams[video_index]->codecpar->height );
+    cj->callStr(metadata);
 
     LOGE(" audio code name %s  ", audioCode->name);
     LOGE(" video code name %s  ", videoCode->name);
@@ -272,7 +277,6 @@ int Mp4Player::getProgress() {
             return -100;
         }
     }
-
     return (int) ((float) decodeVideo->pts / (float) videoDuration * 100); //只看了视频部分
 }
 

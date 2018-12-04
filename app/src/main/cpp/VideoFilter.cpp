@@ -236,5 +236,4 @@ VideoFilter::~VideoFilter() {
         avcodec_free_context(&vCtxE);
         vCtxE = NULL;
     }
-
 }

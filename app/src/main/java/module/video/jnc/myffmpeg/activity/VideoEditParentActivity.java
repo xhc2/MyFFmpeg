@@ -102,6 +102,5 @@ public class VideoEditParentActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopPlayThread();
-        FFmpegUtils.destroyMp4Play();
     }
 }

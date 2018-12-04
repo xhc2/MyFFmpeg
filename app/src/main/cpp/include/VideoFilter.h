@@ -15,7 +15,7 @@ using namespace std;
 class VideoFilter : public FilterParent ,MyThread{
 private :
     bool decodeFlag ;
-
+    //输入相关
     AVFormatContext *fmtCtx;
     AVCodecContext *decCtx;
     int videoStreamIndex;
@@ -29,10 +29,11 @@ private :
     AVFormatContext *afcOutput;
     AVCodecContext *vCtxE;
     bool readEnd;
-    int buildOutput(  const char *outputPath);
     int64_t duration ;
     int *paramsSet;
     int paramsSetSize;
+    int buildOutput(  const char *outputPath);
+
 public :
     VideoFilter(const char *videoInputPath,  const char *outputPath, const char *filter_descr  ,int* params , int paramsSize);
     void run();
