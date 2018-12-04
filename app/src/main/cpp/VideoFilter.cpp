@@ -27,8 +27,7 @@ VideoFilter::VideoFilter(const char *videoPath, const char *outputPath,
         LOGE(" find audio Stream faild ! ");
         return;
     }
-    LOGE(" INPUT VIDEO STREAM INDEX %d , AUDIO STREAM INDEX %d ", videoStreamIndex,
-         audioStreamIndex);
+
     result = buildOutput(outputPath);
     if (result < 0) {
         LOGE(" buildOutput faild !");
@@ -57,8 +56,9 @@ int VideoFilter::buildOutput(const char *outputPath) {
     }
     AVCodecParameters codecpar;
     avcodec_parameters_copy(&codecpar ,  fmtCtx->streams[videoStreamIndex]->codecpar);
-    parseVideoParams(paramsSet , paramsSetSize ,&codecpar);
     LOGE(" paramsSet %d , paramsSet %d " , paramsSet[0] , paramsSet[1]);
+    parseVideoParams(paramsSet , paramsSetSize ,&codecpar);
+
     LOGE(" VIDEO WIDTH %d , VIDEO HEIGHT %d " ,codecpar.width , codecpar.height );
     result = addOutputVideoStream(afcOutput, &vCtxE, codecpar);
     if (result < 0 || vCtxE == NULL) {

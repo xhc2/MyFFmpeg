@@ -21,7 +21,7 @@
 
         <!-- module.video.jnc.myffmpeg.activity.TestActivity -->
         <activity
-            android:name=".activity.TestActivity"
+            android:name=".activity.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -62,16 +62,18 @@
             android:name=".activity.Mp4PlayerActivity"
             android:screenOrientation="landscape" />
         <activity android:name=".activity.ChoisePicActivity" />
-        <activity android:name=".activity.WaterMarkActivity">
+        <activity android:name=".activity.VideoCropActivity">
             <intent-filter>
-                <action android:name="xhc.video.water_mark" />
+                <action android:name="xhc.video.crop" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.VideoCropActivity">
+
+        <activity android:name=".activity.SingleFilterActivity" />
+        <activity android:name=".activity.VideoWaterMarkActivity">
             <intent-filter>
-                <action android:name="xhc.video.crop" />
+                <action android:name="xhc.video.water_mark" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

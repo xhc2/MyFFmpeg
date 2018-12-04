@@ -21,8 +21,14 @@ public class CropGraph extends View implements View.OnTouchListener {
 
     private float xRect;
     private float yRect;
-    private int widthRect;
-    private int heightRect;
+    private float widthRect;
+    private float heightRect;
+
+    private float lastXRect;
+    private float lastYRect;
+    private float lastwidthRect;
+    private float lastheightRect;
+
     private RectF rect;
     private Paint paintRect;
     private Paint paintPoint;
@@ -34,26 +40,31 @@ public class CropGraph extends View implements View.OnTouchListener {
     private boolean rtFlag = false;
     private boolean rbFlag = false;
 
+
     private float tempX;
     private float tempY;
 
     public CropGraph(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         minSize = DensityUtils.dip2px(context, 50);
-        xRect = 50;
-        yRect = 50;
-        widthRect = minSize;
-        heightRect = minSize;
+        circleRadius = DensityUtils.dip2px(context, 8);
+        xRect = circleRadius;
+        yRect = circleRadius;
+        lastXRect = xRect;
+        lastYRect = yRect;
+        widthRect = minSize * 2;
+        heightRect = minSize * 2;
+        lastwidthRect = widthRect;
+        lastheightRect = heightRect;
+
         rect = new RectF(xRect, yRect, widthRect + xRect, heightRect + yRect);
         paintRect = new Paint();
-        paintRect.setColor(Color.parseColor("#33333333"));
+        paintRect.setColor(Color.parseColor("#55333333"));
         paintRect.setAntiAlias(true);
 
         paintPoint = new Paint();
         paintPoint.setColor(Color.parseColor("#421AE6"));
         paintPoint.setAntiAlias(true);
-
-        circleRadius = DensityUtils.dip2px(context, 8);
         setOnTouchListener(this);
     }
 
@@ -70,20 +81,57 @@ public class CropGraph extends View implements View.OnTouchListener {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 judgeTouchPosition(event.getX(), event.getY());
-                Log.e("xhc", " x " + event.getX() + " y " + event.getY() + ltFlag + lbFlag + rtFlag + rbFlag);
                 break;
             case MotionEvent.ACTION_MOVE:
                 tempX = event.getX();
                 tempY = event.getY();
                 if (ltFlag) {
-                    xRect = tempX;
-                    yRect = tempY;
+                    if (widthRect - (tempX - lastXRect) >= minSize && (tempX - circleRadius) > 0) {
+                        xRect = tempX;
+                    }
+                    if (heightRect - (tempY - lastYRect) >= minSize && (tempY - circleRadius) > 0) {
+                        yRect = tempY;
+                    }
+                    widthRect -= (xRect - lastXRect);
+                    heightRect -= (yRect - lastYRect);
+                    lastXRect = xRect;
+                    lastYRect = yRect;
                     invalidate();
                 } else if (rtFlag) {
+                    if ((tempX - xRect) >= minSize && (tempX + circleRadius) < getWidth()) {
+                        widthRect -= lastwidthRect - (tempX - xRect);
+                        lastwidthRect = widthRect;
+                    }
+                    if (heightRect - (tempY - lastYRect) >= minSize && (tempY - circleRadius) > 0) {
+                        yRect = tempY;
+                    }
+                    heightRect -= (yRect - lastYRect);
+                    lastXRect = xRect;
+                    lastYRect = yRect;
                     invalidate();
                 } else if (lbFlag) {
+                    if (widthRect - (tempX - lastXRect) >= minSize && (tempX - circleRadius) > 0) {
+                        xRect = tempX;
+                    }
+                    if (tempY - yRect >= minSize && (tempY + circleRadius) < getHeight()) {
+                        heightRect -= lastheightRect - (tempY - yRect);
+                        lastheightRect = heightRect;
+                    }
+                    widthRect -= (xRect - lastXRect);
+                    lastXRect = xRect;
+                    lastYRect = yRect;
                     invalidate();
                 } else if (rbFlag) {
+                    if ((tempX - xRect) >= minSize && (tempX + circleRadius) < getWidth()) {
+                        widthRect -= lastwidthRect - (tempX - xRect);
+                        lastwidthRect = widthRect;
+                    }
+                    if (tempY - yRect >= minSize && (tempY + circleRadius) < getHeight()) {
+                        heightRect -= lastheightRect - (tempY - yRect);
+                        lastheightRect = heightRect;
+                    }
+                    lastXRect = xRect;
+                    lastYRect = yRect;
                     invalidate();
                 }
                 break;
@@ -116,6 +164,14 @@ public class CropGraph extends View implements View.OnTouchListener {
         drawPoint(canvas);
     }
 
+    public int[] getGraphResult() {
+        int[] result = new int[4];
+        result[0] = (int) xRect;
+        result[1] = (int) yRect;
+        result[2] = (int) widthRect;
+        result[3] = (int) heightRect;
+        return result;
+    }
 
     private void drawRect(Canvas canvas) {
         rect.set(xRect, yRect, widthRect + xRect, heightRect + yRect);
@@ -123,9 +179,9 @@ public class CropGraph extends View implements View.OnTouchListener {
     }
 
     private void drawPoint(Canvas canvas) {
-        canvas.drawCircle(xRect, yRect, circleRadius, paintPoint);
-        canvas.drawCircle(xRect + widthRect, yRect, circleRadius, paintPoint);
-        canvas.drawCircle(xRect, yRect + heightRect, circleRadius, paintPoint);
-        canvas.drawCircle(xRect + widthRect, yRect + heightRect, circleRadius, paintPoint);
+        canvas.drawCircle(xRect, yRect, circleRadius, paintPoint); //lt
+        canvas.drawCircle(xRect + widthRect, yRect, circleRadius, paintPoint); // rt
+        canvas.drawCircle(xRect, yRect + heightRect, circleRadius, paintPoint); //lb
+        canvas.drawCircle(xRect + widthRect, yRect + heightRect, circleRadius, paintPoint); // rb
     }
 }
