@@ -77,6 +77,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity android:name=".activity.VideoSpecialActivity">
+            <intent-filter>
+                <action android:name="xhc.video.spcial_filter" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <!-- provider -->
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -88,7 +94,7 @@
                 android:resource="@xml/temp_provider" />
         </provider>
 
-        <activity android:name=".activity.VideoSpecialActivity"></activity>
+
     </application>
 
 </manifest>

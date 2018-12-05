@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.FrameLayout;
 
@@ -13,10 +14,10 @@ import module.video.jnc.myffmpeg.tool.FileUtils;
 /**
  * 用来处理单路的滤镜Activity
  */
-public class SingleFilterActivity extends VideoEditParentActivity {
+public class SingleFilterActivity extends VideoEditParentActivity implements FFmpegUtils.Lis{
 
-    private static final int PROGRESS = 2;
-
+    private static final int PROGRESS = 500;
+    private static final int SHOW_NATIVE_MSG = 501;
     private Handler myHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -32,11 +33,20 @@ public class SingleFilterActivity extends VideoEditParentActivity {
                     }
                     setLoadPorgressDialogProgress(progress);
                     break;
+                case  SHOW_NATIVE_MSG:
+                    String str = (String)msg.obj;
+                    showToast(str);
+                    break;
             }
             return false;
         }
     });
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        FFmpegUtils.addNativeNotify(this);
+    }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -138,9 +148,20 @@ public class SingleFilterActivity extends VideoEditParentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        FFmpegUtils.removeNotify(this);
         stopDealFilter();
         stopProgressThread();
         myHandler.removeCallbacksAndMessages(null);
+    }
+
+    @Override
+    public void nativeNotify(String str) {
+        if ( FFmpegUtils.isShowToastMsg(str) ) {
+            Message msg = myHandler.obtainMessage();
+            msg.what = SHOW_NATIVE_MSG ;
+            msg.obj = str ;
+            myHandler.sendMessage(msg);
+        }
     }
 
 }

@@ -25,7 +25,6 @@ public class SelectedVideoAdapter extends MyBaseAdapter<String , SelectedVideoAd
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-//        holder.imgVideo
         String path = list.get(position);
         displayImageView(holder.imgVideo , "file:///mnt"+path);
     }

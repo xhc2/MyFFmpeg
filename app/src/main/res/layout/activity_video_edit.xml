@@ -92,6 +92,7 @@
         android:weightSum="4">
 
         <TextView
+            android:id="@+id/tv_spcial_filter"
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
             android:text="视频滤镜" />

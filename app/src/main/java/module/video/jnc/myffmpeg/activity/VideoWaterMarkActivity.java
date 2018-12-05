@@ -21,7 +21,7 @@ import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.tool.FileUtils;
 import module.video.jnc.myffmpeg.widget.TitleBar;
 
-public class VideoWaterMarkActivity extends SingleFilterActivity  implements View.OnTouchListener, FFmpegUtils.Lis  {
+public class VideoWaterMarkActivity extends SingleFilterActivity  implements View.OnTouchListener   {
 
     private ImageView img;
     private TextView tvPosition;
@@ -69,8 +69,9 @@ public class VideoWaterMarkActivity extends SingleFilterActivity  implements Vie
         super.init();
         waterX = 0;
         waterY = 0;
-        FFmpegUtils.addNativeNotify(this);
+
         titleBar.setRightClickInter(new TitleBar.RightClickInter() {
+
             @Override
             public void clickRight() {
                 //右键点击
@@ -134,14 +135,15 @@ public class VideoWaterMarkActivity extends SingleFilterActivity  implements Vie
     protected void onDestroy() {
         super.onDestroy();
         bitmap.recycle();
-        FFmpegUtils.removeNotify(this);
         handler.removeCallbacksAndMessages(null);
     }
 
 
     @Override
     public void nativeNotify(String str) {
+        super.nativeNotify(str);
         if (!TextUtils.isEmpty(str) && !FFmpegUtils.isShowToastMsg(str) && str.startsWith("metadata:width=")) {
+            Log.e("xhc" , " crop activity "+str);
             String[] strs = str.split(",");
             String strWidth = strs[0].replace("metadata:width=", "");
             String strHeight = strs[1].replace("height=", "");

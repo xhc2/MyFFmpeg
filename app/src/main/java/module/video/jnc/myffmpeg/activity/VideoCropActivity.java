@@ -20,7 +20,7 @@ import module.video.jnc.myffmpeg.tool.FileUtils;
 import module.video.jnc.myffmpeg.widget.CropGraph;
 import module.video.jnc.myffmpeg.widget.TitleBar;
 
-public class VideoCropActivity extends SingleFilterActivity  implements   FFmpegUtils.Lis  {
+public class VideoCropActivity extends SingleFilterActivity     {
 
     private CropGraph cgGraph;
     private int videoWidthPx;
@@ -41,7 +41,6 @@ public class VideoCropActivity extends SingleFilterActivity  implements   FFmpeg
 
     protected void init() {
         super.init();
-        FFmpegUtils.addNativeNotify(this);
         titleBar.setRightClickInter(new TitleBar.RightClickInter() {
             @Override
             public void clickRight() {
@@ -58,7 +57,6 @@ public class VideoCropActivity extends SingleFilterActivity  implements   FFmpeg
                 int startY = (int)((float)videoHeightPx /  myVideoGpuShow.getHeight() * result[1]) ;
                 int width = (int)((float)videoWidthPx /  myVideoGpuShow.getWidth() * result[2]) ;
                 int height = (int)((float)videoHeightPx /  myVideoGpuShow.getHeight() * result[3] );
-                Log.e("xhc" , " startX "+startX+" startY "+startY+" width "+width+" height "+height);
                 //width , height , x , y
                 String filterDes = String.format(Locale.CHINESE , "crop=%d:%d:%d:%d" , width , height , startX , startY) ;
                 startDealVideo(listPath.get(0) ,  FileUtils.APP_CROP + System.currentTimeMillis()+".mp4" , filterDes , new int[]{width , height});
@@ -80,6 +78,7 @@ public class VideoCropActivity extends SingleFilterActivity  implements   FFmpeg
 
     @Override
     public void nativeNotify(String str) {
+        super.nativeNotify(str);
         if (!TextUtils.isEmpty(str) && !FFmpegUtils.isShowToastMsg(str) && str.startsWith("metadata:width=")) {
             String[] strs = str.split(",");
             String strWidth = strs[0].replace("metadata:width=", "");
@@ -91,11 +90,6 @@ public class VideoCropActivity extends SingleFilterActivity  implements   FFmpeg
                 e.printStackTrace();
             }
         }
-    }
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        FFmpegUtils.removeNotify(this);
     }
 
 }

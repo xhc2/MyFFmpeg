@@ -54,6 +54,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
                     if (msg.arg1 == 100) {
                         dismissLoadPorgressDialog();
                         showToast("已完成");
+                        stopClipThread();
                         stopProgressThread();
                         break;
                     }
@@ -132,6 +133,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         }
     }
     private void stopClipThread() {
+        FFmpegUtils.destroyClip();
         if (clipThread != null) {
             try {
                 clipThread.join();
@@ -290,7 +292,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         super.onDestroy();
         stopProgressThread();
         stopClipThread();
-        FFmpegUtils.destroyClip();
+
         FFmpegUtils.destroyMp4Play();
         FFmpegUtils.destroyCurrentBitmap();
         es.shutdown();
