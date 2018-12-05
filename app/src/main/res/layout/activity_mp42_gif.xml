@@ -13,14 +13,14 @@
         android:id="@+id/title"
         style="@style/title_bar"
         app:right_text="确定"
-        app:title_text="视频剪辑" />
+        app:title_text="gif制作" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:padding="5dp"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:text="sdcard/FFmpeg/ClipOutput.mp4"
         android:textColor="#4444BB" />
 

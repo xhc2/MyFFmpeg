@@ -103,12 +103,6 @@ public class FFmpegUtils {
     public static native float getCurrentBitmp(float time  , byte[] result);
     public static native void destroyCurrentBitmap();
 
-    //视频打图片水印部分
-//    public static native void initBitmapWaterMark( String videoPath  ,String outputPath ,  String filterDescr);
-//    public static native int bitmapWaterMarkStart();
-//    public static native int getWaterMarkProgress();
-//    public static native int bitmapWaterMarkDestroy();
-
     /**
      * @param params 作以下规定 -1 ，代表默认
      *               int[] = {
@@ -125,12 +119,11 @@ public class FFmpegUtils {
     public static native int getVideoFilterProgress();
     public static native int videoFilterDestroy();
 
+    //gif相关
+    public static native int initGif(String videoPath , String outPath);
+    public static native int getGifProgress();
+    public static native int destroyGif();
 
-    //视频裁剪相关
-////    public static native int initVideoCrop(String videoPath , String outputPath , int x , int y , int w , int h);
-////    public static native int startCrop();
-////    public static native int getCropProgress();
-//    public static native int destroyCrop();
 
 
     //测试部分

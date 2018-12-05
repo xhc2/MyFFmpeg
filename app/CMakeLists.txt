@@ -43,6 +43,7 @@ add_library( my_ffmpeg
             src/main/cpp/NewVideoJoint.cpp
             src/main/cpp/VideoFilter.cpp
             src/main/cpp/FilterParent.cpp
+            src/main/cpp/GifMake.cpp
             )
 
 

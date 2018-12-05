@@ -157,7 +157,6 @@ int VideoClip::addVideoOutputStream(int width, int height) {
         LOGE(" avcodec_parameters_from_context FAILD ! ");
         return -1;
     }
-
     result = avcodec_open2(vCtxE, videoCodecE, NULL);
 
     if (result < 0) {

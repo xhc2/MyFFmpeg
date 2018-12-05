@@ -11,9 +11,12 @@ public class FileUtils {
     public static final String APP_ROOT = "sdcard/FFmpeg/";
     public static final String APP_VIDEO = "sdcard/FFmpeg/video/";
     public static final String APP_WATER_MARK = "sdcard/FFmpeg/water_mark/";
-    public static final String APP_FILTER   = "sdcard/FFmpeg/filter/";
+    public static final String APP_FILTER = "sdcard/FFmpeg/filter/";
     public static final String APP_CROP = "sdcard/FFmpeg/crop/";
     public static final String APP_SCALE = "sdcard/FFmpeg/scale/";
+    public static final String APP_CLIP = "sdcard/FFmpeg/clip/";
+    public static final String APP_GIF = "sdcard/FFmpeg/gif/";
+
     public static String saveFileToWaterMark(String name, byte[] buffer) {
         File file = new File(APP_WATER_MARK);
         if (!file.exists()) {
@@ -46,7 +49,7 @@ public class FileUtils {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(APP_WATER_MARK + name);
-            bmp.compress(Bitmap.CompressFormat.JPEG , 100  ,fos );
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
             fos.flush();
 
         } catch (Exception e) {
@@ -62,31 +65,45 @@ public class FileUtils {
         return APP_WATER_MARK + name;
     }
 
-    public static void makeWaterDir(){
+    public static void makeWaterDir() {
         File file = new File(APP_WATER_MARK);
         if (!file.exists()) {
             file.mkdirs();
         }
     }
 
-    public static void makeFilterDir(){
+    public static void makeFilterDir() {
         File file = new File(APP_FILTER);
         if (!file.exists()) {
             file.mkdirs();
         }
     }
 
-    public static void makeCropDir(){
+    public static void makeCropDir() {
         File file = new File(APP_CROP);
         if (!file.exists()) {
             file.mkdirs();
         }
     }
-    public static void makeScaleDir(){
+
+    public static void makeScaleDir() {
         File file = new File(APP_SCALE);
         if (!file.exists()) {
             file.mkdirs();
         }
     }
 
+    public static void makeClipDir() {
+        File file = new File(APP_CLIP);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+    public static void makeGifDir() {
+        File file = new File(APP_GIF);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
 }

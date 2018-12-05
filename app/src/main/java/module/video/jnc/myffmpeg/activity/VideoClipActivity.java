@@ -23,6 +23,7 @@ import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.MyRender;
 import module.video.jnc.myffmpeg.MyVideoGpuShow;
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.FileUtils;
 import module.video.jnc.myffmpeg.widget.ClipBar;
 import module.video.jnc.myffmpeg.widget.TitleBar;
 
@@ -91,9 +92,9 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         titleBar.setRightClickInter(new TitleBar.RightClickInter() {
             @Override
             public void clickRight() {
-                //右键点击
+                FileUtils.makeClipDir();
                 if (dealFlag) {
-//                    showToast("正在裁剪中，请稍等");
+                    showToast("正在裁剪中，请稍等");
                     showLoadPorgressDialog("处理中...");
                     return;
                 }
@@ -155,7 +156,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
             super.run();
             if (listPath.size() > 0) {
                 dealFlag = true;
-                FFmpegUtils.startClip(listPath.get(0), "sdcard/FFmpeg/ClipOutput.mp4", startSecond, endSecond);
+                FFmpegUtils.startClip(listPath.get(0), FileUtils.APP_CLIP+"clip_"+System.currentTimeMillis()+".mp4", startSecond, endSecond);
                 dealFlag = false;
             }
         }
@@ -227,23 +228,6 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         }
     }
 
-//    @Override
-//    public void onBackPressed() {
-//        Log.e("xhc" , " onbackPress");
-//        if(dealFlag){
-//            showAlertDialog(null, "放弃裁剪?", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    dismissLoadPorgressDialog();
-//                    dialog.dismiss();
-//                    finish();
-//                }
-//            });
-//        }
-//        else{
-//            super.onBackPressed();
-//        }
-//    }
 
 
 

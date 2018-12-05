@@ -99,6 +99,7 @@ void VideoFilter::startWaterMark() {
         if (packet->stream_index == audioStreamIndex) {
             av_packet_rescale_ts(packet, fmtCtx->streams[audioStreamIndex]->time_base,
                                  afcOutput->streams[getAudioOutputStreamIndex()]->time_base);
+
             audioQue.push(packet);
         } else if (packet->stream_index == videoStreamIndex) {
             frame = decodePacket(decCtx, packet);
@@ -122,11 +123,13 @@ void VideoFilter::startWaterMark() {
                         break;
                     }
                     filt_frame->pts = filt_frame->best_effort_timestamp;
+//                    filt_frame->pts *= 2 ;
                     AVPacket *filtPkt = encodeFrame(filt_frame, vCtxE);
                     if (filtPkt != NULL) {
                         av_packet_rescale_ts(filtPkt,
                                              fmtCtx->streams[videoStreamIndex]->time_base/*buffersink_ctx->inputs[0]->time_base*/,
                                              afcOutput->streams[getVideoOutputStreamIndex()]->time_base);
+
                         videoQue.push(filtPkt);
                     }
                     av_frame_unref(filt_frame);

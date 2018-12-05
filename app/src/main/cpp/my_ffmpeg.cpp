@@ -668,3 +668,36 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoFilterDestroy(JNIEnv *env, jclas
     bwm = NULL;
     return 0;
 }
+
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initGif(JNIEnv *env, jclass type, jstring videoPath_,
+                                                   jstring outPath_) {
+    const char *videoPath = env->GetStringUTFChars(videoPath_, 0);
+    const char *outPath = env->GetStringUTFChars(outPath_, 0);
+
+    // TODO
+
+    env->ReleaseStringUTFChars(videoPath_, videoPath);
+    env->ReleaseStringUTFChars(outPath_, outPath);
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getGifProgress(JNIEnv *env, jclass type) {
+
+    // TODO
+    return 1;
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyGif(JNIEnv *env, jclass type) {
+
+    // TODO
+    return 1;
+}
