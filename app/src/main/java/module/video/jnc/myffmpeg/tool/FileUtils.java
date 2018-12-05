@@ -13,6 +13,7 @@ public class FileUtils {
     public static final String APP_WATER_MARK = "sdcard/FFmpeg/water_mark/";
     public static final String APP_FILTER   = "sdcard/FFmpeg/filter/";
     public static final String APP_CROP = "sdcard/FFmpeg/crop/";
+    public static final String APP_SCALE = "sdcard/FFmpeg/scale/";
     public static String saveFileToWaterMark(String name, byte[] buffer) {
         File file = new File(APP_WATER_MARK);
         if (!file.exists()) {
@@ -81,4 +82,11 @@ public class FileUtils {
             file.mkdirs();
         }
     }
+    public static void makeScaleDir(){
+        File file = new File(APP_SCALE);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
 }

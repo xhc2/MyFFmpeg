@@ -37,6 +37,7 @@ public class EditFragment extends Fragment implements View.OnClickListener {
         view.findViewById(R.id.tv_watermark).setOnClickListener(this);
         view.findViewById(R.id.tv_crop).setOnClickListener(this);
         view.findViewById(R.id.tv_spcial_filter).setOnClickListener(this);
+        view.findViewById(R.id.tv_scale).setOnClickListener(this);
         imgBmp = view.findViewById(R.id.img_bmp);
     }
 
@@ -77,6 +78,12 @@ public class EditFragment extends Fragment implements View.OnClickListener {
                 intent.setClass(getActivity(), ChoiseVideoActivity.class);
                 intent.putExtra("choise_max_video", 1);
                 intent.putExtra("action", "xhc.video.spcial_filter");
+                startActivity(intent);
+                break;
+            case R.id.tv_scale:
+                intent.setClass(getActivity(), ChoiseVideoActivity.class);
+                intent.putExtra("choise_max_video", 1);
+                intent.putExtra("action", "xhc.video.scale");
                 startActivity(intent);
                 break;
         }

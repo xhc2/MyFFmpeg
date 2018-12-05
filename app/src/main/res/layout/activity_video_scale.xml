@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    tools:context=".activity.VideoClipActivity">
+
+    <module.video.jnc.myffmpeg.widget.TitleBar
+        android:id="@+id/title"
+        style="@style/title_bar"
+        app:right_text="确定"
+        app:title_text="视频滤镜" />
+
+
+    <module.video.jnc.myffmpeg.MyVideoGpuShow
+        android:id="@+id/play_gl_surfaceview"
+        android:layout_width="320dp"
+        android:layout_height="165dp"
+        android:layout_below="@id/title"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp" />
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rl_choise"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_below="@id/play_gl_surfaceview"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="40dp" />
+
+    <RelativeLayout
+        android:id="@+id/rl_custom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/rl_choise">
+
+        <EditText
+            android:id="@+id/et_width"
+            android:layout_width="150dp"
+            android:hint="请输入宽度"
+            android:layout_marginRight="10dp"
+            android:inputType="number"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/et_height"
+            android:layout_marginLeft="10dp"
+            android:hint="请输入高度"
+            android:layout_width="150dp"
+            android:inputType="number"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/et_width" />
+    </RelativeLayout>
+
+
+</RelativeLayout>
