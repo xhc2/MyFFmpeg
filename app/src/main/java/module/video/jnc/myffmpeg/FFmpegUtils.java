@@ -121,6 +121,7 @@ public class FFmpegUtils {
 
     //gif相关
     public static native int initGif(String videoPath , String outPath);
+    public static native int startGifParse();
     public static native int getGifProgress();
     public static native int destroyGif();
 

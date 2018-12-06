@@ -20,6 +20,7 @@
 #include <CurrentTimeBitmap.h>
 #include <my_open_sl_test.h>
 #include <NewAudioPlayer.h>
+#include <GifMake.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -670,7 +671,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoFilterDestroy(JNIEnv *env, jclas
 }
 
 
-
+GifMake *gifMake;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initGif(JNIEnv *env, jclass type, jstring videoPath_,
@@ -678,8 +679,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initGif(JNIEnv *env, jclass type, jst
     const char *videoPath = env->GetStringUTFChars(videoPath_, 0);
     const char *outPath = env->GetStringUTFChars(outPath_, 0);
 
-    // TODO
-
+    if(gifMake == NULL){
+        gifMake = new GifMake(videoPath , outPath);
+    }
     env->ReleaseStringUTFChars(videoPath_, videoPath);
     env->ReleaseStringUTFChars(outPath_, outPath);
     return 1;
@@ -699,5 +701,19 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyGif(JNIEnv *env, jclass type) {
 
     // TODO
+    if(gifMake != NULL){
+       delete gifMake;
+    }
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_startGifParse(JNIEnv *env, jclass type) {
+
+    // TODO
+    if(gifMake != NULL){
+        gifMake->startParse();
+    }
     return 1;
 }

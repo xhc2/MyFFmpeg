@@ -49,13 +49,13 @@ public class Mp42GifActivity extends VideoEditParentActivity  implements ClipBar
                     showLoadPorgressDialog("处理中...");
                     return;
                 }
-                if (startTime == -1 || endTime == -1 || startTime >= endTime || startTime < 0 || endTime > FFmpegUtils.getDuration()) {
-                    showToast("裁剪时间有问题！");
-                    return;
-                }
+//                if (startTime == -1 || endTime == -1 || startTime >= endTime || startTime < 0 || endTime > FFmpegUtils.getDuration()) {
+//                    showToast("裁剪时间有问题！");
+//                    return;
+//                }
                 showLoadPorgressDialog("处理中...");
-//                startClip(startTime, endTime);
-//                startProgressThread();
+                FFmpegUtils.initGif(listPath.get(0) , FileUtils.APP_GIF+"gif_"+System.currentTimeMillis()+".gif" );
+                FFmpegUtils.startGifParse();
             }
         });
         clipBar.setTouchCallBack(this);
@@ -91,7 +91,7 @@ public class Mp42GifActivity extends VideoEditParentActivity  implements ClipBar
         super.onWindowFocusChanged(hasFocus);
         if (!activityFoucsFlag & hasFocus && listPath.size() > 0) {
             activityFoucsFlag = true;
-            startPlayThread(listPath.get(0));
+//            startPlayThread(listPath.get(0));
         }
     }
 

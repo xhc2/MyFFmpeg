@@ -310,8 +310,7 @@ int EditParent::writeOutoutHeader(AVFormatContext *afc_output, const char *outpu
 }
 
 int EditParent::writeTrail(AVFormatContext *afc_output) {
-    av_write_trailer(afc_output);
-    return 1;
+    return av_write_trailer(afc_output);
 }
 
 //int EditParent::getVideoWidth(AVCodecParameters *coder){
