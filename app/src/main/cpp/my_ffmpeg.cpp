@@ -21,6 +21,7 @@
 #include <my_open_sl_test.h>
 #include <NewAudioPlayer.h>
 #include <GifMake.h>
+#include <VideoMerge.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -715,5 +716,58 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startGifParse(JNIEnv *env, jclass typ
     if(gifMake != NULL){
         gifMake->startParse();
     }
+    return 1;
+}
+
+
+VideoMerge *vm ;
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoMerge(JNIEnv *env, jclass type,
+                                                          jobjectArray inputPath,
+                                                          jstring outputPath_) {
+    const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
+    int size =  env->GetArrayLength(inputPath);
+    if (size > 4) {
+        //抛出异常
+        jclass clazz;
+        clazz = env->FindClass("java/lang/Exception");
+        env->ThrowNew(clazz, " size should be < 4");
+        return -1;
+    }
+
+    LOGE(" INPUT SIZE %d ", size);
+//    char *inputPath[size];
+    std::vector<char *> inputPaths;
+    for (int i = 0; i < size; i++) {
+        jstring obja = (jstring) env->GetObjectArrayElement(inputPath, i);
+        const char *chars = env->GetStringUTFChars(obja, NULL);
+        int charLen = strlen(chars);
+        charLen++;
+        char *temp = (char *) malloc(charLen);
+        strcpy(temp, chars);
+        inputPaths.push_back(temp);
+
+        env->ReleaseStringUTFChars(obja, chars);
+    }
+    vm = new VideoMerge(inputPaths , outputPath);
+    env->ReleaseStringUTFChars(outputPath_, outputPath);
+
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_startVideoMerge(JNIEnv *env, jclass type) {
+
+    // TODO
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyVideoMerge(JNIEnv *env, jclass type) {
+
     return 1;
 }

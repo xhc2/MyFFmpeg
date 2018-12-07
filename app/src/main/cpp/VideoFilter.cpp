@@ -56,7 +56,6 @@ int VideoFilter::buildOutput(const char *outputPath) {
     }
     AVCodecParameters codecpar;
     avcodec_parameters_copy(&codecpar ,  fmtCtx->streams[videoStreamIndex]->codecpar);
-    LOGE(" paramsSet %d , paramsSet %d " , paramsSet[0] , paramsSet[1]);
     parseVideoParams(paramsSet , paramsSetSize ,&codecpar);
 
     LOGE(" VIDEO WIDTH %d , VIDEO HEIGHT %d " ,codecpar.width , codecpar.height );

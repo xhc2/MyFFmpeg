@@ -125,6 +125,10 @@ public class FFmpegUtils {
     public static native int getGifProgress();
     public static native int destroyGif();
 
+    //视频合并 ,四宫格的视频
+    public static native int initVideoMerge(String[] inputPath , String outputPath);
+    public static native int startVideoMerge();
+    public static native int destroyVideoMerge();
 
 
     //测试部分

@@ -21,7 +21,7 @@
 
         <!-- module.video.jnc.myffmpeg.activity.TestActivity -->
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".activity.TestActivity"
             android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
