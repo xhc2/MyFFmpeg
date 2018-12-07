@@ -22,6 +22,7 @@
 #include <NewAudioPlayer.h>
 #include <GifMake.h>
 #include <VideoMerge.h>
+#include <AudioMix.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -751,7 +752,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoMerge(JNIEnv *env, jclass ty
 
         env->ReleaseStringUTFChars(obja, chars);
     }
-    vm = new VideoMerge(inputPaths , outputPath);
+//    vm = new VideoMerge(inputPaths , outputPath);
+    AudioMix am ;
     env->ReleaseStringUTFChars(outputPath_, outputPath);
 
     return 1;
