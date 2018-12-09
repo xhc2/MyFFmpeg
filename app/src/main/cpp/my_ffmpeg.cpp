@@ -754,6 +754,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoMerge(JNIEnv *env, jclass ty
     }
 //    vm = new VideoMerge(inputPaths , outputPath);
     AudioMix am ;
+    am.startMix();
     env->ReleaseStringUTFChars(outputPath_, outputPath);
 
     return 1;
@@ -763,7 +764,7 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_startVideoMerge(JNIEnv *env, jclass type) {
 
-    // TODO
+
     return 1;
 }
 

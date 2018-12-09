@@ -29,9 +29,12 @@ private:
     AVFilterGraph *filter_graph;
     int audio_stream_index_1  ;
     int audio_stream_index_2 ;
+
+
 public :
     AudioMix();
     int startMix();
+    AVFrame *decodePacket(AVCodecContext *decode, AVPacket *packet);
     ~AudioMix();
 };
 
