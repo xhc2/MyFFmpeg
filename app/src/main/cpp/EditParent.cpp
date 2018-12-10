@@ -24,6 +24,7 @@ EditParent::EditParent() {
     videoOutputStreamIndex = -1;
     audioOutputStreamIndex = -1;
     progress = 0;
+    outFrameRate = 25 ;
     timeBaseFFmpeg = (AVRational) {1, AV_TIME_BASE};
 }
 
@@ -136,6 +137,11 @@ int EditParent::initOutput(const char *ouput, AVFormatContext **ctx) {
     return 1;
 }
 
+
+int EditParent::getVideoOutFrameRate(){
+    return outFrameRate;
+}
+
 int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext **vCtxE,
                                      AVCodecParameters codecpar) {
     int result = 0;
@@ -167,13 +173,13 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext
         LOGE(" avcodec_alloc_context3 FAILD ! ");
         return -1;
     }
-    int outFrameRate = 25;
+
     (*vCtxE)->bit_rate = 400000;
     (*vCtxE)->time_base = (AVRational) {1, outFrameRate};
     (*vCtxE)->framerate = (AVRational) {outFrameRate, 1};
     (*vCtxE)->gop_size = 10;
 //    vCtxE->max_b_frames = 1;
-    (*vCtxE)->pix_fmt = AV_PIX_FMT_YUV420P;
+    (*vCtxE)->pix_fmt = (AVPixelFormat)codecpar.format;
     (*vCtxE)->codec_type = AVMEDIA_TYPE_VIDEO;
     (*vCtxE)->width = codecpar.width;
     (*vCtxE)->height = codecpar.height;

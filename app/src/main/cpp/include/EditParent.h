@@ -49,6 +49,8 @@ protected:
     int initOutput(const char* ouput , AVFormatContext **ctx);
     int addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , AVCodecParameters codecpar);
     int addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , AVCodecParameters codecpar);
+    int getVideoOutFrameRate();
+    int outFrameRate;
     int  writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath);
     int parseVideoParams(int* params , int size , AVCodecParameters *codecpar);
     int getVideoOutputStreamIndex();
