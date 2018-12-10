@@ -309,8 +309,9 @@ int VideoRunBack::startBackParse() {
                 if(ftell(fCache) <= 0 ){
                     break;
                 }
-                LOGE(" SEEK CUR %d" , fseek(fCache, -yuvSize, SEEK_CUR));
-                fread(readBuffer, 1, yuvSize, fCache);
+                fseek(fCache, -yuvSize, SEEK_CUR) ;
+                fread(readBuffer, 1, yuvSize, fCache); //这里光标又回去了。
+                fseek(fCache, -yuvSize, SEEK_CUR) ; //把读取的光标位置放回去
                 fwrite(readBuffer, 1, yuvSize, testFile);
 
 
