@@ -19,12 +19,13 @@ extern "C" {
 
 using namespace std;
 
-class VideoRunBack  :public MyThread{
+class VideoRunBack : public MyThread , EditParent{
 
 private :
 
     //output
     vector<AVPacket *> audioQue;
+    vector<int64_t> keyFrameQue;
     AVFormatContext *afc_output;
     AVOutputFormat *afot;
     char *outPath;
@@ -52,20 +53,16 @@ private :
     int inWidth ;
     int inHeight;
     int64_t inputDuration;
-//    int64_t gopDuration ;
     int64_t frameDuration ;
-    AVRational ffmpegTimeBase;
+
+
+
+
     int initInput();
     void initValue();
-
     int initOutput();
-
     int addVideoOutputStream(int width, int height);
-
     int addAudioOutputStream();
-
-    AVPacket *encodeFrame(AVFrame *frame , AVCodecContext *encode);
-    AVFrame *deocdePacket(AVPacket *packet , AVCodecContext *decode );
     void writeFrame2File(AVFrame *frame , FILE *file);
 public :
     VideoRunBack(const char *inputPath, const char *outPath);

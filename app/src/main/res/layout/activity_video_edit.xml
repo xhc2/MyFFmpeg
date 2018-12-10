@@ -48,6 +48,7 @@
             android:id="@+id/tv_video_joint"
             style="@style/edit_button"
             android:drawableTop="@mipmap/pinjie"
+            android:background="#E61A42"
             android:text="视频拼接" />
 
         <TextView
@@ -65,6 +66,7 @@
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/sudu"
+            android:background="#E61A42"
             android:text="播放速度" />
     </LinearLayout>
 
@@ -101,6 +103,7 @@
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
+            android:background="#E61A42"
             android:text="视频主题" />
 
         <TextView
@@ -112,6 +115,7 @@
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
+            android:background="#E61A42"
             android:text="文字水印" />
 
     </LinearLayout>
@@ -143,22 +147,26 @@
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
+            android:background="#E61A42"
             android:text="实时配音" />
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
+            android:background="#E61A42"
             android:text="实时字幕" />
 
         <TextView
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
+            android:background="#E61A42"
             android:text="视频倒放" />
 
         <TextView
             android:id="@+id/tv_gif"
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
+            android:background="#E61A42"
             android:text="gif生成" />
     </LinearLayout>
 </LinearLayout>
