@@ -174,7 +174,7 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext
         return -1;
     }
 
-    (*vCtxE)->bit_rate = 400000;
+    (*vCtxE)->bit_rate = codecpar.width * codecpar.height * 3 / 2 * outFrameRate ;
     (*vCtxE)->time_base = (AVRational) {1, outFrameRate};
     (*vCtxE)->framerate = (AVRational) {outFrameRate, 1};
     (*vCtxE)->gop_size = 10;

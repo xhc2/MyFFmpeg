@@ -20,7 +20,6 @@ private:
     int outHeight ;
     int frameCount ;
     bool isExit ;
-    int videoStreamOutputIndex;
     int64_t vCalDuration;
     AVFormatContext *afc_output ;
     AVCodecContext *vCtxE ;
