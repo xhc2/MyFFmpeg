@@ -194,7 +194,6 @@ void VideoJoint::run() {
         }
 
         pthread_mutex_lock(&mutex_pthread);
-        LOGE(" videoQue %d ， audioQue %d  ", videoQue.size(), audioQue.size());
         if (audioQue.size() <= 0 || videoQue.size() <= 0) {
             pthread_mutex_unlock(&mutex_pthread);
             if (readEnd) {
@@ -393,10 +392,12 @@ void VideoJoint::startDecode() {
                     continue;
                 }
                 audioSampleCount += aCtxE->frame_size;
+                LOGE(" audio frame sample size %d " , aCtxE->frame_size);
                 AVPacket *aPkt = encodeFrame(outAFrame, aCtxE);
                 av_frame_free(&outAFrame);
                 if (aPkt != NULL) {
                     //放入队列
+                    LOGE(" audio frame encode sample size %d " , aPkt->size);
                     av_packet_rescale_ts(aPkt, timeBaseFFmpeg, audioOutStream->time_base);
                     aPkt->stream_index = audioIndexOutput;
                     audioQue.push(aPkt);

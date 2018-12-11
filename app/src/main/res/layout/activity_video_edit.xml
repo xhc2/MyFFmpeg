@@ -157,6 +157,7 @@
             android:text="实时字幕" />
 
         <TextView
+            android:id="@+id/tv_reverse"
             style="@style/edit_button"
             android:drawableTop="@mipmap/edit"
             android:background="#E61A42"

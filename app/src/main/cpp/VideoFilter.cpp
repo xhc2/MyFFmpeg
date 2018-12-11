@@ -122,7 +122,6 @@ void VideoFilter::startWaterMark() {
                         break;
                     }
                     filt_frame->pts = filt_frame->best_effort_timestamp;
-//                    filt_frame->pts *= 2 ;
                     AVPacket *filtPkt = encodeFrame(filt_frame, vCtxE);
                     if (filtPkt != NULL) {
                         av_packet_rescale_ts(filtPkt,

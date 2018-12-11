@@ -8,7 +8,8 @@
 #include "EditParent.h"
 #include "MyThread.h"
 #include <vector>
-
+#include <queue>
+#include <stack>
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -19,13 +20,14 @@ extern "C" {
 
 using namespace std;
 
-class VideoRunBack : public MyThread , EditParent{
+class VideoRunBack : public MyThread , public EditParent{
 
 private :
 
     //output
-    vector<AVPacket *> audioQue;
     vector<int64_t> keyFrameQue;
+    queue<AVPacket *> queVideo;
+    stack<AVPacket *> audioStack;
     AVFormatContext *afc_output;
     char *outPath;
     int outWidth;
@@ -39,7 +41,7 @@ private :
     char *inputPath;
     int videoIndexInput;
     int audioIndexInput;
-    AVCodec *videoCodecD;
+
     AVCodecContext *vCtxD;
     int inWidth ;
     int inHeight;
@@ -49,6 +51,12 @@ private :
     int yuvSize ;
     AVFrame *outFrame ;
     int encodeFrameCount ;
+    int pcmEncodeCount;
+    int64_t vpts ;
+    int64_t apts ;
+
+
+    int test();
     int reverseFile();
     int initInput();
     int buildOutput();

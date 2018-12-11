@@ -62,8 +62,9 @@ int EditParent::getVideoDecodeContext(AVFormatContext *fmt_ctx, AVCodecContext *
     videoStreamIndex = ret;
     /* create decoding context */
     *dec_ctx = avcodec_alloc_context3(dec);
-    if (!dec_ctx)
-        return AVERROR(ENOMEM);
+    if (*dec_ctx == NULL)
+        return -1;
+
     avcodec_parameters_to_context(*dec_ctx, fmt_ctx->streams[videoStreamIndex]->codecpar);
     /* init the video decoder */
     if ((ret = avcodec_open2(*dec_ctx, dec, NULL)) < 0) {
@@ -156,9 +157,8 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext
         LOGE(" VIDEO AV_CODEC_ID_NONE ");
         return -1;
     }
-
-    avcodec_parameters_copy(videoOutStream->codecpar, &codecpar);
     if (vCtxE == NULL) {
+        avcodec_parameters_copy(videoOutStream->codecpar, &codecpar);
         return videoOutputStreamIndex;
     }
     AVCodec *videoCodecE = avcodec_find_encoder(afot->video_codec);
@@ -183,7 +183,16 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext
     (*vCtxE)->codec_type = AVMEDIA_TYPE_VIDEO;
     (*vCtxE)->width = codecpar.width;
     (*vCtxE)->height = codecpar.height;
-
+    if ((*vCtxE)->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
+        /* just for testing, we also add B-frames */
+        (*vCtxE)->max_b_frames = 2;
+    }
+    if ((*vCtxE)->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
+        /* Needed to avoid using macroblocks in which some coeffs overflow.
+         * This does not happen with normal video, it just happens here as
+         * the motion of the chroma plane does not match the luma plane. */
+        (*vCtxE)->mb_decision = 2;
+    }
     result = avcodec_parameters_from_context(videoOutStream->codecpar, *vCtxE);
 
     if (result < 0) {
