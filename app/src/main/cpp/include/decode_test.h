@@ -3,10 +3,14 @@
 //
 
 
-class DecodeTest{
+#include "EditParent.h"
+
+class DecodeTest : public EditParent{
 
 private :
+    AVFormatContext *afcOutput;
+    AVCodecContext *vCtxE;
 public :
     DecodeTest();
-
+    int  buildOutput(const char *outputPath) ;
 };

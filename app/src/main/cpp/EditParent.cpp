@@ -193,6 +193,8 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext
          * the motion of the chroma plane does not match the luma plane. */
         (*vCtxE)->mb_decision = 2;
     }
+    if ((*vCtxE)->codec_id == AV_CODEC_ID_H264)
+        av_opt_set( (*vCtxE)->priv_data, "preset", "slow", 0);
     result = avcodec_parameters_from_context(videoOutStream->codecpar, *vCtxE);
 
     if (result < 0) {

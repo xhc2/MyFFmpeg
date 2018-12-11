@@ -158,22 +158,16 @@ void GifMake::destroySwsContext() {
 
 int GifMake::startParse() {
     int result ;
-    FILE *rgbF = fopen("sdcard/FFmpeg/test.rgb8" , "wb+");
     AVPacket *pkt = av_packet_alloc();
-//    AVFrame *outVFrame = av_frame_alloc();
-//    outVFrame->width = outWidth;
-//    outVFrame->height = outHeight;
-//    outVFrame->format = outFormat;
-//    result = av_frame_get_buffer(outVFrame, 0);
-//    if (result < 0) {
-//        LOGE(" av_frame_get_buffer FAILD ! ");
-//        return -1;
-//    }
-//    result = av_frame_make_writable(outVFrame);
-//    if (result < 0) {
-//        LOGE(" av_frame_get_buffer FAILD ! ");
-//        return -1;
-//    }
+    AVFrame *outVFrame = av_frame_alloc();
+    outVFrame->width = outWidth;
+    outVFrame->height = outHeight;
+    outVFrame->format = outFormat;
+    result = av_frame_get_buffer(outVFrame, 0);
+    if (result < 0) {
+        LOGE(" av_frame_get_buffer FAILD ! ");
+        return -1;
+    }
 //    result = av_seek_frame(afc_input , -1 ,  ((float) 10 / 1000) * AV_TIME_BASE * afc_input->start_time , AVSEEK_FLAG_BACKWARD);
 //    if (result < 0) {
 //        LOGE(" av_seek_frame FAILD ! ");
@@ -189,20 +183,17 @@ int GifMake::startParse() {
         if (pkt->stream_index == videoStreamIndex) {
             frame = decodePacket(vCtxD, pkt);
             if (frame != NULL) {
-                AVFrame *outVFrame = av_frame_alloc();
-                outVFrame->width = outWidth;
-                outVFrame->height = outHeight;
-                outVFrame->format = outFormat;
-                  av_frame_get_buffer(outVFrame, 0);
+                result = av_frame_make_writable(outVFrame);
+                if (result < 0) {
+                    LOGE(" av_frame_get_buffer FAILD ! ");
+                    return -1;
+                }
                 sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
                           0, frame->height, outVFrame->data, outVFrame->linesize);
-//                fwrite(outVFrame->data[0] , 1 , outVFrame->linesize[videoOutputStreamIndex] * outHeight  ,rgbF );
                 outVFrame->pts = frameCount * vCalDuration;
                 frameCount++;
-//                LOGE(" outvFrame %lld " , outVFrame->pts);
                 av_frame_free(&frame);
                 AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
-                av_frame_free(&outVFrame);
                 if (vPkt != NULL) {
                     LOGE(" WIRTE GIF FRAME %lld  , size %d " , vPkt->pts , vPkt->size);
                     av_packet_rescale_ts(vPkt, timeBaseFFmpeg, afc_output->streams[videoOutputStreamIndex]->time_base);

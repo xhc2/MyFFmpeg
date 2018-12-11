@@ -49,6 +49,7 @@ private :
     char *readBuffer;
     FILE *fCache;
     int yuvSize ;
+    int ySize ;
     AVFrame *outFrame ;
     int encodeFrameCount ;
     int pcmEncodeCount;

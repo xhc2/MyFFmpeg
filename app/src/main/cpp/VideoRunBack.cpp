@@ -53,6 +53,8 @@ VideoRunBack::VideoRunBack(const char *path, const char *outPath) {
         return;
     }
     yuvSize = inWidth * inHeight * 3 / 2;
+    ySize = inWidth * inHeight ;
+    LOGE(" YUV SIZE %d " , yuvSize);
     readBuffer = (char *) malloc(yuvSize);
 }
 
@@ -132,7 +134,9 @@ int VideoRunBack::buildOutput() {
     outFrame->width = codecpar->width;
     outFrame->height = codecpar->height;
     outFrame->format = codecpar->format;
-    LOGE("format  %d ", codecpar->format);
+//    av_frame_get_buffer(outFrame, 0);
+    LOGE(" LINE %d , %d , %d " , outFrame->linesize[0] , outFrame->linesize[1] , outFrame->linesize[2]);
+    LOGE("format  %d ， width %d , height %d ", codecpar->format , outFrame->width , outFrame->height);
 //    av_frame_get_buffer 会产生内存泄露。后面好好检查这块
     return 1;
 }
@@ -232,14 +236,12 @@ void VideoRunBack::run() {
 //    return 1;
 //}
 
-FILE *testF;
 
 int VideoRunBack::startBackParse() {
     LOGE(" -------------------start------------------------ ");
     int result = 0;
-    this->start();
+//    this->start();
     fCache = fopen(tempYuv, "wb+");
-    testF = fopen("sdcard/FFmpeg/test.yuv", "wb+");
     AVPacket *pkt = av_packet_alloc();
     //该视频的总帧数
     int frameCount = 0;
@@ -308,7 +310,6 @@ int VideoRunBack::startBackParse() {
                 pkt->pts > keyFrameQue.at(nowKeyFramePosition + 1)) {
                 //完成了一个gop
                 clearCode(fCache);
-
                 nowKeyFramePosition--;
                 if (nowKeyFramePosition >= 0) {
                     gopCount++;
@@ -350,10 +351,11 @@ int VideoRunBack::reverseFile() {
         fseek(fCache, -yuvSize, SEEK_CUR);
         fread(readBuffer, 1, yuvSize, fCache); //这里光标又往前走了yuvsize
         fseek(fCache, -yuvSize, SEEK_CUR); //把读取的光标位置放回去
-
+//        av_frame_get_buffer(outFrame, 0);
+        av_frame_make_writable(outFrame);
         outFrame->data[0] = (uint8_t *) readBuffer;
-        outFrame->data[1] = (uint8_t *) (readBuffer + yuvSize);
-        outFrame->data[2] = (uint8_t *) (readBuffer + yuvSize + yuvSize / 4);
+        outFrame->data[1] = (uint8_t *) (readBuffer + ySize);
+        outFrame->data[2] = (uint8_t *) (readBuffer +  ySize + ySize / 4);
 
         outFrame->linesize[0] = inWidth;
         outFrame->linesize[1] = inWidth / 2;
@@ -362,14 +364,14 @@ int VideoRunBack::reverseFile() {
         outFrame->pts = encodeFrameCount * frameDuration;
         encodeFrameCount++;
         AVPacket *pkt = encodeFrame(outFrame, vCtxE);
-
+        av_frame_unref(outFrame);
         if (pkt != NULL) {
             LOGE(" WRITE PKT ");
             av_packet_rescale_ts(pkt, timeBaseFFmpeg,
                                  afc_output->streams[videoOutputStreamIndex]->time_base);
-            queVideo.push(pkt);
-//            av_write_frame(afc_output, pkt);
-//            av_packet_free(&pkt);
+//            queVideo.push(pkt);
+            av_write_frame(afc_output, pkt);
+            av_packet_free(&pkt);
         }
     }
     fclose(fCache);
