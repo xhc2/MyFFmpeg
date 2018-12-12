@@ -50,6 +50,27 @@ int EditParent::open_input_file(const char *filename, AVFormatContext **fmt_ctx)
     return 1;
 }
 
+int EditParent::getAudioDecodeContext(AVFormatContext *fmt_ctx,    AVCodecContext **dec_ctx){
+    int ret;
+    AVCodec *dec = NULL;
+    ret = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, &dec, 0);
+    if (ret < 0) {
+        LOGE("av_find_best_stream FAILD !");
+        audioStreamIndex = -1;
+        return -1;
+    }
+    audioStreamIndex = ret;
+    *dec_ctx = avcodec_alloc_context3(dec);
+    if (*dec_ctx == NULL)
+        return -1;
+    avcodec_parameters_to_context(*dec_ctx, fmt_ctx->streams[audioStreamIndex]->codecpar);
+    if ((ret = avcodec_open2(*dec_ctx, dec, NULL)) < 0) {
+        LOGE("avcodec_open2 FAILD !");
+        return ret;
+    }
+    return audioStreamIndex;
+}
+
 int EditParent::getVideoDecodeContext(AVFormatContext *fmt_ctx, AVCodecContext **dec_ctx) {
     int ret;
     AVCodec *dec = NULL;

@@ -91,6 +91,7 @@ void VideoJoint::initValue() {
     AVRational sampleRateAv = (AVRational) {sampleRate, 1};
     aCalDuration = (double) (AV_TIME_BASE) * (1 / av_q2d(sampleRateAv));
     vCalDuration = (double) (AV_TIME_BASE) * (1 / av_q2d((AVRational) {outFrameRate, 1}));
+    LOGE(" aCalduration %lld , vCalDuration %lld " , aCalDuration , vCalDuration);
     readEnd = false;
     decodeEnd = false;
     timeBaseFFmpeg = (AVRational) {1, AV_TIME_BASE};

@@ -38,20 +38,21 @@ protected:
     int audioStreamIndex;
     int open_input_file(const char *filename  , AVFormatContext **ps);
     int getVideoDecodeContext( AVFormatContext *ps,    AVCodecContext **dec_ctx); //获取视频解码器，并返回videoStreamIndex;
-    AVFrame* decodePacket(AVCodecContext *decode , AVPacket *packet);
-    AVPacket *encodeFrame(AVFrame *frame ,AVCodecContext *vCtxE );
+    int getAudioDecodeContext(AVFormatContext *ps,    AVCodecContext **dec_ctx); //获取音频解码器，并返回audioStreamIndex;
+    AVFrame *decodePacket(AVCodecContext *decode , AVPacket *packet);
+    AVPacket *encodeFrame(AVFrame *frame ,AVCodecContext *codecContext );
     int getVideoStreamIndex(AVFormatContext *fmt_ctx);
     int getAudioStreamIndex(AVFormatContext *fmt_ctx);
 
     //输出,编码 相关
     int videoOutputStreamIndex;
     int audioOutputStreamIndex;
+    int outFrameRate;
     int initOutput(const char* ouput , AVFormatContext **ctx);
     int addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , AVCodecParameters codecpar);
     int addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , AVCodecParameters codecpar);
     int getVideoOutFrameRate();
-    int outFrameRate;
-    int  writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath);
+    int writeOutoutHeader(AVFormatContext *afc_output , const char* outputPath);
     int parseVideoParams(int* params , int size , AVCodecParameters *codecpar);
     int getVideoOutputStreamIndex();
     int getAudioOutputStreamIndex();

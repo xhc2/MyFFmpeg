@@ -20,7 +20,7 @@ extern "C" {
 
 using namespace std;
 
-class VideoRunBack : public MyThread , public EditParent{
+class VideoRunBack :   public EditParent{
 
 private :
 
@@ -32,10 +32,13 @@ private :
     char *outPath;
     int outWidth;
     int outHeight;
-    int videoIndexOutput;
-    int audioIndexOutput;
+//    int videoIndexOutput;
+//    int audioIndexOutput;
     AVCodecContext *vCtxE;
+    AVCodecContext *aCtxE;
     int gopCount;
+
+
     //input
     AVFormatContext *afc_input;
     char *inputPath;
@@ -43,21 +46,25 @@ private :
     int audioIndexInput;
 
     AVCodecContext *vCtxD;
+    AVCodecContext *aCtxD;
     int inWidth ;
     int inHeight;
-    int64_t frameDuration ;
+    int64_t videoFrameDuration ;
+    int64_t audioFrameDuration ;
+
     char *readBuffer;
     FILE *fCache;
     int yuvSize ;
     int ySize ;
     AVFrame *outFrame ;
-    int encodeFrameCount ;
-    int pcmEncodeCount;
+    int encodeFrameVideoCount;
+    int encodeFrameAudioCount;
     int64_t vpts ;
     int64_t apts ;
-
+    int nowKeyFramePosition ;
 
     int test();
+    int seekLastKeyFrame();
     int reverseFile();
     int initInput();
     int buildOutput();
@@ -68,7 +75,6 @@ public :
     VideoRunBack(const char *inputPath, const char *outPath);
 
     int startBackParse();
-    virtual void run();
     ~VideoRunBack();
 };
 
