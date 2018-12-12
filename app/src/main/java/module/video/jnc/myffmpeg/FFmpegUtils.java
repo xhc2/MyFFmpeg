@@ -96,6 +96,7 @@ public class FFmpegUtils {
 
     //视频倒放
     public static native void startBackRun(String inputPath , String output);
+    public static native int getBackRunProgress();
     public static native void destroyBackRun();
 
     //获取当前时间图片
@@ -120,7 +121,7 @@ public class FFmpegUtils {
     public static native int videoFilterDestroy();
 
     //gif相关
-    public static native int initGif(String videoPath , String outPath);
+    public static native int initGif(String videoPath , String outPath ,  int start , int end);
     public static native int startGifParse();
     public static native int getGifProgress();
     public static native int destroyGif();

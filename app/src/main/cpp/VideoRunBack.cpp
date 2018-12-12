@@ -21,7 +21,7 @@
  * 6.正向把yuv写入文件中
  * 7.然后逆向读取yuv文件。
  * 8.编码yuv。
- *
+ * 9.音频就不倒叙了。（最开始觉得好像声音倒叙好像比较酷，结果输出来都听不清楚。然后抖音也是声音正向）
  */
 
 #include <my_log.h>
@@ -40,6 +40,8 @@ VideoRunBack::VideoRunBack(const char *path, const char *outPath) {
     len++;
     this->outPath = (char *) malloc(len);
     strcpy(this->outPath, outPath);
+    dealEnd = false;
+
     initValue();
 
     int result = initInput();
@@ -54,8 +56,8 @@ VideoRunBack::VideoRunBack(const char *path, const char *outPath) {
     }
     yuvSize = inWidth * inHeight * 3 / 2;
     ySize = inWidth * inHeight;
-    LOGE(" YUV SIZE %d ", yuvSize);
     readBuffer = (char *) malloc(yuvSize);
+
 }
 
 void VideoRunBack::initValue() {
@@ -66,11 +68,11 @@ void VideoRunBack::initValue() {
     gopCount = 0;
     videoFrameDuration = 0;
     encodeFrameVideoCount = 0;
-    encodeFrameAudioCount = 0;
     vpts = 0;
     apts = 0;
     videoFrameDuration = AV_TIME_BASE / getVideoOutFrameRate();
-    LOGE("  videoFrameDuration %lld " , videoFrameDuration);
+    readBuffer = NULL;
+    videoStreamDuration = 0;
 }
 
 
@@ -94,7 +96,8 @@ int VideoRunBack::initInput() {
         LOGE(" find audio Stream faild ! ");
         return -1;
     }
-    LOGE(" actxD sample %d , channel %d , format %d " , aCtxD->sample_rate , aCtxD->channels , aCtxD->sample_fmt);
+    LOGE(" actxD sample %d , channel %d , format %d ", aCtxD->sample_rate, aCtxD->channels,
+         aCtxD->sample_fmt);
     inWidth = afc_input->streams[videoIndexInput]->codecpar->width;
     inHeight = afc_input->streams[videoIndexInput]->codecpar->height;
 
@@ -137,44 +140,43 @@ int VideoRunBack::buildOutput() {
     outFrame->height = codecpar->height;
     outFrame->format = codecpar->format;
 //    av_frame_get_buffer 会产生内存泄露。后面好好检查这块
-    audioFrameDuration = AV_TIME_BASE / afc_output->streams[audioOutputStreamIndex]->codecpar->sample_rate;
+    audioFrameDuration =
+            AV_TIME_BASE / afc_output->streams[audioOutputStreamIndex]->codecpar->sample_rate;
     LOGE(" audioFrameDuration %lld ", audioFrameDuration);
     return 1;
 }
 
-FILE *pcmF= NULL;
+
+
 int VideoRunBack::startBackParse() {
     LOGE(" -------------------start------------------------ ");
     int result = 0;
+    this->start();
+
     fCache = fopen(tempYuv, "wb+");
-    if(pcmF == NULL){
-        pcmF = fopen("sdcard/FFmpeg/testpcm.pcm" , "wb+");
-    }
     //该视频的总帧数
-    int frameCount = 0;
-    int64_t videoStreamDuration = 0;
-    int64_t videoStartTime = 0;
-    AVPacket *pkt = av_packet_alloc();
-    while (true) {
+
+    while (!isExit) {
+        AVPacket *pkt = av_packet_alloc();
         result = av_read_frame(afc_input, pkt);
         if (result < 0) {
+            av_packet_free(&pkt);
             break;
         }
         //获取视频流的duration
         if (pkt->stream_index == videoIndexInput) {
-            if (videoStartTime == 0) {
-                videoStartTime = pkt->pts;
-            }
             if (pkt->flags & AV_PKT_FLAG_KEY) {
                 keyFrameQue.push_back(pkt->pts);
-                LOGE(" KEY FRAME %lld ", pkt->pts);
             }
-            frameCount++;
             videoStreamDuration = pkt->pts;
+            av_packet_free(&pkt);
+        }
+        else if (pkt->stream_index == audioIndexInput) {
+            av_packet_rescale_ts(pkt, afc_input->streams[audioIndexInput]->time_base,
+                                 afc_output->streams[audioOutputStreamIndex]->time_base);
+            queAudio.push(pkt);
         }
     }
-    av_packet_free(&pkt);
-    LOGE(" QUE SIZE %d ", keyFrameQue.size());
 
     nowKeyFramePosition = keyFrameQue.size() - 1;
     gopCount++;
@@ -184,7 +186,7 @@ int VideoRunBack::startBackParse() {
         LOGE(" av_seek_frame %s ", av_err2str(result));
         return -1;
     }
-    while (true) {
+    while (!isExit) {
         AVPacket *packet = av_packet_alloc();
         result = av_read_frame(afc_input, packet);
         if (result < 0) {
@@ -195,31 +197,25 @@ int VideoRunBack::startBackParse() {
             if (seekLastKeyFrame() > 0) {
                 continue;
             };
+            av_packet_free(&packet);
             break;
-        }
-
-        if (packet->stream_index == audioIndexInput) {
-            audioStack.push(packet);
-            //test
-            continue;
         }
         if (packet->stream_index == videoIndexInput) {
 
             if (((nowKeyFramePosition + 1) >= keyFrameQue.size() &&
-                    packet->pts > videoStreamDuration) ||
+                 packet->pts > videoStreamDuration) ||
                 (nowKeyFramePosition + 1) < keyFrameQue.size() &&
-                        packet->pts > keyFrameQue.at(nowKeyFramePosition + 1)) {
-
+                packet->pts > keyFrameQue.at(nowKeyFramePosition + 1)) {
                 //完成了一个gop
                 clearCode(fCache);
-                if (seekLastKeyFrame() < 0) {
-                    break;
-                };
+
                 LOGE(" NEXT GOP %d", nowKeyFramePosition);
                 //开始倒序读取
                 reverseFile();
-                if (nowKeyFramePosition < 0) {
+
+                if (seekLastKeyFrame() < 0) {
                     LOGE(" ALL END gopCount %d ", gopCount);
+                    av_packet_free(&packet);
                     break;
                 }
             }
@@ -230,66 +226,55 @@ int VideoRunBack::startBackParse() {
             }
         }
     }
-    writeTrail(afc_output);
+    dealEnd = true;
     LOGE(" END write frame ");
-    fclose(pcmF);
     return 1;
 }
 
-// 在这里需要把音视频写入MP4中。
-int VideoRunBack::seekLastKeyFrame() {
-    int result = 0;
-    while (true) {
-        if (audioStack.size() <= 0 || queVideo.size() <= 0) {
-            LOGE(" audio size %d , video size %d ", audioStack.size(), queVideo.size());
-            while (!audioStack.empty()) {
-                av_packet_free(&audioStack.top());
-                audioStack.pop();
-            }
-            while (!queVideo.empty()) {
-                av_packet_free(&queVideo.front());
-                queVideo.pop();
-            }
-            break;
-        }
-        AVPacket *aPkt = audioStack.top();
-        AVPacket *vPkt = queVideo.front();
 
+void VideoRunBack::run() {
+    while (!isExit) {
+        if (queAudio.size() <= 0 || queVideo.size() <= 0) {
+            if(dealEnd){
+                break;
+            }
+            threadSleep(2);
+            continue;
+        }
+        AVPacket *aPkt = queAudio.front();
+        AVPacket *vPkt = queVideo.front();
         if (av_compare_ts(apts, afc_output->streams[audioOutputStreamIndex]->time_base,
                           vpts, afc_output->streams[videoOutputStreamIndex]->time_base) < 0) {
-            //write audio
-            AVFrame *frame = decodePacket(aCtxD, aPkt);
-            audioStack.pop();
-            if (frame != NULL) {
-//                fwrite(frame->data[0] , 1 , frame->nb_samples * av_get_bytes_per_sample((AVSampleFormat)frame->format) , pcmF);
-                encodeFrameAudioCount += frame->nb_samples;
-                frame->pts = encodeFrameAudioCount * audioFrameDuration;
-                AVPacket *pkt = encodeFrame(frame, aCtxE);
-                av_frame_free(&frame);
-                if (pkt != NULL) {
-                    av_packet_rescale_ts(pkt, timeBaseFFmpeg,
-                                         afc_output->streams[audioOutputStreamIndex]->time_base);
-                    apts = pkt->pts;
-                    LOGE("WRITE AUDIO %lld" ,   av_rescale_q(apts , afc_output->streams[audioOutputStreamIndex]->time_base  , timeBaseFFmpeg));
-                    result = av_interleaved_write_frame(afc_output, pkt);
-                    if(result < 0){
-                        LOGE(" WIRTE AUDIO FAILD ! %s " , av_err2str(result));
-                    }
-                    av_packet_free(&pkt);
-                }
-            }
+
+            apts = aPkt->pts;
+            aPkt->stream_index = audioOutputStreamIndex;
+            av_interleaved_write_frame(afc_output, aPkt);
+            av_packet_free(&aPkt);
+            queAudio.pop();
         } else {
-            //write video
-//            LOGE(" av_interleaved_write_frame video  %lld " , vPkt->pts);
+            vPkt->stream_index = videoOutputStreamIndex;
             vpts = vPkt->pts;
-            LOGE("WRITE video %lld" ,   av_rescale_q(vpts , afc_output->streams[videoOutputStreamIndex]->time_base  , timeBaseFFmpeg));
+
+            progress = (int)(1.0 * av_rescale_q(vpts , afc_output->streams[videoOutputStreamIndex]->time_base ,
+                                                        afc_input->streams[videoIndexInput]->time_base )  / videoStreamDuration * 100 );
+            if(progress > 0){
+                progress --;
+            }
+            LOGE(" PROGRESS %d " , progress);
             av_interleaved_write_frame(afc_output, vPkt);
             av_packet_free(&vPkt);
             queVideo.pop();
         }
     }
+    LOGE(" WRITE TRAIL ");
+    progress = 100;
+    writeTrail(afc_output);
+}
+
+// 在这里需要把音视频写入MP4中。
+int VideoRunBack::seekLastKeyFrame() {
     nowKeyFramePosition--;
-    if (nowKeyFramePosition > 0) {
+    if (nowKeyFramePosition >= 0) {
         if (av_seek_frame(afc_input, videoIndexInput,
                           keyFrameQue.at(nowKeyFramePosition), AVSEEK_FLAG_BACKWARD) < 0) {
             LOGE(" SEEK FAILD MAYBE FINISH ");
@@ -349,7 +334,71 @@ void VideoRunBack::clearCode(FILE *file) {
     } while (result > 0);
 }
 
-
+void VideoRunBack::destroyInput(){
+    if (vCtxD != NULL) {
+        avcodec_free_context(&vCtxD);
+        vCtxD = NULL;
+    }
+    if (aCtxD != NULL) {
+        avcodec_free_context(&aCtxD);
+        aCtxD = NULL;
+    }
+    if (afc_input != NULL) {
+        avformat_free_context(afc_input);
+        afc_input = NULL;
+    }
+    if(inputPath != NULL){
+        free(inputPath);
+    }
+}
+void VideoRunBack::destroyOutput(){
+    if (vCtxE != NULL) {
+        avcodec_free_context(&vCtxE);
+        vCtxE = NULL;
+    }
+    if (aCtxE != NULL) {
+        avcodec_free_context(&aCtxE);
+        aCtxE = NULL;
+    }
+    if (afc_output != NULL) {
+        avformat_free_context(afc_output);
+        afc_output = NULL;
+    }
+    if (outFrame != NULL) {
+        av_frame_free(&outFrame);
+    }
+    if(readBuffer != NULL){
+        free(readBuffer);
+    }
+    if(fCache != NULL){
+        fclose(fCache);
+    }
+    if(outPath != NULL){
+        free(outPath);
+    }
+}
+void VideoRunBack::destroyOther(){
+    this->stop();
+    while(!dealEnd){
+        //等待处理完毕。否则还会处理文件。产生新的视频数据
+        threadSleep(2);
+    }
+    join();
+    while(!queVideo.empty()){
+        AVPacket *pkt = queVideo.front();
+        if(pkt != NULL){
+            av_packet_free(&pkt);
+        }
+        queVideo.pop();
+    }
+    while(!queAudio.empty()){
+        AVPacket *pkt = queAudio.front();
+        if(pkt != NULL){
+            av_packet_free(&pkt);
+        }
+        queAudio.pop();
+    }
+}
 void VideoRunBack::writeFrame2File(AVFrame *vFrame, FILE *file) {
     fwrite(vFrame->data[0], 1, vFrame->linesize[0] * inHeight, file);
     fwrite(vFrame->data[1], 1, vFrame->linesize[1] * inHeight / 2, file);
@@ -358,6 +407,10 @@ void VideoRunBack::writeFrame2File(AVFrame *vFrame, FILE *file) {
 }
 
 
-VideoRunBack::~VideoRunBack() {
 
+
+VideoRunBack::~VideoRunBack() {
+    destroyOther();
+    destroyInput();
+    destroyOutput();
 }

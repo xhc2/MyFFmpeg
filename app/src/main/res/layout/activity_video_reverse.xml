@@ -13,7 +13,7 @@
     <module.video.jnc.myffmpeg.widget.TitleBar
         android:id="@+id/title"
         style="@style/title_bar"
-        app:title_text="视频拼接"
+        app:title_text="视频倒序"
         app:right_text="确定"/>
 
     <module.video.jnc.myffmpeg.MyVideoGpuShow

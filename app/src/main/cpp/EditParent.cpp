@@ -266,12 +266,12 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output, AVCodecContext
         return -1;
     }
     int channel = av_get_channel_layout_nb_channels(codecpar.channel_layout);
-    AVSampleFormat sampleFormat = AV_SAMPLE_FMT_FLTP;
+//    AVSampleFormat sampleFormat = AV_SAMPLE_FMT_FLTP;
     (*aCtxE)->bit_rate = 64000;
-    (*aCtxE)->sample_fmt = sampleFormat;
+    (*aCtxE)->sample_fmt = (AVSampleFormat)codecpar.format;
     (*aCtxE)->sample_rate = codecpar.sample_rate;
     (*aCtxE)->channel_layout = codecpar.channel_layout;
-    (*aCtxE)->channels = channel;
+    (*aCtxE)->channels = codecpar.channels;
     (*aCtxE)->time_base = (AVRational) {1, codecpar.sample_rate};
     (*aCtxE)->codec_type = AVMEDIA_TYPE_AUDIO;
     audioOutStream->time_base = (*aCtxE)->time_base;

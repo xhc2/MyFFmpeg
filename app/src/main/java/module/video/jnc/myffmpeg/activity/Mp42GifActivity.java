@@ -54,7 +54,7 @@ public class Mp42GifActivity extends VideoEditParentActivity  implements ClipBar
 //                    return;
 //                }
                 showLoadPorgressDialog("处理中...");
-                FFmpegUtils.initGif(listPath.get(0) , FileUtils.APP_GIF+"gif_"+System.currentTimeMillis()+".gif" );
+                FFmpegUtils.initGif(listPath.get(0) , FileUtils.APP_GIF+"gif_"+System.currentTimeMillis()+".gif" , 10 , 20);
                 FFmpegUtils.startGifParse();
             }
         });

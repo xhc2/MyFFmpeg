@@ -5,7 +5,7 @@
 #include <my_log.h>
 #include "GifMake.h"
 
-GifMake::GifMake(const char *inputPath, const char *outPath) {
+GifMake::GifMake(const char *inputPath, const char *outPath , int startSecond, int endSecond) {
     isExit = false;
     frameCount = 0 ;
     outFormat =  AV_PIX_FMT_RGB8 ;
@@ -27,8 +27,8 @@ GifMake::GifMake(const char *inputPath, const char *outPath) {
         LOGE(" initSwsContext faild !");
         return ;
     }
-
-
+    this->startSecond = startSecond;
+    this->endSecond = endSecond;
 }
 
 
@@ -63,59 +63,6 @@ int GifMake::buildOutput(const char* outPath ) {
 #ifdef DEBUG
     av_dump_format(afc_output, 0, outPath, 1);
 #endif
-//    AVStream *videoOutStream = avformat_new_stream(afc_output, NULL);
-//    if (videoOutStream == NULL) {
-//        LOGE(" VIDEO STREAM NULL ");
-//        return -1;
-//    }
-//    if (afc_output->oformat->video_codec == AV_CODEC_ID_NONE) {
-//        LOGE(" VIDEO AV_CODEC_ID_NONE ");
-//        return -1;
-//    }
-//    AVCodec *videoCodecE = avcodec_find_encoder(afc_output->oformat->video_codec);
-//    if (videoCodecE == NULL) {
-//        LOGE("VIDEO avcodec_find_encoder FAILD ! ");
-//        return -1;
-//    }
-//    LOGE("video ENCODE NAME %s ", videoCodecE->name);
-//    int outFrameRate = 20;
-//    vCtxE = avcodec_alloc_context3(videoCodecE);
-//    if(vCtxE == NULL){
-//        LOGE("avcodec_alloc_context3 FAILD ! ");
-//        return -1 ;
-//    }
-//    vCtxE->bit_rate= outWidth * outHeight * 3 / 2 * outFrameRate ;
-//    vCtxE->framerate = (AVRational) {outFrameRate, 1};
-//    vCtxE->time_base = (AVRational) {1, outFrameRate};
-//    vCtxE->pix_fmt = outFormat;
-//    vCtxE->gop_size = 20;
-//    vCtxE->codec_type = AVMEDIA_TYPE_VIDEO;
-//    vCtxE->width = outWidth ;
-//    vCtxE->height = outHeight ;
-//    if (vCtxE == NULL) {
-//        LOGE(" avcodec_alloc_context3 FAILD ! ");
-//        return -1;
-//    }
-//    result = avcodec_parameters_from_context(videoOutStream->codecpar, vCtxE);
-//    if (result < 0) {
-//        LOGE(" avcodec_parameters_from_context FAILD ! ");
-//        return -1;
-//    }
-//
-//    result = avcodec_open2(vCtxE, videoCodecE, NULL);
-//
-//    if (result < 0) {
-//        LOGE("video Could not open codec %s ", av_err2str(result));
-//        return -1;
-//    }
-//
-//
-//    result = writeOutoutHeader(afc_output , outPath);
-//    if (result < 0) {
-//        LOGE(" writeOutoutHeader faild %s ", av_err2str(result));
-//        return -1;
-//    }
-//    videoStreamOutputIndex = videoOutStream->index;
     LOGE(" VIDEO OUTPUT STREAM %d  " , videoOutputStreamIndex);
     LOGE(" INIT OUTPUT SUCCESS GIF !");
     return 1;
@@ -168,11 +115,16 @@ int GifMake::startParse() {
         LOGE(" av_frame_get_buffer FAILD ! ");
         return -1;
     }
-//    result = av_seek_frame(afc_input , -1 ,  ((float) 10 / 1000) * AV_TIME_BASE * afc_input->start_time , AVSEEK_FLAG_BACKWARD);
-//    if (result < 0) {
-//        LOGE(" av_seek_frame FAILD ! ");
-//        return -1;
-//    }
+
+    //这里需要直接seek到裁剪的开始时间，节约时间。然后直接开始解码。就不会存在花屏问题。
+    result = av_seek_frame(afc_input, -1,
+                           ((float) startSecond / 1000) * AV_TIME_BASE * afc_input->start_time,
+                           AVSEEK_FLAG_BACKWARD);
+    if (result < 0) {
+        LOGE(" SEEK FRAME FAILD ! %s ", av_err2str(result));
+        return -1;
+    }
+    int64_t pts = 0;
     while(!isExit){
         result = av_read_frame(afc_input, pkt);
         if (result < 0) {
@@ -183,27 +135,30 @@ int GifMake::startParse() {
         if (pkt->stream_index == videoStreamIndex) {
             frame = decodePacket(vCtxD, pkt);
             if (frame != NULL) {
-                result = av_frame_make_writable(outVFrame);
-                if (result < 0) {
-                    LOGE(" av_frame_get_buffer FAILD ! ");
-                    return -1;
-                }
-                sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
-                          0, frame->height, outVFrame->data, outVFrame->linesize);
-                outVFrame->pts = frameCount * vCalDuration;
-                frameCount++;
-                av_frame_free(&frame);
-                AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
-                if (vPkt != NULL) {
-                    LOGE(" WIRTE GIF FRAME %lld  , size %d " , vPkt->pts , vPkt->size);
-                    av_packet_rescale_ts(vPkt, timeBaseFFmpeg, afc_output->streams[videoOutputStreamIndex]->time_base);
-                    vPkt->stream_index = 0;
-                    result = av_write_frame(afc_output , vPkt);
-
-                    av_packet_free(&vPkt);
-                    if(result < 0){
-                        LOGE(" av_write_frame %s " , av_err2str(result));
-                        break;
+                pts = (int64_t) (frame->pts * av_q2d(afc_input->streams[videoStreamIndex]->time_base) * 1000);
+                if ((pts >= startSecond * 1000) && (pts <= endSecond * 1000)) {
+                    result = av_frame_make_writable(outVFrame);
+                    if (result < 0) {
+                        LOGE(" av_frame_get_buffer FAILD ! ");
+                        av_frame_free(&frame);
+                        return -1;
+                    }
+                    sws_scale(sws, (const uint8_t *const *) frame->data, frame->linesize,
+                              0, frame->height, outVFrame->data, outVFrame->linesize);
+                    outVFrame->pts = frameCount * vCalDuration;
+                    frameCount++;
+                    av_frame_free(&frame);
+                    AVPacket *vPkt = encodeFrame(outVFrame, vCtxE);
+                    if (vPkt != NULL) {
+                        LOGE(" WIRTE GIF FRAME %lld  , size %d " , vPkt->pts , vPkt->size);
+                        av_packet_rescale_ts(vPkt, timeBaseFFmpeg, afc_output->streams[videoOutputStreamIndex]->time_base);
+                        vPkt->stream_index = 0;
+                        result = av_write_frame(afc_output , vPkt);
+                        av_packet_free(&vPkt);
+                        if(result < 0){
+                            LOGE(" av_write_frame %s " , av_err2str(result));
+                            break;
+                        }
                     }
                 }
             }
@@ -217,6 +172,22 @@ int GifMake::startParse() {
 GifMake::~GifMake() {
     isExit = true;
     destroySwsContext();
+    if(vCtxD != NULL){
+        avcodec_free_context(&vCtxD);
+        vCtxD = NULL;
+    }
+    if(afc_input != NULL){
+        avformat_free_context(afc_input);
+        afc_input = NULL;
+    }
+    if(vCtxE != NULL){
+        avcodec_free_context(&vCtxE);
+        vCtxE = NULL;
+    }
+    if(afc_output != NULL){
+        avformat_free_context(afc_output);
+        afc_output = NULL;
+    }
 }
 
 

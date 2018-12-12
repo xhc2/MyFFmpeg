@@ -19,6 +19,7 @@ class VideoClip  {
 private :
     int startSecond ;
     int endSecond ;
+
     int video_index;
     int audio_index;
 

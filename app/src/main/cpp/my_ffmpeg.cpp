@@ -522,6 +522,17 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_startBackRun(JNIEnv *env, jclass type
 }
 
 extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_getBackRunProgress(JNIEnv *env, jclass type) {
+
+    // TODO
+    if (vb != NULL) {
+       return vb->getProgress();
+    }
+    return -1;
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyBackRun(JNIEnv *env, jclass type) {
 
@@ -677,12 +688,12 @@ GifMake *gifMake;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initGif(JNIEnv *env, jclass type, jstring videoPath_,
-                                                   jstring outPath_) {
+                                                   jstring outPath_ ,    jint start, jint end) {
     const char *videoPath = env->GetStringUTFChars(videoPath_, 0);
     const char *outPath = env->GetStringUTFChars(outPath_, 0);
 
     if(gifMake == NULL){
-        gifMake = new GifMake(videoPath , outPath);
+        gifMake = new GifMake(videoPath , outPath , start , end );
     }
     env->ReleaseStringUTFChars(videoPath_, videoPath);
     env->ReleaseStringUTFChars(outPath_, outPath);
@@ -694,7 +705,10 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_getGifProgress(JNIEnv *env, jclass type) {
 
     // TODO
-    return 1;
+    if(gifMake != NULL){
+        return gifMake->getProgress();
+    }
+    return -1;
 }
 
 
@@ -706,7 +720,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyGif(JNIEnv *env, jclass type) 
     if(gifMake != NULL){
        delete gifMake;
     }
-    return 1;
+    return -1;
 }
 
 extern "C"

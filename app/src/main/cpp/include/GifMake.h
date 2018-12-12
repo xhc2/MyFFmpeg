@@ -25,10 +25,12 @@ private:
     AVCodecContext *vCtxE ;
     SwsContext *sws;
     AVPixelFormat outFormat ;
+    int startSecond ;
+    int endSecond ;
     int initSwsContext(int inWidth , int inHeight , int inpixFmt);
     void destroySwsContext();
 public:
-    GifMake(const char *inputPath , const char* outPath);
+    GifMake(const char *inputPath , const char* outPath , int startSecond, int endSecond);
     int  buildInput(const char *inputPath );
     int buildOutput( const char* outPath );
     int startParse();

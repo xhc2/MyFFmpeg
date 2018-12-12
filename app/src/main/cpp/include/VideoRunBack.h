@@ -7,9 +7,7 @@
 
 #include "EditParent.h"
 #include "MyThread.h"
-#include <vector>
 #include <queue>
-#include <stack>
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -20,25 +18,23 @@ extern "C" {
 
 using namespace std;
 
-class VideoRunBack :   public EditParent{
+class VideoRunBack :   public EditParent  , MyThread{
 
 private :
 
     //output
     vector<int64_t> keyFrameQue;
     queue<AVPacket *> queVideo;
-    stack<AVPacket *> audioStack;
+    queue<AVPacket *> queAudio;
     AVFormatContext *afc_output;
     char *outPath;
     int outWidth;
     int outHeight;
-//    int videoIndexOutput;
-//    int audioIndexOutput;
     AVCodecContext *vCtxE;
     AVCodecContext *aCtxE;
     int gopCount;
-
-
+    bool dealEnd;
+    int64_t videoStreamDuration;
     //input
     AVFormatContext *afc_input;
     char *inputPath;
@@ -58,12 +54,10 @@ private :
     int ySize ;
     AVFrame *outFrame ;
     int encodeFrameVideoCount;
-    int encodeFrameAudioCount;
     int64_t vpts ;
     int64_t apts ;
     int nowKeyFramePosition ;
 
-    int test();
     int seekLastKeyFrame();
     int reverseFile();
     int initInput();
@@ -71,6 +65,11 @@ private :
     void initValue();
     void writeFrame2File(AVFrame *frame , FILE *file);
     void clearCode(FILE *file);
+    void run();
+    //release
+    void destroyInput();
+    void destroyOutput();
+    void destroyOther();
 public :
     VideoRunBack(const char *inputPath, const char *outPath);
 
