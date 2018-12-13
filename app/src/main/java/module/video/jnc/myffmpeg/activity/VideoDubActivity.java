@@ -69,10 +69,13 @@ public class VideoDubActivity extends VideoEditParentActivity {
                 return false;
             }
         });
-        pcmSize = 4096;
+        pcmSize = 2048;
+        Log.e("xhc" , " getminSize  "+AudioRecord.getMinBufferSize(sampleRate , channel ,pcmFormat ));
+
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC , sampleRate ,
                 channel , pcmFormat,
                 pcmSize);
+        audioRecord.startRecording();
         bytes = new byte[pcmSize];
     }
 
@@ -81,6 +84,7 @@ public class VideoDubActivity extends VideoEditParentActivity {
         stopAudioRead();
         if(audioReadThread == null){
             audioReadThread = new AudioRead();
+            audioReadThread.readFlag = true;
             audioReadThread.start();
         }
     }

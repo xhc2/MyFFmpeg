@@ -812,15 +812,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoDub(JNIEnv *env, jclass type
 }
 
 
-//extern "C"
-//JNIEXPORT jint JNICALL
-//Java_module_video_jnc_myffmpeg_FFmpegUtils_startVideoDub(JNIEnv *env, jclass type, jboolean flag) {
-//
-//    if(vd != NULL){
-//        vd->startDub();
-//    }
-//    return 1;
-//}
+
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -839,7 +831,9 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_setFlag(JNIEnv *env, jclass type, jbo
         vd->setFlag(flag);
     }
     return 1;
-}extern "C"
+}
+
+extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubAddVoice(JNIEnv *env, jclass type,
                                                             jbyteArray pcm_) {
@@ -849,6 +843,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubAddVoice(JNIEnv *env, jclass 
         char *pcmArray = (char *) malloc(size);
         memcpy(pcmArray , pcm , size);
         vd->addVoice(pcmArray, size);
+        free(pcmArray);
     }
     env->ReleaseByteArrayElements(pcm_, pcm, 0);
     return 1;
