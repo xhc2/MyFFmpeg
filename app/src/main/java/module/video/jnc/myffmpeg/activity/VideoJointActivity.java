@@ -41,7 +41,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
                         }
                     }
                     break;
-                case 3:
+               /* case 3:
                     if(jointProgress == 100){
                         //拼接完成
                         stopJointProgress();
@@ -50,7 +50,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
                         finish();
                     }
                     setLoadPorgressDialogProgress(jointProgress);
-                    break;
+                    break;*/
             }
             return false;
         }
@@ -83,7 +83,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
                     return;
                 }
                 startJointThread();
-                startJointProgress();
+
                 showLoadPorgressDialog("正在拼接...");
             }
         });
@@ -98,7 +98,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
         if (!activityFoucsFlag & hasFocus && listPath.size() > 0) {
             activityFoucsFlag = true;
             startPlayThread(listPath.get(playCount));
-            startProgressThread();
+            startPlayProgressThread();
         }
     }
 
@@ -106,6 +106,8 @@ public class VideoJointActivity extends VideoEditParentActivity {
     //合并视频的线程
     private JointThread jointThread;
     private void startJointThread(){
+        stopJointThread();
+        startProgressThread();
         jointThread = new JointThread();
         jointThread.start();
     }
@@ -131,57 +133,30 @@ public class VideoJointActivity extends VideoEditParentActivity {
         }
     }
 
-    JointProgressThread jointProgressThread ;
-    private void startJointProgress(){
-        stopJointProgress();
-        jointProgressThread = new JointProgressThread();
-        jointProgressThread.runFlag = true;
-        jointProgressThread.start();
+
+    @Override
+    protected int getProgress(){
+        return FFmpegUtils.getJointProgress();
     }
 
-    private void stopJointProgress(){
-        if(jointProgressThread != null){
-            jointProgressThread.runFlag = false;
-            try {
-                jointProgressThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            jointProgressThread = null;
-        }
-
-
+    @Override
+    protected int destroyFFmpeg(){
+        FFmpegUtils.destroyJoint();
+        return 1;
     }
-    class JointProgressThread extends Thread{
 
-        boolean runFlag ;
 
-        @Override
-        public void run() {
-            super.run();
-            while(runFlag){
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                jointProgress = FFmpegUtils.getJointProgress();
-                handler.sendEmptyMessage(3);
-                Log.e("xhc"  , " joint Prgress "+jointProgress);
-            }
-        }
-    }
 
     //获取播放进度
-    private PositionThread thread;
-    private void startProgressThread() {
-        stopProgressThread();
-        thread = new PositionThread();
+    private PlayPositionThread thread;
+    private void startPlayProgressThread() {
+        stopPlayProgressThread();
+        thread = new PlayPositionThread();
         thread.runFlag = true;
         thread.start();
     }
 
-    private void stopProgressThread() {
+    private void stopPlayProgressThread() {
         if (thread == null) {
             return;
         }
@@ -194,7 +169,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
         thread = null;
     }
 
-    class PositionThread extends Thread {
+    class PlayPositionThread extends Thread {
         boolean runFlag;
 
         @Override
@@ -275,8 +250,7 @@ public class VideoJointActivity extends VideoEditParentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopProgressThread();
         stopJointThread();
-        stopJointProgress();
+        stopPlayProgressThread();
     }
 }

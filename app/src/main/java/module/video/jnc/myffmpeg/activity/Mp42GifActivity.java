@@ -45,17 +45,17 @@ public class Mp42GifActivity extends VideoEditParentActivity  implements ClipBar
             public void clickRight() {
                 FileUtils.makeGifDir();
                 if (dealFlag) {
-                    showToast("正在裁剪中，请稍等");
+                    showToast("正在处理中，请稍等");
                     showLoadPorgressDialog("处理中...");
                     return;
                 }
-//                if (startTime == -1 || endTime == -1 || startTime >= endTime || startTime < 0 || endTime > FFmpegUtils.getDuration()) {
-//                    showToast("裁剪时间有问题！");
-//                    return;
-//                }
+                if (startTime == -1 || endTime == -1 || startTime >= endTime || startTime < 0 || endTime > FFmpegUtils.getDuration()) {
+                    showToast("裁剪时间有问题！");
+                    return;
+                }
                 showLoadPorgressDialog("处理中...");
-                FFmpegUtils.initGif(listPath.get(0) , FileUtils.APP_GIF+"gif_"+System.currentTimeMillis()+".gif" , 10 , 20);
-                FFmpegUtils.startGifParse();
+                startMakeGif();
+
             }
         });
         clipBar.setTouchCallBack(this);
@@ -91,8 +91,55 @@ public class Mp42GifActivity extends VideoEditParentActivity  implements ClipBar
         super.onWindowFocusChanged(hasFocus);
         if (!activityFoucsFlag & hasFocus && listPath.size() > 0) {
             activityFoucsFlag = true;
-//            startPlayThread(listPath.get(0));
+            startPlayThread(listPath.get(0));
         }
     }
+
+    private GifMakeThread gifMakeThread ;
+    private void startMakeGif(){
+        stopMakeGif();
+        startProgressThread();
+        if(gifMakeThread == null){
+            gifMakeThread = new GifMakeThread();
+            gifMakeThread.start();
+        }
+    }
+
+    private void stopMakeGif(){
+        destroyFFmpeg();
+        if(gifMakeThread != null){
+            try {
+                gifMakeThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        gifMakeThread = null;
+    }
+
+    private class GifMakeThread extends Thread{
+
+        @Override
+        public void run() {
+            super.run();
+            dealFlag = true;
+            FFmpegUtils.initGif(listPath.get(0) , FileUtils.APP_GIF+"gif_"+System.currentTimeMillis()+".gif" , startTime , endTime);
+            FFmpegUtils.startGifParse();
+            dealFlag = false;
+        }
+    }
+
+
+    @Override
+    protected int getProgress(){
+        return FFmpegUtils.getGifProgress();
+    }
+
+    @Override
+    protected int destroyFFmpeg(){
+        FFmpegUtils.destroyGif();
+        return 1;
+    }
+
 
 }

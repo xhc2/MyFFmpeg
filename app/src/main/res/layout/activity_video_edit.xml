@@ -97,24 +97,24 @@
         <TextView
             android:id="@+id/tv_spcial_filter"
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
+            android:drawableTop="@mipmap/video_filter"
             android:text="视频滤镜" />
 
         <TextView
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
+            android:drawableTop="@mipmap/video_music"
             android:background="#E61A42"
-            android:text="视频主题" />
+            android:text="视频音乐" />
 
         <TextView
             android:id="@+id/tv_watermark"
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
+            android:drawableTop="@mipmap/overlay"
             android:text="图片水印" />
 
         <TextView
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
+            android:drawableTop="@mipmap/text_print"
             android:background="#E61A42"
             android:text="文字水印" />
 
@@ -145,28 +145,29 @@
         android:weightSum="4">
 
         <TextView
+            android:id="@+id/tv_dub"
+
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
+            android:drawableTop="@mipmap/video_dub"
             android:background="#E61A42"
             android:text="实时配音" />
 
         <TextView
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
+            android:drawableTop="@mipmap/video_subtitle"
             android:background="#E61A42"
             android:text="实时字幕" />
 
         <TextView
             android:id="@+id/tv_reverse"
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
+            android:drawableTop="@mipmap/video_reverse"
             android:text="视频倒放" />
 
         <TextView
             android:id="@+id/tv_gif"
             style="@style/edit_button"
-            android:drawableTop="@mipmap/edit"
-            android:background="#E61A42"
+            android:drawableTop="@mipmap/gif"
             android:text="gif生成" />
     </LinearLayout>
 </LinearLayout>

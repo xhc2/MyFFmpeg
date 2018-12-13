@@ -137,6 +137,15 @@ public class FFmpegUtils {
     public static native int test2();
 
 
+    //实时配音
+    public static native int initVideoDub(String inputPath , String outputPath,  Object glSurfaceView);
+//    public static native int startVideoDub();
+    public static native int videoDubAddVoice(byte[] pcm);
+    public static native int setFlag(boolean flag);// true 开始录音， false 暂停录音
+    public static native int videoDubDestroy();
+
+
+
     //给本地回调，是在jni层调用的方法
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){

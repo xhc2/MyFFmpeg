@@ -46,6 +46,7 @@ add_library( my_ffmpeg
             src/main/cpp/GifMake.cpp
             src/main/cpp/VideoMerge.cpp
             src/main/cpp/AudioMix.cpp
+            src/main/cpp/VideoDub.cpp
             )
 
 

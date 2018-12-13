@@ -1,29 +1,30 @@
-package module.video.jnc.myffmpeg;
+package module.video.jnc.myffmpeg.widget;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
-import module.video.jnc.myffmpeg.widget.MyGLSurfaceViewParent;
+import module.video.jnc.myffmpeg.FFmpegUtils;
+import module.video.jnc.myffmpeg.MyVideoGpuShow;
+import module.video.jnc.myffmpeg.tool.FileUtils;
 
 
-/**
- * Created by xhc on 2018/5/10.
- */
+public class MyYuvShow extends MyGLSurfaceViewParent implements SurfaceHolder.Callback {
 
-public class MyVideoGpuShow extends MyGLSurfaceViewParent implements SurfaceHolder.Callback  {
 
-    public MyVideoGpuShow(Context context) {
+    public MyYuvShow(Context context) {
         super(context);
     }
 
-    public MyVideoGpuShow(Context context, AttributeSet attrs) {
+    public MyYuvShow(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
+
     @Override
-    public void setPlayPath(String path){
+    public void setPlayPath(String path) {
+        FileUtils.makeDubDir();
         new MyThread(path).start();
     }
 
@@ -42,15 +43,16 @@ public class MyVideoGpuShow extends MyGLSurfaceViewParent implements SurfaceHold
 
 
     class MyThread extends Thread {
-        String path ;
-        MyThread(String path){
+        String path;
+
+        MyThread(String path) {
             this.path = path;
         }
 
         @Override
         public void run() {
             super.run();
-            FFmpegUtils.initMp4Play(path, getHolder().getSurface());
+            FFmpegUtils.initVideoDub(path, FileUtils.APP_DUB + System.currentTimeMillis()+".mp4" , getHolder().getSurface() );
         }
     }
 }

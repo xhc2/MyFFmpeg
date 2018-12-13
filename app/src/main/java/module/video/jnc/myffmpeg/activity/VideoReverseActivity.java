@@ -13,25 +13,6 @@ import module.video.jnc.myffmpeg.widget.TitleBar;
 
 public class VideoReverseActivity extends VideoEditParentActivity {
 
-    private final static int PROGRESS = 2;
-    private Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what){
-                case PROGRESS:
-                    if (progress == 100) {
-                        dismissLoadPorgressDialog();
-                        showToast("已完成");
-                        stopProgressThread();
-                        FFmpegUtils.destroyBackRun();
-                        break;
-                    }
-                    setLoadPorgressDialogProgress(progress);
-                    break;
-            }
-            return false;
-        }
-    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +43,8 @@ public class VideoReverseActivity extends VideoEditParentActivity {
                 showLoadPorgressDialog("正在处理...");
             }
         });
+
+
     }
 
     @Override
@@ -73,47 +56,19 @@ public class VideoReverseActivity extends VideoEditParentActivity {
         }
     }
 
-
-
-    private ProgressThread progressThread;
-    private void startProgressThread() {
-        stopProgressThread();
-        progressThread = new ProgressThread();
-        progressThread.progressFlag = true;
-        progressThread.start();
+    @Override
+    protected int getProgress(){
+        return FFmpegUtils.getBackRunProgress();
     }
 
-    private void stopProgressThread() {
-        if (progressThread != null) {
-            progressThread.progressFlag = false;
-            try {
-                progressThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            progressThread = null;
-        }
+    @Override
+    protected int destroyFFmpeg(){
+        FFmpegUtils.destroyBackRun();
+        return 1;
     }
 
-    class ProgressThread extends Thread {
-        boolean progressFlag = false;
 
-        @Override
-        public void run() {
-            super.run();
-            while (progressFlag) {
-                progress = FFmpegUtils.getBackRunProgress();
-                handler.sendEmptyMessage(PROGRESS);
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    ReverseThread reverseThread ;
+    private ReverseThread reverseThread ;
     private void startReverse(){
         stopReverse();
         startProgressThread();
@@ -146,7 +101,6 @@ public class VideoReverseActivity extends VideoEditParentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopProgressThread();
         stopReverse();
     }
 }

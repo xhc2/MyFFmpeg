@@ -14,39 +14,8 @@ import module.video.jnc.myffmpeg.tool.FileUtils;
 /**
  * 用来处理单路的滤镜Activity
  */
-public class SingleFilterActivity extends VideoEditParentActivity implements FFmpegUtils.Lis{
+public class SingleFilterActivity extends VideoEditParentActivity {
 
-    private static final int PROGRESS = 500;
-    private static final int SHOW_NATIVE_MSG = 501;
-    private Handler myHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-
-            switch (msg.what) {
-                case PROGRESS:
-                    if (progress == 100) {
-                        dismissLoadPorgressDialog();
-                        showToast("已完成");
-                        stopProgressThread();
-                        FFmpegUtils.videoFilterDestroy();
-                        break;
-                    }
-                    setLoadPorgressDialogProgress(progress);
-                    break;
-                case  SHOW_NATIVE_MSG:
-                    String str = (String)msg.obj;
-                    showToast(str);
-                    break;
-            }
-            return false;
-        }
-    });
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        FFmpegUtils.addNativeNotify(this);
-    }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -73,12 +42,24 @@ public class SingleFilterActivity extends VideoEditParentActivity implements FFm
     }
 
     protected void startDealVideo(String inputPath, String outputPath, String filterDes, int[] params) {
-        stopProgressThread();
         stopDealFilter();
         startProgressThread();
         dealThread = new DealFilterThread(inputPath , outputPath , filterDes , params);
         dealThread.start();
     }
+
+    @Override
+    protected int getProgress(){
+        return FFmpegUtils.getVideoFilterProgress();
+    }
+
+    @Override
+    protected int destroyFFmpeg(){
+        FFmpegUtils.videoFilterDestroy();
+        return 1;
+    }
+
+
 
     private class DealFilterThread extends Thread {
         String videoPath;
@@ -106,62 +87,60 @@ public class SingleFilterActivity extends VideoEditParentActivity implements FFm
 
 
     //查看水印进度相关
-    private ProgressThread progressThread;
-
-    private void startProgressThread() {
-        stopProgressThread();
-        progressThread = new ProgressThread();
-        progressThread.progressFlag = true;
-        progressThread.start();
-    }
-
-    private void stopProgressThread() {
-        if (progressThread != null) {
-            progressThread.progressFlag = false;
-            try {
-                progressThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            progressThread = null;
-        }
-    }
-
-    class ProgressThread extends Thread {
-        boolean progressFlag = false;
-
-        @Override
-        public void run() {
-            super.run();
-            while (progressFlag) {
-                progress = FFmpegUtils.getVideoFilterProgress();
-                myHandler.sendEmptyMessage(PROGRESS);
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+//    private ProgressThread progressThread;
+//
+//    private void startProgressThread() {
+//        stopProgressThread();
+//        progressThread = new ProgressThread();
+//        progressThread.progressFlag = true;
+//        progressThread.start();
+//    }
+//
+//    private void stopProgressThread() {
+//        if (progressThread != null) {
+//            progressThread.progressFlag = false;
+//            try {
+//                progressThread.join();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            progressThread = null;
+//        }
+//    }
+//
+//    class ProgressThread extends Thread {
+//        boolean progressFlag = false;
+//
+//        @Override
+//        public void run() {
+//            super.run();
+//            while (progressFlag) {
+//                progress = FFmpegUtils.getVideoFilterProgress();
+//                myHandler.sendEmptyMessage(PROGRESS);
+//                try {
+//                    sleep(1000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         FFmpegUtils.removeNotify(this);
         stopDealFilter();
-        stopProgressThread();
-        myHandler.removeCallbacksAndMessages(null);
     }
 
-    @Override
-    public void nativeNotify(String str) {
-        if ( FFmpegUtils.isShowToastMsg(str) ) {
-            Message msg = myHandler.obtainMessage();
-            msg.what = SHOW_NATIVE_MSG ;
-            msg.obj = str ;
-            myHandler.sendMessage(msg);
-        }
-    }
+//    @Override
+//    public void nativeNotify(String str) {
+//        if ( FFmpegUtils.isShowToastMsg(str) ) {
+//            Message msg = myHandler.obtainMessage();
+//            msg.what = SHOW_NATIVE_MSG ;
+//            msg.obj = str ;
+//            myHandler.sendMessage(msg);
+//        }
+//    }
 
 }

@@ -52,11 +52,12 @@ void YuvPlayer::update(MyData *mydata){
     if(!initOpenglFlag){
         initOpenglFlag = true;
         init_opengl();
+        LOGE(" INIT OPEN GL !");
     }
+
     if(mydata->isAudio   || mydata->size <= 0){
         return ;
     }
-
     memcpy(buf_y , mydata->datas[0] , outWidth * outHeight);
     memcpy(buf_u , mydata->datas[1] , outWidth * outHeight / 4);
     memcpy(buf_v , mydata->datas[2] , outWidth * outHeight / 4);

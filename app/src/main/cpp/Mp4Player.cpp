@@ -64,7 +64,6 @@ Mp4Player::Mp4Player(const char *path, ANativeWindow *win, CallJava *cj) {
     audioPlayer->setThreadName("audioPlayer");
     seekFile->setThreadName("seekFile");
 
-
     readAVPackage->addNotify(decodeVideo);
     readAVPackage->addNotify(decodeAudio);
     decodeAudio->addNotify(audioPlayer);
@@ -177,8 +176,8 @@ int Mp4Player::initFFmpeg(const char *path) {
     sprintf(metadata ,"metadata:width=%d,height=%d" , afc->streams[video_index]->codecpar->width , afc->streams[video_index]->codecpar->height );
     cj->callStr(metadata);
 
-    LOGE(" audio code name %s  ", audioCode->name);
-    LOGE(" video code name %s  ", videoCode->name);
+//    LOGE(" audio code name %s  ", audioCode->name);
+//    LOGE(" video code name %s  ", videoCode->name);
 
     ac = avcodec_alloc_context3(audioCode);
     if (!ac) {

@@ -5,4 +5,5 @@
     <string name="time">%1$s/%2$s</string>
     <string name="title_activity_camera_stream">CameraStreamActivity</string>
     <string name="title_activity_parse_h264_file">ParseH264FileActivity</string>
+    <string name="title_activity_video_dub">VideoDubActivity</string>
 </resources>

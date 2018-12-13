@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal" >
-
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
 
 
     <module.video.jnc.myffmpeg.widget.TitleBar
         android:id="@+id/title"
         style="@style/title_bar"
-        app:title_text="视频倒序"
-        app:right_text="确定"/>
+        app:title_text="实时配音" />
 
-    <module.video.jnc.myffmpeg.MyVideoGpuShow
+    <module.video.jnc.myffmpeg.widget.MyYuvShow
         android:id="@+id/play_gl_surfaceview"
         android:layout_width="320dp"
         android:layout_height="165dp"
-        android:layout_below="@id/title"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp" />
 
-
+    <Button
+        android:id="@+id/bt_start"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="190dp"
+        android:textColor="#ffffff"
+        android:textSize="12sp"
+        android:background="@drawable/video_dub_button_selector"
+        android:text="按住说话" />
 
 </LinearLayout>

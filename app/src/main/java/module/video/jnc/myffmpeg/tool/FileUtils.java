@@ -17,6 +17,7 @@ public class FileUtils {
     public static final String APP_CLIP = "sdcard/FFmpeg/clip/";
     public static final String APP_GIF = "sdcard/FFmpeg/gif/";
     public static final String APP_REVERSE = "sdcard/FFmpeg/reverse/";
+    public static final String APP_DUB = "sdcard/FFmpeg/dub/";
     public static String saveFileToWaterMark(String name, byte[] buffer) {
         File file = new File(APP_WATER_MARK);
         if (!file.exists()) {
@@ -108,6 +109,13 @@ public class FileUtils {
     }
     public static void makeReverse() {
         File file = new File(APP_REVERSE);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+    public static void makeDubDir() {
+        File file = new File(APP_DUB);
         if (!file.exists()) {
             file.mkdirs();
         }

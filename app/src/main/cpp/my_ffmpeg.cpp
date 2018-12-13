@@ -23,6 +23,7 @@
 #include <GifMake.h>
 #include <VideoMerge.h>
 #include <AudioMix.h>
+#include <VideoDub.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -527,7 +528,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getBackRunProgress(JNIEnv *env, jclas
 
     // TODO
     if (vb != NULL) {
-       return vb->getProgress();
+        return vb->getProgress();
     }
     return -1;
 }
@@ -628,7 +629,6 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
 
 VideoFilter *bwm = NULL;
 
-
 extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoFilter(JNIEnv *env, jclass type,
@@ -640,8 +640,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoFilter(JNIEnv *env, jclass t
     const char *filterDescr = env->GetStringUTFChars(filterDescr_, 0);
     jint *params = env->GetIntArrayElements(params_, NULL);
     int size = env->GetArrayLength(params_);
-    if(bwm == NULL){
-        bwm = new VideoFilter(videoPath, outputPath, filterDescr , params , size);
+    if (bwm == NULL) {
+        bwm = new VideoFilter(videoPath, outputPath, filterDescr, params, size);
     }
     env->ReleaseStringUTFChars(videoPath_, videoPath);
     env->ReleaseStringUTFChars(outputPath_, outputPath);
@@ -688,12 +688,12 @@ GifMake *gifMake;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_initGif(JNIEnv *env, jclass type, jstring videoPath_,
-                                                   jstring outPath_ ,    jint start, jint end) {
+                                                   jstring outPath_, jint start, jint end) {
     const char *videoPath = env->GetStringUTFChars(videoPath_, 0);
     const char *outPath = env->GetStringUTFChars(outPath_, 0);
 
-    if(gifMake == NULL){
-        gifMake = new GifMake(videoPath , outPath , start , end );
+    if (gifMake == NULL) {
+        gifMake = new GifMake(videoPath, outPath, start, end);
     }
     env->ReleaseStringUTFChars(videoPath_, videoPath);
     env->ReleaseStringUTFChars(outPath_, outPath);
@@ -705,7 +705,7 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_getGifProgress(JNIEnv *env, jclass type) {
 
     // TODO
-    if(gifMake != NULL){
+    if (gifMake != NULL) {
         return gifMake->getProgress();
     }
     return -1;
@@ -717,9 +717,10 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyGif(JNIEnv *env, jclass type) {
 
     // TODO
-    if(gifMake != NULL){
-       delete gifMake;
+    if (gifMake != NULL) {
+        delete gifMake;
     }
+    gifMake = NULL;
     return -1;
 }
 
@@ -728,14 +729,14 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_startGifParse(JNIEnv *env, jclass type) {
 
     // TODO
-    if(gifMake != NULL){
+    if (gifMake != NULL) {
         gifMake->startParse();
     }
     return 1;
 }
 
 
-VideoMerge *vm ;
+VideoMerge *vm;
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -743,7 +744,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoMerge(JNIEnv *env, jclass ty
                                                           jobjectArray inputPath,
                                                           jstring outputPath_) {
     const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
-    int size =  env->GetArrayLength(inputPath);
+    int size = env->GetArrayLength(inputPath);
     if (size > 4) {
         //抛出异常
         jclass clazz;
@@ -767,7 +768,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoMerge(JNIEnv *env, jclass ty
         env->ReleaseStringUTFChars(obja, chars);
     }
 //    vm = new VideoMerge(inputPaths , outputPath);
-    AudioMix am ;
+    AudioMix am;
     am.startMix();
     env->ReleaseStringUTFChars(outputPath_, outputPath);
 
@@ -786,5 +787,69 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyVideoMerge(JNIEnv *env, jclass type) {
 
+    return 1;
+}
+
+VideoDub *vd = NULL;
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoDub(JNIEnv *env, jclass type,
+                                                        jstring inputPath_, jstring outputPath_,
+                                                        jobject glSurfaceView) {
+    const char *inputPath = env->GetStringUTFChars(inputPath_, 0);
+    const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
+
+    if (vd == NULL) {
+        ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
+        vd = new VideoDub(inputPath, outputPath, win);
+    }
+    vd->startDub();
+
+    env->ReleaseStringUTFChars(inputPath_, inputPath);
+    env->ReleaseStringUTFChars(outputPath_, outputPath);
+    return 1;
+}
+
+
+//extern "C"
+//JNIEXPORT jint JNICALL
+//Java_module_video_jnc_myffmpeg_FFmpegUtils_startVideoDub(JNIEnv *env, jclass type, jboolean flag) {
+//
+//    if(vd != NULL){
+//        vd->startDub();
+//    }
+//    return 1;
+//}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubDestroy(JNIEnv *env, jclass type) {
+
+    if (vd != NULL) {
+        delete vd;
+    }
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_setFlag(JNIEnv *env, jclass type, jboolean flag) {
+    if (vd != NULL) {
+        vd->setFlag(flag);
+    }
+    return 1;
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubAddVoice(JNIEnv *env, jclass type,
+                                                            jbyteArray pcm_) {
+    jbyte *pcm = env->GetByteArrayElements(pcm_, NULL);
+    if (vd != NULL) {
+        int size = env->GetArrayLength(pcm_);
+        char *pcmArray = (char *) malloc(size);
+        memcpy(pcmArray , pcm , size);
+        vd->addVoice(pcmArray, size);
+    }
+    env->ReleaseByteArrayElements(pcm_, pcm, 0);
     return 1;
 }

@@ -16,10 +16,6 @@ public class BaseActivity extends AppCompatActivity {
     private ProgressDialog dialog;
     private LoadProgressDialog progressDialog;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     protected void showDialog(String msg) {
         if (dialog == null) {

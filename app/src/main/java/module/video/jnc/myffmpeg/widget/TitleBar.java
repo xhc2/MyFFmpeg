@@ -57,6 +57,7 @@ public class TitleBar extends RelativeLayout{
         if(showBack){
             ImageView back = new ImageView(getContext());
             back.setImageResource(R.mipmap.back);
+            back.setBackgroundResource(R.drawable.button_selector);
             LayoutParams backParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT , ViewGroup.LayoutParams.MATCH_PARENT);
             back.setLayoutParams(backParams);
 
@@ -84,6 +85,7 @@ public class TitleBar extends RelativeLayout{
             tvRight.setLayoutParams(rightParams);
             tvRight.setTextColor(Color.parseColor("#ffffff"));
             tvRight.setTextSize(14);
+            tvRight.setBackgroundResource(R.drawable.button_selector);
             tvRight.setPadding(dp5 , 0 , dp5 , 0);
             tvRight.setGravity(Gravity.CENTER);
             tvRight.setText(rightText);

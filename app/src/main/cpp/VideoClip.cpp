@@ -240,7 +240,6 @@ void VideoClip::write_frame(AVStream *inStream, AVStream *outStream, AVPacket *p
     packet->duration = av_rescale_q(packet->duration, inStream->time_base, outStream->time_base);
     if(packet->stream_index == video_index){
 //        LOGE(" PTS %lld  , DTS %lld , duration %lld " , packet->pts  , packet->dts , packet->duration);
-
     }
 
     if(av_interleaved_write_frame(afc_output, packet) < 0){
@@ -264,6 +263,7 @@ void VideoClip::startClip() {
         LOGE(" INIT INPUT FAILD ");
         return;
     }
+
     if (initOutput() < 0) {
         LOGE(" INIT OUTPUT FAILD ");
         return;
@@ -294,7 +294,10 @@ void VideoClip::startClip() {
                     AVPacket *newPkt = encodeFrame(frame);
                     if (newPkt != NULL) {
                         progress = (int)((float)(pts - startSecond * 1000) / 1000 / (endSecond - startSecond) * 100);
-                        progress --; //100表示完全搞定。可以直接播放
+                        if(progress > 0){
+                            progress --; //100表示完全搞定。可以直接播放
+                        }
+
                         write_frame(videoStream, videoOutStream, newPkt);
                         av_packet_free(&newPkt);
                     }

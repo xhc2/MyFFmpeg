@@ -47,27 +47,27 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     private byte[] buffer = new byte[outWidth * outHeight * 3 + BMP_HEAD];
     private ImageView img;
 
-    private Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case PROGRESS:
-                    if (msg.arg1 == 100) {
-                        dismissLoadPorgressDialog();
-                        showToast("已完成");
-                        stopClipThread();
-                        stopProgressThread();
-                        break;
-                    }
-                    setLoadPorgressDialogProgress(msg.arg1);
-                    break;
-                case GETCURRENTBITMAP:
-
-                    break;
-            }
-            return false;
-        }
-    });
+//    private Handler handler = new Handler(new Handler.Callback() {
+//        @Override
+//        public boolean handleMessage(Message msg) {
+//            switch (msg.what) {
+//                case PROGRESS:
+//                    if (msg.arg1 == 100) {
+//                        dismissLoadPorgressDialog();
+//                        showToast("已完成");
+//                        stopClipThread();
+//                        stopProgressThread();
+//                        break;
+//                    }
+//                    setLoadPorgressDialogProgress(msg.arg1);
+//                    break;
+//                case GETCURRENTBITMAP:
+//
+//                    break;
+//            }
+//            return false;
+//        }
+//    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +104,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
                 }
                 showLoadPorgressDialog("处理中...");
                 startClip(startTime, endTime);
-                startProgressThread();
+
             }
         });
         clipBar.setTouchCallBack(this);
@@ -132,6 +132,7 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
             clipThread = new ClipThread(startSecond, endSecond);
             clipThread.start();
         }
+        startProgressThread();
     }
     private void stopClipThread() {
         FFmpegUtils.destroyClip();
@@ -162,73 +163,44 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
         }
     }
 
-    //查看剪辑的进度线程
-    private ProgressThread progressThread;
-    private void startProgressThread() {
-        stopProgressThread();
-        progressThread = new ProgressThread();
-        progressThread.progressFlag = true;
-        progressThread.start();
-    }
-    private void stopProgressThread() {
-        if (progressThread != null) {
-            progressThread.progressFlag = false;
-            try {
-                progressThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            progressThread = null;
-        }
-    }
 
-    class ProgressThread extends Thread {
-        boolean progressFlag = false;
-
-        @Override
-        public void run() {
-            super.run();
-            while (progressFlag) {
-                clipProgress = FFmpegUtils.getClipProgress();
-                Message msg = handler.obtainMessage();
-                msg.what = PROGRESS;
-                msg.arg1 = clipProgress;
-                handler.sendMessage(msg);
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 
 
     //获取缩略图的线程池
-    ExecutorService es = Executors.newSingleThreadExecutor();
+//    ExecutorService es = Executors.newSingleThreadExecutor();
+//
+//    class CurrentBitmapThread extends Thread {
+//
+//        private float startTime;
+//
+//        public CurrentBitmapThread(float startTime) {
+//            this.startTime = startTime;
+//        }
+//
+//        @Override
+//        public void run() {
+//            super.run();
+//            synchronized (VideoClipActivity.class) {
+//                float time = FFmpegUtils.getCurrentBitmp(startTime, buffer);
+//                Log.e("xhc", " time " + time + " startTime " + startTime);
+//                if (startTime == time) {
+//                    handler.sendEmptyMessage(GETCURRENTBITMAP);
+//                }
+//            }
+//        }
+//    }
 
-    class CurrentBitmapThread extends Thread {
 
-        private float startTime;
-
-        public CurrentBitmapThread(float startTime) {
-            this.startTime = startTime;
-        }
-
-        @Override
-        public void run() {
-            super.run();
-            synchronized (VideoClipActivity.class) {
-                float time = FFmpegUtils.getCurrentBitmp(startTime, buffer);
-                Log.e("xhc", " time " + time + " startTime " + startTime);
-                if (startTime == time) {
-                    handler.sendEmptyMessage(GETCURRENTBITMAP);
-                }
-            }
-        }
+    @Override
+    protected int getProgress(){
+        return FFmpegUtils.getClipProgress();
     }
 
-
+    @Override
+    protected int destroyFFmpeg(){
+        FFmpegUtils.destroyClip();
+        return 1;
+    }
 
 
 
@@ -274,13 +246,12 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopProgressThread();
         stopClipThread();
 
         FFmpegUtils.destroyMp4Play();
         FFmpegUtils.destroyCurrentBitmap();
-        es.shutdown();
-        handler.removeCallbacksAndMessages(null);
+//        es.shutdown();
+//        handler.removeCallbacksAndMessages(null);
     }
 
 }
