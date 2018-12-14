@@ -295,7 +295,9 @@ int VideoRunBack::reverseFile() {
         fseek(fCache, -yuvSize, SEEK_CUR);
         fread(readBuffer, 1, yuvSize, fCache); //这里光标又往前走了yuvsize
         fseek(fCache, -yuvSize, SEEK_CUR); //把读取的光标位置放回去
-        av_frame_make_writable(outFrame);
+        if(av_frame_make_writable(outFrame) < 0){
+            LOGE("av_frame_make_writable FAILD !");
+        }
         outFrame->data[0] = (uint8_t *) readBuffer;
         outFrame->data[1] = (uint8_t *) (readBuffer + ySize);
         outFrame->data[2] = (uint8_t *) (readBuffer + ySize + ySize / 4);

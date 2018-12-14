@@ -52,7 +52,7 @@ public class MyYuvShow extends MyGLSurfaceViewParent implements SurfaceHolder.Ca
         @Override
         public void run() {
             super.run();
-            FFmpegUtils.initVideoDub(path, FileUtils.APP_DUB + System.currentTimeMillis()+".mp4" , getHolder().getSurface() );
+            FFmpegUtils.initVideoDub(path, FileUtils.APP_DUB + /*System.currentTimeMillis()+*/"a.flv" , getHolder().getSurface() );
         }
     }
 }

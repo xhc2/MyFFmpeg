@@ -98,7 +98,6 @@ void VideoFilter::startWaterMark() {
         if (packet->stream_index == audioStreamIndex) {
             av_packet_rescale_ts(packet, fmtCtx->streams[audioStreamIndex]->time_base,
                                  afcOutput->streams[getAudioOutputStreamIndex()]->time_base);
-
             audioQue.push(packet);
         } else if (packet->stream_index == videoStreamIndex) {
             frame = decodePacket(decCtx, packet);

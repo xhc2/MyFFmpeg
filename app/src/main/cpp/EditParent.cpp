@@ -265,7 +265,7 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output, AVCodecContext
         LOGE("AUDIO avcodec_alloc_context3 FAILD !");
         return -1;
     }
-    int channel = av_get_channel_layout_nb_channels(codecpar.channel_layout);
+//    int channel = av_get_channel_layout_nb_channels(codecpar.channel_layout);
 //    AVSampleFormat sampleFormat = AV_SAMPLE_FMT_FLTP;
     (*aCtxE)->bit_rate = 64000;
     (*aCtxE)->sample_fmt = (AVSampleFormat)codecpar.format;

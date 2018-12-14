@@ -6,6 +6,13 @@
 #include "VideoDub.h"
 #include "time.h"
 
+/**
+ * video packet 和 audio packet 不能直接写入多媒体文件中。
+ * 因为编码器和解码器可能不同。
+ * 用h264编码的packet不能直接写入mpeg4对应的文件中。
+ */
+
+
 VideoDub::VideoDub(const char *intputpath, const char *outputPath, ANativeWindow *win) {
     readEnd= false;
     afc_input = NULL;
@@ -26,8 +33,6 @@ VideoDub::VideoDub(const char *intputpath, const char *outputPath, ANativeWindow
     yuvPlayer = new YuvPlayer(win, width, height);
 
     this->addNotify(yuvPlayer);
-
-
 
     setPause();
 }
@@ -52,9 +57,9 @@ int VideoDub::buildOutput(const char *outputPath) {
 
     outChannel = 1;
     outChannelLayout = AV_CH_LAYOUT_MONO;
-    sampleFormat = AV_SAMPLE_FMT_FLTP;
+    sampleFormat = AV_SAMPLE_FMT_S16 ;//AV_SAMPLE_FMT_FLTP;
     sampleRate = 44100;
-    nbSample = 1024;
+    nbSample = 2048;
     afc_output = NULL;
     apts = 0 ;
     vpts = 0;
@@ -69,12 +74,7 @@ int VideoDub::buildOutput(const char *outputPath) {
         LOGE(" initOutput faild ! ");
         return -1;
     }
-    AVCodecParameters *vparams = avcodec_parameters_alloc();
-    avcodec_parameters_copy(vparams, afc_input->streams[videoStreamIndex]->codecpar);
-    result = addOutputVideoStream(afc_output, &vCtxE, *vparams);
-
-
-    avcodec_parameters_free(&vparams);
+    result = addOutputVideoStream(afc_output, &vCtxE, *inputVideoStream->codecpar);
     if (result < 0) {
         LOGE(" addOutputVideoStream FAILD !");
         return -1;
@@ -95,7 +95,9 @@ int VideoDub::buildOutput(const char *outputPath) {
         LOGE(" addOutputAudioStream FAILD !");
         return -1;
     }
+    audioOutputStreamIndex = result;
     audioOutputStream = afc_output->streams[result];
+    //这是从录音过来的
     result = initSwrContext(1, AV_SAMPLE_FMT_S16, 44100);
     if (result < 0) {
         LOGE(" initSwrContext FAILD ! ");
@@ -115,7 +117,13 @@ int VideoDub::buildOutput(const char *outputPath) {
     outAFrame->format = sampleFormat;
     outAFrame->channels = outChannel;
     outAFrame->channel_layout = outChannelLayout ;
+    outAFrame->nb_samples = nbSample;
+    result = av_frame_make_writable(outAFrame);
+    if(result < 0){
+        LOGE(" av_frame_make_writable %s  " , av_err2str(result));
+    }
     aCalDuration =  AV_TIME_BASE  / sampleRate;
+    LOGE(" BUILD OUTPUT SUCCESS ! videoindex %d , audioindex %d " , videoOutputStreamIndex , audioOutputStreamIndex);
     return 1;
 }
 
@@ -172,11 +180,11 @@ int VideoDub::startDub() {
         if (result < 0) {
             av_packet_free(&pkt);
             readEnd = true;
+//            writeTrail(afc_output);
             LOGE(" read end !");
             break;
         }
         if (pkt->stream_index == videoStreamIndex) {
-            videoQue.push(pkt);
             AVFrame *vframe = decodePacket(vCtxD, pkt);
             if (vframe != NULL) {
                 MyData *myData = new MyData();
@@ -187,14 +195,9 @@ int VideoDub::startDub() {
 
                 myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) *
                                vframe->height;
-
-                //y
                 myData->datas[0] = (uint8_t *) malloc(size);
-                //u
                 myData->datas[1] = (uint8_t *) malloc(size / 4);
-                //v
                 myData->datas[2] = (uint8_t *) malloc(size / 4);
-
 
                 //把yuv数据读取出来
                 for (int i = 0; i < height; ++i) {
@@ -212,6 +215,13 @@ int VideoDub::startDub() {
                            vframe->data[2] + vframe->linesize[2] * i, width / 2);
                 }
                 this->notify(myData);
+                AVPacket *vPkt = encodeFrame(vframe , vCtxE);
+                av_frame_free(&vframe);
+                if(vPkt != NULL){
+//                    av_packet_rescale_ts(vPkt , inputVideoStream->time_base , videoOutputStream->time_base );
+//                    av_write_frame(afc_output ,vPkt );
+                    videoQue.push(pkt);
+                }
             }
         }
         else{
@@ -226,23 +236,41 @@ int VideoDub::setFlag(bool flag) {
     return 1;
 }
 
-//FILE *pcmF = NULL;
+FILE *pcmF ;
 //添加声音
 void VideoDub::addVoice(char *pcm, int size) {
-    memcpy(src_data[0] , pcm , size);
-    int outNbSample = swr_convert(swc, &audioOutBuffer, nbSample ,
-                                  (const uint8_t **) src_data, size / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16)) ;
-    if(outNbSample < 0){
-        LOGE(" AUDIO CONVERT FAILD !");
+    if(readEnd){
+        return ;
     }
+    if(pcmF == NULL){
+        pcmF = fopen("sdcard/FFmpeg/pcm.pcm" , "wb+");
+    }
+//    int outNbSample = swr_convert(swc, &audioOutBuffer, nbSample ,
+//                                  (const uint8_t **) src_data, size / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16)) ;
+//    if(outNbSample < 0){
+//        LOGE(" AUDIO CONVERT FAILD !");
+//    }
+
+    int result = av_frame_make_writable(outAFrame);
+    if(result < 0){
+        LOGE(" av_frame_make_writable FAILD ! %s" , av_err2str(result));
+    }
+    memcpy(src_data[0] , pcm , size);
     outAFrame->data[0] = src_data[0] ;
-    audioCount += outNbSample;
+    outAFrame->linesize[0] = size;
+    audioCount += size / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16); //outNbSample;
     outAFrame->pts = audioCount * aCalDuration ;
     AVPacket *pkt = encodeFrame(outAFrame , aCtxE);
     if(pkt != NULL){
-        av_packet_rescale_ts(pkt , timeBaseFFmpeg , audioOutputStream->time_base );
+//        av_packet_rescale_ts(pkt , timeBaseFFmpeg , audioOutputStream->time_base );
+//          result = av_write_frame(afc_output ,pkt );
+//        if(result < 0){
+//            LOGE(" WRITE AUDIO FAILD ! %s" , av_err2str(result));
+//        }
         audioQue.push(pkt);
     }
+//    LOGE("outNbSample %d " , size /  av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) );
+
 }
 
 
@@ -264,12 +292,13 @@ void VideoDub::run() {
             threadSleep(2);
             continue;
         }
-
         AVPacket *aPkt = audioQue.front();
         AVPacket *vPkt = videoQue.front();
 //        LOGE(" apts %lld , vpts %lld ", apts, vpts);
         if (av_compare_ts(apts, audioOutputStream->time_base, vpts, videoOutputStream->time_base) < 0) {
-            LOGE(" write audio " );
+            LOGE(" write aaaaaaaaaaaaaa " );
+            aPkt->stream_index = audioOutputStreamIndex ;
+            av_packet_rescale_ts(aPkt , timeBaseFFmpeg , audioOutputStream->time_base );
             apts = aPkt->pts;
             result = av_interleaved_write_frame(afc_output, aPkt);
             if (result < 0) {
@@ -278,8 +307,9 @@ void VideoDub::run() {
             av_packet_free(&aPkt);
             audioQue.pop();
         } else {
-            LOGE(" write video " );
-            av_packet_rescale_ts(vPkt ,inputVideoStream->time_base , videoOutputStream->time_base );
+            LOGE(" write vvvvvvvvvvvvvvv " );
+            vPkt->stream_index = videoOutputStreamIndex ;
+            av_packet_rescale_ts(vPkt , inputVideoStream->time_base , videoOutputStream->time_base );
             vpts = vPkt->pts;
             result = av_interleaved_write_frame(afc_output, vPkt);
             if (result < 0) {

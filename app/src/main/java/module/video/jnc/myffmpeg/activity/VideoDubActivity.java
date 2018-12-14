@@ -30,7 +30,7 @@ public class VideoDubActivity extends VideoEditParentActivity {
     private static final int sampleRate = 44100;
     private static final int pcmFormat = AudioFormat.ENCODING_PCM_16BIT;
     private static final int channel = AudioFormat.CHANNEL_IN_MONO;
-    private int pcmSize ;
+    private int pcmSize = 4096;
     private boolean flag ;
     private byte[] bytes ;
     @Override
@@ -69,8 +69,8 @@ public class VideoDubActivity extends VideoEditParentActivity {
                 return false;
             }
         });
-        pcmSize = 2048;
-        Log.e("xhc" , " getminSize  "+AudioRecord.getMinBufferSize(sampleRate , channel ,pcmFormat ));
+
+//        Log.e("xhc" , " getminSize  "+AudioRecord.getMinBufferSize(sampleRate , channel ,pcmFormat ));
 
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC , sampleRate ,
                 channel , pcmFormat,

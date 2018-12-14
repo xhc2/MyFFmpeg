@@ -52,7 +52,6 @@ void YuvPlayer::update(MyData *mydata){
     if(!initOpenglFlag){
         initOpenglFlag = true;
         init_opengl();
-        LOGE(" INIT OPEN GL !");
     }
 
     if(mydata->isAudio   || mydata->size <= 0){
