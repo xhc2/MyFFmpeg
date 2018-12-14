@@ -23,12 +23,12 @@ public class TestActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         super.run();
-                        FFmpegUtils.startBackRun("sdcard/FFmpeg/video/time.mp4" , "sdcard/FFmpeg/videobackrun.mp4");
+//                        FFmpegUtils.startBackRun("sdcard/FFmpeg/video/time.mp4" , "sdcard/FFmpeg/videobackrun.mp4");
 //                        String[] inputPaths = {"sdcard/FFmpeg/video/test.mp4", "sdcard/FFmpeg/video/test.mp4",
 //                                "sdcard/FFmpeg/video/test.mp4", "sdcard/FFmpeg/video/test.mp4"};
 //                        FFmpegUtils.initVideoMerge(inputPaths, "sdcard/FFmpeg/merge.mp4");
 //                        FFmpegUtils.startVideoMerge();
-
+                        FFmpegUtils.test();
 
                     }
                 }.start();

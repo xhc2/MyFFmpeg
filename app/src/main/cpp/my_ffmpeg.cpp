@@ -590,29 +590,13 @@ FILE *file;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
-//    createEngine();
-//    createBufferQueueAudioPlayer();
-//    startPlayTest();
-    file = fopen("sdcard/FFmpeg/test_2c_441_16.pcm", "r");
-    fseek(file, -2048 * 500, SEEK_END);
-    a = new NewAudioPlayer(44100, 2);
-//    a = new AudioPlayer(44100 , 2);
-    a->changeSpeed(1.0f);
-    a->start();
-    while (true) {
-        char *temp = (char *) malloc(2048);
-        int len = fread(temp, 1, 2048, file);
-        if (len != 2048) {
-            a->update(NULL);
-            break;
-        }
-        MyData *myData = new MyData();
-        myData->data = temp;
-        myData->size = 2048;
-        myData->isAudio = true;
-        a->update(myData);
-    }
+    int size = 100000;
+    char* xhc[size];
+    for(int i = 0 ;i < size ; ++i){
+        LOGE(" %d m " , i);
+        xhc[i] = (char *)malloc(1024 * 1024 * 1024 * sizeof(char));
 
+    }
     return 1;
 
 }
