@@ -77,13 +77,13 @@ int VideoDub::buildOutput(const char *outputPath) {
         LOGE(" initOutput faild ! ");
         return -1;
     }
-//    result = addOutputVideoStream(afc_output, &vCtxE, *inputVideoStream->codecpar);
-//    if (result < 0) {
-//        LOGE(" addOutputVideoStream FAILD !");
-//        return -1;
-//    }
-//    videoOutputStreamIndex = result;
-//    videoOutputStream = afc_output->streams[result];
+    result = addOutputVideoStream(afc_output, &vCtxE, *inputVideoStream->codecpar);
+    if (result < 0) {
+        LOGE(" addOutputVideoStream FAILD !");
+        return -1;
+    }
+    videoOutputStreamIndex = result;
+    videoOutputStream = afc_output->streams[result];
 
 
     AVCodecParameters *aparams = avcodec_parameters_alloc();
@@ -101,11 +101,11 @@ int VideoDub::buildOutput(const char *outputPath) {
     audioOutputStreamIndex = result;
     audioOutputStream = afc_output->streams[result];
     //这是从录音过来的
-    result = initSwrContext(1, AV_SAMPLE_FMT_S16, 44100);
-    if (result < 0) {
-        LOGE(" initSwrContext FAILD ! ");
-        return -1;
-    }
+//    result = initSwrContext(1, AV_SAMPLE_FMT_S16, 44100);
+//    if (result < 0) {
+//        LOGE(" initSwrContext FAILD ! ");
+//        return -1;
+//    }
 
 
 
@@ -135,7 +135,7 @@ int VideoDub::buildOutput(const char *outputPath) {
     }
     aCalDuration =  AV_TIME_BASE  / sampleRate;
     LOGE(" BUILD OUTPUT SUCCESS ! videoindex %d , audioindex %d " , videoOutputStreamIndex , audioOutputStreamIndex);
-    allocAudioFifo(sampleFormat , outChannel , audioFifoBufferSample);
+//    allocAudioFifo(sampleFormat , outChannel , audioFifoBufferSample);
 
     return 1;
 }
@@ -179,7 +179,7 @@ void VideoDub::destroySwrContext() {
 
 int VideoDub::startDub() {
     int result;
-//    this->start();
+    this->start();
     int size = width * height;
 
     while (!isExit) {
@@ -187,13 +187,13 @@ int VideoDub::startDub() {
             threadSleep(2);
             continue;
         }
-//        threadSleep(10);
+        threadSleep(10);
         AVPacket *pkt = av_packet_alloc();
         result = av_read_frame(afc_input, pkt);
         if (result < 0) {
             av_packet_free(&pkt);
             readEnd = true;
-            writeTrail(afc_output);
+//            writeTrail(afc_output);
             LOGE(" read end !");
             break;
         }
@@ -228,13 +228,13 @@ int VideoDub::startDub() {
                            vframe->data[2] + vframe->linesize[2] * i, width / 2);
                 }
                 this->notify(myData);
-//                AVPacket *vPkt = encodeFrame(vframe , vCtxE);
-//                av_frame_free(&vframe);
-//                if(vPkt != NULL){
+                AVPacket *vPkt = encodeFrame(vframe , vCtxE);
+                av_frame_free(&vframe);
+                if(vPkt != NULL){
 //                    av_packet_rescale_ts(vPkt , inputVideoStream->time_base , videoOutputStream->time_base );
 //                    av_write_frame(afc_output ,vPkt );
-////                    videoQue.push(pkt);
-//                }
+                    videoQue.push(vPkt);
+                }
             }
         }
         else{
@@ -249,61 +249,32 @@ int VideoDub::setFlag(bool flag) {
     return 1;
 }
 
-FILE *pcmF = NULL;
-//添加声音
+//FILE *pcmF = NULL;
+//添加声音 adpcm_swf
 void VideoDub::addVoice(char *pcm, int size) {
     if(readEnd){
         return ;
     }
-    int result;
-    if(pcmF == NULL){
-        pcmF = fopen("sdcard/FFmpeg/pcm.pcm" , "wb+");
-    }
-    src_data[0] = (uint8_t *)pcm;
-//    int outNbSample = swr_convert(swc, &audioOutBuffer, nbSample ,
-//                                  (const uint8_t **) src_data, size / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16)) ;
-//    if(outNbSample < 0){
-//        LOGE(" AUDIO CONVERT FAILD !");
-//        return;
-//    }
-//    if(av_audio_fifo_space(audioFifo) < outNbSample){
-//        LOGE(" NEW ALLOC SPACE !!!!!! ");
-//        audioFifoBufferSample += outNbSample * 3;
-//        if( av_audio_fifo_realloc(audioFifo , audioFifoBufferSample) < 0){
-//            LOGE(" NEW ALLOC SPACE FAILD !");
-//        }
-//    }
-//    av_audio_fifo_write(audioFifo, (void **) &audioOutBuffer, outNbSample);
-//
-//    if(av_audio_fifo_size(audioFifo) < nbSample){
-//        return ;
-//    }
-//    result = av_audio_fifo_read(audioFifo, (void **) &audioOutBuffer, aCtxE->frame_size);
+//    int result;
+//    if(pcmF == NULL){
+////        pcmF = fopen("sdcard/FFmpeg/pcm.pcm" , "wb+");
+////    }
     memcpy(src_data[0] , pcm , size);
-//    AVFrame *outAFrame = av_frame_alloc();
-//    outAFrame->sample_rate = sampleRate ;
-//    outAFrame->format = sampleFormat;
-//    outAFrame->channels = outChannel;
-//    outAFrame->channel_layout = outChannelLayout ;
-//    outAFrame->nb_samples = nbSample;
-//    av_frame_get_buffer(outAFrame , 0);
-    av_frame_make_writable(outAFrame);
     outAFrame->data[0] = src_data[0] ;
     outAFrame->linesize[0] = size  ;
     audioCount += size / av_get_bytes_per_sample(sampleFormat) ;
     outAFrame->pts = audioCount * aCalDuration ;
-    fwrite(outAFrame->data[0]  ,1 , outAFrame->linesize[0] , pcmF) ;
+//    fwrite(outAFrame->data[0]  ,1 , outAFrame->linesize[0] , pcmF) ;
     AVPacket *pkt = encodeFrame(outAFrame , aCtxE);
     if(pkt != NULL){
-
-        pkt->stream_index = audioOutputStreamIndex;
-        av_packet_rescale_ts(pkt , timeBaseFFmpeg , audioOutputStream->time_base );
-        LOGE(" PKT SIZE %d , pts %lld " , pkt->size , pkt->pts);
-          result = av_write_frame(afc_output ,pkt );
-        if(result < 0){
-            LOGE(" WRITE AUDIO FAILD ! %s" , av_err2str(result));
-        }
-//        audioQue.push(pkt);
+//        pkt->stream_index = audioOutputStreamIndex;
+//        av_packet_rescale_ts(pkt , timeBaseFFmpeg , audioOutputStream->time_base );
+//        LOGE(" PKT SIZE %d , pts %lld " , pkt->size , pkt->pts);
+//          result = av_write_frame(afc_output ,pkt );
+//        if(result < 0){
+//            LOGE(" WRITE AUDIO FAILD ! %s" , av_err2str(result));
+//        }
+        audioQue.push(pkt);
     }
 
 
@@ -334,7 +305,7 @@ void VideoDub::run() {
         AVPacket *vPkt = videoQue.front();
 //        LOGE(" apts %lld , vpts %lld ", apts, vpts);
         if (av_compare_ts(apts, audioOutputStream->time_base, vpts, videoOutputStream->time_base) < 0) {
-            LOGE(" write aaaaaaaaaaaaaa " );
+//            LOGE(" write aaaaaaaaaaaaaa " );
             aPkt->stream_index = audioOutputStreamIndex ;
             av_packet_rescale_ts(aPkt , timeBaseFFmpeg , audioOutputStream->time_base );
             apts = aPkt->pts;
@@ -345,7 +316,7 @@ void VideoDub::run() {
             av_packet_free(&aPkt);
             audioQue.pop();
         } else {
-            LOGE(" write vvvvvvvvvvvvvvv " );
+//            LOGE(" write vvvvvvvvvvvvvvv " );
             vPkt->stream_index = videoOutputStreamIndex ;
             av_packet_rescale_ts(vPkt , inputVideoStream->time_base , videoOutputStream->time_base );
             vpts = vPkt->pts;
