@@ -237,7 +237,7 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext
 int EditParent::addOutputAudioStream(AVFormatContext *afc_output, AVCodecContext **aCtxE,
                                      AVCodecParameters codecpar) {
     int result = 0;
-    AVStream *audioOutStream = avformat_new_stream(afc_output, NULL);
+    AVStream *audioOutStream = avformat_new_stream(afc_output,NULL );
     if (audioOutStream == NULL) {
         LOGE(" VIDEO STREAM NULL ");
         return -1;

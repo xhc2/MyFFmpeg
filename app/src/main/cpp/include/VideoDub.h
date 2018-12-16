@@ -14,6 +14,7 @@
 
 extern "C" {
 #include <libswresample/swresample.h>
+#include <libavutil/audio_fifo.h>
 };
 using namespace std;
 class VideoDub : public EditParent, public MyThread, public Notify {
@@ -52,6 +53,9 @@ private :
     AVStream *videoOutputStream;
     AVStream *audioOutputStream;
     uint8_t *audioOutBuffer;
+    AVAudioFifo *audioFifo;
+    int audioFifoBufferSample;
+    void allocAudioFifo(AVSampleFormat sample_fmt, int channels, int nb_samples) ;
     int buildOutput(const char *outputPath);
     void destroySwrContext();
     int initSwrContext(int channelCount, AVSampleFormat in_sample_fmt, int in_sample_rate);

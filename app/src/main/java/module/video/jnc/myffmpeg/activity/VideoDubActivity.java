@@ -14,6 +14,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.MyVideoGpuShow;
 import module.video.jnc.myffmpeg.R;
@@ -69,8 +73,8 @@ public class VideoDubActivity extends VideoEditParentActivity {
                 return false;
             }
         });
-
-//        Log.e("xhc" , " getminSize  "+AudioRecord.getMinBufferSize(sampleRate , channel ,pcmFormat ));
+//        pcmSize = AudioRecord.getMinBufferSize(sampleRate , channel ,pcmFormat );
+//        Log.e("xhc" , " getminSize  "+ pcmSize);
 
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC , sampleRate ,
                 channel , pcmFormat,
@@ -107,16 +111,35 @@ public class VideoDubActivity extends VideoEditParentActivity {
 
         int readSize = 0;
         boolean readFlag ;
+        FileOutputStream fos ;
+        AudioRead(){
+            try {
+                fos = new FileOutputStream("sdcard/FFmpeg/pcmjava.pcm");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
         @Override
         public void run() {
             super.run();
             while(readFlag){
                 if(flag){
                     readSize = audioRecord.read(bytes , 0 , pcmSize);
+                    Log.e("xhc" , "read size "+readSize);
                     if(AudioRecord.ERROR_INVALID_OPERATION != readSize ){
+                        try {
+                            fos.write(bytes);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         FFmpegUtils.videoDubAddVoice(bytes);
                     }
                 }
+            }
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -135,5 +158,6 @@ public class VideoDubActivity extends VideoEditParentActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopAudioRead();
+
     }
 }
