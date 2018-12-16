@@ -11,6 +11,7 @@
 #include "EditParent.h"
 #include "MyThread.h"
 #include "YuvPlayer.h"
+#include "ReadAvPacket.h"
 
 extern "C" {
 #include <libswresample/swresample.h>
@@ -27,15 +28,16 @@ private :
     int videoStreamIndex;
     int width;
     int height;
-    SwrContext *swc;
-
+    ReadAVPackage *readAVPackage ;
     int buildInput(const char *inputPath);
 
 
     //output
 
+    bool decodeEnd ;
     queue<AVPacket *> audioQue;
     queue<AVPacket *> videoQue;
+    queue<MyData *> showVideoQue;
     int64_t apts, vpts;
     uint8_t **src_data;
     int src_linesize ;
@@ -52,14 +54,7 @@ private :
     AVCodecContext *aCtxE;
     AVStream *videoOutputStream;
     AVStream *audioOutputStream;
-    uint8_t *audioOutBuffer;
-    AVAudioFifo *audioFifo;
-    int audioFifoBufferSample;
-    void allocAudioFifo(AVSampleFormat sample_fmt, int channels, int nb_samples) ;
     int buildOutput(const char *outputPath);
-    void destroySwrContext();
-    int initSwrContext(int channelCount, AVSampleFormat in_sample_fmt, int in_sample_rate);
-
 public :
     VideoDub(const char *path, const char *outputPath, ANativeWindow *win);
 
@@ -72,7 +67,9 @@ public :
     void update(MyData *mydata);
 
     void addVoice(char *pcm, int size);
-
+    void destroyInput();
+    void destroyOther();
+    void destroyOutput();
     ~VideoDub();
 
 };

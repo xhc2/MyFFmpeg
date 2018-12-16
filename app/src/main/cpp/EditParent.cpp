@@ -92,6 +92,7 @@ int EditParent::getVideoDecodeContext(AVFormatContext *fmt_ctx, AVCodecContext *
         LOGE("avcodec_open2 FAILD !");
         return ret;
     }
+    LOGE(" VIDEO DECODE NAME %s " , dec->name );
     return videoStreamIndex;
 }
 
