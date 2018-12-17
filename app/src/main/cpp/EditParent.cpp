@@ -99,12 +99,14 @@ int EditParent::getVideoDecodeContext(AVFormatContext *fmt_ctx, AVCodecContext *
 AVFrame *EditParent::decodePacket(AVCodecContext *decode, AVPacket *packet) {
     int result = avcodec_send_packet(decode, packet);
     if (result < 0) {
+        LOGE("avcodec_send_packet FAILD ! %s " , av_err2str(result));
         return NULL;
     }
     AVFrame *frame = av_frame_alloc();
     while (result >= 0) {
         result = avcodec_receive_frame(decode, frame);
         if (result < 0) {
+            LOGE("avcodec_receive_frame FAILD ! %s " , av_err2str(result));
             av_frame_free(&frame);
             return NULL;
         }

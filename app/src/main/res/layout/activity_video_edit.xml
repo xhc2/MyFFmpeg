@@ -36,6 +36,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:orientation="horizontal"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:weightSum="5">
 
         <TextView
@@ -91,6 +93,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:orientation="horizontal"
         android:weightSum="4">
 
@@ -142,7 +146,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
-        android:weightSum="4">
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:weightSum="3">
 
         <TextView
             android:id="@+id/tv_dub"
@@ -156,6 +162,7 @@
             style="@style/edit_button"
             android:drawableTop="@mipmap/video_subtitle"
             android:background="#E61A42"
+            android:visibility="gone"
             android:text="实时字幕" />
 
         <TextView

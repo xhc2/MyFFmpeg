@@ -4,6 +4,7 @@
 
 #include <my_log.h>
 
+
 #include "VideoDub.h"
 #include "time.h"
 
@@ -14,33 +15,49 @@
  */
 
 
-VideoDub::VideoDub(const char *intputpath, const char *outputPath, ANativeWindow *win) {
+VideoDub::VideoDub() {
     readEnd = false;
     decodeEnd = false;
     afc_input = NULL;
+    sws = NULL;
     vCtxD = NULL;
+    maxWidth = 640;
+    maxHeight = 480;
+    maxFrameSize = 10;
+    readAVPackage = NULL ;
+}
+
+int VideoDub::init(const char *intputpath, const char *outputPath, ANativeWindow *win) {
     int result;
     result = buildInput(intputpath);
     if (result < 0) {
         LOGE(" BUILD INPUT FALILD !");
-        return;
+        return -1;
     }
-
     width = inputVideoStream->codecpar->width;
     height = inputVideoStream->codecpar->height;
+    if (width > maxWidth || height > maxHeight) {
+        //注意比例变化
+        LOGE(" WH change  width %d  , height %d", width, height);
+        height = (int) ((float) height / width * maxWidth);
+        width = maxWidth;
+        initSwsContext(inputVideoStream->codecpar->width, inputVideoStream->codecpar->height,
+                       inputVideoStream->codecpar->format);
+    }
+    LOGE(" width %d , height %d ", width, height);
     result = buildOutput(outputPath);
     if (result < 0) {
         LOGE(" BUILD OUTPUT FAILD !");
-        return;
+        return -1;
     }
     yuvPlayer = new YuvPlayer(win, width, height);
-    int audioStreamIndex = getAudioStreamIndex(afc_input) ;
-    LOGE(" input audio index %d , video index %d " , audioStreamIndex , videoStreamIndex);
-    readAVPackage = new ReadAVPackage(afc_input,audioStreamIndex , videoStreamIndex);
+    int audioStreamIndex = getAudioStreamIndex(afc_input);
+    LOGE(" input audio index %d , video index %d ", audioStreamIndex, videoStreamIndex);
+    readAVPackage = new ReadAVPackage(afc_input, audioStreamIndex, videoStreamIndex);
     this->addNotify(yuvPlayer);
     readAVPackage->addNotify(this);
-
     setFlag(false);
+    return 1;
 }
 
 int VideoDub::buildInput(const char *inputPath) {
@@ -56,6 +73,13 @@ int VideoDub::buildInput(const char *inputPath) {
     }
     videoStreamIndex = result;
     inputVideoStream = afc_input->streams[videoStreamIndex];
+    int64_t duration = afc_input->duration;
+    double second = duration * av_q2d(timeBaseFFmpeg);
+    if (second > 90) {
+        LOGE(" video > 90 ");
+
+        return -1;
+    }
     return 1;
 }
 
@@ -64,26 +88,31 @@ int VideoDub::buildOutput(const char *outputPath) {
     int result = 0;
     outChannel = 1;
     outChannelLayout = AV_CH_LAYOUT_MONO;
-    sampleFormat = AV_SAMPLE_FMT_S16;//AV_SAMPLE_FMT_FLTP;
+    sampleFormat = AV_SAMPLE_FMT_S16;
     sampleRate = 44100;
 
     afc_output = NULL;
     apts = 0;
     vpts = 0;
 
+
     result = initOutput(outputPath, &afc_output);
     if (result < 0) {
         LOGE(" initOutput faild ! ");
         return -1;
     }
-    result = addOutputVideoStream(afc_output, &vCtxE, *inputVideoStream->codecpar);
+    AVCodecParameters *vparams = avcodec_parameters_alloc();
+    avcodec_parameters_copy(vparams, inputVideoStream->codecpar);
+    vparams->width = width;
+    vparams->height = height;
+    result = addOutputVideoStream(afc_output, &vCtxE, *vparams);
+    avcodec_parameters_free(&vparams);
     if (result < 0) {
         LOGE(" addOutputVideoStream FAILD !");
         return -1;
     }
     videoOutputStreamIndex = result;
     videoOutputStream = afc_output->streams[result];
-
 
     AVCodecParameters *aparams = avcodec_parameters_alloc();
     aparams->sample_rate = sampleRate;
@@ -106,30 +135,24 @@ int VideoDub::buildOutput(const char *outputPath) {
         return -1;
     }
     nbSample = aCtxE->frame_size;
-    src_data = (uint8_t **) malloc(8 * sizeof(uint8_t *));
-    result = av_samples_alloc(src_data, &src_linesize, outChannel, nbSample, sampleFormat, 0);
-    if (result < 0) {
-        LOGE(" av_samples_alloc faild ! ");
-        return -1;
-    }
     outAFrame = av_frame_alloc();
     outAFrame->sample_rate = sampleRate;
     outAFrame->format = sampleFormat;
     outAFrame->channels = outChannel;
     outAFrame->channel_layout = outChannelLayout;
     outAFrame->nb_samples = nbSample;
-    result = av_frame_make_writable(outAFrame);
-    if (result < 0) {
-        LOGE(" av_frame_make_writable %s  ", av_err2str(result));
-    }
+//    result = av_frame_make_writable(outAFrame);
+//    if (result < 0) {
+//        LOGE(" av_frame_make_writable %s  ", av_err2str(result));
+//    }
     aCalDuration = AV_TIME_BASE / sampleRate;
-
+    audioBuffer = (char *)malloc(nbSample * av_get_bytes_per_sample(sampleFormat));
     return 1;
 }
 
 
 int VideoDub::startDub() {
-//    this->start();
+    this->start();
     readAVPackage->start();
     int size = width * height;
 
@@ -138,15 +161,13 @@ int VideoDub::startDub() {
             threadSleep(2);
             continue;
         }
-
-        if (showVideoQue.size() <= 0) {
+        if (frameQue.size() <= 0) {
             continue;
         }
-        LOGE("SHOW VIDEO QUE %d " , showVideoQue.size());
-        MyData *myDataP = showVideoQue.front();
-        AVPacket *pkt = myDataP->pkt;
-        AVFrame *vframe = decodePacket(vCtxD, pkt);
-        delete myDataP;
+        threadSleep(40);
+        AVFrame *vframe = frameQue.front();
+        encodeFrameQue.push(vframe);
+        frameQue.pop();
         if (vframe != NULL) {
             MyData *myData = new MyData();
             myData->pts = vframe->pts;
@@ -174,38 +195,55 @@ int VideoDub::startDub() {
                 memcpy(myData->datas[2] + width / 2 * i,
                        vframe->data[2] + vframe->linesize[2] * i, width / 2);
             }
+
             this->notify(myData);
-            AVPacket *vPkt = encodeFrame(vframe, vCtxE);
-            av_frame_free(&vframe);
-            if (vPkt != NULL) {
-                videoQue.push(vPkt);
-            }
         }
     }
     decodeEnd = true;
     return 1;
 }
 
+int VideoDub::initSwsContext(int inWidth, int inHeight, int inpixFmt) {
+
+    sws = sws_getContext(inWidth, inHeight, (AVPixelFormat) inpixFmt, width, height,
+                         AV_PIX_FMT_YUV420P, SWS_BILINEAR, NULL, NULL, NULL);
+    if (sws == NULL) {
+        return -1;
+    }
+    LOGE(" initSwsContext SUCCESS ");
+    return 1;
+}
+
+void VideoDub::destroySwsContext() {
+    if (sws != NULL) {
+        sws_freeContext(sws);
+        sws = NULL;
+    }
+}
+
+
 int VideoDub::setFlag(bool flag) {
     if (flag) {
-        readAVPackage->setPlay();
+        if(readAVPackage != NULL ){
+            readAVPackage->setPlay();
+        }
         setPlay();
     } else {
-        readAVPackage->setPause();
+        if(readAVPackage != NULL ){
+            readAVPackage->setPause();
+        }
         setPause();
-
     }
-
     return 1;
 }
 
 //添加声音 adpcm_swf
 void VideoDub::addVoice(char *pcm, int size) {
-    if (readEnd) {
+    if (readEnd || isExit) {
         return;
     }
-    memcpy(src_data[0], pcm, size);
-    outAFrame->data[0] = src_data[0];
+    memcpy(audioBuffer , pcm ,size );
+    outAFrame->data[0] = (uint8_t *) audioBuffer;
     outAFrame->linesize[0] = size;
     audioCount += size / av_get_bytes_per_sample(sampleFormat);
     outAFrame->pts = audioCount * aCalDuration;
@@ -227,8 +265,8 @@ void VideoDub::run() {
             threadSleep(2);
             continue;
         }
-//        LOGE(" video %d , audio %d ", videoQue.size(), audioQue.size());
-        if (audioQue.size() <= 0 || videoQue.size() <= 0) {
+//        LOGE("write  video %d , audio %d ", frameQue.size(), audioQue.size());
+        if (audioQue.size() <= 0 || encodeFrameQue.size() <= 0) {
             if (readEnd) {
                 break;
             }
@@ -236,7 +274,7 @@ void VideoDub::run() {
             continue;
         }
         AVPacket *aPkt = audioQue.front();
-        AVPacket *vPkt = videoQue.front();
+        AVFrame *vframe = encodeFrameQue.front();
         if (av_compare_ts(apts, audioOutputStream->time_base, vpts, videoOutputStream->time_base) <
             0) {
             aPkt->stream_index = audioOutputStreamIndex;
@@ -249,6 +287,12 @@ void VideoDub::run() {
             av_packet_free(&aPkt);
             audioQue.pop();
         } else {
+            AVPacket *vPkt = encodeFrame(vframe, vCtxE);
+            av_frame_free(&vframe);
+            encodeFrameQue.pop();
+            if (vPkt == NULL) {
+                continue;
+            }
             vPkt->stream_index = videoOutputStreamIndex;
             av_packet_rescale_ts(vPkt, inputVideoStream->time_base, videoOutputStream->time_base);
             vpts = vPkt->pts;
@@ -257,7 +301,6 @@ void VideoDub::run() {
                 LOGE(" video av_interleaved_write_frame faild ! %s ", av_err2str(result));
             }
             av_packet_free(&vPkt);
-            videoQue.pop();
         }
     }
     writeTrail(afc_output);
@@ -267,26 +310,50 @@ void VideoDub::run() {
 //这是被通知的方法
 void VideoDub::update(MyData *mydata) {
 
-    if (mydata == NULL ) {
+    if (mydata == NULL) {
+        readEnd = true;
         return;
     }
-    if(mydata->isAudio){
+    if (mydata->isAudio) {
         delete mydata;
         return;
     }
-   while( !isExit ){
-       if (showVideoQue.size() < 100) {
-           showVideoQue.push(mydata);
-           break;
-       }
-       else{
-           threadSleep(2);
-       }
-   }
-
+    while (!isExit) {
+        LOGE("xx frameQue QUE %d ", frameQue.size());
+        if (frameQue.size() < maxFrameSize) {
+            AVPacket *pkt = mydata->pkt;
+            if (pkt == NULL) {
+                delete mydata;
+                return;
+            }
+            AVFrame *vframe = decodePacket(vCtxD, pkt);
+            delete mydata;
+            if (vframe != NULL) {
+                if (sws != NULL) {
+                    //需要转换分辨率
+                    AVFrame *outVframe = av_frame_alloc();
+                    outVframe->width = width;
+                    outVframe->height = height;
+                    outVframe->format = AV_PIX_FMT_YUV420P;
+                    av_frame_get_buffer(outVframe, 0);
+                    sws_scale(sws, (const uint8_t *const *) vframe->data, vframe->linesize,
+                              0, vframe->height, outVframe->data, outVframe->linesize);
+                    outVframe->pts = vframe->pts;
+                    frameQue.push(outVframe);
+                    av_frame_free(&vframe);
+                } else {
+                    frameQue.push(vframe);
+                }
+                break;
+            }
+        } else {
+            threadSleep(2);
+        };
+    }
 }
 
 void VideoDub::destroyInput() {
+
     if (vCtxD != NULL) {
         avcodec_free_context(&vCtxD);
         vCtxD = NULL;
@@ -295,7 +362,9 @@ void VideoDub::destroyInput() {
         avformat_free_context(afc_input);
         afc_input = NULL;
     }
-    delete yuvPlayer;
+    if(yuvPlayer != NULL ){
+        delete yuvPlayer;
+    }
 }
 
 void VideoDub::destroyOutput() {
@@ -314,11 +383,11 @@ void VideoDub::destroyOutput() {
     if (outAFrame != NULL) {
         av_frame_free(&outAFrame);
     }
-    if (src_data != NULL) {
-        for (int i = 0; i < 8; ++i) {
-            av_freep(src_data[i]);
-        }
+    if(audioBuffer != NULL ){
+        free(audioBuffer);
     }
+    destroySwsContext();
+    LOGE(" DESTROY OUTPUT !");
 }
 
 void VideoDub::destroyOther() {
@@ -329,23 +398,35 @@ void VideoDub::destroyOther() {
         }
         audioQue.pop();
     }
-    while (!videoQue.empty()) {
-        AVPacket *pkt = videoQue.front();
-        if (pkt != NULL) {
-            av_packet_free(&pkt);
+    while (!encodeFrameQue.empty()) {
+        AVFrame *frame = encodeFrameQue.front();
+        if (frame != NULL) {
+            av_frame_free(&frame);
         }
-        videoQue.pop();
+        encodeFrameQue.pop();
+    }
+    while (!frameQue.empty()) {
+        AVFrame *frame = frameQue.front();
+        if (frame != NULL) {
+            av_frame_free(&frame);
+        }
+        frameQue.pop();
     }
 }
 
 VideoDub::~VideoDub() {
+    //数据输入源最先停掉
+    if(readAVPackage != NULL ){
+        readAVPackage->stop();
+        readAVPackage->join();
+        delete  readAVPackage;
+    }
     this->stop();
     while (!decodeEnd) {
         LOGE(" wait for end!");
         threadSleep(1);
     }
     this->join();
-
     destroyOther();
     destroyInput();
     destroyOutput();

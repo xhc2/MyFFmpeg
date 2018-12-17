@@ -28,11 +28,12 @@ public class PlayListAdapter extends MyBaseAdapter<String, PlayListAdapter.MyVie
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {
         final String f = list.get(position);
-        displayImageView(holder.img , "file://"+f);
+
         if(position == 0){
             holder.tv.setText("网络流rtmp");
         }
         else{
+            displayImageView(holder.img , "file://"+f);
             holder.tv.setText(getFileName(f));
         }
 

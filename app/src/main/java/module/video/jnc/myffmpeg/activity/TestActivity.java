@@ -29,7 +29,6 @@ public class TestActivity extends AppCompatActivity {
 //                        FFmpegUtils.initVideoMerge(inputPaths, "sdcard/FFmpeg/merge.mp4");
 //                        FFmpegUtils.startVideoMerge();
                         FFmpegUtils.test();
-
                     }
                 }.start();
 
@@ -39,6 +38,7 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.bt_end).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
             }
         });
     }

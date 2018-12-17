@@ -73,9 +73,6 @@ public class VideoDubActivity extends VideoEditParentActivity {
                 return false;
             }
         });
-//        pcmSize = AudioRecord.getMinBufferSize(sampleRate , channel ,pcmFormat );
-//        Log.e("xhc" , " getminSize  "+ pcmSize);
-
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC , sampleRate ,
                 channel , pcmFormat,
                 pcmSize);
@@ -94,7 +91,6 @@ public class VideoDubActivity extends VideoEditParentActivity {
     }
 
     private void stopAudioRead(){
-
         if(audioReadThread != null){
             audioReadThread.readFlag = false;
             try{
@@ -158,6 +154,6 @@ public class VideoDubActivity extends VideoEditParentActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopAudioRead();
-
+        FFmpegUtils.videoDubDestroy();
     }
 }

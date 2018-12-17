@@ -786,9 +786,17 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoDub(JNIEnv *env, jclass type
 
     if (vd == NULL) {
         ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
-        vd = new VideoDub(inputPath, outputPath, win);
+        vd = new VideoDub();
+        int result = vd ->init(inputPath, outputPath, win);
+        if(result > 0){
+            vd->startDub();
+        }
+        else{
+            LOGE(" INIT FAILD ");
+        };
+
     }
-    vd->startDub();
+
 
     env->ReleaseStringUTFChars(inputPath_, inputPath);
     env->ReleaseStringUTFChars(outputPath_, outputPath);
@@ -805,6 +813,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubDestroy(JNIEnv *env, jclass t
     if (vd != NULL) {
         delete vd;
     }
+    vd = NULL;
     return 1;
 }
 

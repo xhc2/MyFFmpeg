@@ -12,6 +12,12 @@
         style="@style/title_bar"
         app:title_text="实时配音" />
 
+    <TextView
+        android:padding="10dp"
+        android:text="为了尽可能语音和视频同步，所以把avframe进行了缓冲。不过也压缩了.视频分辨率最大只能支持 640*480 ,目前音频延迟还是有几秒左右，低配版本的时候应该会更严重。"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <module.video.jnc.myffmpeg.widget.MyYuvShow
         android:id="@+id/play_gl_surfaceview"
         android:layout_width="320dp"
@@ -22,7 +28,7 @@
         android:id="@+id/bt_start"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:layout_marginTop="190dp"
+        android:layout_marginTop="150dp"
         android:textColor="#ffffff"
         android:textSize="12sp"
         android:background="@drawable/video_dub_button_selector"

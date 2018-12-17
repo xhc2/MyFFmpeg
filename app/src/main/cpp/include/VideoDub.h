@@ -16,6 +16,7 @@
 extern "C" {
 #include <libswresample/swresample.h>
 #include <libavutil/audio_fifo.h>
+#include <libswscale/swscale.h>
 };
 using namespace std;
 class VideoDub : public EditParent, public MyThread, public Notify {
@@ -36,11 +37,13 @@ private :
 
     bool decodeEnd ;
     queue<AVPacket *> audioQue;
-    queue<AVPacket *> videoQue;
-    queue<MyData *> showVideoQue;
+    queue<AVFrame *> frameQue;
+    queue<AVFrame *> encodeFrameQue;
+    int maxFrameSize ;
+    int maxWidth ;
+    int maxHeight ;
+    SwsContext *sws;
     int64_t apts, vpts;
-    uint8_t **src_data;
-    int src_linesize ;
     int audioCount ;
     int64_t  aCalDuration;
     int outChannel ;
@@ -54,10 +57,13 @@ private :
     AVCodecContext *aCtxE;
     AVStream *videoOutputStream;
     AVStream *audioOutputStream;
+    char *audioBuffer ;
     int buildOutput(const char *outputPath);
+    int initSwsContext(int inWidth, int inHeight, int inpixFmt);
+    void destroySwsContext();
 public :
-    VideoDub(const char *path, const char *outputPath, ANativeWindow *win);
-
+    VideoDub( );
+    int init(const char* intputpath  , const char* outputPath, ANativeWindow *win );
     int startDub();
 
     int setFlag(bool flag);
