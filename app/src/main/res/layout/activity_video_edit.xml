@@ -148,7 +148,7 @@
         android:orientation="horizontal"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:weightSum="3">
+        android:weightSum="4">
 
         <TextView
             android:id="@+id/tv_dub"
@@ -157,12 +157,7 @@
             android:drawableTop="@mipmap/video_dub"
             android:text="实时配音" />
 
-        <TextView
-            style="@style/edit_button"
-            android:drawableTop="@mipmap/video_subtitle"
-            android:background="#E61A42"
-            android:visibility="gone"
-            android:text="实时字幕" />
+
 
         <TextView
             android:id="@+id/tv_reverse"
@@ -175,5 +170,10 @@
             style="@style/edit_button"
             android:drawableTop="@mipmap/gif"
             android:text="gif生成" />
+        <TextView
+            android:id="@+id/tv_player"
+            style="@style/edit_button"
+            android:drawableTop="@mipmap/video_subtitle"
+            android:text="播放器" />
     </LinearLayout>
 </LinearLayout>

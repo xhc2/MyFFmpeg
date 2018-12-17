@@ -25,7 +25,7 @@
             style="@style/home_button"/>
         <Button
             android:id="@+id/bt_play"
-            android:text="播放器"
+            android:text="我的"
             android:drawableTop="@mipmap/player"
             style="@style/home_button" />
 

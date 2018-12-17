@@ -1,62 +1,52 @@
-package module.video.jnc.myffmpeg.fragment;
+package module.video.jnc.myffmpeg.activity;
 
 import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import module.video.jnc.myffmpeg.R;
-import module.video.jnc.myffmpeg.activity.Mp4PlayerActivity;
 import module.video.jnc.myffmpeg.adapter.MyBaseAdapter;
 import module.video.jnc.myffmpeg.adapter.PlayListAdapter;
 import module.video.jnc.myffmpeg.tool.Constant;
 
-public class PlayFragment extends Fragment {
-
+public class PlayListActivity extends BaseActivity {
     private RecyclerView rcView;
     private List<String> listFile = new ArrayList<>();
     private PlayListAdapter adapter;
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.e("xhc" , " onCreateView ");
-        return inflater.inflate(R.layout.frg_player_layout, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        rcView = view.findViewById(R.id.rv_view);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_play_list);
+        rcView = findViewById(R.id.rv_view);
         init();
     }
 
+
+
     private void init(){
         getFileList();
-        adapter = new PlayListAdapter(listFile , getActivity());
-        rcView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        rcView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
+        adapter = new PlayListAdapter(listFile , PlayListActivity.this);
+        rcView.setLayoutManager(new LinearLayoutManager(PlayListActivity.this));
+        rcView.addItemDecoration(new DividerItemDecoration(PlayListActivity.this, DividerItemDecoration.VERTICAL));
         rcView.setAdapter(adapter);
         adapter.setOnRecyleItemClick(new MyBaseAdapter.OnRecyleItemClick() {
             @Override
             public void onItemClick(View v, Object o, int position) {
-                Intent intent = new Intent(getActivity() , Mp4PlayerActivity.class);
+                Intent intent = new Intent(PlayListActivity.this , Mp4PlayerActivity.class);
                 intent.putExtra("path" , listFile.get(position));
                 startActivity(intent);
             }
         });
-        Log.e("xhc" , "PlayFragment list ");
     }
 
     private void getFileList() {
@@ -68,5 +58,4 @@ public class PlayFragment extends Fragment {
         }
         listFile.add(0 , "rtmp://live.hkstv.hk.lxdns.com/live/hks");
     }
-
 }

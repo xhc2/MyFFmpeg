@@ -29,7 +29,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-         <!--<activity android:name=".activity.MainActivity" />-->
+        <!-- <activity android:name=".activity.MainActivity" /> -->
 
         <activity android:name=".activity.NetStreamActivity" />
         <activity
@@ -86,7 +86,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity android:name=".activity.VideoScaleActivity">
             <intent-filter>
                 <action android:name="xhc.video.scale" />
@@ -94,7 +93,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity android:name=".activity.Mp42GifActivity">
             <intent-filter>
                 <action android:name="xhc.video.gif" />
@@ -102,23 +100,20 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
-
         <activity android:name=".activity.VideoReverseActivity">
             <intent-filter>
                 <action android:name="xhc.video.reverse" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".activity.VideoDubActivity" >
+        <activity android:name=".activity.VideoDubActivity">
             <intent-filter>
                 <action android:name="xhc.video.dub" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
         </activity>
-
 
         <!-- provider -->
         <provider
@@ -131,7 +126,7 @@
                 android:resource="@xml/temp_provider" />
         </provider>
 
-
+        <activity android:name=".activity.PlayListActivity"></activity>
     </application>
 
 </manifest>

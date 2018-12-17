@@ -15,6 +15,7 @@ import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.activity.ChoisePicActivity;
 import module.video.jnc.myffmpeg.activity.ChoiseVideoActivity;
+import module.video.jnc.myffmpeg.activity.PlayListActivity;
 
 public class EditFragment extends Fragment implements View.OnClickListener {
 
@@ -41,6 +42,7 @@ public class EditFragment extends Fragment implements View.OnClickListener {
         view.findViewById(R.id.tv_gif).setOnClickListener(this);
         view.findViewById(R.id.tv_reverse).setOnClickListener(this);
         view.findViewById(R.id.tv_dub).setOnClickListener(this);
+        view.findViewById(R.id.tv_player).setOnClickListener(this);
         imgBmp = view.findViewById(R.id.img_bmp);
     }
 
@@ -107,7 +109,10 @@ public class EditFragment extends Fragment implements View.OnClickListener {
                 intent.putExtra("action", "xhc.video.dub");
                 startActivity(intent);
                 break;
-
+            case R.id.tv_player:
+                intent.setClass(getActivity(), PlayListActivity.class);
+                startActivity(intent);
+                break;
         }
     }
 }

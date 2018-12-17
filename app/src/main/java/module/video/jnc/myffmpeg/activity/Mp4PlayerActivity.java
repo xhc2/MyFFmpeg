@@ -67,7 +67,6 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
     private RelativeLayout rlTopBar;
     private RelativeLayout rlBottomBar;
     private int progress;
-    private FileAdater adater;
     private List<File> listFile = new ArrayList<>();
     private float videoDuration;
     private String playPath;
@@ -514,7 +513,4 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
         FFmpegUtils.removeNotify(this);
         FFmpegUtils.destroyMp4Play();
     }
-
-
-
 }
