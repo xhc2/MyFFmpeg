@@ -34,6 +34,7 @@ void ReadAVPackage::run(){
 //            LOGE(" READ FRAME faild %s ", av_err2str(result));
             if(strcmp("End of file"  , av_err2str(result)) == 0){
                 //文件结尾，先不停止，因为可能会seek
+//                LOGE(" END OF FILE !!! ");
                 notify(NULL);
             }
             threadSleep(2);

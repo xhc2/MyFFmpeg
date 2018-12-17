@@ -16,6 +16,7 @@
 
 
 VideoDub::VideoDub() {
+    LOGE(" --------------------- VIDEO DUB START ---------------------");
     readEnd = false;
     decodeEnd = false;
     afc_input = NULL;
@@ -24,6 +25,7 @@ VideoDub::VideoDub() {
     maxWidth = 640;
     maxHeight = 480;
     maxFrameSize = 10;
+    audioCount = 0;
     readAVPackage = NULL ;
 }
 
@@ -141,10 +143,6 @@ int VideoDub::buildOutput(const char *outputPath) {
     outAFrame->channels = outChannel;
     outAFrame->channel_layout = outChannelLayout;
     outAFrame->nb_samples = nbSample;
-//    result = av_frame_make_writable(outAFrame);
-//    if (result < 0) {
-//        LOGE(" av_frame_make_writable %s  ", av_err2str(result));
-//    }
     aCalDuration = AV_TIME_BASE / sampleRate;
     audioBuffer = (char *)malloc(nbSample * av_get_bytes_per_sample(sampleFormat));
     return 1;
@@ -155,7 +153,7 @@ int VideoDub::startDub() {
     this->start();
     readAVPackage->start();
     int size = width * height;
-
+    isExit = false;
     while (!isExit) {
         if (pause) {
             threadSleep(2);
@@ -176,6 +174,7 @@ int VideoDub::startDub() {
             myData->vHeight = height;
             myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) *
                            vframe->height;
+
             myData->datas[0] = (uint8_t *) malloc(size);
             myData->datas[1] = (uint8_t *) malloc(size / 4);
             myData->datas[2] = (uint8_t *) malloc(size / 4);
@@ -195,9 +194,9 @@ int VideoDub::startDub() {
                 memcpy(myData->datas[2] + width / 2 * i,
                        vframe->data[2] + vframe->linesize[2] * i, width / 2);
             }
-
             this->notify(myData);
         }
+
     }
     decodeEnd = true;
     return 1;
@@ -265,7 +264,7 @@ void VideoDub::run() {
             threadSleep(2);
             continue;
         }
-//        LOGE("write  video %d , audio %d ", frameQue.size(), audioQue.size());
+        LOGE("write  video %d , audio %d ", encodeFrameQue.size(), audioQue.size());
         if (audioQue.size() <= 0 || encodeFrameQue.size() <= 0) {
             if (readEnd) {
                 break;
@@ -277,6 +276,7 @@ void VideoDub::run() {
         AVFrame *vframe = encodeFrameQue.front();
         if (av_compare_ts(apts, audioOutputStream->time_base, vpts, videoOutputStream->time_base) <
             0) {
+            LOGE(" WRITE AAAAAAAAAAAAAAAAAAAAA  ");
             aPkt->stream_index = audioOutputStreamIndex;
             av_packet_rescale_ts(aPkt, timeBaseFFmpeg, audioOutputStream->time_base);
             apts = aPkt->pts;
@@ -287,6 +287,7 @@ void VideoDub::run() {
             av_packet_free(&aPkt);
             audioQue.pop();
         } else {
+            LOGE(" WRITE VVVVVVVVVVVVVVVVVVVVVVV  ");
             AVPacket *vPkt = encodeFrame(vframe, vCtxE);
             av_frame_free(&vframe);
             encodeFrameQue.pop();
@@ -312,6 +313,7 @@ void VideoDub::update(MyData *mydata) {
 
     if (mydata == NULL) {
         readEnd = true;
+//        LOGE(" READ END ....... ");
         return;
     }
     if (mydata->isAudio) {
@@ -319,10 +321,10 @@ void VideoDub::update(MyData *mydata) {
         return;
     }
     while (!isExit) {
-        LOGE("xx frameQue QUE %d ", frameQue.size());
         if (frameQue.size() < maxFrameSize) {
             AVPacket *pkt = mydata->pkt;
             if (pkt == NULL) {
+                LOGE("DELETE PKT == NULL ");
                 delete mydata;
                 return;
             }
@@ -344,8 +346,8 @@ void VideoDub::update(MyData *mydata) {
                 } else {
                     frameQue.push(vframe);
                 }
-                break;
             }
+            break;
         } else {
             threadSleep(2);
         };
@@ -387,6 +389,8 @@ void VideoDub::destroyOutput() {
         free(audioBuffer);
     }
     destroySwsContext();
+    apts = 0;
+    vpts = 0;
     LOGE(" DESTROY OUTPUT !");
 }
 
@@ -430,5 +434,6 @@ VideoDub::~VideoDub() {
     destroyOther();
     destroyInput();
     destroyOutput();
+    LOGE(" DESTROY SUCCESS !!!!");
 }
 

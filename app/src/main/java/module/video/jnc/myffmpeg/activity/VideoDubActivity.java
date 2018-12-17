@@ -35,8 +35,9 @@ public class VideoDubActivity extends VideoEditParentActivity {
     private static final int pcmFormat = AudioFormat.ENCODING_PCM_16BIT;
     private static final int channel = AudioFormat.CHANNEL_IN_MONO;
     private int pcmSize = 4096;
-    private boolean flag ;
-    private byte[] bytes ;
+    private boolean flag;
+    private byte[] bytes;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,69 +74,54 @@ public class VideoDubActivity extends VideoEditParentActivity {
                 return false;
             }
         });
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC , sampleRate ,
-                channel , pcmFormat,
+        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
+                channel, pcmFormat,
                 pcmSize);
-        audioRecord.startRecording();
+
         bytes = new byte[pcmSize];
     }
 
     private AudioRead audioReadThread;
-    private void startAudioRead(){
+
+    private void startAudioRead() {
         stopAudioRead();
-        if(audioReadThread == null){
+        audioRecord.startRecording();
+        if (audioReadThread == null) {
             audioReadThread = new AudioRead();
             audioReadThread.readFlag = true;
             audioReadThread.start();
         }
     }
 
-    private void stopAudioRead(){
-        if(audioReadThread != null){
+    private void stopAudioRead() {
+        audioRecord.stop();
+        if (audioReadThread != null) {
             audioReadThread.readFlag = false;
-            try{
+            try {
                 audioReadThread.join();
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         audioReadThread = null;
     }
 
-    class AudioRead extends Thread{
+    class AudioRead extends Thread {
 
         int readSize = 0;
-        boolean readFlag ;
-        FileOutputStream fos ;
-        AudioRead(){
-            try {
-                fos = new FileOutputStream("sdcard/FFmpeg/pcmjava.pcm");
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+        boolean readFlag;
+
         @Override
         public void run() {
             super.run();
-            while(readFlag){
-                if(flag){
-                    readSize = audioRecord.read(bytes , 0 , pcmSize);
-                    Log.e("xhc" , "read size "+readSize);
-                    if(AudioRecord.ERROR_INVALID_OPERATION != readSize ){
-                        try {
-                            fos.write(bytes);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+            while (readFlag) {
+                if (flag) {
+                    readSize = audioRecord.read(bytes, 0, pcmSize);
+                    Log.e("xhc" , " read size "+readSize);
+                    if (AudioRecord.ERROR_INVALID_OPERATION != readSize) {
                         FFmpegUtils.videoDubAddVoice(bytes);
                     }
                 }
-            }
-            try {
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }

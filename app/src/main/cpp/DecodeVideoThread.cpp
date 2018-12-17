@@ -5,7 +5,8 @@
 #include <my_log.h>
 
 #include "DecodeVideoThread.h"
-DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc  ,int videoIndex){
+
+DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc, AVCodecContext *vc, int videoIndex) {
     maxPackage = 100;
     this->afc = afc;
     this->vc = vc;
@@ -14,7 +15,6 @@ DecodeVideoThread::DecodeVideoThread(AVFormatContext *afc , AVCodecContext  *vc 
     finishFlag = false;
 //    file = fopen("sdcard/FFmpeg/fileyuv" , "wb+");
 }
-
 
 
 void DecodeVideoThread::run() {
@@ -28,7 +28,7 @@ void DecodeVideoThread::run() {
 //        LOGE(" videoPktQue %d " , videoPktQue.size());
         if (videoPktQue.empty()) {
 //            LOGE(" VIDEO PACKAGE NULL ");
-            if(finishFlag){
+            if (finishFlag) {
                 pts = -100;
                 LOGE(" video finish  ");
             }
@@ -66,47 +66,51 @@ void DecodeVideoThread::run() {
 
 
             vframe->pts = util.getConvertPts(vframe->pts,
-                                            afc->streams[videoIndex]->time_base);
+                                             afc->streams[videoIndex]->time_base);
             pts = vframe->pts;
             MyData *myData = new MyData();
             myData->pts = pts;
             myData->isAudio = false;
-            myData->vWidth = vc->width ;
+            myData->vWidth = vc->width;
             myData->vHeight = vc->height;
-            int size = vc->width *  vc->height;
-            myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) * vframe->height;
+            int size = vc->width * vc->height;
+            myData->size = (vframe->linesize[0] + vframe->linesize[1] + vframe->linesize[2]) *
+                           vframe->height;
 
             //y
-            myData->datas[0] = (uint8_t *)malloc(size);
+            myData->datas[0] = (uint8_t *) malloc(size);
             //u
-            myData->datas[1] = (uint8_t *)malloc(size / 4);
+            myData->datas[1] = (uint8_t *) malloc(size / 4);
             //v
-            myData->datas[2] = (uint8_t *)malloc(size / 4);
+            myData->datas[2] = (uint8_t *) malloc(size / 4);
 
 
             //把yuv数据读取出来
-            for(int i = 0 ;i < vc->height ; ++i){
-                memcpy(myData->datas[0] + vc->width * i,vframe->data[0] + vframe->linesize[0] * i ,  vc->width );
+            for (int i = 0; i < vc->height; ++i) {
+                memcpy(myData->datas[0] + vc->width * i, vframe->data[0] + vframe->linesize[0] * i,
+                       vc->width);
             }
 
-            for(int i = 0 ;i < vc->height / 2 ; ++i){
-                memcpy(myData->datas[1] + vc->width / 2 * i ,vframe->data[1] + vframe->linesize[1] * i ,  vc->width / 2 );
+            for (int i = 0; i < vc->height / 2; ++i) {
+                memcpy(myData->datas[1] + vc->width / 2 * i,
+                       vframe->data[1] + vframe->linesize[1] * i, vc->width / 2);
             }
 
-            for(int i = 0 ;i < vc->height / 2 ; ++i){
-                memcpy(myData->datas[2]  + vc->width / 2 * i,vframe->data[2] + vframe->linesize[2] * i ,  vc->width / 2);
+            for (int i = 0; i < vc->height / 2; ++i) {
+                memcpy(myData->datas[2] + vc->width / 2 * i,
+                       vframe->data[2] + vframe->linesize[2] * i, vc->width / 2);
             }
             this->notify(myData);
         }
     }
 }
 
-void DecodeVideoThread::clearQue(){
-    while(!isExit){
+void DecodeVideoThread::clearQue() {
+    while (!isExit) {
 
-        if(!videoPktQue.empty()){
+        if (!videoPktQue.empty()) {
             AVPacket *pkt = videoPktQue.front();
-            if(pkt != NULL){
+            if (pkt != NULL) {
                 av_packet_free(&pkt);
             }
             videoPktQue.pop();
@@ -117,34 +121,33 @@ void DecodeVideoThread::clearQue(){
 }
 
 
-
 void DecodeVideoThread::update(MyData *mydata) {
-    if(mydata == NULL){
+    if (mydata == NULL) {
 //        LOGE(" video play finish ");
         finishFlag = true;
-        return ;
+        return;
     }
 
-    if (mydata->isAudio) return ;
+    if (mydata->isAudio) return;
 //    pthread_mutex_lock(&mutex_pthread);
     while (!isExit) {
 //            LOGE(" VIDEO 阻塞 %d pts %lld " , videoPktQue.size() , mydata->pts);
-        if(pause){
+        if (pause) {
             //目前有两种暂停情况。用户手动暂停视频，和用户seek暂停视频。丢掉一帧问题不大，但是可以解决掉
             //暂停时阻塞的情况
             break;
         }
-            if (videoPktQue.size() < maxPackage) {
-                videoPktQue.push(mydata->pkt);
-                break;
-            }
-            else{
-                threadSleep(2);
-            }
+        if (videoPktQue.size() < maxPackage) {
+            videoPktQue.push(mydata->pkt);
+            //我这里怎么没有delete mydata？
+            break;
+        } else {
+            threadSleep(2);
+        }
     }
 //    pthread_mutex_unlock(&mutex_pthread);
 }
 
-DecodeVideoThread::~DecodeVideoThread(){
+DecodeVideoThread::~DecodeVideoThread() {
     av_frame_free(&vframe);
 }
