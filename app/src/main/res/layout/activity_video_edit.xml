@@ -155,7 +155,6 @@
 
             style="@style/edit_button"
             android:drawableTop="@mipmap/video_dub"
-            android:background="#E61A42"
             android:text="实时配音" />
 
         <TextView
