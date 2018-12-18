@@ -47,6 +47,7 @@ add_library( my_ffmpeg
             src/main/cpp/VideoMerge.cpp
             src/main/cpp/AudioMix.cpp
             src/main/cpp/VideoDub.cpp
+            src/main/cpp/VideoMusic.cpp
             )
 
 

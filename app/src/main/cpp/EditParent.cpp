@@ -77,7 +77,7 @@ int EditParent::getVideoDecodeContext(AVFormatContext *fmt_ctx, AVCodecContext *
     /* select the video stream */
     ret = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, &dec, 0);
     if (ret < 0) {
-        LOGE("av_find_best_stream FAILD !");
+        LOGE("av_find_best_stream FAILD ! %s " ,av_err2str(ret));
         return ret;
     }
     videoStreamIndex = ret;

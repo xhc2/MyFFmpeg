@@ -13,6 +13,7 @@ import android.widget.ImageView;
 
 import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.activity.ChoiseMusicActivity;
 import module.video.jnc.myffmpeg.activity.ChoisePicActivity;
 import module.video.jnc.myffmpeg.activity.ChoiseVideoActivity;
 import module.video.jnc.myffmpeg.activity.PlayListActivity;
@@ -43,6 +44,7 @@ public class EditFragment extends Fragment implements View.OnClickListener {
         view.findViewById(R.id.tv_reverse).setOnClickListener(this);
         view.findViewById(R.id.tv_dub).setOnClickListener(this);
         view.findViewById(R.id.tv_player).setOnClickListener(this);
+        view.findViewById(R.id.tv_video_music).setOnClickListener(this);
         imgBmp = view.findViewById(R.id.img_bmp);
     }
 
@@ -111,6 +113,14 @@ public class EditFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.tv_player:
                 intent.setClass(getActivity(), PlayListActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.tv_video_music:
+                intent.setClass(getActivity(), ChoiseMusicActivity.class);
+                intent.putExtra("choise_max_num_music", 1);
+                intent.putExtra("choise_max_video", 1);
+                intent.putExtra("action", "xhc.video.video_music");
+                intent.putExtra("action_next", "module.video.jnc.myffmpeg.choisevideo");
                 startActivity(intent);
                 break;
         }

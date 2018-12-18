@@ -125,7 +125,6 @@ public class ChoisePicActivity extends BaseActivity implements MyBaseAdapter.OnR
                     startActivity(intent);
                     finish();
                 }
-
         }
     }
 

@@ -36,7 +36,7 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
     private int choiseMin; //选择视频最小数
     private String action ;
     private String picPath;
-
+    private String musicPath ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +47,7 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
             choiseMin = intent.getIntExtra("choise_min_video" , 1);
             action = intent.getStringExtra("action");
             picPath = intent.getStringExtra("pic") ;
+            musicPath = intent.getStringExtra("music_path") ;
         }
 
         recyclerView = findViewById(R.id.recycler_view);
@@ -80,6 +81,9 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
                 intent.putStringArrayListExtra("videos" , listSelected);
                 if(!TextUtils.isEmpty(picPath)){
                     intent.putExtra("pic" , picPath);
+                }
+                if(!TextUtils.isEmpty(musicPath)){
+                    intent.putExtra("music_path" , musicPath);
                 }
                 startActivity(intent);
                 finish();

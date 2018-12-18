@@ -145,6 +145,11 @@ public class FFmpegUtils {
     public static native int videoDubDestroy();
 
 
+    //视频音乐相关
+    public static native int initVideoMusic(String inputPath , String musicPath , String outputPath);
+    public static native int videoMusicProgress();
+    public static native int destroyVideoMusic();
+
 
     //给本地回调，是在jni层调用的方法
     public static void nativeNotify(String str){

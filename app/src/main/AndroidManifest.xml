@@ -114,7 +114,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity android:name=".activity.PlayListActivity" />
+        <activity android:name=".activity.ChoiseMusicActivity" />
+        <activity android:name=".activity.VideoMusicActivity">
+            <intent-filter>
+                <action android:name="xhc.video.video_music" />
 
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <!-- provider -->
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -126,7 +134,6 @@
                 android:resource="@xml/temp_provider" />
         </provider>
 
-        <activity android:name=".activity.PlayListActivity"></activity>
     </application>
 
 </manifest>

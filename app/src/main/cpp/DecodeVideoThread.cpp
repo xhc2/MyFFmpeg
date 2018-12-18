@@ -30,7 +30,6 @@ void DecodeVideoThread::run() {
 //            LOGE(" VIDEO PACKAGE NULL ");
             if (finishFlag) {
                 pts = -100;
-                LOGE(" video finish  ");
             }
             threadSleep(2);
             continue;

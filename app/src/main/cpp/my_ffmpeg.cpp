@@ -24,6 +24,7 @@
 #include <VideoMerge.h>
 #include <AudioMix.h>
 #include <VideoDub.h>
+#include <VideoMusic.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -839,5 +840,54 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubAddVoice(JNIEnv *env, jclass 
         free(pcmArray);
     }
     env->ReleaseByteArrayElements(pcm_, pcm, 0);
+    return 1;
+}
+
+VideoMusic *videoMusic = NULL  ;
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoMusic(JNIEnv *env, jclass type,
+                                                          jstring inputPath_, jstring musicPath_,
+                                                          jstring outputPath_) {
+    const char *inputPath = env->GetStringUTFChars(inputPath_, 0);
+    const char *musicPath = env->GetStringUTFChars(musicPath_, 0);
+    const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
+
+    if(videoMusic == NULL ){
+        videoMusic = new VideoMusic();
+        if(videoMusic->init(inputPath , musicPath , outputPath) > 0){
+            videoMusic->startVideoMusic();
+        }
+        else{
+            LOGE(" VIDEO INIT FAILD !");
+        }
+    }
+    env->ReleaseStringUTFChars(inputPath_, inputPath);
+    env->ReleaseStringUTFChars(musicPath_, musicPath);
+    env->ReleaseStringUTFChars(outputPath_, outputPath);
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_videoMusicProgress(JNIEnv *env, jclass type) {
+
+    if(videoMusic != NULL ){
+        return videoMusic->getProgress();
+    }
+
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyVideoMusic(JNIEnv *env, jclass type) {
+
+    // TODO
+    if(videoMusic != NULL ){
+        delete  videoMusic;
+    }
+    videoMusic = NULL;
     return 1;
 }

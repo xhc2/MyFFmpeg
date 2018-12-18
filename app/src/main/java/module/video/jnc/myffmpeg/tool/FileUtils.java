@@ -18,6 +18,9 @@ public class FileUtils {
     public static final String APP_GIF = "sdcard/FFmpeg/gif/";
     public static final String APP_REVERSE = "sdcard/FFmpeg/reverse/";
     public static final String APP_DUB = "sdcard/FFmpeg/dub/";
+    public static final String APP_MUSIC_VIDEO = "sdcard/FFmpeg/video_music/";
+    public static final String APP_MUSIC = "sdcard/FFmpeg/music";
+
     public static String saveFileToWaterMark(String name, byte[] buffer) {
         File file = new File(APP_WATER_MARK);
         if (!file.exists()) {
@@ -120,5 +123,14 @@ public class FileUtils {
             file.mkdirs();
         }
     }
+
+    public static void makeMusicVideo() {
+        File file = new File(APP_MUSIC_VIDEO);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+
 
 }
