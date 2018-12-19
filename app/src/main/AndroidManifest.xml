@@ -123,6 +123,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity android:name=".activity.VideoSpeedActivity">
+            <intent-filter>
+                <action android:name="xhc.video.speed" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+
         <!-- provider -->
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -133,6 +141,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/temp_provider" />
         </provider>
+
 
     </application>
 

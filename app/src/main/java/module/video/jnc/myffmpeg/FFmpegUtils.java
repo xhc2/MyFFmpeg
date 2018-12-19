@@ -151,6 +151,11 @@ public class FFmpegUtils {
     public static native int destroyVideoMusic();
 
 
+    //播放速度相关
+    public static native int initVideoSpeed(String inputPath , float speed , String outputPath);
+    public static native int videoSpeedProgress();
+    public static native int destroyVideoSpeed();
+
     //给本地回调，是在jni层调用的方法
     public static void nativeNotify(String str){
         for(Lis lis : listNativeNotify){

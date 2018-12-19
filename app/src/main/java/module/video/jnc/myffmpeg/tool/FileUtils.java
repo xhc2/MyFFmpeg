@@ -19,6 +19,7 @@ public class FileUtils {
     public static final String APP_REVERSE = "sdcard/FFmpeg/reverse/";
     public static final String APP_DUB = "sdcard/FFmpeg/dub/";
     public static final String APP_MUSIC_VIDEO = "sdcard/FFmpeg/video_music/";
+    public static final String APP_SPEED = "sdcard/FFmpeg/speed/";
     public static final String APP_MUSIC = "sdcard/FFmpeg/music";
 
     public static String saveFileToWaterMark(String name, byte[] buffer) {
@@ -130,7 +131,12 @@ public class FileUtils {
             file.mkdirs();
         }
     }
-
+    public static void makeSpeedDir() {
+        File file = new File(APP_SPEED);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
 
 
 }

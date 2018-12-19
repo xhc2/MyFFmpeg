@@ -83,7 +83,7 @@ public class VideoWaterMarkActivity extends SingleFilterActivity  implements Vie
                     showLoadPorgressDialog("处理中...");
                     return;
                 }
-                String filterDes = String.format(Locale.CHINESE , "movie=%s[wm];[in][wm]overlay=%d:%d[out]", logoPath, waterX, waterY);
+                String filterDes = String.format(Locale.CHINESE ,"movie=%s[wm];[in][wm]overlay=%d:%d[out]", logoPath, waterX, waterY);
                 startDealVideo(listPath.get(0),
                         FileUtils.APP_WATER_MARK + "water_mark" + System.currentTimeMillis() + ".mp4" , filterDes ,  new int[]{-1, -1});
                 showLoadPorgressDialog("处理中...");

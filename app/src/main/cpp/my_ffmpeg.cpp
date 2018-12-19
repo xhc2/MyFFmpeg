@@ -25,6 +25,7 @@
 #include <AudioMix.h>
 #include <VideoDub.h>
 #include <VideoMusic.h>
+#include <VideoSpeed.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -592,10 +593,10 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
     int size = 100000;
-    char* xhc[size];
-    for(int i = 0 ;i < size ; ++i){
-        LOGE(" %d m " , i);
-        xhc[i] = (char *)malloc(1024 * 1024 * 1024 * sizeof(char));
+    char *xhc[size];
+    for (int i = 0; i < size; ++i) {
+        LOGE(" %d m ", i);
+        xhc[i] = (char *) malloc(1024 * 1024 * 1024 * sizeof(char));
 
     }
     return 1;
@@ -788,11 +789,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoDub(JNIEnv *env, jclass type
     if (vd == NULL) {
         ANativeWindow *win = ANativeWindow_fromSurface(env, glSurfaceView);
         vd = new VideoDub();
-        int result = vd ->init(inputPath, outputPath, win);
-        if(result > 0){
+        int result = vd->init(inputPath, outputPath, win);
+        if (result > 0) {
             vd->startDub();
-        }
-        else{
+        } else {
             LOGE(" INIT FAILD ");
         };
 
@@ -835,7 +835,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubAddVoice(JNIEnv *env, jclass 
     if (vd != NULL) {
         int size = env->GetArrayLength(pcm_);
         char *pcmArray = (char *) malloc(size);
-        memcpy(pcmArray , pcm , size);
+        memcpy(pcmArray, pcm, size);
         vd->addVoice(pcmArray, size);
         free(pcmArray);
     }
@@ -843,7 +843,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_videoDubAddVoice(JNIEnv *env, jclass 
     return 1;
 }
 
-VideoMusic *videoMusic = NULL  ;
+VideoMusic *videoMusic = NULL;
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -854,12 +854,11 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoMusic(JNIEnv *env, jclass ty
     const char *musicPath = env->GetStringUTFChars(musicPath_, 0);
     const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
 
-    if(videoMusic == NULL ){
+    if (videoMusic == NULL) {
         videoMusic = new VideoMusic();
-        if(videoMusic->init(inputPath , musicPath , outputPath) > 0){
+        if (videoMusic->init(inputPath, musicPath, outputPath) > 0) {
             videoMusic->startVideoMusic();
-        }
-        else{
+        } else {
             LOGE(" VIDEO INIT FAILD !");
         }
     }
@@ -873,7 +872,7 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_videoMusicProgress(JNIEnv *env, jclass type) {
 
-    if(videoMusic != NULL ){
+    if (videoMusic != NULL) {
         return videoMusic->getProgress();
     }
 
@@ -885,9 +884,52 @@ JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyVideoMusic(JNIEnv *env, jclass type) {
 
     // TODO
-    if(videoMusic != NULL ){
-        delete  videoMusic;
+    if (videoMusic != NULL) {
+        delete videoMusic;
     }
     videoMusic = NULL;
+    return 1;
+}
+
+
+VideoSpeed *videoSpeed ;
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoSpeed(JNIEnv *env, jclass type,
+                                                          jstring inputPath_, jfloat speed,
+                                                          jstring outputPath_) {
+    const char *inputPath = env->GetStringUTFChars(inputPath_, 0);
+    const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
+
+    if(videoSpeed == NULL ){
+        videoSpeed = new VideoSpeed();
+        if(videoSpeed->init(inputPath , speed , outputPath) > 0){
+            videoSpeed->startSpeed() ;
+        }
+        else{
+            LOGE(" SPEED  INIT FAILD !");
+        }
+
+    }
+    env->ReleaseStringUTFChars(inputPath_, inputPath);
+    env->ReleaseStringUTFChars(outputPath_, outputPath);
+    return 1;
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_videoSpeedProgress(JNIEnv *env, jclass type) {
+
+    // TODO
+    return 1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyVideoSpeed(JNIEnv *env, jclass type) {
+
+    // TODO
     return 1;
 }

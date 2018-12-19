@@ -103,6 +103,7 @@ void VideoFilter::startWaterMark() {
             frame = decodePacket(decCtx, packet);
             av_packet_free(&packet);
             if (frame != NULL) {
+                LOGE(" frame pts %lld " , frame->pts);
                 if (av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF) <
                     0) {
                     LOGE(" av_buffersrc_add_frame_flags !");
@@ -111,6 +112,7 @@ void VideoFilter::startWaterMark() {
                 }
                 av_frame_free(&frame);
                 while (true) {
+
                     ret = av_buffersink_get_frame(buffersink_ctx, filt_frame);
                     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                         break;
@@ -121,6 +123,7 @@ void VideoFilter::startWaterMark() {
                         break;
                     }
                     filt_frame->pts = filt_frame->best_effort_timestamp;
+                    LOGE(" filt_frame pts %lld " , filt_frame->pts);
                     AVPacket *filtPkt = encodeFrame(filt_frame, vCtxE);
                     if (filtPkt != NULL) {
                         av_packet_rescale_ts(filtPkt,

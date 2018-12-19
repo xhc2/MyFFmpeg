@@ -45,6 +45,7 @@ public class EditFragment extends Fragment implements View.OnClickListener {
         view.findViewById(R.id.tv_dub).setOnClickListener(this);
         view.findViewById(R.id.tv_player).setOnClickListener(this);
         view.findViewById(R.id.tv_video_music).setOnClickListener(this);
+        view.findViewById(R.id.tv_speed).setOnClickListener(this);
         imgBmp = view.findViewById(R.id.img_bmp);
     }
 
@@ -121,6 +122,12 @@ public class EditFragment extends Fragment implements View.OnClickListener {
                 intent.putExtra("choise_max_video", 1);
                 intent.putExtra("action", "xhc.video.video_music");
                 intent.putExtra("action_next", "module.video.jnc.myffmpeg.choisevideo");
+                startActivity(intent);
+                break;
+            case R.id.tv_speed:
+                intent.setClass(getActivity(), ChoiseVideoActivity.class);
+                intent.putExtra("choise_max_video", 1);
+                intent.putExtra("action", "xhc.video.speed");
                 startActivity(intent);
                 break;
         }
