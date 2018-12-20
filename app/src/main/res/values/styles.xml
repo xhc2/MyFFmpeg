@@ -18,6 +18,31 @@
         <item name="android:layout_height">45dp</item>
     </style>
 
+    <style name="other_exercise">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:background">@drawable/button_selector</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:drawablePadding">10dp</item>
+        <item name="android:layout_margin">1px</item>
+    </style>
+
+
+    <style name="my_text_choise_style">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#333333</item>
+        <item name="android:drawableRight">@mipmap/right_arrow</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:background">@drawable/button_selector</item>
+
+    </style>
+
     <style name="edit_button">
         <item name="android:background">@drawable/button_selector</item>
         <item name="android:gravity">center_horizontal</item>

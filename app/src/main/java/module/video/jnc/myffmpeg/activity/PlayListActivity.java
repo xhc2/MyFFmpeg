@@ -17,6 +17,7 @@ import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.adapter.MyBaseAdapter;
 import module.video.jnc.myffmpeg.adapter.PlayListAdapter;
 import module.video.jnc.myffmpeg.tool.Constant;
+import module.video.jnc.myffmpeg.tool.FileUtils;
 
 public class PlayListActivity extends BaseActivity {
     private RecyclerView rcView;
@@ -50,7 +51,11 @@ public class PlayListActivity extends BaseActivity {
     }
 
     private void getFileList() {
-        File[] files = Constant.rootVideoFile.listFiles();
+        File file = new File(FileUtils.APP_VIDEO);
+        if(!file.exists()){
+            return ;
+        }
+        File[] files = file.listFiles();
         if (files != null) {
             for (File f : files) {
                 listFile.add(f.getPath());

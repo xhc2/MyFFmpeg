@@ -74,11 +74,11 @@ public class FFmpegUtils {
     //h264
     public static native String h264Parse(String path);
     public static native byte[] getNextNalu(String path);
-
+    public static native void destroyH264Parse();
     //aac
     public static native String aacParse(String path);
     public static native  byte[]  getAACFrame(String path);
-
+    public static native void destroyAACParse();
     //视频剪辑
     public static native void startClip(String path , String output ,   int start , int end);
     public static native int getClipProgress();

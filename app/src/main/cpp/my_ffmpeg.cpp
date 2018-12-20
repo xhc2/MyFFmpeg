@@ -308,7 +308,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_flvParse(JNIEnv *env, jclass type, js
 
     FlvParse *fp = new FlvParse(path);
     const char *result = fp->start();
-
+    delete fp;
     env->ReleaseStringUTFChars(path_, path);
     return env->NewStringUTF(result);
 }
@@ -324,8 +324,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_h264Parse(JNIEnv *env, jclass type, j
         hp = new h264Parse(path);
     }
     hp->start();
+    delete hp ;
+    hp = NULL;
     env->ReleaseStringUTFChars(path_, path);
-    return env->NewStringUTF("h264解析完毕");
+    return env->NewStringUTF("h264解析完毕，sdcard/FFmpeg/fileparse/h264parse.txt");
 }
 
 
@@ -351,6 +353,20 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getNextNalu(JNIEnv *env, jclass type,
     }
     env->ReleaseStringUTFChars(path_, path);
     return NULL;
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyH264Parse(JNIEnv *env, jclass type) {
+
+    // TODO
+    if(hp != NULL){
+        delete hp ;
+    }
+    hp = NULL;
+
+
 }
 
 AACParse *aacParse = NULL;
@@ -388,6 +404,17 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getAACFrame(JNIEnv *env, jclass type,
     }
     env->ReleaseStringUTFChars(path_, path);
     return NULL;
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyAACParse(JNIEnv *env, jclass type) {
+
+    if(aacParse != NULL){
+        delete aacParse;
+    }
+    aacParse = NULL;
 }
 
 VideoClip *vc;

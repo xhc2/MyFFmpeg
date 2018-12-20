@@ -35,7 +35,6 @@ struct FrameHead{
 class AACParse{
 
 private :
-    char *path;
     FILE *aacF;
 public :
     int parseAACHeader(bool write);

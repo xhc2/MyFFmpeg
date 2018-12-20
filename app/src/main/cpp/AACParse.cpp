@@ -7,11 +7,8 @@
 
 
 AACParse::AACParse(const char *path) {
-    int len = strlen(path);
-    this->path = (char *) malloc(len);
-    memcpy(this->path, path, len);
     LOGE(" path %s ", path);
-    aacF = fopen(this->path, "r");
+    aacF = fopen(path, "r");
 
 }
 
@@ -51,7 +48,7 @@ int AACParse::parseAACHeader(bool write) {
     frameLength |= ((head[5] & 0xe0) >> 5);
     LOGE(" frameLength %d " , frameLength);
     if (write) {
-        FILE *outFile = fopen("sdcard/FFmpeg/parseAAC.txt", "wb+");
+        FILE *outFile = fopen("sdcard/FFmpeg/fileparse/parseAAC.txt", "wb+");
 
         fclose(outFile);
     }
@@ -65,5 +62,7 @@ void AACParse::parseStart() {
 }
 
 AACParse::~AACParse() {
-
+    if(aacF != NULL){
+        fclose(aacF);
+    }
 }

@@ -9,23 +9,26 @@
         android:id="@+id/title"
         style="@style/title_bar"
         app:show_back="false"
-        app:title_text="播放列表" />
+        app:title_text="我的" />
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="5dp"
-        android:text="只遍历sdcard/FFmpeg/video 目录"
-        android:textColor="#d81e06" />
-
+        android:id="@+id/tv_myfile"
+        android:text="视频文件"
+        style="@style/my_text_choise_style"
+        />
     <View
+        android:background="#33000000"
         android:layout_width="match_parent"
-        android:layout_height="1px"
-        android:background="#000000" />
+        android:layout_height="1dp"/>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rv_view"
+
+    <TextView
+        android:id="@+id/tv_about"
+        android:text="关于"
+        style="@style/my_text_choise_style"
+        />
+    <View
+        android:background="#33000000"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
+        android:layout_height="1dp"/>
 </LinearLayout>

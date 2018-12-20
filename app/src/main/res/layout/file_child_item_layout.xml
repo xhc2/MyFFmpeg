@@ -28,15 +28,14 @@
 
     <TextView
         android:id="@+id/tv_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
-        android:layout_marginRight="-2dp"
-        android:layout_toLeftOf="@id/img_arrow"
-        android:layout_toRightOf="@id/img_logo"
-        android:maxLines="1"
         android:text="hello world"
-        android:textSize="16sp" />
+        android:layout_centerVertical="true"
+        android:textSize="16sp"
+        android:layout_toLeftOf="@id/img_arrow"
+        android:maxLines="1"
+        android:layout_toRightOf="@id/img_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </RelativeLayout>

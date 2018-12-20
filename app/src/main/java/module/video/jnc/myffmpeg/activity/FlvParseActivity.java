@@ -11,24 +11,25 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+
 import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.FileUtils;
 
-public class FlvParseActivity extends Activity {
+public class FlvParseActivity extends BaseActivity {
 
     private TextView tvData;
     private EditText etText;
     private ProgressDialog dialog;
-//    private String path ="sdcard/FFmpeg/flv2.flv";
-//    private String path ="sdcard/FFmpeg/test.h264";
     private String path ="sdcard/FFmpeg/test.aac";
 
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-//            dialog.dismiss();
-//            String str = (String)msg.obj;
-//            tvData.setText(str);
+            dialog.dismiss();
+            String str = (String)msg.obj;
+            tvData.setText(str);
             return false;
         }
     });
@@ -37,6 +38,7 @@ public class FlvParseActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flv_parse);
+        FileUtils.makeFileParse();
         tvData = findViewById(R.id.tv_all_data);
         etText = findViewById(R.id.et_path);
         etText.setText(path);
@@ -44,12 +46,12 @@ public class FlvParseActivity extends Activity {
         dialog = new ProgressDialog(this);
         dialog.setMessage("解析中...");
 
-        findViewById(R.id.bt_parse).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_flv_parse).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String str = etText.getText().toString();
                 if(str.endsWith("flv")){
-                    dialog.show();
+
                     startThread(etText.getText().toString());
                 }
                 else{
@@ -65,7 +67,7 @@ public class FlvParseActivity extends Activity {
                 //分析h264
                 String str = etText.getText().toString();
                 if(str.endsWith("h264") || str.endsWith("264")){
-                    dialog.show();
+
                     startThread(etText.getText().toString());
                 }
                 else{
@@ -79,7 +81,7 @@ public class FlvParseActivity extends Activity {
             public void onClick(View v) {
                 String str = etText.getText().toString();
                 if(str.endsWith("aac")){
-                    dialog.show();
+
                     startThread(etText.getText().toString());
                 }
                 else{
@@ -87,28 +89,34 @@ public class FlvParseActivity extends Activity {
                 }
             }
         });
-
-        findViewById(R.id.bt_test).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               byte[] array =  FFmpegUtils.getNextNalu(path);
-               Log.e("xhc_jni" , " size "+array.length);
-            }
-        });
-
     }
 
     private ParseThread ptThread;
 
 
     private void startThread(String path){
+        if(!new File(path).exists()){
+            showToast("文件不存在！");
+            return ;
+        }
+        dialog.show();
+        stopParseThread();
         if(ptThread == null){
             ptThread = new ParseThread(path);
             ptThread.start();
         }
 
     }
-
+    private void stopParseThread(){
+        if(ptThread != null){
+            try {
+                ptThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        ptThread = null;
+    }
     class ParseThread extends Thread{
         String path ;
         ParseThread(String p){

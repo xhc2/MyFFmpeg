@@ -62,7 +62,7 @@ public class ChoiseMusicActivity extends BaseActivity implements MyBaseAdapter.O
         recyclerView = findViewById(R.id.recycler_view);
         rcChoiseView = findViewById(R.id.rl_choise);
         titleBar = findViewById(R.id.title);
-        findFile(FileUtils.APP_MUSIC);
+        findFile(FileUtils.APP_MUSIC_SRC);
         adapter = new ChoiseMusicAdapter(listFile, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));

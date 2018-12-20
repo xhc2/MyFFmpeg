@@ -2,7 +2,6 @@ package module.video.jnc.myffmpeg.activity;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -14,14 +13,14 @@ import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.adapter.HomeViewPagerAdapter;
 import module.video.jnc.myffmpeg.fragment.EditFragment;
 import module.video.jnc.myffmpeg.fragment.OtherFragment;
-import module.video.jnc.myffmpeg.fragment.PFragment;
+import module.video.jnc.myffmpeg.fragment.MyFragment;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private ViewPager viewPager;
     private HomeViewPagerAdapter adapter;
     private EditFragment editFragment;
-    private PFragment playFragment;
+    private MyFragment playFragment;
     private OtherFragment otherFragment;
     private List<Fragment> listFragment = new ArrayList<>();
     private Button btVideoEdit;
@@ -47,7 +46,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private void init() {
         editFragment = new EditFragment();
-        playFragment = new PFragment();
+        playFragment = new MyFragment();
         otherFragment = new OtherFragment();
         listFragment.add(editFragment);
         listFragment.add(otherFragment);

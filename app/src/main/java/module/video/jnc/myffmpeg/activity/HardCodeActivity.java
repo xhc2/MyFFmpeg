@@ -26,6 +26,7 @@ import module.video.jnc.myffmpeg.MediaCodec.MediaCodecAudioEncoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecVideoDecoder;
 import module.video.jnc.myffmpeg.MediaCodec.MediaCodecVideoEncoder;
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.FileUtils;
 
 
 /**
@@ -37,11 +38,17 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
     private SurfaceView surfaceView;
     private SurfaceHolder holder;
     private AudioTrack audioTrack;
-
+    private static final String h264Output = "sdcard/FFmpeg/hard/hard_decoder_h264.264";
+    private static final String h264input = "sdcard/FFmpeg/hard/test.h264";
+    private static final String aacInput = "sdcard/FFmpeg/hard/test.aac";
+    private static final String yuvInput = "sdcard/FFmpeg/hard/yuv_640_360.yuv";
+    private static final String pcmInput = "sdcard/FFmpeg/hard/test_2c_441_16.pcm";
+    private static final String mp4Input = "sdcard/FFmpeg/hard/test.mp4";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hard_code);
+        FileUtils.makeHardDir();
         tvView = (TextView) findViewById(R.id.tv_view);
         surfaceView = (SurfaceView) findViewById(R.id.surface_view);
         holder = surfaceView.getHolder();
@@ -50,7 +57,6 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
             @Override
             public void onClick(View v) {
                 //将yuv编码成h264
-                muxerVideoAudio();
                 try {
                     String name = encodeYuv(true);
                     tvView.setText(" 完成 " + name);
@@ -81,18 +87,19 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
             public void onClick(View v) {
                 int width = 640;
                 int height = 360;
-                String path = "sdcard/FFmpeg/hard_decoder_h264.264";
                 MediaCodecVideoDecoder mediaCodecVideoDecoder =
-                        new MediaCodecVideoDecoder(holder.getSurface(), path, width, height);
+                        new MediaCodecVideoDecoder(holder.getSurface(), h264Output, width, height);
 
                 while (true) {
-                    byte[] buffer = FFmpegUtils.getNextNalu("sdcard/FFmpeg/test.h264");
+                    byte[] buffer = FFmpegUtils.getNextNalu(h264input);
                     if (buffer == null) {
                         Log.e("xhc", " read nalu end ");
                         break;
                     }
                     mediaCodecVideoDecoder.onFrame(buffer, 0, buffer.length);
                 }
+                mediaCodecVideoDecoder.stopCodec();
+                FFmpegUtils.destroyH264Parse();
             }
         });
 
@@ -111,15 +118,18 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
                     }
                 });
                 while (true) {
-                    byte[] buffer = FFmpegUtils.getAACFrame("sdcard/FFmpeg/test.aac");
+                    byte[] buffer = FFmpegUtils.getAACFrame(aacInput);
                     if (buffer == null) {
                         Log.e("xhc", " buffer null");
                         break;
                     }
                     Log.e("xhc", " buffer size " + buffer.length);
                     mad.onFrame(buffer, 0, buffer.length);
-
                 }
+                FFmpegUtils.destroyAACParse();
+                mad.stopCodec();
+                audioTrack.stop();
+                audioTrack.release();
             }
         });
 
@@ -151,7 +161,7 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
         int sampleRate = 44100;
         int pcmSize = 4096;
 
-        final FileOutputStream fos = new FileOutputStream("sdcard/FFmpeg/" + fileName);
+        final FileOutputStream fos = new FileOutputStream(FileUtils.APP_HARD + fileName);
 
         MediaCodecAudioEncoder mca = new MediaCodecAudioEncoder(sampleRate, channelCount, pcmSize, new MediaCodecAudioEncoder.AACCallBack() {
             @Override
@@ -170,7 +180,7 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
         mca.addHeadFlag(writeFlag);
         mca.startEncode();
 
-        FileInputStream fis = new FileInputStream(new File("sdcard/FFmpeg/test_2c_441_16.pcm"));
+        FileInputStream fis = new FileInputStream(new File(pcmInput));
         byte[] buffer = new byte[pcmSize];
         while (true) {
 
@@ -185,10 +195,10 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
 
     private String encodeYuv(final boolean writeFlag) throws Exception {
         //现在解析出来有花屏的问题。先不管，是编码器和yuv格式没对应上的原因。
-        String fileName = "output_hard_encoder.264";
+        String fileName = "output_hard_encoder.h264";
         int width = 640;
         int height = 360;
-        final FileOutputStream fos = new FileOutputStream("sdcard/FFmpeg/" + fileName);
+        final FileOutputStream fos = new FileOutputStream(FileUtils.APP_HARD + fileName);
 
         MediaCodecVideoEncoder mcv = new MediaCodecVideoEncoder(width, height, new MediaCodecVideoEncoder.H264CallBack() {
             @Override
@@ -206,7 +216,7 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
         mcv.startEncode();
 
         try {
-            FileInputStream fis = new FileInputStream(new File("sdcard/FFmpeg/yuv_640_360.yuv"));
+            FileInputStream fis = new FileInputStream(new File(yuvInput));
             while (true) {
                 byte[] buffer = new byte[height * width * 3 / 2];
                 if (fis.read(buffer) == -1) {
@@ -228,10 +238,10 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
      * 混入就用摄像头的吧
      */
     private void muxerVideoAudio() {
-        startActivity(new Intent(HardCodeActivity.this , HardMuxerCameraActivity.class));
+        startActivity(new Intent(HardCodeActivity.this, HardMuxerCameraActivity.class));
     }
 
-    private void extratorVideo() throws Exception{
+    private void extratorVideo() throws Exception {
         int videoIndex = -1;
         int audioIndex = -1;
         int width = 0;
@@ -239,23 +249,23 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
         MediaCodecAudioDecoder aDecoder = null;
         MediaCodecVideoDecoder vDecoder = null;
         MediaExtractor me = new MediaExtractor();
-        me.setDataSource("sdcard/FFmpeg/test.mp4");
-        for(int i = 0 ;i < me.getTrackCount() ; ++i){
+        me.setDataSource(mp4Input);
+        for (int i = 0; i < me.getTrackCount(); ++i) {
             MediaFormat format = me.getTrackFormat(i);
             String mimeType = format.getString(MediaFormat.KEY_MIME);
-            if(mimeType.startsWith("video/")){
+            if (mimeType.startsWith("video/")) {
                 videoIndex = i;
                 width = format.getInteger(MediaFormat.KEY_WIDTH);
                 height = format.getInteger(MediaFormat.KEY_HEIGHT);
-                vDecoder = new MediaCodecVideoDecoder(mimeType , format , holder.getSurface() );
+                vDecoder = new MediaCodecVideoDecoder(mimeType, format, holder.getSurface());
 
             }
-            if(mimeType.startsWith("audio/")){
+            if (mimeType.startsWith("audio/")) {
                 audioIndex = i;
-                aDecoder = new MediaCodecAudioDecoder(mimeType , format);
+                aDecoder = new MediaCodecAudioDecoder(mimeType, format);
                 int mfSampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
                 int mfChannelCount = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
-                int channel = mfChannelCount == 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO ;
+                int channel = mfChannelCount == 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
                 int bufferSize = AudioTrack.getMinBufferSize(mfSampleRate, channel, AudioFormat.ENCODING_PCM_16BIT);
                 audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mfSampleRate,
                         channel, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
@@ -266,30 +276,29 @@ public class HardCodeActivity extends Activity implements SurfaceHolder.Callback
         aDecoder.setAACCallBack(new MediaCodecAudioDecoder.AACCallBack() {
             @Override
             public void callBack(byte[] pcm) {
-                if(pcm != null){
-                    audioTrack.write(pcm , 0 , pcm.length);
+                if (pcm != null) {
+                    audioTrack.write(pcm, 0, pcm.length);
                 }
             }
         });
         audioTrack.play();
 
-        ByteBuffer buffer = ByteBuffer.allocate((int)(width * height * (float)3 / 2));
-        int sampleSize ;
-        int sampleIndex ;
+        ByteBuffer buffer = ByteBuffer.allocate((int) (width * height * (float) 3 / 2));
+        int sampleSize;
+        int sampleIndex;
         me.selectTrack(audioIndex);
         me.selectTrack(videoIndex);
-        while(true){
-            sampleSize = me.readSampleData(buffer , 0);
+        while (true) {
+            sampleSize = me.readSampleData(buffer, 0);
             sampleIndex = me.getSampleTrackIndex();
-            Log.e("xhc" , " samplesize "+sampleSize+" index "+sampleIndex);
-            if(sampleSize < 0){
+            Log.e("xhc", " samplesize " + sampleSize + " index " + sampleIndex);
+            if (sampleSize < 0) {
                 break;
             }
-            if(sampleIndex == videoIndex){
-                vDecoder.onFrame(buffer.array() , 0 , sampleSize);
-            }
-            else if(sampleIndex == audioIndex){
-                aDecoder.onFrame(buffer.array() , 0 , sampleSize);
+            if (sampleIndex == videoIndex) {
+                vDecoder.onFrame(buffer.array(), 0, sampleSize);
+            } else if (sampleIndex == audioIndex) {
+                aDecoder.onFrame(buffer.array(), 0, sampleSize);
             }
 
             me.advance();

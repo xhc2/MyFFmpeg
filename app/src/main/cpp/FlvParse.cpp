@@ -17,7 +17,7 @@ FlvParse::FlvParse(const char *p) {
 
         LOGE("cant find file！");
     }
-    outFile = fopen( "sdcard/FFmpeg/flvparse.txt" , "wb+");
+    outFile = fopen( "sdcard/FFmpeg/fileparse/flv_parse.txt" , "wb+");
     numUtils = NumUtils::getInstance();
     amf = AMF0::getInstance();
 }
@@ -68,7 +68,7 @@ const char *FlvParse::start() {
             free(tagHeader);
             logPreviouTagHeader();
         }
-        resultStr.append(" 解析完成，在文件sdcard/FFmpeg/flvparse.txt ");
+        resultStr.append(" 解析完成，sdcard/FFmpeg/fileparse/flv_parse.txt ");
     } else{
         resultStr.append("找不到文件！");
     }
@@ -459,6 +459,20 @@ void FlvParse::getFlvHeader() {
 
 
 FlvParse::~FlvParse() {
-    free(this->path);
-    fclose(outFile);
+    if(this->path != NULL){
+        free(this->path);
+    }
+    if(outFile != NULL){
+        fclose(outFile);
+    }
+    if(flv != NULL){
+        fclose(flv);
+    }
+    if(amf != NULL){
+        delete amf ;
+    }
+    if(numUtils != NULL){
+        delete numUtils;
+    }
+    LOGE(" DELTE FLV PARSE ");
 }

@@ -1,6 +1,7 @@
 package module.video.jnc.myffmpeg.tool;
 
 import android.graphics.Bitmap;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,7 +10,8 @@ import java.io.IOException;
 
 public class FileUtils {
     public static final String APP_ROOT = "sdcard/FFmpeg/";
-    public static final String APP_VIDEO = "sdcard/FFmpeg/video/";
+    public static final String APP_VIDEO = "sdcard/FFmpeg/video_src/";
+
     public static final String APP_WATER_MARK = "sdcard/FFmpeg/water_mark/";
     public static final String APP_FILTER = "sdcard/FFmpeg/filter/";
     public static final String APP_CROP = "sdcard/FFmpeg/crop/";
@@ -20,30 +22,44 @@ public class FileUtils {
     public static final String APP_DUB = "sdcard/FFmpeg/dub/";
     public static final String APP_MUSIC_VIDEO = "sdcard/FFmpeg/video_music/";
     public static final String APP_SPEED = "sdcard/FFmpeg/speed/";
-    public static final String APP_MUSIC = "sdcard/FFmpeg/music";
+    public static final String APP_MUSIC_SRC = "sdcard/FFmpeg/music_src";
+    public static final String APP_FILE_PARSE = "sdcard/FFmpeg/fileparse";
+    public static final String APP_HARD= "sdcard/FFmpeg/hard/";
+    private static String[] videoMIME = {"mp4" , "flv" , "rmvb" , "ts"};
+//    public static String saveFileToWaterMark(String name, byte[] buffer) {
+//        File file = new File(APP_WATER_MARK);
+//        if (!file.exists()) {
+//            file.mkdirs();
+//        }
+//        FileOutputStream fos = null;
+//        try {
+//            fos = new FileOutputStream(APP_WATER_MARK + name);
+//            fos.write(buffer);
+//            fos.flush();
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        } finally {
+//            try {
+//                fos.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return APP_WATER_MARK + name;
+//    }
 
-    public static String saveFileToWaterMark(String name, byte[] buffer) {
-        File file = new File(APP_WATER_MARK);
-        if (!file.exists()) {
-            file.mkdirs();
+    public static boolean  isVideoFile(String path){
+        if(TextUtils.isEmpty(path)){
+            return false;
         }
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(APP_WATER_MARK + name);
-            fos.write(buffer);
-            fos.flush();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            try {
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+        for(int i = 0 ; i < videoMIME.length ; ++ i){
+            if(path.endsWith(videoMIME[i])){
+                return true;
             }
         }
-        return APP_WATER_MARK + name;
+        return false;
     }
 
     public static String saveBitmapToWaterMark(String name, Bitmap bmp) {
@@ -138,5 +154,17 @@ public class FileUtils {
         }
     }
 
+    public static void makeFileParse() {
+        File file = new File(APP_FILE_PARSE);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+    public static void makeHardDir() {
+        File file = new File(APP_HARD);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
 
 }

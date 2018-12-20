@@ -23,7 +23,7 @@
             android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/bt_parse"
+            android:id="@+id/bt_flv_parse"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="解析flv文件" />
@@ -40,10 +40,11 @@
             android:text="解析aac文件" />
 
         <Button
-            android:id="@+id/bt_test"
+            android:id="@+id/bt_aac"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="test" />
+            android:visibility="gone"
+            android:text="aac_解析" />
 
         <TextView
             android:id="@+id/tv_all_data"

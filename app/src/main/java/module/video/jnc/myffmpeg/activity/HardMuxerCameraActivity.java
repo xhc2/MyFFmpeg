@@ -57,7 +57,7 @@ public class HardMuxerCameraActivity extends Activity implements Camera.PreviewC
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hard_muxer_camera);
-        ouputPath = "sdcard/FFmpeg/hard_muxer.mp4";
+        ouputPath = "sdcard/FFmpeg/hard/hard_muxer.mp4";
         preview = (FrameLayout) findViewById(R.id.camera_preview);
         tv = (TextView) findViewById(R.id.bt_record);
         pcmSize = AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);

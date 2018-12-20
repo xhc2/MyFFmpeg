@@ -311,42 +311,8 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
         tvSpeed.setText(speed + "X");
     }
 
-//    private Dialog dialog;
-
-    private void getFileList() {
-        File[] files = Constant.rootVideoFile.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                listFile.add(f);
-            }
-        }
-    }
 
 
-//    private void createDialog() {
-//        if (dialog == null) {
-//            dialog = new Dialog(this, R.style.dialog);
-//            dialog.setContentView(R.layout.dialog_listview_layout);
-//            getFileList();
-//            adater = new FileAdater();
-//            ListView listView = dialog.findViewById(R.id.listview);
-//            listView.setAdapter(adater);
-//            listView.setOnItemClickListener(this);
-//        }
-//    }
-
-//    private void showDialog() {
-//        createDialog();
-//        if (!dialog.isShowing()) {
-//            dialog.show();
-//        }
-//    }
-
-//    private void dismissDialog() {
-//        if (dialog != null && dialog.isShowing()) {
-//            dialog.dismiss();
-//        }
-//    }
 
     private void popWindowShow() {
         if (popupWindow == null) {
@@ -412,50 +378,6 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
         }
     }
 
-    private class FileAdater extends BaseAdapter {
-
-        @Override
-        public int getCount() {
-            return listFile.size() + 1;
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return i;
-        }
-
-        @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
-            ViewHolder holder;
-            if (view == null) {
-                holder = new ViewHolder();
-                holder.tv = new TextView(Mp4PlayerActivity.this);
-                holder.tv.setPadding(10, 10, 10, 10);
-                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                holder.tv.setLayoutParams(params);
-                view = holder.tv;
-                view.setTag(holder);
-            } else {
-                holder = (ViewHolder) view.getTag();
-            }
-            if (i == 0) {
-                holder.tv.setText("rtmp://live.hkstv.hk.lxdns.com/live/hks");
-            } else {
-                holder.tv.setText(listFile.get(i - 1).getName());
-            }
-
-            return view;
-        }
-
-        class ViewHolder {
-            TextView tv;
-        }
-    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {

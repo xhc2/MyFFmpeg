@@ -32,6 +32,4 @@ public class Constant {
         return c; // returns null if camera is unavailable
     }
 
-    public static File rootFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/");
-    public static File rootVideoFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FFmpeg/video");
 }

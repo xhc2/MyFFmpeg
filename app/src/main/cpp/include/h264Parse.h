@@ -43,7 +43,6 @@ struct NALU{
 class h264Parse{
 
 private :
-    char* path;
     int startCode1(char* buf , int start );
     int startCode2(char* buf, int start  );
     void parseHeader(char *buf , int start);
@@ -52,9 +51,6 @@ private :
 
     int naluSize = 2048;
     int nowPosition();
-//    void parseSlice();
-//    void parseSps();
-//    void parsePps();
     void writeMsg(string msg);
     FILE *h264F;
     FILE *h264OutF;
