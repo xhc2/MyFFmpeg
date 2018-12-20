@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import module.video.jnc.myffmpeg.FFmpegUtils;
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.tool.FileUtils;
 
 /**
  * https://blog.csdn.net/leixiaohua1020/article/details/39803457
@@ -34,7 +35,6 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
     });
 
     private String ouputPath = "rtmp://192.168.2.15/live/live";
-//    private String ouputPath = "sdcard/FFmpeg/cameraStream.flv";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +60,7 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
             public void onClick(View v) {
                 //注意 后面的live 是name
                 FFmpegUtils.rtmpInit(ouputPath ,
-                        "sdcard/FFmpeg/video/test.flv");
+                        FileUtils.APP_VIDEO+"test.flv");
             }
         });
 

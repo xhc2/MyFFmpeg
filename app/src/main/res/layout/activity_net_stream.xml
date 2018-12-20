@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"
         android:layout_height="wrap_content"
-        android:text="推送本地视频"
+        android:text="推送本地视频(ffmpeg)"
         />
 
     <Button
@@ -26,7 +26,7 @@
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"
         android:layout_height="wrap_content"
-        android:text="推送相机视频"
+        android:text="推送相机视频(ffmpeg)"
         />
 
     <Button
