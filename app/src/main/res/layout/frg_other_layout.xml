@@ -18,16 +18,16 @@
         <TableRow android:weightSum="2">
 
             <TextView
+                android:id="@+id/tv_hard_decode"
+                style="@style/other_exercise"
+                android:drawableTop="@mipmap/hard_deocde"
+                android:text="多媒体硬解" />
+
+            <TextView
                 android:id="@+id/tv_network"
                 style="@style/other_exercise"
                 android:drawableTop="@mipmap/network_rtmp"
                 android:text="网络流" />
-
-            <TextView
-                android:id="@+id/tv_hard_decode"
-                style="@style/other_exercise"
-                android:drawableTop="@mipmap/hard_deocde"
-                android:text="硬解" />
         </TableRow>
 
         <TableRow android:weightSum="2">
@@ -37,6 +37,22 @@
                 style="@style/other_exercise"
                 android:drawableTop="@mipmap/file_parse"
                 android:text="文件解析" />
+
+            <TextView
+                android:id="@+id/tv_rtmp_upload"
+                style="@style/other_exercise"
+                android:drawableTop="@mipmap/rtmp_upload"
+                android:text="rtmp推流" />
+        </TableRow>
+
+        <TableRow android:weightSum="2">
+
+
+            <TextView
+                android:id="@+id/tv_rtmp_downlaod"
+                style="@style/other_exercise"
+                android:drawableTop="@mipmap/rtmp_download"
+                android:text="rtmp拉流" />
         </TableRow>
     </TableLayout>
 

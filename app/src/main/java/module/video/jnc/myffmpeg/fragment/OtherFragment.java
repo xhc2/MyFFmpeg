@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.activity.CameraStreamActivity;
 import module.video.jnc.myffmpeg.activity.FlvParseActivity;
 import module.video.jnc.myffmpeg.activity.HardCodeActivity;
 import module.video.jnc.myffmpeg.activity.Mp4PlayerActivity;
@@ -28,6 +29,8 @@ public class OtherFragment extends Fragment implements View.OnClickListener {
         view.findViewById(R.id.tv_network).setOnClickListener(this);
         view.findViewById(R.id.tv_hard_decode).setOnClickListener(this);
         view.findViewById(R.id.tv_file_parse).setOnClickListener(this);
+        view.findViewById(R.id.tv_rtmp_upload).setOnClickListener(this);
+        view.findViewById(R.id.tv_rtmp_downlaod).setOnClickListener(this);
     }
 
 
@@ -43,6 +46,15 @@ public class OtherFragment extends Fragment implements View.OnClickListener {
             case R.id.tv_file_parse:
                 startActivity(new Intent(getActivity() , FlvParseActivity.class));
                 break;
+            case R.id.tv_rtmp_upload :
+                startActivity(new Intent(getActivity(), CameraStreamActivity.class));
+                break;
+            case R.id.tv_rtmp_downlaod:
+                Intent intent = new Intent(getActivity() , Mp4PlayerActivity.class);
+                intent.putExtra("path" , "rtmp:192.168.15.239:1935:/live/live");
+                startActivity(intent);
+                break;
+
         }
     }
 }

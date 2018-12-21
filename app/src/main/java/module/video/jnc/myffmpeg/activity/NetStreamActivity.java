@@ -15,11 +15,14 @@ import module.video.jnc.myffmpeg.tool.FileUtils;
 
 /**
  * https://blog.csdn.net/leixiaohua1020/article/details/39803457
+ * 手机网络流模块需要认真优化
  * rtmp 网络流
  */
+
+
 public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
 
-
+    private String ouputPath = "rtmp://192.168.15.239/live/live";
     private EditText etUrl;
 
     private Handler handler = new Handler(new Handler.Callback() {
@@ -34,7 +37,7 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
         }
     });
 
-    private String ouputPath = "rtmp://192.168.2.15/live/live";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

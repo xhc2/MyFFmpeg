@@ -162,6 +162,18 @@ int EditParent::initOutput(const char *ouput, AVFormatContext **ctx) {
     return 1;
 }
 
+int EditParent::initOutput(const char *ouput, const char *format, AVFormatContext **ctx) {
+
+    int result = 0;
+    result = avformat_alloc_output_context2(ctx, NULL, format, ouput);
+    if (result < 0 || ctx == NULL) {
+        LOGE(" avformat_alloc_output_context2 faild %s ", av_err2str(result));
+        return -1;
+    }
+
+    return 1;
+}
+
 
 int EditParent::getVideoOutFrameRate(){
     return outFrameRate;
@@ -368,3 +380,4 @@ int EditParent::writeTrail(AVFormatContext *afc_output) {
 EditParent::~EditParent() {
 
 }
+

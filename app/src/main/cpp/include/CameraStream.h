@@ -12,65 +12,40 @@
 #include "EditParent.h"
 extern "C"
 {
-#include "libavformat/avformat.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/time.h"
 #include "libswscale/swscale.h"
-#include <libswresample/swresample.h>
 
 };
 using namespace std;
-class CameraStream : public MyThread{
-
+class CameraStream : public MyThread , public EditParent{
 private :
-
-    const char *url;
-    char *yuv;
-    char *pcm;
-    int width, height;
-    int outWidth, outHeight;
+    queue<AVPacket *> audioPktQue;
+    queue<AVPacket *> videoPktQue;
+    AVFormatContext *afc_output;
+    AVStream *audioStream ;
+    AVStream *videoStream;
+    AVCodecContext *aCtxE;
+    AVCodecContext *vCtxE;
+    CallJava *callJava ;
+    int inputWidth ;
+    int inputHeight;
+    int outputWidth ;
+    int outputHeight;
+    int64_t vCalDuration ;
+    int64_t aCalDuration ;
+    int64_t apts , vpts ;
+    int64_t aCount , vCount;
     SwsContext *sws;
-
-    int size;
-    int pcmSize;
-    int pcmMinSize;
-    //用来测试使用。
-    CallJava *cj;
-    AVFormatContext *afc;
-    AVOutputFormat *afot;
-    AVStream *videoOS;
-    AVStream *audioOS;
-
-    AVFrame *framePic;
-    AVFrame *outFrame;
-    AVFrame *frameAudio;
-
-    AVPixelFormat pixFmt;
-    AVCodecContext *vCodeCtx;
-    AVCodecContext *aCodeCtx;
-    int64_t vpts, apts;
-    int64_t vCalDuration , aCalDuration;
-    int nbSample;
-    int64_t wvpts , wapts ;
-    AVRational timeBaseFFmpeg;
-    int initFFmpeg();
-    int addVideoStream();
-    int addAudioStream();
-    void encodeVideoFrame();
-    void encodeAudioFrame(int pcmSize);
-    void writeVideoPacket();
-    void writeAudioPacket();
-
-    int videoIndex;
-    int audioIndex;
-    int count;
+    AVFrame *framePic ;
+    AVFrame *frameOutV ;
+    AVFrame *frameOutA ;
     bool initSuccess;
-    queue<MyData *> audioPktQue;
-    queue<MyData *> videoPktQue;
-
+    int initSwsContext(int inWidth, int inHeight, int inpixFmt)  ;
+    void destroySwsContext() ;
 public :
-    CameraStream(const char *url, int width, int height, int pcmsize, CallJava *cj);
-
+    CameraStream();
+    int init(const char *url, int width, int height, int pcmsize, CallJava *cj);
     ~CameraStream();
 
     void pushVideoStream(jbyte *yuv);

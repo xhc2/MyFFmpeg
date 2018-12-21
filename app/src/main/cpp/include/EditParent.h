@@ -49,6 +49,7 @@ protected:
     int audioOutputStreamIndex;
     int outFrameRate;
     int initOutput(const char* ouput , AVFormatContext **ctx);
+    int initOutput(const char* ouput , const char* format ,AVFormatContext **ctx);
     int addOutputVideoStream(AVFormatContext *afc_output ,AVCodecContext **vCtxE , AVCodecParameters codecpar);
     int addOutputAudioStream(AVFormatContext *afc_output ,AVCodecContext **aCtxE , AVCodecParameters codecpar);
     int getVideoOutFrameRate();

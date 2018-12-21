@@ -22,19 +22,18 @@ import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.tool.Constant;
 import module.video.jnc.myffmpeg.widget.CameraPreview;
 
-public class CameraStreamActivity extends Activity implements  Camera.PreviewCallback{
+public class CameraStreamActivity extends Activity implements Camera.PreviewCallback {
 
     private Camera mCamera;
     private CameraPreview mPreview;
     private FrameLayout preview;
     private Camera.Parameters params;
-//    private String ouputPath = "rtmp://192.168.43.7/live/live";
-    private String ouputPath ;//= "sdcard/FFmpeg/cameraStream.flv";
+    private String ouputPath;
     //默认前置 记录当前的方向
     private int nowCameraDirection = Camera.CameraInfo.CAMERA_FACING_BACK;
-    private int height , width ;
-    private boolean isRecord = false;
-    private TextView tv ;
+    private int height, width;
+
+    private TextView tv;
     private AudioRecord audioRecord;
 
     private static final int sampleRate = 44100;
@@ -43,79 +42,72 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
 
     private AudioRead audioRead;
     private boolean audioReadFlag = false;
-    private byte[] bytes ;
-    private int pcmSize ;
+    private byte[] bytes;
+    private int pcmSize;
+    private boolean isRecord = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
-        ouputPath = getIntent().getStringExtra("outputpath");
-        preview = (FrameLayout)findViewById(R.id.camera_preview);
-        tv = (TextView)findViewById(R.id.bt_record);
-        pcmSize = 4096;//AudioRecord.getMinBufferSize(sampleRate , channel , pcmFormat);
-        Log.e("xhc_jni" , " pcm size "+pcmSize);
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC , sampleRate ,
-                channel , pcmFormat,
+        ouputPath = "rtmp://192.168.15.239:1935/live/live";//"sdcard/FFmpeg/camerastream.flv"; //getIntent().getStringExtra("outputpath");
+        preview = (FrameLayout) findViewById(R.id.camera_preview);
+        tv = (TextView) findViewById(R.id.bt_record);
+//        initView();
+        pcmSize = 4096;
+        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
+                channel, pcmFormat,
                 pcmSize);
         bytes = new byte[pcmSize];
-        audioRecord.startRecording();
-        startAudioRead();
         findViewById(R.id.bt_record).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                isRecord = !isRecord;
-                if(isRecord){
-                    if(FFmpegUtils.startRecord() >= 0){
-                        tv.setText("暂停");
-                    }
-                    else{
-                        isRecord = !isRecord;
-                    }
-                }
-                else{
-                    tv.setText("播放");
-                    FFmpegUtils.pauseRecord();
+                if (!isRecord) {
+                    startPublish();
+                    startAudioRead();
+                    isRecord = !isRecord;
+                    tv.setText("停止");
+                } else {
+                    finish();
                 }
             }
         });
     }
 
-    private void startAudioRead(){
+    private void startAudioRead() {
         stopAudioRead();
+        audioRecord.startRecording();
         audioReadFlag = true;
-        if(audioRead == null){
+        if (audioRead == null) {
             audioRead = new AudioRead();
             audioRead.start();
         }
     }
 
-    private void stopAudioRead(){
+    private void stopAudioRead() {
         audioReadFlag = false;
-        if(audioRead != null){
-            try{
+        audioRecord.stop();
+        if (audioRead != null) {
+            try {
                 audioRead.join();
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         audioRead = null;
     }
 
-    class AudioRead extends Thread{
+    class AudioRead extends Thread {
 
         int readSize = 0;
 
         @Override
         public void run() {
             super.run();
-            while(audioReadFlag){
-                if(isRecord){
-                    readSize = audioRecord.read(bytes , 0 , pcmSize);
-                    if(AudioRecord.ERROR_INVALID_OPERATION != readSize ){
-                        FFmpegUtils.rtmpAudioStream(bytes ,readSize );
-                    }
+            while (audioReadFlag) {
+                readSize = audioRecord.read(bytes, 0, pcmSize);
+                if (AudioRecord.ERROR_INVALID_OPERATION != readSize) {
+                    FFmpegUtils.rtmpAudioStream(bytes, readSize);
                 }
             }
         }
@@ -143,24 +135,21 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         params = mCamera.getParameters();
         params.set("orientation", "portrait");
         List<Camera.Size> list = params.getSupportedPreviewSizes();
-        for(Camera.Size s : list){
-            if(s.height < 500 && s.height > 300){
-                Log.e("xhc" , "width "+s.width+" height "+s.height);
+        for (Camera.Size s : list) {
+            if (s.height < 500 && s.height > 300) {
+                Log.e("xhc", "width " + s.width + " height " + s.height);
                 width = s.width;
                 height = s.height;
                 break;
             }
         }
 
-        params.setPreviewSize(width, height );
-
-
-
+        params.setPreviewSize(width, height);
         params.setPreviewFormat(ImageFormat.YV12);
         mCamera.setParameters(params);
 
-        mPreview = new CameraPreview(this, mCamera ,this);
-        if(preview.getChildCount()>0){
+        mPreview = new CameraPreview(this, mCamera, this);
+        if (preview.getChildCount() > 0) {
             preview.removeAllViews();
         }
         preview.addView(mPreview);
@@ -168,21 +157,41 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
         if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         }
-        new InitClass().start();
+
     }
 
-    class InitClass extends Thread{
-        @Override
-        public void run() {
-            super.run();
-            FFmpegUtils.rtmpCameraInit(ouputPath ,width  , height  , pcmSize);
+    private void startPublish() {
+        stopPublish();
+        if (publishThread == null) {
+            publishThread = new PublishThread();
+            publishThread.start();
         }
     }
 
+    private void stopPublish() {
+        FFmpegUtils.rtmpDestroy();
+        if (publishThread != null) {
+            try {
+                publishThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        publishThread = null;
+    }
 
-    /**
-     * Check if this device has a camera
-     */
+
+    private PublishThread publishThread;
+
+    class PublishThread extends Thread {
+        @Override
+        public void run() {
+            super.run();
+            FFmpegUtils.rtmpCameraInit(ouputPath, width, height, pcmSize);
+            FFmpegUtils.startRecord();
+        }
+    }
+
     private boolean checkCameraHardware(Context context) {
         if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
             // this device has a camera
@@ -195,16 +204,27 @@ public class CameraStreamActivity extends Activity implements  Camera.PreviewCal
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        if(isRecord){
-            FFmpegUtils.rtmpCameraStream(data);
-        }
+        FFmpegUtils.rtmpCameraStream(data);
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        releaseCamera();
+    }
+
+    private void releaseCamera() {
+        if (mCamera != null) {
+            mCamera.setPreviewCallback(null);
+            mCamera.release();        // release the camera for other applications
+            mCamera = null;
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FFmpegUtils.rtmpDestroy();
         stopAudioRead();
+        stopPublish();
     }
 }

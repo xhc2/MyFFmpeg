@@ -198,7 +198,11 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
     cj = NULL;
     return 1;
 }
+
+
+
 CameraStream *cs = NULL;
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraInit(JNIEnv *env, jclass type,
@@ -210,7 +214,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraInit(JNIEnv *env, jclass ty
         if (cj == NULL) {
             cj = new CallJava(env, type);
         }
-        cs = new CameraStream(outPath, width, height, pcmSize, cj);
+        cs = new CameraStream();
+        if(cs->init(outPath, width, height, pcmSize, cj) < 0){
+            LOGE(" CameraStream faild ! ");
+        };
     }
 
     env->ReleaseStringUTFChars(outPath_, outPath);
@@ -238,8 +245,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpDestroy(JNIEnv *env, jclass type)
 
     if (cs != NULL) {
         delete cs;
-        cs = NULL;
     }
+    cs = NULL;
     return 1;
 }
 
@@ -297,6 +304,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_srsDestroy(JNIEnv *env, jclass type) 
     if (srs != NULL) {
         srs->rtmpDestroy();
     }
+    srs = NULL ;
     return 1;
 }
 

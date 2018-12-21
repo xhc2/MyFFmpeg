@@ -25,6 +25,7 @@
         android:id="@+id/bt_camera_stream"
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"
+        android:visibility="gone"
         android:layout_height="wrap_content"
         android:text="推送相机视频(ffmpeg)"
         />

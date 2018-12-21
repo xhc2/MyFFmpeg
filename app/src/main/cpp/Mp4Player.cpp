@@ -124,10 +124,10 @@ int Mp4Player::initFFmpeg(const char *path) {
 
     LOGE(" video duration %lld ", videoDuration);
 
-    if(videoDuration <= 0){
-        cj->callStr("请检查文件是否被损坏");
-        return RESULT_FAILD;
-    }
+//    if(videoDuration <= 0){
+//        cj->callStr("请检查文件是否被损坏");
+//        return RESULT_FAILD;
+//    }
 
     for (int i = 0; i < afc->nb_streams; ++i) {
         AVStream *avStream = afc->streams[i];
@@ -175,6 +175,11 @@ int Mp4Player::initFFmpeg(const char *path) {
     char metadata[512];
     sprintf(metadata ,"metadata:width=%d,height=%d" , afc->streams[video_index]->codecpar->width , afc->streams[video_index]->codecpar->height );
     cj->callStr(metadata);
+
+    LOGE(" AUDIO SIMPKE RATE %d  , channle %d  , format %d " ,
+         afc->streams[audio_index]->codecpar->sample_rate ,
+         afc->streams[video_index]->codecpar->channel_layout ,
+         afc->streams[video_index]->codecpar->format);
 
 //    LOGE(" audio code name %s  ", audioCode->name);
 //    LOGE(" video code name %s  ", videoCode->name);
