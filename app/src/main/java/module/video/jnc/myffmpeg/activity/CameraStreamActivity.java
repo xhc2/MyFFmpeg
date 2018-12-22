@@ -22,6 +22,8 @@ import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.tool.Constant;
 import module.video.jnc.myffmpeg.widget.CameraPreview;
 
+import static android.media.AudioFormat.CHANNEL_IN_MONO;
+
 public class CameraStreamActivity extends Activity implements Camera.PreviewCallback {
 
     private Camera mCamera;
@@ -36,9 +38,9 @@ public class CameraStreamActivity extends Activity implements Camera.PreviewCall
     private TextView tv;
     private AudioRecord audioRecord;
 
-    private static final int sampleRate = 44100;
+    private static final int sampleRate = 11025;
     private static final int pcmFormat = AudioFormat.ENCODING_PCM_16BIT;
-    private static final int channel = AudioFormat.CHANNEL_IN_MONO;
+    private static final int channel = CHANNEL_IN_MONO;
 
     private AudioRead audioRead;
     private boolean audioReadFlag = false;
@@ -50,11 +52,12 @@ public class CameraStreamActivity extends Activity implements Camera.PreviewCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
-        ouputPath = "rtmp://192.168.15.239:1935/live/live";//"sdcard/FFmpeg/camerastream.flv"; //getIntent().getStringExtra("outputpath");
+        ouputPath ="rtmp://192.168.0.11:1935/live/live"; // "sdcard/FFmpeg/camerastream.flv";;
         preview = (FrameLayout) findViewById(R.id.camera_preview);
         tv = (TextView) findViewById(R.id.bt_record);
 //        initView();
-        pcmSize = 4096;
+        pcmSize = AudioRecord.getMinBufferSize(sampleRate ,channel ,  pcmFormat);
+        Log.e("xhc" , " pcmSize "+pcmSize);
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
                 channel, pcmFormat,
                 pcmSize);

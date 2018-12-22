@@ -213,7 +213,7 @@ int EditParent::addOutputVideoStream(AVFormatContext *afc_output, AVCodecContext
     (*vCtxE)->bit_rate = codecpar.width * codecpar.height * 3 / 2 * outFrameRate ;
     (*vCtxE)->time_base = (AVRational) {1, outFrameRate};
     (*vCtxE)->framerate = (AVRational) {outFrameRate, 1};
-    (*vCtxE)->gop_size = 10;
+    (*vCtxE)->gop_size = 100; //这里需要想想办法
 //    vCtxE->max_b_frames = 1;
     (*vCtxE)->pix_fmt = (AVPixelFormat)codecpar.format;
     (*vCtxE)->codec_type = AVMEDIA_TYPE_VIDEO;
@@ -280,8 +280,6 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output, AVCodecContext
         LOGE("AUDIO avcodec_alloc_context3 FAILD !");
         return -1;
     }
-//    int channel = av_get_channel_layout_nb_channels(codecpar.channel_layout);
-//    AVSampleFormat sampleFormat = AV_SAMPLE_FMT_FLTP;
     (*aCtxE)->bit_rate = 64000;
     (*aCtxE)->sample_fmt = (AVSampleFormat)codecpar.format;
     (*aCtxE)->sample_rate = codecpar.sample_rate;
@@ -289,7 +287,7 @@ int EditParent::addOutputAudioStream(AVFormatContext *afc_output, AVCodecContext
     (*aCtxE)->channels = codecpar.channels;
     (*aCtxE)->time_base = (AVRational) {1, codecpar.sample_rate};
     (*aCtxE)->codec_type = AVMEDIA_TYPE_AUDIO;
-    audioOutStream->time_base = (*aCtxE)->time_base;
+    audioOutStream->time_base = (AVRational) {1, codecpar.sample_rate};
 
     result = avcodec_parameters_from_context(audioOutStream->codecpar, *aCtxE);
     if (result < 0) {

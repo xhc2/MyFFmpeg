@@ -6,26 +6,36 @@
 
 /**
  * 将视频，和声音录制了，然后再编码处理。
+ * 这里需要采取丢帧方式处理了。
+ * 当视频 > 音频 + 50 的时候视频需要开始丢帧
+ * 当音频 > 视频 + 50 的时候音频需要丢帧
  */
 CameraStream::CameraStream() {
     afc_output = NULL;
+    sws = NULL;
+    audioStream = NULL;
+    videoStream = NULL;
+    fifo = NULL;
     outputWidth = 640;
     outputHeight = 480;
     apts = 0;
     vpts = 0;
     aCount = 0;
     vCount = 0;
+    dropACount = 0 ;
+    dropVCount = 0;
+    outSampleRate = 11025;
+    outSampleForamt = AV_SAMPLE_FMT_S16;
     initSuccess = false;
-    sws = NULL;
-    audioStream = NULL;
-    videoStream = NULL;
+
 }
 
 int CameraStream::init(const char *url, int width, int height, int pcmsize, CallJava *cj) {
-    int ret = avformat_network_init();
     callJava = cj;
     this->inputWidth = width;
     this->inputHeight = height;
+
+    int ret = avformat_network_init();
     if (ret < 0) {
         callJava->callStr(" avformat_network_init faild !");
         return -1;
@@ -35,20 +45,8 @@ int CameraStream::init(const char *url, int width, int height, int pcmsize, Call
         callJava->callStr(" initOutput faild !");
         return -1;
     }
-    AVCodecParameters *aparams = avcodec_parameters_alloc();
-    aparams->format = AV_SAMPLE_FMT_S16;
-    aparams->sample_rate = 44100;
-    aparams->channels = 1;
-    aparams->channel_layout = AV_CH_LAYOUT_MONO;
-    ret = addOutputAudioStream(afc_output, &aCtxE, *aparams);
-    LOGE(" ACTXE %d ", aCtxE->frame_size);
-    avcodec_parameters_free(&aparams);
-    if (ret < 0) {
-        callJava->callStr(" addOutputAudioStream faild !");
-        return -1;
-    }
-    audioStream = afc_output->streams[ret];
 
+    //video
     AVCodecParameters *vparams = avcodec_parameters_alloc();
     vparams->format = AV_PIX_FMT_YUV420P;
     vparams->width = outputWidth;
@@ -60,6 +58,25 @@ int CameraStream::init(const char *url, int width, int height, int pcmsize, Call
         return -1;
     }
     videoStream = afc_output->streams[ret];
+
+
+    //audio
+    AVCodecParameters *aparams = avcodec_parameters_alloc();
+    aparams->format = outSampleForamt;
+    aparams->sample_rate = outSampleRate;
+    aparams->channels = 1;
+    aparams->channel_layout = AV_CH_LAYOUT_MONO;
+    ret = addOutputAudioStream(afc_output, &aCtxE, *aparams);
+    LOGE(" ACTXE %d ", aCtxE->frame_size);
+    avcodec_parameters_free(&aparams);
+    if (ret < 0) {
+        callJava->callStr(" addOutputAudioStream faild !");
+        return -1;
+    }
+    audioStream = afc_output->streams[ret];
+    nbSample = aCtxE->frame_size;
+    allocAudioFifo(outSampleForamt, 1, nbSample * 4);
+
     ret = writeOutoutHeader(afc_output, url);
     if (ret < 0) {
         callJava->callStr(" writeOutoutHeader faild !");
@@ -93,19 +110,32 @@ int CameraStream::init(const char *url, int width, int height, int pcmsize, Call
     }
 
     frameOutA = av_frame_alloc();
-    frameOutA->sample_rate = 44100;
+    frameOutA->sample_rate = outSampleRate;
     frameOutA->channels = 1;
     frameOutA->channel_layout = AV_CH_LAYOUT_MONO;
-    frameOutA->format = AV_SAMPLE_FMT_S16;
+    frameOutA->format = outSampleForamt;
     frameOutA->nb_samples = aCtxE->frame_size;
 
 
-    aCalDuration = AV_TIME_BASE / 44100;
+    aCalDuration = AV_TIME_BASE / outSampleRate;
     vCalDuration = AV_TIME_BASE / outFrameRate;
     initSuccess = true;
 
     return 1;
 }
+
+void CameraStream::destroyAudioFifo() {
+    if (fifo != NULL) {
+        av_audio_fifo_free(fifo);
+        fifo = NULL;
+    }
+}
+
+void CameraStream::allocAudioFifo(AVSampleFormat sample_fmt, int channels, int nb_samples) {
+    if (fifo == NULL) {
+        fifo = av_audio_fifo_alloc(sample_fmt, channels, nb_samples);
+    }
+};
 
 
 int CameraStream::initSwsContext(int inWidth, int inHeight, int inpixFmt) {
@@ -140,14 +170,35 @@ void CameraStream::pushAudioStream(jbyte *pcm, int size) {
     if (pause || isExit || !initSuccess) {
         return;
     }
-    frameOutA->data[0] = (uint8_t *) pcm;
-    frameOutA->linesize[0] = size;
-    frameOutA->pts = aCount * aCalDuration;
-    aCount += size / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+    int queSize = (int)audioPktQue.size() - (int)videoPktQue.size() ;
+    if(queSize > 40){
+        dropACount ++;
+        if(dropACount % 2 == 0){
+            LOGE(" DROP aaaaaaa frmae ");
+            return ; //丢弃
+        }
+    }
+    else if(queSize > 20){
+        dropACount ++;
+        if(dropACount % 3 == 0){
+            LOGE(" DROP aaaaaaa frmae ");
+            return ; //丢弃
+        }
+    }
 
+    av_audio_fifo_write(fifo, (void **) &pcm, size / av_get_bytes_per_sample(outSampleForamt));
+    if (av_audio_fifo_size(fifo) < nbSample) {
+        return;
+    }
+    av_audio_fifo_read(fifo, (void **) &pcm, nbSample);
+    frameOutA->data[0] = (uint8_t *) pcm;
+    frameOutA->linesize[0] = nbSample * av_get_bytes_per_sample(outSampleForamt);
+    frameOutA->pts = aCount * aCalDuration;
+    aCount += size / av_get_bytes_per_sample(outSampleForamt);
     AVPacket *pkt = encodeFrame(frameOutA, aCtxE);
     if (pkt != NULL) {
         pkt->stream_index = audioStream->index;
+        pkt->dts = pkt->pts;
         audioPktQue.push(pkt);
     }
 
@@ -157,14 +208,28 @@ void CameraStream::pushVideoStream(jbyte *yuv) {
     if (pause || isExit || !initSuccess) {
         return;
     }
+    int queSize =  (int)videoPktQue.size() -  (int)audioPktQue.size();
 
+    if(queSize > 40){
+        dropVCount ++ ;
+        if(dropVCount % 2 == 0){
+            LOGE(" DROP vvvvvvvvv frmae ");
+            return ;
+        }
+    }
+    else if(queSize > 20){
+        dropVCount ++ ;
+        if(dropVCount % 3 == 0){
+            LOGE(" DROP vvvvvvvvv frmae ");
+            return ;
+        }
+    }
     framePic->data[0] = (uint8_t *) (yuv);
     framePic->data[1] = (uint8_t *) (yuv + inputWidth * inputHeight * 5 / 4);
     framePic->data[2] = (uint8_t *) (yuv + inputWidth * inputHeight);
     //修改分辨率统一输出大小
     AVPacket *pkt = NULL;
     if (sws != NULL) {
-        LOGE(" sws_scale ");
         sws_scale(sws, (const uint8_t *const *) framePic->data, framePic->linesize,
                   0, inputHeight, frameOutV->data, frameOutV->linesize);
         frameOutV->pts = vCount * vCalDuration;
@@ -178,6 +243,7 @@ void CameraStream::pushVideoStream(jbyte *yuv) {
     }
     vCount++;
     if (pkt != NULL) {
+        pkt->dts = pkt->pts;
         pkt->stream_index = videoStream->index;
         videoPktQue.push(pkt);
     }
@@ -192,20 +258,25 @@ void CameraStream::run() {
             continue;
         }
         if (videoPktQue.size() <= 0 || audioPktQue.size() <= 0
-            || audioStream == NULL ||  videoStream == NULL) {
+            || audioStream == NULL || videoStream == NULL) {
+            threadSleep(2);
             continue;
         }
-        LOGE(" VIDEO SIZE %d ,  AUDIO size  %d " , videoPktQue.size() , audioPktQue.size());
+        LOGE(" VIDEO SIZE %d ,  AUDIO size  %d " , videoPktQue.size(), audioPktQue.size());
         AVPacket *aPkt = audioPktQue.front();
         AVPacket *vPkt = videoPktQue.front();
         if (av_compare_ts(apts, audioStream->time_base, vpts, videoStream->time_base) < 0) {
             av_packet_rescale_ts(aPkt, timeBaseFFmpeg, audioStream->time_base);
+//            LOGE(" WIRTE AAAAAA %lld ,  %lld  ", aPkt->dts , aPkt->pts);
             apts = aPkt->pts;
+
             av_interleaved_write_frame(afc_output, aPkt);
             audioPktQue.pop();
         } else {
             av_packet_rescale_ts(vPkt, timeBaseFFmpeg, videoStream->time_base);
+//            LOGE(" WIRTE vvvvvvvvvvv %lld ,  %lld  ", vPkt->dts , vPkt->pts);
             vpts = vPkt->pts;
+
             av_interleaved_write_frame(afc_output, vPkt);
             videoPktQue.pop();
         }
@@ -216,48 +287,44 @@ void CameraStream::run() {
 CameraStream::~CameraStream() {
     this->stop();
     this->join();
-    while(!videoPktQue.empty()){
+    while (!videoPktQue.empty()) {
         AVPacket *pkt = videoPktQue.front();
-        if(pkt != NULL ){
+        if (pkt != NULL) {
             av_packet_free(&pkt);
         }
         videoPktQue.pop();
     }
-    while(!audioPktQue.empty()){
+    while (!audioPktQue.empty()) {
         AVPacket *pkt = audioPktQue.front();
-        if(pkt != NULL ){
+        if (pkt != NULL) {
             av_packet_free(&pkt);
         }
         audioPktQue.pop();
     }
-    if(afc_output != NULL && afc_output->oformat != NULL && afc_output->pb != NULL ){
+    if (afc_output != NULL && afc_output->oformat != NULL && afc_output->pb != NULL) {
         av_write_trailer(afc_output);
     }
 
     destroySwsContext();
-    if(aCtxE != NULL){
+    destroyAudioFifo();
+    if (aCtxE != NULL) {
         avcodec_free_context(&aCtxE);
     }
-    if(vCtxE != NULL){
+    if (vCtxE != NULL) {
         avcodec_free_context(&vCtxE);
     }
-    if(afc_output != NULL){
+    if (afc_output != NULL) {
         avformat_free_context(afc_output);
     }
-    if(framePic != NULL ){
+    if (framePic != NULL) {
         av_frame_free(&framePic);
     }
-    if(frameOutV != NULL ){
+    if (frameOutV != NULL) {
         av_frame_free(&frameOutV);
     }
-    if(frameOutA != NULL ){
+    if (frameOutA != NULL) {
         av_frame_free(&frameOutA);
     }
-
-    if(callJava != NULL){
-        delete callJava;
-    }
-
 
     LOGE(" DESTROY CAMERA !! ");
 }

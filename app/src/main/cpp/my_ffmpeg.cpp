@@ -87,7 +87,6 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyMp4Play(JNIEnv *env, jclass ty
     mp4Player = NULL;
     if (cj != NULL) {
         delete cj;
-
     }
     cj = NULL;
     return 1;
@@ -246,6 +245,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpDestroy(JNIEnv *env, jclass type)
     if (cs != NULL) {
         delete cs;
     }
+    if(cj != NULL ){
+        delete cj ;
+    }
+    cj = NULL;
     cs = NULL;
     return 1;
 }

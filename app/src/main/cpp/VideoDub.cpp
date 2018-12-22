@@ -131,6 +131,7 @@ int VideoDub::buildOutput(const char *outputPath) {
     audioOutputStreamIndex = result;
     audioOutputStream = afc_output->streams[result];
 
+
     result = writeOutoutHeader(afc_output, outputPath);
     if (result < 0) {
         LOGE(" writeOutoutHeader faild ! ");
@@ -264,7 +265,6 @@ void VideoDub::run() {
             threadSleep(2);
             continue;
         }
-        LOGE("write  video %d , audio %d ", encodeFrameQue.size(), audioQue.size());
         if (audioQue.size() <= 0 || encodeFrameQue.size() <= 0) {
             if (readEnd) {
                 break;
@@ -274,9 +274,9 @@ void VideoDub::run() {
         }
         AVPacket *aPkt = audioQue.front();
         AVFrame *vframe = encodeFrameQue.front();
+
         if (av_compare_ts(apts, audioOutputStream->time_base, vpts, videoOutputStream->time_base) <
             0) {
-            LOGE(" WRITE AAAAAAAAAAAAAAAAAAAAA  ");
             aPkt->stream_index = audioOutputStreamIndex;
             av_packet_rescale_ts(aPkt, timeBaseFFmpeg, audioOutputStream->time_base);
             apts = aPkt->pts;
@@ -287,7 +287,6 @@ void VideoDub::run() {
             av_packet_free(&aPkt);
             audioQue.pop();
         } else {
-            LOGE(" WRITE VVVVVVVVVVVVVVVVVVVVVVV  ");
             AVPacket *vPkt = encodeFrame(vframe, vCtxE);
             av_frame_free(&vframe);
             encodeFrameQue.pop();
