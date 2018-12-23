@@ -10,7 +10,8 @@
 
 #include "MyThread.h"
 #include "my_data.h"
-#include "EditParent.h"
+#include "FilterParent.h"
+
 extern "C"
 {
 #include "libavutil/mathematics.h"
@@ -47,11 +48,13 @@ private :
     AVFrame *frameOutV ;
     AVFrame *frameOutA ;
     AVAudioFifo *fifo;
+    char *yuvRotate ;
     bool initSuccess;
     void destroyAudioFifo();
     void allocAudioFifo(AVSampleFormat sample_fmt, int channels, int nb_samples);
     int initSwsContext(int inWidth, int inHeight, int inpixFmt)  ;
     void destroySwsContext() ;
+    void rotateRectAnticlockwiseDegree90(char* src, int srcOffset, int width, int height, char* dst, int dstOffset);
 public :
     CameraStream();
     int init(const char *url, int width, int height, int pcmsize, CallJava *cj);

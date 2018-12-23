@@ -25,7 +25,7 @@ protected :
 public :
     FilterParent();
     int init_filters(const char *filters_descr,AVFormatContext *fmt_ctx,AVCodecContext *dec_ctx);
-
+    int init_filters(const char *filters_descr,int videoIndex , AVRational videoTimebase ,AVCodecContext *dec_ctx);
     ~FilterParent();
 };
 

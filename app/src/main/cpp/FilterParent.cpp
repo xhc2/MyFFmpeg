@@ -11,19 +11,27 @@ FilterParent::FilterParent() {
 }
 
 
-int  FilterParent::init_filters(const char *filters_descr ,AVFormatContext *fmt_ctx , AVCodecContext *dec_ctx) {
+int FilterParent::init_filters(const char *filters_descr, AVFormatContext *fmt_ctx,
+                               AVCodecContext *dec_ctx) {
+    return init_filters(filters_descr, getVideoStreamIndex(fmt_ctx),
+                        fmt_ctx->streams[videoStreamIndex]->time_base, dec_ctx);
+}
+
+int FilterParent::init_filters(const char *filters_descr, int videoIndex, AVRational videoTimebase,
+                               AVCodecContext *dec_ctx) {
+
     char args[512];
     int ret = 0;
     AVFilter *buffersrc = avfilter_get_by_name("buffer");
     AVFilter *buffersink = avfilter_get_by_name("buffersink");
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs = avfilter_inout_alloc();
-    int videoStreamIndex = getVideoStreamIndex(fmt_ctx);
-    if(videoStreamIndex < 0){
+    int videoStreamIndex = videoIndex;
+    if (videoStreamIndex < 0) {
         LOGE(" getVideoStreamIndex FAILD ! ");
         return -1;
     }
-    AVRational time_base = fmt_ctx->streams[videoStreamIndex]->time_base;
+    AVRational time_base = videoTimebase;
     enum AVPixelFormat pix_fmts[] = {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE};
     filter_graph = avfilter_graph_alloc();
     if (!outputs || !inputs || !filter_graph) {
@@ -106,10 +114,13 @@ int  FilterParent::init_filters(const char *filters_descr ,AVFormatContext *fmt_
 
     avfilter_inout_free(&inputs);
     avfilter_inout_free(&outputs);
-    return 1;
+
+    return 0;
 }
+
 
 FilterParent::~FilterParent() {
     avfilter_graph_free(&filter_graph);
 
 }
+

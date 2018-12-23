@@ -78,8 +78,8 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
             switch (msg.what) {
                 case 1:
                     if (flag == PLAY) {
-//                        rlTopBar.setVisibility(View.GONE);
-//                        rlBottomBar.setVisibility(View.GONE);
+                        rlTopBar.setVisibility(View.GONE);
+                        rlBottomBar.setVisibility(View.GONE);
                     }
                     break;
                 case 2:
@@ -116,7 +116,6 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
         myVideoGpuShow.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         myVideoGpuShow.setRenderer(new MyRender());//android 8.0需要设置
         myVideoGpuShow.setRenderMode(RENDERMODE_WHEN_DIRTY);
-        //test
 
         findViewById();
 

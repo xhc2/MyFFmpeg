@@ -9,6 +9,8 @@
  * 这里需要采取丢帧方式处理了。
  * 当视频 > 音频 + 50 的时候视频需要开始丢帧
  * 当音频 > 视频 + 50 的时候音频需要丢帧
+ *
+ * 因为视频部分进来后会旋转90度所以注意宽高的对调
  */
 CameraStream::CameraStream() {
     afc_output = NULL;
@@ -16,18 +18,18 @@ CameraStream::CameraStream() {
     audioStream = NULL;
     videoStream = NULL;
     fifo = NULL;
-    outputWidth = 640;
-    outputHeight = 480;
+    outputWidth = 480;
+    outputHeight = 640;
     apts = 0;
     vpts = 0;
     aCount = 0;
     vCount = 0;
-    dropACount = 0 ;
+    dropACount = 0;
     dropVCount = 0;
     outSampleRate = 11025;
     outSampleForamt = AV_SAMPLE_FMT_S16;
     initSuccess = false;
-
+    yuvRotate = (char *) malloc(outputWidth * outputHeight * 3 / 2);
 }
 
 int CameraStream::init(const char *url, int width, int height, int pcmsize, CallJava *cj) {
@@ -83,12 +85,13 @@ int CameraStream::init(const char *url, int width, int height, int pcmsize, Call
         return -1;
     }
 
+
     this->start();
     setPause();
 
-    if (width != outputWidth || height != outputHeight) {
+    if (width !=outputHeight || height != outputWidth ) {
         LOGE(" WIDTH %d  ， height %d  , pix %d ", width, height, vCtxE->pix_fmt);
-        if (initSwsContext(width, height, vCtxE->pix_fmt)) {
+        if (initSwsContext(height,width , vCtxE->pix_fmt)) {
             callJava->callStr(" initSwsContext faild !");
             return -1;
         }
@@ -170,19 +173,18 @@ void CameraStream::pushAudioStream(jbyte *pcm, int size) {
     if (pause || isExit || !initSuccess) {
         return;
     }
-    int queSize = (int)audioPktQue.size() - (int)videoPktQue.size() ;
-    if(queSize > 40){
-        dropACount ++;
-        if(dropACount % 2 == 0){
+    int queSize = (int) audioPktQue.size() - (int) videoPktQue.size();
+    if (queSize > 40) {
+        dropACount++;
+        if (dropACount % 2 == 0) {
             LOGE(" DROP aaaaaaa frmae ");
-            return ; //丢弃
+            return; //丢弃
         }
-    }
-    else if(queSize > 20){
-        dropACount ++;
-        if(dropACount % 3 == 0){
+    } else if (queSize > 20) {
+        dropACount++;
+        if (dropACount % 3 == 0) {
             LOGE(" DROP aaaaaaa frmae ");
-            return ; //丢弃
+            return; //丢弃
         }
     }
 
@@ -208,25 +210,31 @@ void CameraStream::pushVideoStream(jbyte *yuv) {
     if (pause || isExit || !initSuccess) {
         return;
     }
-    int queSize =  (int)videoPktQue.size() -  (int)audioPktQue.size();
+    int queSize = (int) videoPktQue.size() - (int) audioPktQue.size();
 
-    if(queSize > 40){
-        dropVCount ++ ;
-        if(dropVCount % 2 == 0){
+    if (queSize > 40) {
+        dropVCount++;
+        if (dropVCount % 2 == 0) {
             LOGE(" DROP vvvvvvvvv frmae ");
-            return ;
+            return;
+        }
+    } else if (queSize > 20) {
+        dropVCount++;
+        if (dropVCount % 3 == 0) {
+            LOGE(" DROP vvvvvvvvv frmae ");
+            return;
         }
     }
-    else if(queSize > 20){
-        dropVCount ++ ;
-        if(dropVCount % 3 == 0){
-            LOGE(" DROP vvvvvvvvv frmae ");
-            return ;
-        }
-    }
-    framePic->data[0] = (uint8_t *) (yuv);
-    framePic->data[1] = (uint8_t *) (yuv + inputWidth * inputHeight * 5 / 4);
-    framePic->data[2] = (uint8_t *) (yuv + inputWidth * inputHeight);
+    int ySize = inputWidth * inputHeight;
+//    rotateRectAnticlockwiseDegree90((char *) yuv, 0, inputWidth, inputHeight, yuvRotate, 0);
+//    rotateRectAnticlockwiseDegree90((char *) yuv, ySize, inputWidth / 2, inputHeight / 2, yuvRotate,ySize);
+//    rotateRectAnticlockwiseDegree90((char *) yuv, ySize * 5 / 4, inputWidth / 2, inputHeight / 2,yuvRotate, ySize * 5 / 4);
+    rotateRectAnticlockwiseDegree90((char *) yuv, 0, inputWidth, inputHeight, yuvRotate, 0);
+    rotateRectAnticlockwiseDegree90((char *) yuv, ySize, inputWidth / 2, inputHeight / 2, yuvRotate, ySize);
+    rotateRectAnticlockwiseDegree90((char *) yuv, ySize * 5 / 4, inputWidth / 2, inputHeight / 2, yuvRotate, ySize * 5 / 4);
+    framePic->data[0] = (uint8_t *) (yuvRotate);
+    framePic->data[1] = (uint8_t *) (yuvRotate + inputWidth * inputHeight * 5 / 4);
+    framePic->data[2] = (uint8_t *) (yuvRotate + inputWidth * inputHeight);
     //修改分辨率统一输出大小
     AVPacket *pkt = NULL;
     if (sws != NULL) {
@@ -250,6 +258,18 @@ void CameraStream::pushVideoStream(jbyte *yuv) {
 }
 
 
+void CameraStream::rotateRectAnticlockwiseDegree90(char *src, int srcOffset, int width, int height,
+                                                   char *dst, int dstOffset) {
+    int i, j;
+    int index = dstOffset;
+    for (i = 0; i < width; i++) {
+        for (j = height - 1; j >= 0; j--) {
+            dst[index] = src[srcOffset + j * width + i];
+            index++;
+        }
+    }
+}
+
 //新开一个线程来混合
 void CameraStream::run() {
     while (!isExit) {
@@ -262,7 +282,7 @@ void CameraStream::run() {
             threadSleep(2);
             continue;
         }
-        LOGE(" VIDEO SIZE %d ,  AUDIO size  %d " , videoPktQue.size(), audioPktQue.size());
+        LOGE(" VIDEO SIZE %d ,  AUDIO size  %d ", videoPktQue.size(), audioPktQue.size());
         AVPacket *aPkt = audioPktQue.front();
         AVPacket *vPkt = videoPktQue.front();
         if (av_compare_ts(apts, audioStream->time_base, vpts, videoStream->time_base) < 0) {

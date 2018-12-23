@@ -6,6 +6,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +37,60 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         setContentView(R.layout.activity_main2);
         findViewById();
         init();
+        //test
+        int width = 640;
+        int height = 360;
+        int yuvSize = width * height * 3 / 2;
+        byte[] src = new byte[yuvSize];
+        byte[] dst = new byte[yuvSize];
+        try {
+            FileInputStream fis = new FileInputStream(new File("sdcard/FFmpeg/oneframe.yuv"));
+            fis.read(src);
+            fis.close();
+            rotateYv12Degree90(src , width , height , dst );
+            FileOutputStream fos = new FileOutputStream(new File("sdcard/FFmpeg/oneframerotate.yuv"));
+            fos.write(dst);
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    private void rotateYv12Degree90(byte[] src, int width, int height, byte[] dst ) {
+        int ySize = width * height;
+
+//        if (clockwise) {
+//            rotateRectClockwiseDegree90(src, 0, width, height, dst, 0);
+//            rotateRectClockwiseDegree90(src, area, width / 2, height / 2, dst, area);
+            rotateRectClockwiseDegree90(src, ySize * 5 / 4, width / 2, height / 2, dst, ySize * 5 / 4);
+//        } else {
+            rotateRectAnticlockwiseDegree90(src, 0, width, height, dst, 0);
+            rotateRectAnticlockwiseDegree90(src, ySize, width / 2, height / 2, dst, ySize);
+            rotateRectAnticlockwiseDegree90(src, ySize * 5 / 4, width / 2, height / 2, dst, ySize * 5 / 4);
+//        }
+    }
+    private void rotateRectClockwiseDegree90(byte[] src, int srcOffset, int width, int height, byte dst[], int dstOffset) {
+        int i, j;
+        int index = dstOffset;
+        for (i = 0; i < width; i++) {
+            for (j = height - 1; j >= 0; j--) {
+                dst[index] = src[srcOffset + j * width + i];
+                index++;
+            }
+        }
+    }
+
+
+    private void rotateRectAnticlockwiseDegree90(byte[] src, int srcOffset, int width, int height, byte dst[],
+                                                 int dstOffset) {
+        int i, j;
+        int index = dstOffset;
+        for (i = width - 1; i >= 0; i--) {
+            for (j = 0; j < height; j++) {
+                dst[index] = src[srcOffset + j * width + i];
+                index++;
+            }
+        }
     }
 
     private void findViewById() {
