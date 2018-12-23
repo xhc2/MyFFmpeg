@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,12 +48,13 @@ public class CameraStreamActivity extends Activity implements Camera.PreviewCall
     private byte[] bytes;
     private int pcmSize;
     private boolean isRecord = false;
-
+    private EditText etUrl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
-        ouputPath ="rtmp://192.168.0.11:1935/live/live"; // "sdcard/FFmpeg/camerastream.flv";;
+        etUrl = findViewById(R.id.et_url);
+        etUrl.setText("rtmp://192.168.0.100:1935/live/live");
         preview = (FrameLayout) findViewById(R.id.camera_preview);
         tv = (TextView) findViewById(R.id.bt_record);
 //        initView();
@@ -165,6 +167,8 @@ public class CameraStreamActivity extends Activity implements Camera.PreviewCall
 
     private void startPublish() {
         stopPublish();
+        ouputPath = etUrl.getText().toString();
+        etUrl.setVisibility(View.GONE);
         if (publishThread == null) {
             publishThread = new PublishThread();
             publishThread.start();

@@ -51,7 +51,7 @@ public class OtherFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.tv_rtmp_downlaod:
                 Intent intent = new Intent(getActivity(), Mp4PlayerActivity.class);
-                intent.putExtra("path", "rtmp:192.168.0.11:1935:/live/live");
+                intent.putExtra("path", "rtmp:192.168.0.100:1935:/live/live");
                 startActivity(intent);
                 break;
 
