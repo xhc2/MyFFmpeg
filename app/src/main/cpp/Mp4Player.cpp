@@ -124,7 +124,7 @@ int Mp4Player::initFFmpeg(const char *path) {
 
     LOGE(" video duration %lld ", videoDuration);
 
-//    if(videoDuration <= 0){
+//    if(videoDuration <= 0){ rtmp的时候获取不到duration
 //        cj->callStr("请检查文件是否被损坏");
 //        return RESULT_FAILD;
 //    }
@@ -162,6 +162,12 @@ int Mp4Player::initFFmpeg(const char *path) {
             }
         }
     }
+    LOGE(" AUDIO SIMPKE RATE %d  , channle %d  , format %d , layout %lld ",
+         afc->streams[audio_index]->codecpar->sample_rate,
+         afc->streams[audio_index]->codecpar->channels,
+         afc->streams[audio_index]->codecpar->format,
+         afc->streams[audio_index]->codecpar->channel_layout
+    );
 
     if (audioCode == NULL) {
         cj->callStr(" 没找到音频解码器 ");
@@ -177,12 +183,6 @@ int Mp4Player::initFFmpeg(const char *path) {
             afc->streams[video_index]->codecpar->height);
     cj->callStr(metadata);
 
-
-
-
-//    LOGE(" audio code name %s  ", audioCode->name);
-//    LOGE(" video code name %s  ", videoCode->name);
-
     ac = avcodec_alloc_context3(audioCode);
     if (!ac) {
         LOGE("ac AVCodecContext FAILD ! ");
@@ -195,10 +195,14 @@ int Mp4Player::initFFmpeg(const char *path) {
         return RESULT_FAILD;
     }
 
+
     //将codec中的参数放进accodeccontext
     avcodec_parameters_to_context(vc, afc->streams[video_index]->codecpar);
     avcodec_parameters_to_context(ac, afc->streams[audio_index]->codecpar);
 
+//    LOGE(" AUDIO SIMPKE RATE %d  , channle %d  , format %d , layout %lld ", ac->sample_rate,
+//         ac->channels, ac->sample_fmt, ac->channel_layout
+//    );
     vc->thread_count = 4;
     ac->thread_count = 4;
 
@@ -213,9 +217,7 @@ int Mp4Player::initFFmpeg(const char *path) {
         LOGE("ac avcodec_open2 Faild !");
         return RESULT_FAILD;
     }
-    LOGE(" AUDIO SIMPKE RATE %d  , channle %d  , format %d , layout %lld ", ac->sample_rate,
-         ac->channels, ac->sample_fmt, ac->channel_layout
-    );
+
     outWidth = vc->width;
     outHeight = vc->height;
 

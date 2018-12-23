@@ -125,7 +125,6 @@ DeocdeMyAudioThread::DeocdeMyAudioThread(AVCodecContext *ac, AVFormatContext *af
     this->audioIndex = audioIndex;
     aframe = av_frame_alloc();
     play_audio_temp = (uint8_t *) malloc(1024 * 2 * 1);
-    LOGE(" DeocdeMyAudioThread  %lld , %d" , av_get_default_channel_layout(ac->channels) ,  ac->sample_fmt );
     //重采样
     swc = swr_alloc_set_opts(NULL,
                              av_get_default_channel_layout(1),
