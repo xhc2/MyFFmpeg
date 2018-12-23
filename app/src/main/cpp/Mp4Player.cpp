@@ -173,13 +173,12 @@ int Mp4Player::initFFmpeg(const char *path) {
     }
     //回调java层
     char metadata[512];
-    sprintf(metadata ,"metadata:width=%d,height=%d" , afc->streams[video_index]->codecpar->width , afc->streams[video_index]->codecpar->height );
+    sprintf(metadata, "metadata:width=%d,height=%d", afc->streams[video_index]->codecpar->width,
+            afc->streams[video_index]->codecpar->height);
     cj->callStr(metadata);
 
-    LOGE(" AUDIO SIMPKE RATE %d  , channle %d  , format %d " ,
-         afc->streams[audio_index]->codecpar->sample_rate ,
-         afc->streams[video_index]->codecpar->channel_layout ,
-         afc->streams[video_index]->codecpar->format);
+
+
 
 //    LOGE(" audio code name %s  ", audioCode->name);
 //    LOGE(" video code name %s  ", videoCode->name);
@@ -214,7 +213,9 @@ int Mp4Player::initFFmpeg(const char *path) {
         LOGE("ac avcodec_open2 Faild !");
         return RESULT_FAILD;
     }
-
+    LOGE(" AUDIO SIMPKE RATE %d  , channle %d  , format %d , layout %lld ", ac->sample_rate,
+         ac->channels, ac->sample_fmt, ac->channel_layout
+    );
     outWidth = vc->width;
     outHeight = vc->height;
 
@@ -287,16 +288,17 @@ int Mp4Player::getProgress() {
 float Mp4Player::getDuration() {
     return videoDuration / 1000;
 }
+
 // 416 235
 int Mp4Player::getVideoWidth() {
-    if(afc != NULL){
+    if (afc != NULL) {
         return afc->streams[video_index]->codecpar->width;
     }
     return 0;
 }
 
 int Mp4Player::getVideoHeight() {
-    if(afc != NULL){
+    if (afc != NULL) {
         return afc->streams[video_index]->codecpar->height;
     }
     return 0;

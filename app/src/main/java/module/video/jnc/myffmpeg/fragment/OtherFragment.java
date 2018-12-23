@@ -44,14 +44,14 @@ public class OtherFragment extends Fragment implements View.OnClickListener {
                 startActivity(new Intent(getActivity(), HardCodeActivity.class));
                 break;
             case R.id.tv_file_parse:
-                startActivity(new Intent(getActivity() , FlvParseActivity.class));
+                startActivity(new Intent(getActivity(), FlvParseActivity.class));
                 break;
-            case R.id.tv_rtmp_upload :
+            case R.id.tv_rtmp_upload:
                 startActivity(new Intent(getActivity(), CameraStreamActivity.class));
                 break;
             case R.id.tv_rtmp_downlaod:
-                Intent intent = new Intent(getActivity() , Mp4PlayerActivity.class);
-                intent.putExtra("path" , "rtmp:192.168.15.239:1935:/live/live");
+                Intent intent = new Intent(getActivity(), Mp4PlayerActivity.class);
+                intent.putExtra("path", "rtmp:192.168.0.11:1935:/live/live");
                 startActivity(intent);
                 break;
 
