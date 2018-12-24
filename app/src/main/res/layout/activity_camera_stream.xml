@@ -25,6 +25,7 @@
     <EditText
         android:id="@+id/et_url"
         android:background="#33000000"
+        android:textColor="#ffffff"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

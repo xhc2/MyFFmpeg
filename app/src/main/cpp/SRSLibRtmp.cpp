@@ -6,6 +6,7 @@
 #include <my_log.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <aacparse.h>
 
 
 SRSLibRtmp::SRSLibRtmp() {
@@ -17,9 +18,46 @@ SRSLibRtmp::~SRSLibRtmp() {
 }
 
 void SRSLibRtmp::test(const char *path) {
+    //test mp4 file 相关
+    int ret = 0;
     rtmp = srs_rtmp_create(path);
-    LOGE(" create rtmp success ");
-    LOGE("version: %d.%d.%d\n", srs_version_major(), srs_version_minor(), srs_version_revision());
+
+    if (srs_rtmp_handshake(rtmp) != 0) {
+        LOGE("simple handshake failed.");
+        rtmpDestroy();
+        return;
+    }
+    LOGE("simple handshake success");
+    if (srs_rtmp_connect_app(rtmp) != 0) {
+        LOGE("connect vhost/app failed.");
+        rtmpDestroy();
+        return;
+    }
+    LOGE("connect vhost/app success");
+
+    if (srs_rtmp_publish_stream(rtmp) != 0) {
+        LOGE("publish stream failed.");
+        rtmpDestroy();
+        return;
+    }
+    AACParse *aac = new AACParse("sdcard/FFmpeg/music_src/test.aac");
+
+    int64_t count = 0 ;
+    int64_t pts = 0;
+   while(true){
+       AACFrame *frame = aac->getAACFrame(false);
+       if(frame == NULL){
+            break;
+       }
+       srs_bool flag = srs_aac_is_adts(frame->data , frame->size);
+       count += frame->size / 4;
+       pts = count * 22;
+       LOGE(" PTS %lld " , pts);
+       srs_audio_write_raw_frame(rtmp ,10 , 3 , 1 , 1 , frame->data , frame->size , pts );
+   }
+
+    delete aac;
+    aac = NULL ;
     srs_rtmp_destroy(rtmp);
 }
 
@@ -27,8 +65,9 @@ void SRSLibRtmp::rtmpDestroy() {
     if(rtmp != NULL){
         srs_rtmp_destroy(rtmp);
     }
-
 }
+
+
 
 void SRSLibRtmp::publish(const char *path) {
     LOGE("publish rtmp stream to server like FMLE/FFMPEG/Encoder\n");
@@ -45,7 +84,6 @@ void SRSLibRtmp::publish(const char *path) {
         return;
     }
     LOGE("simple handshake success");
-
     if (srs_rtmp_connect_app(rtmp) != 0) {
         LOGE("connect vhost/app failed.");
         rtmpDestroy();
@@ -53,11 +91,11 @@ void SRSLibRtmp::publish(const char *path) {
     }
     LOGE("connect vhost/app success");
 
-    if (srs_rtmp_publish_stream(rtmp) != 0) {
-        LOGE("publish stream failed.");
-        rtmpDestroy();
-        return;
-    }
+//    if (srs_rtmp_publish_stream(rtmp) != 0) {
+//        LOGE("publish stream failed.");
+//        rtmpDestroy();
+//        return;
+//    }
     LOGE("publish stream success");
 
 //    u_int32_t timestamp = 0;

@@ -22,7 +22,7 @@ import module.video.jnc.myffmpeg.tool.FileUtils;
 
 public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
 
-    private String ouputPath = "rtmp://192.168.15.239/live/live";
+    private String ouputPath = "rtmp://192.168.15.37/live/live";
     private EditText etUrl;
 
     private Handler handler = new Handler(new Handler.Callback() {
@@ -49,23 +49,8 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
 
         FFmpegUtils.addNativeNotify(this);
 
-        findViewById(R.id.bt_camera_stream).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(NetStreamActivity.this , CameraStreamActivity.class);
-                intent.putExtra("outputpath" , ouputPath);
-                startActivity(intent);
-            }
-        });
 
-        findViewById(R.id.bt_net_work).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //注意 后面的live 是name
-                FFmpegUtils.rtmpInit(ouputPath ,
-                        FileUtils.APP_VIDEO+"test.flv");
-            }
-        });
+
 
         findViewById(R.id.bt_srs_librtmp).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,7 +82,6 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
     @Override
     protected void onPause() {
         super.onPause();
-        FFmpegUtils.rtmpClose();
     }
 
     @Override

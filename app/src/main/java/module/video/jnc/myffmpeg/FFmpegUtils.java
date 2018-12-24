@@ -51,9 +51,9 @@ public class FFmpegUtils {
     public static native int getVideoHeight();
 
 
-    //rtmp推流部分
-    public static native int rtmpInit(String outPath , String inputPath);
-    public static native int rtmpClose();
+    //rtmp推流部分 ,使用ffmpeg 来推流
+//    public static native int rtmpInit(String outPath , String inputPath);
+//    public static native int rtmpClose();
 
     //通过手机摄像头推送rtmp
     public static native int rtmpCameraInit(String outPath , int width , int height , int pcmSize);
