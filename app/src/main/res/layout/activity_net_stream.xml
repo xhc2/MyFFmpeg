@@ -35,8 +35,15 @@
         android:id="@+id/bt_test"
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"
-        android:visibility="invisible"
         android:layout_height="wrap_content"
-        android:text="简单的解码测试"
+        android:text="自己手写的rtmp协议"
+        />
+
+    <Button
+        android:id="@+id/bt_destroy"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        android:text="销毁myrtmp"
         />
 </LinearLayout>

@@ -26,6 +26,7 @@
 #include <VideoDub.h>
 #include <VideoMusic.h>
 #include <VideoSpeed.h>
+#include <MyRtmp.h>
 #include "FlvParse.h"
 #include "h264Parse.h"
 #include "VideoClip.h"
@@ -199,7 +200,6 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpClose(JNIEnv *env, jclass type) {
 }
 
 
-
 CameraStream *cs = NULL;
 
 extern "C"
@@ -214,7 +214,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpCameraInit(JNIEnv *env, jclass ty
             cj = new CallJava(env, type);
         }
         cs = new CameraStream();
-        if(cs->init(outPath, width, height, pcmSize, cj) < 0){
+        if (cs->init(outPath, width, height, pcmSize, cj) < 0) {
             LOGE(" CameraStream faild ! ");
         };
     }
@@ -245,8 +245,8 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_rtmpDestroy(JNIEnv *env, jclass type)
     if (cs != NULL) {
         delete cs;
     }
-    if(cj != NULL ){
-        delete cj ;
+    if (cj != NULL) {
+        delete cj;
     }
     cj = NULL;
     cs = NULL;
@@ -294,7 +294,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_srsTest(JNIEnv *env, jclass type, jst
     const char *outPath = env->GetStringUTFChars(outPath_, 0);
 
     srs = new SRSLibRtmp();
-    srs->test(outPath);
+    srs->publishH264(outPath);
     env->ReleaseStringUTFChars(outPath_, outPath);
     // TODO
     return 1;
@@ -307,7 +307,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_srsDestroy(JNIEnv *env, jclass type) 
     if (srs != NULL) {
         srs->rtmpDestroy();
     }
-    srs = NULL ;
+    srs = NULL;
     return 1;
 }
 
@@ -335,7 +335,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_h264Parse(JNIEnv *env, jclass type, j
         hp = new h264Parse(path);
     }
     hp->start();
-    delete hp ;
+    delete hp;
     hp = NULL;
     env->ReleaseStringUTFChars(path_, path);
     return env->NewStringUTF("h264解析完毕，sdcard/FFmpeg/fileparse/h264parse.txt");
@@ -372,8 +372,8 @@ JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyH264Parse(JNIEnv *env, jclass type) {
 
     // TODO
-    if(hp != NULL){
-        delete hp ;
+    if (hp != NULL) {
+        delete hp;
     }
     hp = NULL;
 
@@ -422,7 +422,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyAACParse(JNIEnv *env, jclass type) {
 
-    if(aacParse != NULL){
+    if (aacParse != NULL) {
         delete aacParse;
     }
     aacParse = NULL;
@@ -623,20 +623,14 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_getCurrentBitmp(JNIEnv *env, jclass t
 }
 
 
-//test
-NewAudioPlayer *a = NULL;
-// AudioPlayer  *a = NULL;
-FILE *file;
+MyRtmp *myRtmp;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
-    int size = 100000;
-    char *xhc[size];
-    for (int i = 0; i < size; ++i) {
-        LOGE(" %d m ", i);
-        xhc[i] = (char *) malloc(1024 * 1024 * 1024 * sizeof(char));
 
-    }
+    myRtmp = new MyRtmp();
+    myRtmp->startRtmp();
+
     return 1;
 
 }
@@ -645,9 +639,10 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
 extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test2(JNIEnv *env, jclass type) {
-    fclose(file);
-    delete a;
-    LOGE(" DELETE AUDIO PLAYER ");
+    if (myRtmp != NULL) {
+        delete myRtmp;
+    }
+    myRtmp = NULL;
     return 1;
 }
 
@@ -930,7 +925,7 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_destroyVideoMusic(JNIEnv *env, jclass
 }
 
 
-VideoSpeed *videoSpeed ;
+VideoSpeed *videoSpeed;
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -940,12 +935,11 @@ Java_module_video_jnc_myffmpeg_FFmpegUtils_initVideoSpeed(JNIEnv *env, jclass ty
     const char *inputPath = env->GetStringUTFChars(inputPath_, 0);
     const char *outputPath = env->GetStringUTFChars(outputPath_, 0);
 
-    if(videoSpeed == NULL ){
+    if (videoSpeed == NULL) {
         videoSpeed = new VideoSpeed();
-        if(videoSpeed->init(inputPath , speed , outputPath) > 0){
-            videoSpeed->startSpeed() ;
-        }
-        else{
+        if (videoSpeed->init(inputPath, speed, outputPath) > 0) {
+            videoSpeed->startSpeed();
+        } else {
             LOGE(" SPEED  INIT FAILD !");
         }
 

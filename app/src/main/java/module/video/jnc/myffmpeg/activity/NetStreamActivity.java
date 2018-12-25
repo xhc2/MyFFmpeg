@@ -22,7 +22,7 @@ import module.video.jnc.myffmpeg.tool.FileUtils;
 
 public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
 
-    private String ouputPath = "rtmp://192.168.15.37/live/live";
+    private String ouputPath = "rtmp://192.168.15.237/live/live";
     private EditText etUrl;
 
     private Handler handler = new Handler(new Handler.Callback() {
@@ -66,6 +66,14 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
                 FFmpegUtils.test();
             }
         });
+
+        findViewById(R.id.bt_destroy).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FFmpegUtils.test2();
+            }
+        });
+
     }
 
 

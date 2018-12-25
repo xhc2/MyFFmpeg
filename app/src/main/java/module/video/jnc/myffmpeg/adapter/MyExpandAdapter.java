@@ -39,15 +39,14 @@ public class MyExpandAdapter extends BaseExpandableListAdapter {
         //使用的时候才加载
         imageLoader = ImageLoader.getInstance();
         options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.mipmap.ic_launcher) // resource or drawable
-                .showImageForEmptyUri(R.mipmap.ic_launcher) // resource or drawable
-                .showImageOnFail(R.mipmap.ic_launcher) // resource or drawable
-                .cacheInMemory(true) // default
-                .cacheOnDisk(true) // default
-                .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) // default
-                .bitmapConfig(Bitmap.Config.ARGB_4444) // default
+                .showImageOnLoading(R.mipmap.video_default)
+                .showImageForEmptyUri(R.mipmap.video_default)
+                .showImageOnFail(R.mipmap.video_default)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+                .bitmapConfig(Bitmap.Config.ARGB_4444)
                 .build();
-
 
     }
 

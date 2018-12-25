@@ -231,56 +231,56 @@ void SRSLibRtmp::publishH264(const char *path) {
     }
     LOGE("publish stream success");
 
-    int dts = 0;
-    int pts = 0;
-    // @remark, to decode the file.
-    char *p = h264_raw;
-    int count = 0;
-    for (; p < h264_raw + file_size;) {
-        // @remark, read a frame from file buffer.
-        char *data = NULL;
-        int size = 0;
-        int nb_start_code = 0;
-        if (read_h264_frame(h264_raw, (int) file_size, &p, &nb_start_code, fps, &data, &size, &dts,
-                            &pts) < 0) {
-            LOGE("read a frame from file buffer failed.");
-            rtmpDestroy();
-            return ;
-        }
-
-        // send out the h264 packet over RTMP
-        int ret = srs_h264_write_raw_frames(rtmp, data, size, dts, pts);
-        if (ret != 0) {
-            if (srs_h264_is_dvbsp_error(ret)) {
-                LOGE("ignore drop video error, code=%d", ret);
-            } else if (srs_h264_is_duplicated_sps_error(ret)) {
-                LOGE("ignore duplicated sps, code=%d", ret);
-            } else if (srs_h264_is_duplicated_pps_error(ret)) {
-                LOGE("ignore duplicated pps, code=%d", ret);
-            } else {
-                LOGE("send h264 raw data failed. ret=%d", ret);
-                rtmpDestroy();
-                return ;
-            }
-        }
-
-        // 5bits, 7.3.1 NAL unit syntax,
-        // H.264-AVC-ISO_IEC_14496-10.pdf, page 44.
-        //  7: SPS, 8: PPS, 5: I Frame, 1: P Frame, 9: AUD, 6: SEI
-        u_int8_t nut = (char) data[nb_start_code] & 0x1f;
-        LOGE("sent packet: type=%s, time=%d, size=%d, fps=%.2f, b[%d]=%#x(%s)",
-                        srs_human_flv_tag_type2string(SRS_RTMP_TYPE_VIDEO), dts, size, fps,
-                        nb_start_code, (char) data[nb_start_code],
-                        (nut == 7 ? "SPS" : (nut == 8 ? "PPS" : (nut == 5 ? "I" : (nut == 1 ? "P" : ( nut == 9 ? "AUD" : (nut == 6
-                                                                                              ? "SEI"
-                                                                                              : "Unknown")))))));
-
-        // @remark, when use encode device, it not need to sleep.
-        if (count++ == 9) {
-            av_usleep(1000 * count / fps);
-            count = 0;
-        }
-    }
+//    int dts = 0;
+//    int pts = 0;
+//    // @remark, to decode the file.
+//    char *p = h264_raw;
+//    int count = 0;
+//    for (; p < h264_raw + file_size;) {
+//        // @remark, read a frame from file buffer.
+//        char *data = NULL;
+//        int size = 0;
+//        int nb_start_code = 0;
+//        if (read_h264_frame(h264_raw, (int) file_size, &p, &nb_start_code, fps, &data, &size, &dts,
+//                            &pts) < 0) {
+//            LOGE("read a frame from file buffer failed.");
+//            rtmpDestroy();
+//            return ;
+//        }
+//
+//        // send out the h264 packet over RTMP
+//        int ret = srs_h264_write_raw_frames(rtmp, data, size, dts, pts);
+//        if (ret != 0) {
+//            if (srs_h264_is_dvbsp_error(ret)) {
+//                LOGE("ignore drop video error, code=%d", ret);
+//            } else if (srs_h264_is_duplicated_sps_error(ret)) {
+//                LOGE("ignore duplicated sps, code=%d", ret);
+//            } else if (srs_h264_is_duplicated_pps_error(ret)) {
+//                LOGE("ignore duplicated pps, code=%d", ret);
+//            } else {
+//                LOGE("send h264 raw data failed. ret=%d", ret);
+//                rtmpDestroy();
+//                return ;
+//            }
+//        }
+//
+//        // 5bits, 7.3.1 NAL unit syntax,
+//        // H.264-AVC-ISO_IEC_14496-10.pdf, page 44.
+//        //  7: SPS, 8: PPS, 5: I Frame, 1: P Frame, 9: AUD, 6: SEI
+//        u_int8_t nut = (char) data[nb_start_code] & 0x1f;
+//        LOGE("sent packet: type=%s, time=%d, size=%d, fps=%.2f, b[%d]=%#x(%s)",
+//                        srs_human_flv_tag_type2string(SRS_RTMP_TYPE_VIDEO), dts, size, fps,
+//                        nb_start_code, (char) data[nb_start_code],
+//                        (nut == 7 ? "SPS" : (nut == 8 ? "PPS" : (nut == 5 ? "I" : (nut == 1 ? "P" : ( nut == 9 ? "AUD" : (nut == 6
+//                                                                                              ? "SEI"
+//                                                                                              : "Unknown")))))));
+//
+//        // @remark, when use encode device, it not need to sleep.
+//        if (count++ == 9) {
+//            av_usleep(1000 * count / fps);
+//            count = 0;
+//        }
+//    }
     LOGE("h264 raw data completed");
 
     srs_rtmp_destroy(rtmp);

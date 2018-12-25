@@ -49,6 +49,7 @@ add_library( my_ffmpeg
             src/main/cpp/VideoDub.cpp
             src/main/cpp/VideoMusic.cpp
             src/main/cpp/VideoSpeed.cpp
+            src/main/cpp/MyRtmp.cpp
             )
 
 
