@@ -17,6 +17,7 @@ public :
     int socketCreate();
     int socketClose();
     int rtmpHandShake();
+    int recvFull(char *buffer , int size);
     ~MyRtmp();
 };
 
