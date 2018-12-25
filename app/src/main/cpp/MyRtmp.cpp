@@ -2,6 +2,12 @@
 // Created by Administrator on 2018/12/25/025.
 //
 
+/**
+ * http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDHIS2&filename=BJGB201306010&uid=WEEvREcwSlJHSldRa1FhdkJkVWEyd2MwSXVScUc0anhZUmZvN093NU5IUT0=$9A4hF_YAuvQ5obgVAqNKPCYcEjKensW4IQMovwHtwkF4VYPoHbKxJw!!&v=MTI5NTVoVzd6Skp5Zk1iTEc0SDlMTXFZOUVaSVI4ZVgxTHV4WVM3RGgxVDNxVHJXTTFGckNVUkxLZVplUnFGeXo=
+ * 期刊
+ *
+ */
+
 #include "MyRtmp.h"
 #include <sys/socket.h>"
 #include <my_log.h>
@@ -20,6 +26,20 @@
  * 5.释放连接
  * @param playPath
  */
+
+struct RtmpHeader{
+    char format ; //1 B
+    char csId ; // 1B
+    int32_t timeStamp ; // 3 B
+    int32_t bodySize ; // 3 B
+    char typeId ; // 1 B
+    int32_t streamId; // 4 B
+};
+
+struct RtmpMsg{
+    RtmpHeader header;
+    char *body ;
+};
 
 struct sockaddr_in server_addr;
 int sk;
@@ -52,7 +72,6 @@ int MyRtmp::socketCreate() {
         LOGI("address error");
         return -1;
     }
-
     int connfd = connect(sk, (struct sockaddr *) &server_addr, sizeof(server_addr));
     if (connfd < 0) {
         return -1;
@@ -67,7 +86,7 @@ int MyRtmp::socketClose() {
     * SHUT_RDWR  相当于调用shutdown两次：首先是以SHUT_RD,然后以SHUT_WR
     */
     if (sk >= 0) {
-        shutdown(sk, SHUT_WR);
+        shutdown(sk, SHUT_RDWR);
     }
     return 1;
 }
@@ -100,7 +119,10 @@ int MyRtmp::rtmpHandShake() {
     char *s0s1s2 = (char *) malloc(3073); //s0+s1+s2
 
     ret = recvFull(s0s1s2, 3073);
-
+    if(ret < 0){
+        LOGE(" handshake s0s1s2 faild !");
+        return -1;
+    }
     char *c2 = (char *)malloc(1536);
     time32 = time(NULL);
     nowTime = (char *) &time32;
@@ -114,12 +136,47 @@ int MyRtmp::rtmpHandShake() {
     c2[7] = 0x00;
     memcpy(c2 + 7 , c0c1 + 8 , 1536);
     send(sk , c2 , 1536 , 0 );
-
-
-
     LOGE(" handshake success ");
     return 1;
 }
+
+//连接rtmp
+int MyRtmp::connectApp() {
+
+    RtmpMsg *rmConnectLive = new RtmpMsg();
+    RtmpHeader rmLiveHeader = rmConnectLive->header ;
+    rmLiveHeader.format = 0 ;
+    rmLiveHeader.csId = 3;
+
+
+
+    RtmpMsg *rmWA = new RtmpMsg();
+    RtmpHeader rh = rmWA->header;
+    rh.format = 0;
+    rh.csId = 2;
+    rh.timeStamp = 0;
+    rh.bodySize = 4;
+    rh.typeId = 5;
+    rh.streamId = 0;
+    rmWA->body = (char *)malloc(4);
+    int32_t size = 2500000;
+    memcpy(rmWA->body , &size , 4);
+
+    char *chunk = (char *)malloc(13 + 4);
+    memcpy(chunk , &rh.format , 1);
+    memcpy(chunk + 1 , &rh.csId , 1);
+    memcpy(chunk + 2 , &rh.timeStamp , 3);
+    memcpy(chunk + 5 , &rh.bodySize , 3);
+    memcpy(chunk + 8 , &rh.typeId , 1);
+    memcpy(chunk + 9 , &rh.streamId , 4);
+    memcpy(chunk + 13 , rmWA->body , 4);
+    send(sk , chunk , 16 , 0) ;
+//    send();
+    return 1;
+}
+
+
+
 
 //需要从tcp缓冲区中读取多少个字节
 int MyRtmp::recvFull(char *dst, int size) {
@@ -142,9 +199,9 @@ int MyRtmp::recvFull(char *dst, int size) {
 
 
 int MyRtmp::startRtmp() {
-
     rtmpConnect();
     rtmpHandShake();
+    connectApp();
     return 1;
 }
 
