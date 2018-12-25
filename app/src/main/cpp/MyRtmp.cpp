@@ -6,6 +6,8 @@
  * http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDHIS2&filename=BJGB201306010&uid=WEEvREcwSlJHSldRa1FhdkJkVWEyd2MwSXVScUc0anhZUmZvN093NU5IUT0=$9A4hF_YAuvQ5obgVAqNKPCYcEjKensW4IQMovwHtwkF4VYPoHbKxJw!!&v=MTI5NTVoVzd6Skp5Zk1iTEc0SDlMTXFZOUVaSVI4ZVgxTHV4WVM3RGgxVDNxVHJXTTFGckNVUkxLZVplUnFGeXo=
  * 期刊
  *
+ * http://kreader.cnki.net/Kreader/CatalogViewPage.aspx?dbCode=cdmd&filename=1015708671.nh&tablename=CMFD201601&compose=&first=1&uid=WEEvREcwSlJHSldRa1FhdXNXa0d1ZzVBcWM1cTVFMjJVL2tHVENYYkFlVT0=$9A4hF_YAuvQ5obgVAqNKPCYcEjKensW4IQMovwHtwkF4VYPoHbKxJw!!
+ * 协议相关
  */
 
 #include "MyRtmp.h"
