@@ -57,7 +57,6 @@ int MyRtmp::rtmpConnect() {
 //    if(ret < 0){
 //        LOGE(" SEND FAILD  !");
 //    }
-
     return 1;
 }
 
