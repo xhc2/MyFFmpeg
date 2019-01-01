@@ -41,7 +41,7 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
         else{
             holder.imgChoise.setImageDrawable(null);
         }
-        holder.tvName.setText(getFileName(fileBean.getPath()));
+        holder.tvName.setText(getFileName(fileBean.getPath()));//这里字符串拼接是个耗时操作。导致帧率严重下降
         displayImageView(holder.imgVideo , "file:///mnt"+fileBean.getPath());
 
     }

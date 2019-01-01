@@ -1,6 +1,7 @@
 package module.video.jnc.myffmpeg.activity;
 
 import android.os.Debug;
+import android.os.Trace;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
@@ -38,6 +39,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         setContentView(R.layout.activity_main2);
         findViewById();
         init();
+
+        
+
+
         //test
 //        int width = 640;
 //        int height = 360;
@@ -56,6 +61,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //            e.printStackTrace();
 //        }
         Debug.startMethodTracing("tracePath");
+        Trace.beginSection("mainactivity");
     }
 
 //    private void rotateYv12Degree90(byte[] src, int width, int height, byte[] dst) {
@@ -117,6 +123,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btVideoEdit.setOnClickListener(this);
         btOther.setOnClickListener(this);
         btPlayer.setOnClickListener(this);
+
+        thread = new Mythread();
+        thread.start();
+    }
+
+    Mythread thread;
+
+    class Mythread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
