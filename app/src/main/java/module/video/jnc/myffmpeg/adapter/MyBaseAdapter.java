@@ -1,27 +1,19 @@
 package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import module.video.jnc.myffmpeg.R;
 
 public abstract class MyBaseAdapter<T, V extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<V> {
 
     protected List<T> list = new ArrayList<T>();
     protected Context context;
     protected OnRecyleItemClick lis ;
-    protected DisplayImageOptions options;
 //    private ImageLoader imageLoader = null;
 
     public interface OnRecyleItemClick<T> {
@@ -78,21 +70,5 @@ public abstract class MyBaseAdapter<T, V extends RecyclerView.ViewHolder> extend
 
 
 
-//    protected synchronized void displayImageView(ImageView img, String url) {
-//        if (options == null) {
-//            //使用的时候才加载
-//            imageLoader = ImageLoader.getInstance();
-//            options = new DisplayImageOptions.Builder()
-//                    .showImageOnLoading(R.mipmap.ic_launcher) // resource or drawable
-//                    .showImageForEmptyUri(R.mipmap.ic_launcher) // resource or drawable
-//                    .showImageOnFail(R.mipmap.ic_launcher) // resource or drawable
-//                    .cacheInMemory(true) // default
-//                    .cacheOnDisk(true) // default
-//                    .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) // default
-//                    .bitmapConfig(Bitmap.Config.ARGB_4444) // default
-//                    .build();
-//        }
-//        imageLoader.displayImage(url, img, options);
-//    }
 
 }

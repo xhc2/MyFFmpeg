@@ -2,6 +2,7 @@ package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.text.Layout;
 import android.util.ArrayMap;
 import android.view.LayoutInflater;
@@ -11,9 +12,8 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+
+import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.lang.reflect.Array;
@@ -24,8 +24,8 @@ import java.util.Map;
 import module.video.jnc.myffmpeg.R;
 
 public class MyExpandAdapter extends BaseExpandableListAdapter {
-    private ImageLoader imageLoader = null;
-    private DisplayImageOptions options;
+//    private ImageLoader imageLoader = null;
+//    private DisplayImageOptions options;
     private List<String> listName = new ArrayList<>();
     private List<File[]> listFile = new ArrayList<>();
     private Context context;
@@ -37,16 +37,16 @@ public class MyExpandAdapter extends BaseExpandableListAdapter {
         this.listName.addAll(listName);
         this.listFile.addAll(listFile);
         //使用的时候才加载
-        imageLoader = ImageLoader.getInstance();
-        options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.mipmap.video_default)
-                .showImageForEmptyUri(R.mipmap.video_default)
-                .showImageOnFail(R.mipmap.video_default)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
-                .bitmapConfig(Bitmap.Config.ARGB_4444)
-                .build();
+//        imageLoader = ImageLoader.getInstance();
+//        options = new DisplayImageOptions.Builder()
+//                .showImageOnLoading(R.mipmap.video_default)
+//                .showImageForEmptyUri(R.mipmap.video_default)
+//                .showImageOnFail(R.mipmap.video_default)
+//                .cacheInMemory(true)
+//                .cacheOnDisk(true)
+//                .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+//                .bitmapConfig(Bitmap.Config.ARGB_4444)
+//                .build();
 
     }
 
@@ -120,7 +120,7 @@ public class MyExpandAdapter extends BaseExpandableListAdapter {
         } else {
             cvh = (ChildViewHolder) convertView.getTag();
         }
-        imageLoader.displayImage("file://" + listFile.get(groupPosition)[childPosition].getAbsolutePath(), cvh.imgHead, options);
+        Glide.with(context).load(Uri.fromFile(new File(listFile.get(groupPosition)[childPosition].getAbsolutePath()))).into(cvh.imgHead);
         cvh.tvName.setText(listFile.get(groupPosition)[childPosition].getName());
         return convertView;
     }

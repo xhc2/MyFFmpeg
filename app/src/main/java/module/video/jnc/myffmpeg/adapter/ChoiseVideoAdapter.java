@@ -18,10 +18,10 @@ import java.util.List;
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.bean.FileBean;
 
-public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapter.ViewHolder>{
+public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapter.ViewHolder> {
 
     LayoutInflater inflater;
-    private int count ;
+
     public ChoiseVideoAdapter(List<FileBean> list, Context context) {
         super(list, context);
         inflater = LayoutInflater.from(context);
@@ -29,18 +29,17 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup container, int type) {
-        Log.e("xhc" ," onCreateViewHolder "+(count++));
-        return new ViewHolder(inflater.inflate(R.layout.file_item , container , false));
+        return new ViewHolder(inflater.inflate(R.layout.file_item, container, false));
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        final FileBean fileBean =  list.get(position);
+        final FileBean fileBean = list.get(position);
         holder.imgVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(lis != null){
-                    lis.onItemClick(v , fileBean , position);
+                if (lis != null) {
+                    lis.onItemClick(v, fileBean, position);
                 }
             }
         });
@@ -49,15 +48,16 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
         Glide.with(context).load(Uri.fromFile(new File(fileBean.getPath()))).into(holder.imgVideo);
     }
 
-    private String getFileName(String name){
+    private String getFileName(String name) {
         String[] strs = name.split("/");
         return strs[strs.length - 1];
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder{
+    class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgVideo;
         ImageView imgChoise;
         TextView tvName;
+
         public ViewHolder(View itemView) {
             super(itemView);
             imgVideo = itemView.findViewById(R.id.img_video);

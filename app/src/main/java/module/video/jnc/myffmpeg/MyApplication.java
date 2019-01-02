@@ -2,8 +2,6 @@ package module.video.jnc.myffmpeg;
 
 import android.app.Application;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 public class MyApplication extends Application {
 
