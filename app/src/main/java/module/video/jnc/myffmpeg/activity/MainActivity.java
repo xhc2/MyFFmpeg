@@ -1,17 +1,10 @@
 package module.video.jnc.myffmpeg.activity;
 
-import android.os.Debug;
-import android.os.Trace;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,43 +33,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         findViewById();
         init();
 
-        
-
-
-        //test
-//        int width = 640;
-//        int height = 360;
-//        int yuvSize = width * height * 3 / 2;
-//        byte[] src = new byte[yuvSize];
-//        byte[] dst = new byte[yuvSize];
-//        try {
-//            FileInputStream fis = new FileInputStream(new File("sdcard/FFmpeg/oneframe.yuv"));
-//            fis.read(src);
-//            fis.close();
-//            rotateYv12Degree90(src , width , height , dst );
-//            FileOutputStream fos = new FileOutputStream(new File("sdcard/FFmpeg/oneframerotate.yuv"));
-//            fos.write(dst);
-//            fos.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        Debug.startMethodTracing("tracePath");
-        Trace.beginSection("mainactivity");
     }
 
-//    private void rotateYv12Degree90(byte[] src, int width, int height, byte[] dst) {
-//        int ySize = width * height;
-//
-////        if (clockwise) {
-////            rotateRectClockwiseDegree90(src, 0, width, height, dst, 0);
-////            rotateRectClockwiseDegree90(src, area, width / 2, height / 2, dst, area);
-//        rotateRectClockwiseDegree90(src, ySize * 5 / 4, width / 2, height / 2, dst, ySize * 5 / 4);
-////        } else {
-//        rotateRectAnticlockwiseDegree90(src, 0, width, height, dst, 0);
-//        rotateRectAnticlockwiseDegree90(src, ySize, width / 2, height / 2, dst, ySize);
-//        rotateRectAnticlockwiseDegree90(src, ySize * 5 / 4, width / 2, height / 2, dst, ySize * 5 / 4);
-////        }
-//    }
 
     private void rotateRectClockwiseDegree90(byte[] src, int srcOffset, int width, int height, byte dst[], int dstOffset) {
         int i, j;
@@ -158,9 +116,4 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Debug.stopMethodTracing();
-    }
 }

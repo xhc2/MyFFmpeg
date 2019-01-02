@@ -1,13 +1,18 @@
 package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
+import java.io.File;
 import java.util.List;
 
 import module.video.jnc.myffmpeg.R;
@@ -15,13 +20,17 @@ import module.video.jnc.myffmpeg.bean.FileBean;
 
 public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapter.ViewHolder>{
 
+    LayoutInflater inflater;
+    private int count ;
     public ChoiseVideoAdapter(List<FileBean> list, Context context) {
         super(list, context);
+        inflater = LayoutInflater.from(context);
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup container, int type) {
-        return new ViewHolder(LayoutInflater.from(context).inflate(R.layout.file_item , container , false));
+        Log.e("xhc" ," onCreateViewHolder "+(count++));
+        return new ViewHolder(inflater.inflate(R.layout.file_item , container , false));
     }
 
     @Override
@@ -35,20 +44,16 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
                 }
             }
         });
-        if(fileBean.isChoise()){
-            holder.imgChoise.setImageResource(R.mipmap.choise);
-        }
-        else{
-            holder.imgChoise.setImageDrawable(null);
-        }
-        holder.tvName.setText(getFileName(fileBean.getPath()));//这里字符串拼接是个耗时操作。导致帧率严重下降
-        displayImageView(holder.imgVideo , "file:///mnt"+fileBean.getPath());
 
+        Glide.with(context).load(fileBean.getChoiseRid()).into(holder.imgChoise);
+        Glide.with(context).load(Uri.fromFile(new File(fileBean.getPath()))).into(holder.imgVideo);
     }
+
     private String getFileName(String name){
         String[] strs = name.split("/");
         return strs[strs.length - 1];
     }
+
     class ViewHolder extends RecyclerView.ViewHolder{
         ImageView imgVideo;
         ImageView imgChoise;

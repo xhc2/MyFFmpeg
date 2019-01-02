@@ -1,6 +1,7 @@
 package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.util.List;
@@ -33,7 +36,8 @@ public class PlayListAdapter extends MyBaseAdapter<String, PlayListAdapter.MyVie
             holder.tv.setText("网络流rtmp");
         }
         else{
-            displayImageView(holder.img , "file://"+f);
+//            displayImageView(holder.img , "file://"+f);
+            Glide.with(context).load(Uri.fromFile(new File(f))).into(holder.img);
             holder.tv.setText(getFileName(f));
         }
 

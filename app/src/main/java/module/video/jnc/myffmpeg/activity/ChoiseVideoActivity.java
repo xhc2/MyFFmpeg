@@ -2,6 +2,7 @@ package module.video.jnc.myffmpeg.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -10,8 +11,11 @@ import android.util.Log;
 import android.view.View;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import module.video.jnc.myffmpeg.adapter.ChoiseVideoAdapter;
 import module.video.jnc.myffmpeg.bean.FileBean;
@@ -22,6 +26,11 @@ import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.adapter.SelectedVideoAdapter;
 import module.video.jnc.myffmpeg.widget.TitleBar;
 
+
+/**
+ * RecycleView的优化技巧
+ * https://www.jianshu.com/p/4809e1872f50
+ */
 public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.OnRecyleItemClick<FileBean> {
     private RecyclerView recyclerView ;
     private ChoiseVideoAdapter adapter ;
@@ -37,10 +46,12 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
     private String action ;
     private String picPath;
     private String musicPath ;
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss" , Locale.getDefault());
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choise_video);
+//        Debug.startMethodTracing(sdf.format(new Date())+"_trace");
         Intent intent = getIntent();
         if(intent != null){
             choiseNum = intent.getIntExtra("choise_max_video" , 1);
@@ -56,7 +67,8 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
         findFile(FileUtils.APP_VIDEO);
         adapter = new ChoiseVideoAdapter(listFile  , this);
         recyclerView.setLayoutManager(new GridLayoutManager(this , 3));
-        recyclerView.addItemDecoration(new DividerGridItemDecoration(this));
+//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView.addItemDecoration(new DividerGridItemDecoration(this));
         recyclerView.setAdapter(adapter);
         adapter.setOnRecyleItemClick(this);
 
@@ -102,6 +114,8 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
                     FileBean fb = new FileBean();
                     fb.setPath(f.getAbsolutePath());
                     listFile.add(fb);
+                    listFile.add(fb);
+                    listFile.add(fb);
                 }
             }
         }
@@ -122,19 +136,30 @@ public class ChoiseVideoActivity extends BaseActivity  implements MyBaseAdapter.
 
     @Override
     public void onItemClick(View v, FileBean s, int position) {
+        Log.e("xhc" , " choise "+listSelected.size()+" choiseNum "+choiseNum);
         if(listSelected.size() >= choiseNum && !s.isChoise()){
             return ;
         }
         if(s.isChoise()){
             s.setChoise(false);
+            s.setChoiseRid(null);
             listSelected.remove(s.getPath());
+            selectedVideoAdapter.addItem(s.getPath() , position);
         }
         else{
             s.setChoise(true);
+            s.setChoiseRid(R.mipmap.choise);
             listSelected.add(s.getPath());
+            selectedVideoAdapter.removeItem(s.getPath() , position);
         }
-        adapter.refreshAllData(listFile);
-        selectedVideoAdapter.refreshAllData(listSelected);
+        listFile.set(position , s);
+        adapter.refreshItem(s , position);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        Debug.stopMethodTracing();
     }
 }
 

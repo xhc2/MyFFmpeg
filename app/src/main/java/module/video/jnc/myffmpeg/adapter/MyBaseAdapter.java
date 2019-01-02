@@ -22,7 +22,7 @@ public abstract class MyBaseAdapter<T, V extends RecyclerView.ViewHolder> extend
     protected Context context;
     protected OnRecyleItemClick lis ;
     protected DisplayImageOptions options;
-    protected ImageLoader imageLoader = null;
+//    private ImageLoader imageLoader = null;
 
     public interface OnRecyleItemClick<T> {
         void onItemClick(View v , T t , int position);
@@ -52,6 +52,24 @@ public abstract class MyBaseAdapter<T, V extends RecyclerView.ViewHolder> extend
         this.notifyDataSetChanged();
     }
 
+    public void refreshItem(T t  , int postion){
+        list.set(postion , t);
+        notifyItemChanged(postion);
+    }
+
+    public void addItem(T t  , int postion){
+        list.add(t);
+         notifyItemInserted(postion);
+    }
+
+    public void removeItem(T t  , int postion){
+        list.remove(t);
+        notifyItemRemoved(postion);
+    }
+
+
+
+
     @Override
     public abstract V onCreateViewHolder(ViewGroup container, int type);
 
@@ -60,21 +78,21 @@ public abstract class MyBaseAdapter<T, V extends RecyclerView.ViewHolder> extend
 
 
 
-    protected synchronized void displayImageView(ImageView img, String url) {
-        if (options == null) {
-            //使用的时候才加载
-            imageLoader = ImageLoader.getInstance();
-            options = new DisplayImageOptions.Builder()
-                    .showImageOnLoading(R.mipmap.ic_launcher) // resource or drawable
-                    .showImageForEmptyUri(R.mipmap.ic_launcher) // resource or drawable
-                    .showImageOnFail(R.mipmap.ic_launcher) // resource or drawable
-                    .cacheInMemory(true) // default
-                    .cacheOnDisk(true) // default
-                    .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) // default
-                    .bitmapConfig(Bitmap.Config.ARGB_4444) // default
-                    .build();
-        }
-        imageLoader.displayImage(url, img, options);
-    }
+//    protected synchronized void displayImageView(ImageView img, String url) {
+//        if (options == null) {
+//            //使用的时候才加载
+//            imageLoader = ImageLoader.getInstance();
+//            options = new DisplayImageOptions.Builder()
+//                    .showImageOnLoading(R.mipmap.ic_launcher) // resource or drawable
+//                    .showImageForEmptyUri(R.mipmap.ic_launcher) // resource or drawable
+//                    .showImageOnFail(R.mipmap.ic_launcher) // resource or drawable
+//                    .cacheInMemory(true) // default
+//                    .cacheOnDisk(true) // default
+//                    .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) // default
+//                    .bitmapConfig(Bitmap.Config.ARGB_4444) // default
+//                    .build();
+//        }
+//        imageLoader.displayImage(url, img, options);
+//    }
 
 }
