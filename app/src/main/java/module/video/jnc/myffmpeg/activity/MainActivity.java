@@ -13,7 +13,7 @@ import module.video.jnc.myffmpeg.adapter.HomeViewPagerAdapter;
 import module.video.jnc.myffmpeg.fragment.EditFragment;
 import module.video.jnc.myffmpeg.fragment.OtherFragment;
 import module.video.jnc.myffmpeg.fragment.MyFragment;
-
+//adb shell am start -W module.video.jnc.myffmpeg/module.video.jnc.myffmpeg.MainActivity
 public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private ViewPager viewPager;
@@ -82,8 +82,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btOther.setOnClickListener(this);
         btPlayer.setOnClickListener(this);
 
-        thread = new Mythread();
-        thread.start();
+//        thread = new Mythread();
+//        thread.start();
     }
 
     Mythread thread;
