@@ -7,21 +7,8 @@
     android:orientation="vertical"
     tools:context=".activity.TestActivity">
 
-    <module.video.jnc.myffmpeg.widget.CropGraph
+    <module.video.jnc.myffmpeg.widget.MyLoadMoreRecycleView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        />
-
-    <Button
-        android:id="@+id/bt_start"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="开始"
-        />
-    <Button
-        android:id="@+id/bt_end"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="结束"
-        />
+        android:layout_height="match_parent"/>
 </LinearLayout>
