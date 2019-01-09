@@ -2,6 +2,7 @@ package module.video.jnc.myffmpeg.adapter;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Trace;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,6 +35,7 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
+//        Trace.beginSection(" choise_video_adapter_onBindViewHolder");
         final FileBean fileBean = list.get(position);
         holder.imgVideo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,6 +48,7 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
 
         Glide.with(context).load(fileBean.getChoiseRid()).into(holder.imgChoise);
         Glide.with(context).load(Uri.fromFile(new File(fileBean.getPath()))).into(holder.imgVideo);
+//        Trace.endSection();
     }
 
     private String getFileName(String name) {
