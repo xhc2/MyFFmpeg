@@ -48,6 +48,7 @@ public class ChoiseVideoAdapter extends MyBaseAdapter<FileBean, ChoiseVideoAdapt
 
         Glide.with(context).load(fileBean.getChoiseRid()).into(holder.imgChoise);
         Glide.with(context).load(Uri.fromFile(new File(fileBean.getPath()))).into(holder.imgVideo);
+        Glide.with(context).load("http://cn.bing.com/az/hprichbg/rb/Dongdaemun_ZH-CN10736487148_1920x1080.jpg").into(holder.imgVideo);//test
 //        Trace.endSection();
     }
 
