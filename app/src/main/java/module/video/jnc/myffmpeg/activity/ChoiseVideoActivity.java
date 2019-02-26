@@ -2,7 +2,6 @@ package module.video.jnc.myffmpeg.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -52,7 +51,7 @@ public class ChoiseVideoActivity extends BaseActivity implements MyBaseAdapter.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choise_video);
-        Debug.startMethodTracing(sdf.format(new Date())+"_trace");
+//        Debug.startMethodTracing(sdf.format(new Date())+"_trace");
         Intent intent = getIntent();
         if (intent != null) {
             choiseNum = intent.getIntExtra("choise_max_video", 1);
@@ -156,7 +155,7 @@ public class ChoiseVideoActivity extends BaseActivity implements MyBaseAdapter.O
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Debug.stopMethodTracing();
+//        Debug.stopMethodTracing();
     }
 }
 
