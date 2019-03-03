@@ -58,6 +58,7 @@ public class VideoCropActivity extends SingleFilterActivity     {
                 int width = (int)((float)videoWidthPx /  myVideoGpuShow.getWidth() * result[2]) ;
                 int height = (int)((float)videoHeightPx /  myVideoGpuShow.getHeight() * result[3] );
                 //width , height , x , y
+                Log.e("xhc" , " w "+width +" h "+height +" x "+startX+" y "+startY);
                 String filterDes = String.format(Locale.CHINESE , "crop=%d:%d:%d:%d" , width , height , startX , startY) ;
                 startDealVideo(listPath.get(0) ,  FileUtils.APP_CROP + System.currentTimeMillis()+".mp4" , filterDes , new int[]{width , height});
                 showLoadPorgressDialog("处理中...");

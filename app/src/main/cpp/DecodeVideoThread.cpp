@@ -99,6 +99,9 @@ void DecodeVideoThread::run() {
                 memcpy(myData->datas[2] + vc->width / 2 * i,
                        vframe->data[2] + vframe->linesize[2] * i, vc->width / 2);
             }
+//            fwrite(vframe->data[0] , size , 1 , file );
+//            fwrite(vframe->data[1] , size / 4 , 1 , file );
+//            fwrite(vframe->data[2] , size / 4, 1 , file );
             this->notify(myData);
         }
     }
