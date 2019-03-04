@@ -24,10 +24,11 @@
                 android:text="多媒体硬解" />
 
             <TextView
-                android:id="@+id/tv_network"
+                android:id="@+id/tv_rtmp_downlaod"
                 style="@style/other_exercise"
-                android:drawableTop="@mipmap/network_rtmp"
-                android:text="网络流" />
+                android:drawableTop="@mipmap/rtmp_download"
+                android:text="rtmp拉流" />
+
         </TableRow>
 
         <TableRow android:weightSum="2">
@@ -47,12 +48,13 @@
 
         <TableRow android:weightSum="2">
 
-
             <TextView
-                android:id="@+id/tv_rtmp_downlaod"
+                android:id="@+id/tv_network"
                 style="@style/other_exercise"
-                android:drawableTop="@mipmap/rtmp_download"
-                android:text="rtmp拉流" />
+                android:drawableTop="@mipmap/network_rtmp"
+                android:visibility="gone"
+                android:text="网络流" />
+
         </TableRow>
     </TableLayout>
 

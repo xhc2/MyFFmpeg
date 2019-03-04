@@ -27,7 +27,7 @@ void DecodeVideoThread::run() {
         }
 //        LOGE(" videoPktQue %d " , videoPktQue.size());
         if (videoPktQue.empty()) {
-//            LOGE(" VIDEO PACKAGE NULL ");
+//        LOGE(" VIDEO PACKAGE NULL ");
             if (finishFlag) {
                 pts = -100;
             }
@@ -62,7 +62,6 @@ void DecodeVideoThread::run() {
             } else if (result < 0) {
                 break;
             }
-
 
             vframe->pts = util.getConvertPts(vframe->pts,
                                              afc->streams[videoIndex]->time_base);

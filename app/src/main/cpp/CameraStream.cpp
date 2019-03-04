@@ -69,7 +69,6 @@ int CameraStream::init(const char *url, int width, int height, int pcmsize, Call
     aparams->channels = 1;
     aparams->channel_layout = AV_CH_LAYOUT_MONO;
     ret = addOutputAudioStream(afc_output, &aCtxE, *aparams);
-    LOGE(" ACTXE %d ", aCtxE->frame_size);
     avcodec_parameters_free(&aparams);
     if (ret < 0) {
         callJava->callStr(" addOutputAudioStream faild !");
@@ -84,7 +83,6 @@ int CameraStream::init(const char *url, int width, int height, int pcmsize, Call
         callJava->callStr(" writeOutoutHeader faild !");
         return -1;
     }
-
 
     this->start();
     setPause();

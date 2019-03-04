@@ -14,9 +14,11 @@ import module.video.jnc.myffmpeg.activity.FlvParseActivity;
 import module.video.jnc.myffmpeg.activity.HardCodeActivity;
 import module.video.jnc.myffmpeg.activity.Mp4PlayerActivity;
 import module.video.jnc.myffmpeg.activity.NetStreamActivity;
+import module.video.jnc.myffmpeg.widget.UrlDialog;
 
 public class OtherFragment extends Fragment implements View.OnClickListener {
 
+    private UrlDialog dialog;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -50,11 +52,24 @@ public class OtherFragment extends Fragment implements View.OnClickListener {
                 startActivity(new Intent(getActivity(), CameraStreamActivity.class));
                 break;
             case R.id.tv_rtmp_downlaod:
-                Intent intent = new Intent(getActivity(), Mp4PlayerActivity.class);
-                intent.putExtra("path", "rtmp:192.168.0.100:1935:/live/live");
-                startActivity(intent);
+                showUrlDialog();
                 break;
-
         }
     }
+
+
+    private void showUrlDialog() {
+        if (dialog == null) {
+            dialog = new UrlDialog(getActivity(), new UrlDialog.ClickConfirm() {
+                @Override
+                public void clickConfirm(String url) {
+                    Intent intent = new Intent(getActivity(), Mp4PlayerActivity.class);
+                    intent.putExtra("path", url);
+                    startActivity(intent);
+                }
+            });
+        }
+        dialog.show();
+    }
+
 }

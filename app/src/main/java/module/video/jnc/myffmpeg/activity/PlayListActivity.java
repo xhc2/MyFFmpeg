@@ -61,6 +61,11 @@ public class PlayListActivity extends BaseActivity {
                 listFile.add(f.getPath());
             }
         }
-        listFile.add(0 , "rtmp://live.hkstv.hk.lxdns.com/live/hks");
+//        rtmp://mobliestream.c3tv.com:554/live/goodtv.sdp
+//        rtmp://live.chosun.gscdn.com/live/tvchosun1.stream
+//        rtmp://ns8.indexforce.com/home/mystream
+//        rtmp://media3.sinovision.net:1935/live/livestream
+//        rtmp://58.200.131.2:1935/livetv/hunantv 湖南tuv
+        listFile.add(0 , "rtmp://media3.sinovision.net:1935/live/livestream");
     }
 }
