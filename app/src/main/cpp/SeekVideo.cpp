@@ -39,8 +39,8 @@ void SeekFile::seek(float progress , int64_t &audioPts , int64_t &videoPts) {
     }
     int64_t realPts = utils.getConvertPts(seekPts, afc->streams[videoIndex]->time_base);
     //还是直接放在主线程中。子线程不太容易通知其他线程启动。
-    videoPts = findVideoFrame(realPts);
-    audioPts = findAudioFrame(videoPts);
+//    videoPts = findVideoFrame(realPts);
+//    audioPts = findAudioFrame(videoPts);
 }
 
 
