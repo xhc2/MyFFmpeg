@@ -52,7 +52,6 @@
                 android:id="@+id/tv_network"
                 style="@style/other_exercise"
                 android:drawableTop="@mipmap/network_rtmp"
-                android:visibility="gone"
                 android:text="网络流" />
 
         </TableRow>

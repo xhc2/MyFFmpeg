@@ -142,28 +142,8 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
         });
 
 
-        findViewById(R.id.ib_more).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                /*showDialog();*/
-            }
-        });
 
-        findViewById(R.id.ib_hard).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(Mp4PlayerActivity.this, HardCodeActivity.class));
-            }
-        });
 
-        findViewById(R.id.ib_publish).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //跳转到网路流的界面
-                Intent intent = new Intent(Mp4PlayerActivity.this, NetStreamActivity.class);
-                startActivity(intent);
-            }
-        });
 //        findViewById(R.id.ib_video_cart).setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -196,12 +176,12 @@ public class Mp4PlayerActivity extends BaseActivity implements View.OnClickListe
             }
         });
 
-        findViewById(R.id.ib_flv).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(Mp4PlayerActivity.this , FlvParseActivity.class));
-            }
-        });
+//        findViewById(R.id.ib_flv).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                startActivity(new Intent(Mp4PlayerActivity.this , FlvParseActivity.class));
+//            }
+//        });
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
