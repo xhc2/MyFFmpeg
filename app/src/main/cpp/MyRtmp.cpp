@@ -149,8 +149,6 @@ int MyRtmp::connectApp() {
     rmLiveHeader.format = 0 ;
     rmLiveHeader.csId = 3;
 
-
-
     RtmpMsg *rmWA = new RtmpMsg();
     RtmpHeader rh = rmWA->header;
     rh.format = 0;
@@ -202,7 +200,7 @@ int MyRtmp::recvFull(char *dst, int size) {
 int MyRtmp::startRtmp() {
     rtmpConnect();
     rtmpHandShake();
-    connectApp();
+//    connectApp();
     return 1;
 }
 

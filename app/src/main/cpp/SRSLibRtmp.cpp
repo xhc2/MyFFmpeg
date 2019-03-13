@@ -224,11 +224,11 @@ void SRSLibRtmp::publishH264(const char *path) {
     }
     LOGE("connect vhost/app success");
 
-    if (srs_rtmp_publish_stream(rtmp) != 0) {
-        LOGE("publish stream failed.");
-        rtmpDestroy();
-        return ;
-    }
+//    if (srs_rtmp_publish_stream(rtmp) != 0) {
+//        LOGE("publish stream failed.");
+//        rtmpDestroy();
+//        return ;
+//    }
     LOGE("publish stream success");
 
 //    int dts = 0;

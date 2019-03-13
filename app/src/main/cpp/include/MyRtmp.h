@@ -9,7 +9,7 @@ class MyRtmp{
 
 private :
     int port = 1935 ;
-    const char* addr = "192.168.15.237";
+    const char* addr = "192.168.20.142";
 public :
     MyRtmp();
     int rtmpConnect();

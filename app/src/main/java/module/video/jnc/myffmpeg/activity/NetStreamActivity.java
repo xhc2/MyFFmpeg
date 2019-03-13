@@ -17,12 +17,13 @@ import module.video.jnc.myffmpeg.tool.FileUtils;
  * https://blog.csdn.net/leixiaohua1020/article/details/39803457
  * 手机网络流模块需要认真优化
  * rtmp 网络流
+ * https://blog.csdn.net/HandsomeHong/article/details/79084967
  */
 
 
 public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
 
-    private String ouputPath = "rtmp://192.168.15.237/live/live";
+    private String ouputPath = "rtmp://192.168.20.142/live/live";
     private EditText etUrl;
 
     private Handler handler = new Handler(new Handler.Callback() {
@@ -48,9 +49,6 @@ public class NetStreamActivity extends Activity implements FFmpegUtils.Lis {
         etUrl.setText(ouputPath);
 
         FFmpegUtils.addNativeNotify(this);
-
-
-
 
         findViewById(R.id.bt_srs_librtmp).setOnClickListener(new View.OnClickListener() {
             @Override
