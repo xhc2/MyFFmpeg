@@ -30,7 +30,7 @@
  */
 
 struct RtmpHeader{
-    char format ; //1 B
+//    char format ; //1 B 抓包发现指向的是同一个
     char csId ; // 1B
     int32_t timeStamp ; // 3 B
     int32_t bodySize ; // 3 B
@@ -146,31 +146,29 @@ int MyRtmp::connectApp() {
 
     RtmpMsg *rmConnectLive = new RtmpMsg();
     RtmpHeader rmLiveHeader = rmConnectLive->header ;
-    rmLiveHeader.format = 0 ;
-    rmLiveHeader.csId = 3;
+    rmLiveHeader.csId = 3;//1B
+    rmLiveHeader.timeStamp = 0; //3B
+    rmLiveHeader.bodySize = 3; //3B
+    rmLiveHeader.typeId = 0x14; // 1B
+    rmLiveHeader.streamId = 0;//4B
+    rmConnectLive->body = (char *)malloc(3);
+    const char *body = "123";
+    memcpy(rmConnectLive->body , body , 3);
 
-    RtmpMsg *rmWA = new RtmpMsg();
-    RtmpHeader rh = rmWA->header;
-    rh.format = 0;
-    rh.csId = 2;
-    rh.timeStamp = 0;
-    rh.bodySize = 4;
-    rh.typeId = 5;
-    rh.streamId = 0;
-    rmWA->body = (char *)malloc(4);
-    int32_t size = 2500000;
-    memcpy(rmWA->body , &size , 4);
-
-    char *chunk = (char *)malloc(13 + 4);
-    memcpy(chunk , &rh.format , 1);
-    memcpy(chunk + 1 , &rh.csId , 1);
-    memcpy(chunk + 2 , &rh.timeStamp , 3);
-    memcpy(chunk + 5 , &rh.bodySize , 3);
-    memcpy(chunk + 8 , &rh.typeId , 1);
-    memcpy(chunk + 9 , &rh.streamId , 4);
-    memcpy(chunk + 13 , rmWA->body , 4);
-    send(sk , chunk , 16 , 0) ;
-//    send();
+    char *sendP = (char *)malloc(15);
+    char *point = sendP;
+    memcpy(point , &rmLiveHeader.csId , 1);
+    point++;
+    memcpy(point , &rmLiveHeader.timeStamp , 3);
+    point+= 3;
+    memcpy(point , &rmLiveHeader.bodySize , 3);
+    point+= 3;
+    memcpy(point , &rmLiveHeader.typeId , 1);
+    point++;
+    memcpy(point , &rmLiveHeader.streamId , 4);
+    point+= 4;
+    memcpy(point , rmConnectLive->body , 3);
+    send(sk , sendP , 15 , 0);
     return 1;
 }
 
@@ -200,7 +198,7 @@ int MyRtmp::recvFull(char *dst, int size) {
 int MyRtmp::startRtmp() {
     rtmpConnect();
     rtmpHandShake();
-//    connectApp();
+    connectApp();
     return 1;
 }
 

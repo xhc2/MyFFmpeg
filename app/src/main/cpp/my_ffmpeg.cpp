@@ -629,16 +629,16 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_module_video_jnc_myffmpeg_FFmpegUtils_test(JNIEnv *env, jclass type) {
 
-//    myRtmp = new MyRtmp();
-//    myRtmp->startRtmp();
-    char pbuf[4096], *pend = pbuf + sizeof(pbuf);
-    char *enc = pbuf + 10;
-    AVal val = {"connect" , 7};
-    enc = AMF_EncodeString(enc, pend, &val);
-    LOGE(" enc %ud " , enc);
-    FILE *file = fopen("sdcard/FFmpeg/testamf.bin" , "wb+");
-    fwrite(enc ,  1 , 10  , file) ;
-    fclose(file);
+    myRtmp = new MyRtmp();
+    myRtmp->startRtmp();
+//    char pbuf[4096], *pend = pbuf + sizeof(pbuf);
+//    char *enc = pbuf + 10;
+//    AVal val = {"connect" , 7};
+//    enc = AMF_EncodeString(enc, pend, &val);
+//    LOGE(" enc %ud " , enc);
+//    FILE *file = fopen("sdcard/FFmpeg/testamf.bin" , "wb+");
+//    fwrite(enc ,  1 , 10  , file) ;
+//    fclose(file);
     return 1;
 
 }
