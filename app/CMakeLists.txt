@@ -49,8 +49,6 @@ add_library(my_ffmpeg
         src/main/cpp/VideoMusic.cpp
         src/main/cpp/VideoSpeed.cpp
         src/main/cpp/MyRtmp.cpp
-        src/main/cpp/amf0/amf.c
-        src/main/cpp/amf0/log.c
         )
 
 
