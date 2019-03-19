@@ -1,11 +1,11 @@
 package module.video.jnc.myffmpeg.activity;
 
 import android.content.Context;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,35 +29,73 @@ public class TestActivity extends AppCompatActivity {
     private List<Test> list = new ArrayList<>();
     int count = 100 ;
     int loadCount = 10 ;
+    MediaRecorder recorder = new MediaRecorder();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test2);
 
-        recyclerView = findViewById(R.id.recycler_view);
-        for (int i = 0; i < 10; ++i) {
-            Test t = new Test();
-            t.name = "xhc";
-            list.add(t);
-        }
-        adapter = new MyAdapter(list, this);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
-
-        recyclerView.setLis(new MyLoadMoreRecycleView.LoadMoreListener() {
+        findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void loadMore() {
-                if( loadCount >= count ){
-                    recyclerView.loadNoMore();
-                    return ;
+            public void onClick(View v) {
+                /**
+                 * 练习mediarecorder 练习
+                 */
+                recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+//                recorder.setVideoSource();
+                recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                recorder.setOutputFile("sdcard/FFmpeg/mediaRecord.3gp");
+                try{
+                    recorder.prepare();
+                    recorder.start();   // Recording is now started
+                }catch(Exception e){
+                    Log.e("xhc" , " Exception "+e.getMessage());
                 }
-                recyclerView.loadStart();
-                new MyNet().start();
-
             }
         });
+
+
+
+
+
+
+
+
+//        recyclerView = findViewById(R.id.recycler_view);
+//        for (int i = 0; i < 10; ++i) {
+//            Test t = new Test();
+//            t.name = "xhc";
+//            list.add(t);
+//        }
+//        adapter = new MyAdapter(list, this);
+//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView.setAdapter(adapter);
+//
+//
+//        recyclerView.setLis(new MyLoadMoreRecycleView.LoadMoreListener() {
+//            @Override
+//            public void loadMore() {
+//                if( loadCount >= count ){
+//                    recyclerView.loadNoMore();
+//                    return ;
+//                }
+//                recyclerView.loadStart();
+//                new MyNet().start();
+//
+//            }
+//        });
     }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        recorder.stop();
+        recorder.reset();   // You can reuse the object by going back to setAudioSource() step
+        recorder.release(); // Now the object cannot be reused
+    }
+
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override

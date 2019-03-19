@@ -31,7 +31,6 @@
 #include "h264Parse.h"
 #include "VideoClip.h"
 #include "VideoFilter.h"
-#include "amf0/amf.h"
 
 Mp4Player *mp4Player = NULL;
 PublishStream *ps = NULL;
