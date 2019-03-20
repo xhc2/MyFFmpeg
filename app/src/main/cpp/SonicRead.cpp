@@ -105,6 +105,7 @@ int SonicRead::reciveSample(short *getBuf, int lenByte) {
 //    sonicSetPitch(tempoStream, 1.0);
 //    sonicSetRate(tempoStream, 1.0);
 //}
+
 SonicRead::~SonicRead() {
     isExit = true;
     if(playAudioBuffer != NULL){

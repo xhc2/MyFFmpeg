@@ -23,7 +23,6 @@ NewAudioPlayer::NewAudioPlayer(int sampleRate, int channelCount) {
 
 void NewAudioPlayer::createEngine() {
 
-
     SLresult result;
     // create engine 创建接口对象
     result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL);

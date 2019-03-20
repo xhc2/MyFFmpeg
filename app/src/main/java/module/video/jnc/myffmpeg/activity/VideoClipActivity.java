@@ -47,27 +47,6 @@ public class VideoClipActivity extends VideoEditParentActivity implements ClipBa
     private byte[] buffer = new byte[outWidth * outHeight * 3 + BMP_HEAD];
     private ImageView img;
 
-//    private Handler handler = new Handler(new Handler.Callback() {
-//        @Override
-//        public boolean handleMessage(Message msg) {
-//            switch (msg.what) {
-//                case PROGRESS:
-//                    if (msg.arg1 == 100) {
-//                        dismissLoadPorgressDialog();
-//                        showToast("已完成");
-//                        stopClipThread();
-//                        stopProgressThread();
-//                        break;
-//                    }
-//                    setLoadPorgressDialogProgress(msg.arg1);
-//                    break;
-//                case GETCURRENTBITMAP:
-//
-//                    break;
-//            }
-//            return false;
-//        }
-//    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
