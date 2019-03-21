@@ -22,7 +22,7 @@ public class FlvParseActivity extends BaseActivity {
     private TextView tvData;
     private EditText etText;
     private ProgressDialog dialog;
-    private String path ="sdcard/FFmpeg/test.aac";
+    private String path ="sdcard/FFmpeg/flv.flv";
 
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -51,13 +51,11 @@ public class FlvParseActivity extends BaseActivity {
             public void onClick(View v) {
                 String str = etText.getText().toString();
                 if(str.endsWith("flv")){
-
                     startThread(etText.getText().toString());
                 }
                 else{
                     Toast.makeText(FlvParseActivity.this, "请输入正确文件格式", Toast.LENGTH_SHORT).show();
                 }
-
             }
         });
 
@@ -67,7 +65,6 @@ public class FlvParseActivity extends BaseActivity {
                 //分析h264
                 String str = etText.getText().toString();
                 if(str.endsWith("h264") || str.endsWith("264")){
-
                     startThread(etText.getText().toString());
                 }
                 else{
