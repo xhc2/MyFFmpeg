@@ -133,7 +133,7 @@ public class ChoiseVideoActivity extends BaseActivity implements MyBaseAdapter.O
 
     @Override
     public void onItemClick(View v, FileBean s, int position) {
-        Log.e("xhc", " choise " + listSelected.size() + " choiseNum " + choiseNum+" ischoise "+s.isChoise());
+
         if (listSelected.size() >= choiseNum && !s.isChoise()) {
             return;
         }

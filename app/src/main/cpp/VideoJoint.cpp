@@ -88,9 +88,9 @@ void VideoJoint::initValue() {
 
     maxProgressPerVideo = (int) ((float) 100 / inputPaths.size());
 
-    AVRational sampleRateAv = (AVRational) {sampleRate, 1};
-    aCalDuration = (double) (AV_TIME_BASE) * (1 / av_q2d(sampleRateAv));
-    vCalDuration = (double) (AV_TIME_BASE) * (1 / av_q2d((AVRational) {outFrameRate, 1}));
+    AVRational sampleRateAv = (AVRational) { 1,sampleRate};
+    aCalDuration = (double) (AV_TIME_BASE) * ( av_q2d(sampleRateAv));
+    vCalDuration = (double) (AV_TIME_BASE) * (av_q2d((AVRational) { 1 , outFrameRate}));
     LOGE(" aCalduration %lld , vCalDuration %lld " , aCalDuration , vCalDuration);
     readEnd = false;
     decodeEnd = false;

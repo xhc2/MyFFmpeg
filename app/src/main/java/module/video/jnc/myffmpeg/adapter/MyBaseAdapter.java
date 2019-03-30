@@ -50,7 +50,7 @@ public abstract class MyBaseAdapter<T, V extends RecyclerView.ViewHolder> extend
     }
 
     public void addItem(T t  , int postion){
-        list.add(t);
+        list.add(postion ,t );
          notifyItemInserted(postion);
     }
 
