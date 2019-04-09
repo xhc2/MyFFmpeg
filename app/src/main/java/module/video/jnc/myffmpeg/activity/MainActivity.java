@@ -11,6 +11,7 @@ import java.util.List;
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.adapter.HomeViewPagerAdapter;
 import module.video.jnc.myffmpeg.fragment.EditFragment;
+import module.video.jnc.myffmpeg.fragment.IjkPlayerFragment;
 import module.video.jnc.myffmpeg.fragment.OtherFragment;
 import module.video.jnc.myffmpeg.fragment.MyFragment;
 //adb shell am start -W module.video.jnc.myffmpeg/module.video.jnc.myffmpeg.MainActivity
@@ -21,11 +22,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private EditFragment editFragment;
     private MyFragment playFragment;
     private OtherFragment otherFragment;
+    private IjkPlayerFragment ijkFragment;
     private List<Fragment> listFragment = new ArrayList<>();
     private Button btVideoEdit;
     private Button btOther;
     private Button btPlayer;
-
+    private Button btIjkPlayer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,22 +67,26 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btVideoEdit = findViewById(R.id.bt_edit);
         btOther = findViewById(R.id.bt_other);
         btPlayer = findViewById(R.id.bt_play);
-
+        btIjkPlayer = findViewById(R.id.bt_play_list);
     }
 
     private void init() {
         editFragment = new EditFragment();
         playFragment = new MyFragment();
         otherFragment = new OtherFragment();
+        ijkFragment = new IjkPlayerFragment();
+        listFragment.add(ijkFragment);
         listFragment.add(editFragment);
         listFragment.add(otherFragment);
         listFragment.add(playFragment);
+
         adapter = new HomeViewPagerAdapter(getSupportFragmentManager(), listFragment);
         viewPager.setAdapter(adapter);
 
         btVideoEdit.setOnClickListener(this);
         btOther.setOnClickListener(this);
         btPlayer.setOnClickListener(this);
+        btIjkPlayer.setOnClickListener(this);
 
 //        thread = new Mythread();
 //        thread.start();
@@ -104,15 +110,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.bt_edit:
+            case R.id.bt_play_list:
                 viewPager.setCurrentItem(0);
                 break;
-            case R.id.bt_other:
+            case R.id.bt_edit:
                 viewPager.setCurrentItem(1);
                 break;
-            case R.id.bt_play:
+            case R.id.bt_other:
                 viewPager.setCurrentItem(2);
                 break;
+            case R.id.bt_play:
+                viewPager.setCurrentItem(3);
+                break;
+
         }
     }
 

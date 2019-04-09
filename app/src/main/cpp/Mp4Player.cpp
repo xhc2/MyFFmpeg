@@ -45,7 +45,6 @@ Mp4Player::Mp4Player(const char *path, ANativeWindow *win, CallJava *cj) {
     afc = NULL;
     videoDuration = 0;
 
-
     LOGE("------------------------------START-------------------------------");
     int result = initFFmpeg(path);
     if (result < 0) {

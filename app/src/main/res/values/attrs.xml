@@ -7,4 +7,10 @@
         <attr name="show_back" format="boolean" />
     </declare-styleable>
 
+    <attr name="entrySummaries" format="reference" />
+
+    <declare-styleable name="IjkListPreference">
+        <attr name="entrySummaries" />
+    </declare-styleable>
+
 </resources>

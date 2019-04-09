@@ -8,10 +8,16 @@
 
     <LinearLayout
         android:id="@+id/ll_oper"
-        android:weightSum="3"
+        android:weightSum="4"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
         android:layout_height="65dp">
+
+        <Button
+            android:id="@+id/bt_play_list"
+            android:text="播放列表"
+            android:drawableTop="@mipmap/phone_player"
+            style="@style/home_button" />
 
         <Button
             android:id="@+id/bt_edit"
