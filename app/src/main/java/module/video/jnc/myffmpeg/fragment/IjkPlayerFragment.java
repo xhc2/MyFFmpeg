@@ -67,15 +67,24 @@ public class IjkPlayerFragment extends Fragment implements SurfaceHolder.Callbac
                 super.onScrollStateChanged(recyclerView, newState);
                 //只播放第一个item
                 Log.e("xhc", " state " + newState);
+                LinearLayoutManager l = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int position = l.findFirstVisibleItemPosition();
+                View view = l.getChildAt(position);
+                Log.e("xhc" , " item y"+ view.getY());
+
+                if(view.getY() + view.getHeight() <= 0 ){
+                    //item刚好滑出顶部
+
+                }
+
                 if (newState == SCROLL_STATE_IDLE) {
-                    //停止且固定了
-                    LinearLayoutManager l = (LinearLayoutManager) recyclerView.getLayoutManager();
-                    int position = l.findFirstVisibleItemPosition();
+
                     if(position == lastPlayPosition){
                         return ;
                     }
-                    Log.e("xhc" , " position "+position);
-                    View view = l.getChildAt(position);
+//                    Log.e("xhc" , " position "+position);
+
+
                     SurfaceView sv = view.findViewById(R.id.surface_view);
                     sv.getHolder().addCallback(IjkPlayerFragment.this);
                     try {
@@ -100,6 +109,9 @@ public class IjkPlayerFragment extends Fragment implements SurfaceHolder.Callbac
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+
+
+
             }
         });
 
@@ -116,6 +128,9 @@ public class IjkPlayerFragment extends Fragment implements SurfaceHolder.Callbac
         VideoBean vb2 = new VideoBean();
         vb2.setVideoPath("sdcard/FFmpeg/video_src/test.mp4");
 
+        listVB.add(vb);
+        listVB.add(vb);
+        listVB.add(vb);
         listVB.add(vb);
         listVB.add(vb);
         listVB.add(vb);

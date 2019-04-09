@@ -7,6 +7,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class VideoAdapter extends MyBaseAdapter<VideoBean,VideoAdapter.MyViewHol
 
     class MyViewHolder extends RecyclerView.ViewHolder{
         SurfaceView surfaceView;
-        Button btStart;
+        ImageButton btStart;
         MyViewHolder(View itemView) {
             super(itemView);
             surfaceView = itemView.findViewById(R.id.surface_view);
