@@ -12,8 +12,15 @@
         android:text="开始"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-    <module.video.jnc.myffmpeg.widget.MyLoadMoreRecycleView
-        android:id="@+id/recycler_view"
+
+    <Button
+        android:id="@+id/bt_start2"
+        android:text="开始2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content" />
+    <module.video.jnc.myffmpeg.widget.MyVideoView
+        android:id="@+id/video_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 </LinearLayout>

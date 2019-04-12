@@ -1,5 +1,6 @@
 package module.video.jnc.myffmpeg.fragment;
 
+import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,17 +9,23 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import module.video.jnc.myffmpeg.R;
+import module.video.jnc.myffmpeg.adapter.MyBaseAdapter;
 import module.video.jnc.myffmpeg.adapter.VideoAdapter;
 import module.video.jnc.myffmpeg.bean.VideoBean;
+import module.video.jnc.myffmpeg.widget.MyGlSurfaceViewCommon;
+import module.video.jnc.myffmpeg.widget.MyVideoView;
+import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
@@ -28,7 +35,7 @@ import static android.support.v7.widget.RecyclerView.SCROLL_STATE_SETTLING;
  * 列表播放视频
  */
 
-public class IjkPlayerFragment extends Fragment implements SurfaceHolder.Callback {
+public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyleItemClick<VideoBean> {
 
     static {
         IjkMediaPlayer.loadLibrariesOnce(null);
@@ -36,13 +43,13 @@ public class IjkPlayerFragment extends Fragment implements SurfaceHolder.Callbac
     }
 
 
-    private IjkMediaPlayer player;
     private RecyclerView recyclerView;
     private VideoAdapter adapter;
     private List<VideoBean> listVB = new ArrayList<>();
-    private int lastPlayPosition = -1;
-
-
+    private int lastPlayPositon = -1;
+    private boolean playState = false;
+    private LinearLayoutManager linearLayoutManager;
+    private View viewItem;
     public IjkPlayerFragment() {
 
     }
@@ -60,98 +67,130 @@ public class IjkPlayerFragment extends Fragment implements SurfaceHolder.Callbac
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
         addFile();
         adapter = new VideoAdapter(listVB, getActivity());
+        adapter.setOnRecyleItemClick(this);
         recyclerView.setAdapter(adapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 //只播放第一个item
-                Log.e("xhc", " state " + newState);
-                LinearLayoutManager l = (LinearLayoutManager) recyclerView.getLayoutManager();
-                int position = l.findFirstVisibleItemPosition();
-                View view = l.getChildAt(position);
-                Log.e("xhc" , " item y"+ view.getY());
-
-                if(view.getY() + view.getHeight() <= 0 ){
-                    //item刚好滑出顶部
-
-                }
-
-                if (newState == SCROLL_STATE_IDLE) {
-
-                    if(position == lastPlayPosition){
-                        return ;
-                    }
-//                    Log.e("xhc" , " position "+position);
+//                Log.e("xhc", " state " + newState);
+//                LinearLayoutManager l = (LinearLayoutManager) recyclerView.getLayoutManager();
+//                if (lastPlayPositon != -1) {
+//                    View view = l.getChildAt(lastPlayPositon);
+//                    if (view.getY() < 0) {
+//                        //item已经准备划出去 , 那么就播放下一个
+//                        Log.e("xhc" , " view.gety "+view.getY());
+//                    }
+//
+//                }
 
 
-                    SurfaceView sv = view.findViewById(R.id.surface_view);
-                    sv.getHolder().addCallback(IjkPlayerFragment.this);
-                    try {
-                        if(player != null && player.isPlaying()){
-                            player.reset();
-                            player.release();
-                        }
-                        player = new IjkMediaPlayer();
-                        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        player.setDisplay(sv.getHolder());
-                        player.setDataSource(listVB.get(position).getVideoPath());
-                        player.prepareAsync();
-                        player.start();
-                        lastPlayPosition = position;
-                    } catch (Exception e) {
-                        Log.e("xhc" , " "+e.getMessage());
-                        e.printStackTrace();
-                    }
-                }
+//                int position = l.findFirstVisibleItemPosition();
+//                View view = l.getChildAt(position);
+//                Log.e("xhc" , " item y"+ view.getY());
+//
+
+//
+//                if (newState == SCROLL_STATE_IDLE) {
+//                    if(position == lastPlayPosition){
+//                        return ;
+//                    }
+//
+//                    SurfaceView sv = view.findViewById(R.id.surface_view);
+//                    sv.getHolder().addCallback(IjkPlayerFragment.this);
+//                    try {
+//                        play(listVB.get(position) , sv);
+//                        lastPlayPosition = position;
+//                    } catch (Exception e) {
+//                        Log.e("xhc" , " "+e.getMessage());
+//                        e.printStackTrace();
+//                    }
+//                }
             }
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+                linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if(lastPlayPositon != -1 ){
+                    viewItem = linearLayoutManager.getChildAt(lastPlayPositon);
+                    Log.e("xhc" , " get y "+viewItem.getY() +" lastposition "+lastPlayPositon+" view item "+viewItem);
 
+                    if((viewItem.getY() + viewItem.getHeight() / 2) <= 0){
 
-
+                        if(lastPlayPositon + 1 < adapter.getItemCount()
+                                && !videoView.compareTag(String.valueOf(lastPlayPositon + 1))){
+                            Log.e("xhc" , " play next one ");
+                            playVideo(lastPlayPositon + 1 , listVB.get(lastPlayPositon + 1));
+                        }
+                    }
+                }
             }
         });
-
-
-//
-
-//
-//
     }
 
+
+    //http://ips.ifeng.com/video19.ifeng.com/video09/2019/04/05/p14578618-102-008-095505.mp4?vid=ffbe0b09-3e47-45f1-ba87-feca5da77997&uid=1536051367692_j0o9i7856&from=v_Free&pver=vHTML5Player_v2.0.0&sver=&se=%E8%87%AA%E5%AA%92%E4%BD%93&cat=165-10134&ptype=165&platform=pc&sourceType=h5&dt=1554428963000&gid=QpIIgWoKNEZC&sign=d1b82d3940da0f3dc8508c32c118869c&tm=1554949359175
     private void addFile() {
         VideoBean vb = new VideoBean();
         vb.setVideoPath("rtmp://58.200.131.2:1935/livetv/hunantv");
         VideoBean vb2 = new VideoBean();
         vb2.setVideoPath("sdcard/FFmpeg/video_src/test.mp4");
 
-        listVB.add(vb);
-        listVB.add(vb);
-        listVB.add(vb);
-        listVB.add(vb);
-        listVB.add(vb);
-        listVB.add(vb);
-        listVB.add(vb);
+//        listVB.add(vb);
+//        listVB.add(vb);
+//        listVB.add(vb);
+//        listVB.add(vb);
+//        listVB.add(vb);
+//        listVB.add(vb);
+//        listVB.add(vb);
+        listVB.add(vb2);
+        listVB.add(vb2);
+        listVB.add(vb2);
+        listVB.add(vb2);
+        listVB.add(vb2);
+        listVB.add(vb2);
+        listVB.add(vb2);
         listVB.add(vb2);
     }
 
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
+    private MyVideoView videoView;
 
-        Log.e("xhc", " surfaceCreated ");
+    private MyVideoView initVideoView() {
+        if (videoView == null) {
+            videoView = new MyVideoView(getContext());
+            FrameLayout.LayoutParams params =
+                    new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT);
+            videoView.setLayoutParams(params);
+        }
+        return videoView;
     }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.e("xhc", " surfaceChanged ");
+    private void playVideo(final int position, VideoBean videoBean) {
+        LinearLayoutManager l = (LinearLayoutManager) recyclerView.getLayoutManager();
+        Log.e("xhc", " nowposition " + lastPlayPositon + " position " + position);
+        if (lastPlayPositon != position && lastPlayPositon != -1) {
+            ((ViewGroup) l.getChildAt(lastPlayPositon).findViewById(R.id.fl_contain)).removeAllViews();
+        }
+
+        View viewRoot = l.getChildAt(position);
+        FrameLayout fl = viewRoot.findViewById(R.id.fl_contain);
+        fl.addView(initVideoView());
+        videoView.playRelease();
+        videoView.play(videoBean.getVideoPath(), position + "", new MyVideoView.StartSuccessInterface() {
+            @Override
+            public void startSuccess() {
+                lastPlayPositon = position;
+            }
+        });
     }
 
+
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.e("xhc", " surfaceDestroyed ");
+    public void onItemClick(View v, VideoBean videoBean, int position) {
+        playVideo(position, videoBean);
     }
 }

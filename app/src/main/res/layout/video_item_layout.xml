@@ -1,21 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fl_root"
     android:layout_width="match_parent"
-    android:padding="5dp"
-    android:layout_height="200dp">
+    android:layout_height="200dp"
+    android:padding="5dp">
 
-    <SurfaceView
-        android:id="@+id/surface_view"
+    <!--<TextureView-->
+    <!--android:id="@+id/surface_view"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent" />-->
+
+
+    <!--<module.video.jnc.myffmpeg.widget.MyVideoView-->
+        <!--android:id="@+id/video_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent" />-->
+
+    <ImageView
+        android:id="@+id/img_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
 
     <ImageButton
         android:id="@+id/bt_start"
-        android:src="@mipmap/video_play"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
         android:background="#55ffffff"
         android:padding="4dp"
-        android:layout_gravity="center"
-        android:layout_width="50dp"
-        android:layout_height="50dp" />
+        android:src="@mipmap/video_play" />
+
+    <FrameLayout
+        android:id="@+id/fl_contain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
 
 </FrameLayout>

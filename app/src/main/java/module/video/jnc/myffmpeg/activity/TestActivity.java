@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,189 +22,57 @@ import java.util.List;
 import module.video.jnc.myffmpeg.R;
 import module.video.jnc.myffmpeg.adapter.MyLoadMoreBaseAdapter;
 import module.video.jnc.myffmpeg.widget.MyLoadMoreRecycleView;
+import module.video.jnc.myffmpeg.widget.MyVideoView;
 
 public class TestActivity extends AppCompatActivity {
 
-    private MyLoadMoreRecycleView recyclerView;
-    private MyAdapter adapter;
-    private List<Test> list = new ArrayList<>();
-    int count = 100 ;
-    int loadCount = 10 ;
-    MediaRecorder recorder = new MediaRecorder();
+    private Handler handler = new Handler();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test2);
-
+        final MyVideoView videoView = findViewById(R.id.video_view);
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /**
-                 * 练习mediarecorder 练习
-                 */
-                recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//                recorder.setVideoSource();
-                recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-                recorder.setOutputFile("sdcard/FFmpeg/mediaRecord.3gp");
-                try{
-                    recorder.prepare();
-                    recorder.start();   // Recording is now started
-                }catch(Exception e){
-                    Log.e("xhc" , " Exception "+e.getMessage());
-                }
+                videoView.play("sdcard/FFmpeg/video_src/test.mp4");
+
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.e("xhc" , " click start ");
+//                        Toast.makeText(TestActivity.this, "toast", Toast.LENGTH_SHORT).show();
+//                        try{
+//                            Thread.sleep(1000 * 10);
+//                        }catch(Exception e){
+//
+//                        }
+//                        Log.e("xhc" , " click end ");
+//
+//                    }
+//                });
+
+
+            }
+        });
+
+        findViewById(R.id.bt_start2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                videoView.play("sdcard/FFmpeg/video_src/time.mp4");
             }
         });
 
 
-
-
-
-
-
-
-//        recyclerView = findViewById(R.id.recycler_view);
-//        for (int i = 0; i < 10; ++i) {
-//            Test t = new Test();
-//            t.name = "xhc";
-//            list.add(t);
-//        }
-//        adapter = new MyAdapter(list, this);
-//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-//        recyclerView.setAdapter(adapter);
-//
-//
-//        recyclerView.setLis(new MyLoadMoreRecycleView.LoadMoreListener() {
-//            @Override
-//            public void loadMore() {
-//                if( loadCount >= count ){
-//                    recyclerView.loadNoMore();
-//                    return ;
-//                }
-//                recyclerView.loadStart();
-//                new MyNet().start();
-//
-//            }
-//        });
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        recorder.stop();
-        recorder.reset();   // You can reuse the object by going back to setAudioSource() step
-        recorder.release(); // Now the object cannot be reused
     }
 
 
-    Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case 1:
-                    Log.e("xhc", " load finish ");
-                    adapter.addAllItem(list);
-                    recyclerView.loadFinish();
-                    break;
-
-                case 3:
-                    recyclerView.loadNoMore();
-                    break;
-            }
-            return false;
-        }
-    });
-
-    class MyNet extends Thread {
-        @Override
-        public void run() {
-            super.run();
-            try {
-                list.clear();
-                for (int i = 0; i < 10; ++i) {
-                    Test t = new Test();
-                    t.name = "MyNet";
-                    list.add(t);
-                }
-                loadCount +=10;
-                Thread.sleep(1000);
-                handler.sendEmptyMessage(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-
-    public class MyAdapter extends MyLoadMoreBaseAdapter<Test, RecyclerView.ViewHolder> {
-
-        public MyAdapter(List<Test> list, Context context) {
-            super(list, context);
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup container, int type) {
-            switch (type) {
-                case NORMAL_TYPE:
-                    return new ViewHolder(LayoutInflater.from(context).inflate(R.layout.player_list_layout_item, container, false));
-
-                case FOOTER_TYPE:
-
-                    return new FooterViewHolder(LayoutInflater.from(context).inflate(R.layout.item_footer_view, container, false));
-
-            }
-            return new ViewHolder(LayoutInflater.from(context).inflate(R.layout.player_list_layout_item, container, false));
-        }
-
-        @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            if (holder.getItemViewType() == NORMAL_TYPE) {
-                ViewHolder normalHolder = (ViewHolder) holder;
-                normalHolder.tv.setText(list.get(position).getName());
-            } else {
-                FooterViewHolder footerViewHolder = (FooterViewHolder) holder;
-                switch (state) {
-                    case STATE_FINISH:
-                        footerViewHolder.loadFinish();
-                        break;
-                    case STATE_LOADING:
-                        footerViewHolder.loadStart();
-                        break;
-                    case STATE_NOMORE:
-                        footerViewHolder.loadNoMore();
-                        break;
-                }
-
-            }
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            ImageView img;
-            TextView tv;
-            RelativeLayout rlRoot;
-
-            ViewHolder(View itemView) {
-                super(itemView);
-                rlRoot = itemView.findViewById(R.id.rl_root);
-                img = itemView.findViewById(R.id.img_logo);
-                tv = itemView.findViewById(R.id.tv_name);
-            }
-        }
-
-    }
-
-
-    class Test {
-        private String name;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-    }
 
 }
