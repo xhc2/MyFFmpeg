@@ -66,23 +66,14 @@ public class MyVideoView extends FrameLayout implements SurfaceHolder.Callback {
     }
 
     public void play(final String path) {
-        playRelease();
-        if (player == null) {
-            player = new IjkMediaPlayer();
-        }
-        surfaceView.getHolder().removeCallback(this);
-        surfaceView.getHolder().addCallback(MyVideoView.this);
         new Thread() {
             @Override
             public void run() {
                 super.run();
                 try {
-
-
                     player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     player.setDataSource(path);
                     player.prepareAsync();
-
                     player.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
                         @Override
                         public void onPrepared(IMediaPlayer iMediaPlayer) {
@@ -93,7 +84,6 @@ public class MyVideoView extends FrameLayout implements SurfaceHolder.Callback {
                     });
 
                 } catch (Exception e) {
-                    Log.e("xhc", " e message " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -122,6 +112,13 @@ public class MyVideoView extends FrameLayout implements SurfaceHolder.Callback {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.e("xhc" , " surfaceDestroyed "+this);
-        playRelease();
+        new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                playRelease();
+            }
+        }.start();
+
     }
 }

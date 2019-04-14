@@ -31,10 +31,11 @@
         android:padding="4dp"
         android:src="@mipmap/video_play" />
 
-    <FrameLayout
-        android:id="@+id/fl_contain"
+    <View
+        android:background="#884432"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
+        android:layout_height="1dp"
+        android:layout_gravity="bottom"
+        />
 
 </FrameLayout>

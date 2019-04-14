@@ -11,10 +11,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import junit.framework.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,45 +29,37 @@ import module.video.jnc.myffmpeg.widget.MyVideoView;
 
 public class TestActivity extends AppCompatActivity {
 
-    private Handler handler = new Handler();
-
+    private FrameLayout contain;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test2);
-        final MyVideoView videoView = findViewById(R.id.video_view);
+        contain = findViewById(R.id.fl_contain);
+//        final MyVideoView videoView = findViewById(R.id.video_view);
+        final MyVideoView mv = new MyVideoView(TestActivity.this);
+        FrameLayout.LayoutParams parmas = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT ,
+                FrameLayout.LayoutParams.MATCH_PARENT);
+        contain.addView(mv , parmas);
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                videoView.play("sdcard/FFmpeg/video_src/test.mp4");
+//                contain.removeAllViews();
 
-//                handler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        Log.e("xhc" , " click start ");
-//                        Toast.makeText(TestActivity.this, "toast", Toast.LENGTH_SHORT).show();
-//                        try{
-//                            Thread.sleep(1000 * 10);
-//                        }catch(Exception e){
-//
-//                        }
-//                        Log.e("xhc" , " click end ");
-//
-//                    }
-//                });
-
-
+                mv.play("sdcard/FFmpeg/video_src/test.mp4");
             }
         });
 
         findViewById(R.id.bt_start2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                videoView.play("sdcard/FFmpeg/video_src/time.mp4");
+//                contain.removeAllViews();
+//                MyVideoView mv = new MyVideoView(TestActivity.this);
+//                FrameLayout.LayoutParams parmas = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT ,
+//                        FrameLayout.LayoutParams.MATCH_PARENT);
+//                contain.addView(mv , parmas);
+                mv.play("sdcard/FFmpeg/video_src/input.mp4");
             }
         });
-
-
     }
 
 

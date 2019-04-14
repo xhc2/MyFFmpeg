@@ -18,9 +18,16 @@
         android:text="开始2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-    <module.video.jnc.myffmpeg.widget.MyVideoView
-        android:id="@+id/video_view"
+
+    <FrameLayout
+        android:id="@+id/fl_contain"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+        android:layout_height="match_parent"/>
+
+
+    <!--<module.video.jnc.myffmpeg.widget.MyVideoView-->
+        <!--android:id="@+id/video_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--/>-->
 </LinearLayout>

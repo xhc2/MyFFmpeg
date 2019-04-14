@@ -70,12 +70,10 @@ public class VideoAdapter extends MyBaseAdapter<VideoBean,VideoAdapter.MyViewHol
     class MyViewHolder extends RecyclerView.ViewHolder{
         ImageButton btStart;
         ImageView imgView;
-        FrameLayout flContain;
         MyViewHolder(View itemView) {
             super(itemView);
             btStart = itemView.findViewById(R.id.bt_start);
             imgView = itemView.findViewById(R.id.img_view);
-            flContain = itemView.findViewById(R.id.fl_contain);
             btStart.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
