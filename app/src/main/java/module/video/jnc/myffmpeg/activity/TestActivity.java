@@ -43,20 +43,14 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                contain.removeAllViews();
 
-                mv.play("sdcard/FFmpeg/video_src/test.mp4");
+                mv.play("rtmp://58.200.131.2:1935/livetv/hunantv");
             }
         });
 
         findViewById(R.id.bt_start2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                contain.removeAllViews();
-//                MyVideoView mv = new MyVideoView(TestActivity.this);
-//                FrameLayout.LayoutParams parmas = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT ,
-//                        FrameLayout.LayoutParams.MATCH_PARENT);
-//                contain.addView(mv , parmas);
                 mv.play("sdcard/FFmpeg/video_src/input.mp4");
             }
         });

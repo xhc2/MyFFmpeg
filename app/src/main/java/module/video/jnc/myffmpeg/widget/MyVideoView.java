@@ -19,7 +19,7 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
  */
 public class MyVideoView extends FrameLayout implements SurfaceHolder.Callback {
 
-    private IjkMediaPlayer player = new IjkMediaPlayer();
+    private IjkMediaPlayer player;//= new IjkMediaPlayer();
     private SurfaceView surfaceView;
 
     public MyVideoView(@NonNull Context context) {
@@ -66,26 +66,32 @@ public class MyVideoView extends FrameLayout implements SurfaceHolder.Callback {
     }
 
     public void play(final String path) {
+
         new Thread() {
             @Override
             public void run() {
                 super.run();
-                try {
-                    player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    player.setDataSource(path);
-                    player.prepareAsync();
-                    player.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
-                        @Override
-                        public void onPrepared(IMediaPlayer iMediaPlayer) {
-                            if (lis != null) lis.startSuccess();
-                            iMediaPlayer.start();
-                            Log.e("xhc", " start ...");
-                        }
-                    });
-
-                } catch (Exception e) {
-                    e.printStackTrace();
+                synchronized (MyVideoView.class) {
+                    try {
+                        playRelease();
+                        player = new IjkMediaPlayer();
+                        player.setDisplay(surfaceView.getHolder());
+                        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                        player.setDataSource(path);
+                        player.prepareAsync();
+                        player.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(IMediaPlayer iMediaPlayer) {
+                                if (lis != null) lis.startSuccess();
+                                iMediaPlayer.start();
+                                Log.e("xhc", " start ...");
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+
             }
         }.start();
     }
@@ -100,8 +106,8 @@ public class MyVideoView extends FrameLayout implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.e("xhc" , " surfaceCreated "+this);
-        player.setDisplay(holder);
+        Log.e("xhc", " surfaceCreated " + this);
+//        player.setDisplay(holder);
     }
 
     @Override
@@ -111,8 +117,8 @@ public class MyVideoView extends FrameLayout implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.e("xhc" , " surfaceDestroyed "+this);
-        new Thread(){
+        Log.e("xhc", " surfaceDestroyed " + this);
+        new Thread() {
             @Override
             public void run() {
                 super.run();

@@ -69,6 +69,7 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
         videoViewContain = view.findViewById(R.id.video_contain);
         tvHint = view.findViewById(R.id.tv_hint);
         recyclerView = view.findViewById(R.id.recycler_view);
+        initVideoView();
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
         addFile();
         adapter = new VideoAdapter(listVB, getActivity());
@@ -106,7 +107,14 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
                     else if((currentPosition < linearLayoutManager.findFirstVisibleItemPosition() ||
                             currentPosition > linearLayoutManager.findLastVisibleItemPosition()) && !autoPlay){
                         //没有自动播放，如果超出了可视区域直接停止播放器
-                        videoViewContain.removeAllViews();
+                        new Thread(){
+                            @Override
+                            public void run() {
+                                super.run();
+                                mv.playRelease();
+                            }
+                        }.start();
+
                         return ;
                     }
                     contain.setTranslationY(linearLayoutManager.findViewByPosition(currentPosition).getY());
@@ -140,20 +148,23 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
         listVB.add(vb5);
     }
 
-    private void playVideo(final int position, VideoBean videoBean) {
-        videoViewContain.removeAllViews();
-        tvHint.setVisibility(View.VISIBLE);
-        MyVideoView mv = new MyVideoView(getContext());
+    private MyVideoView mv;
+    private void initVideoView(){
+        mv = new MyVideoView(getContext());
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT);
         videoViewContain.addView(mv,params);
-//        mv.play(videoBean.getVideoPath() ,"tag" , new MyVideoView.StartSuccessInterface(){
-//            @Override
-//            public void startSuccess() {
-//                Log.e("xhc" , " start success ");
+    }
+
+    private void playVideo(final int position, VideoBean videoBean) {
+//        tvHint.setVisibility(View.VISIBLE);
+        mv.play(videoBean.getVideoPath() ,"tag" , new MyVideoView.StartSuccessInterface(){
+            @Override
+            public void startSuccess() {
+                Log.e("xhc" , " start success ");
 //                tvHint.setVisibility(View.GONE);
-//            }
-//        });
+            }
+        });
     }
 
 
