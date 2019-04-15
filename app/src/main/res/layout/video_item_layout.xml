@@ -3,24 +3,16 @@
     android:id="@+id/fl_root"
     android:layout_width="match_parent"
     android:layout_height="200dp"
-    android:padding="5dp">
+    android:padding="1dp">
 
-    <!--<TextureView-->
-    <!--android:id="@+id/surface_view"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent" />-->
-
-
-    <!--<module.video.jnc.myffmpeg.widget.MyVideoView-->
-        <!--android:id="@+id/video_view"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent" />-->
 
     <ImageView
         android:id="@+id/img_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
+
+
 
     <ImageButton
         android:id="@+id/bt_start"

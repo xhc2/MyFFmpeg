@@ -42,8 +42,6 @@ public class VideoAdapter extends MyBaseAdapter<VideoBean,VideoAdapter.MyViewHol
 
     public void notifyPlayState(int position , boolean state){
         playPostion = state ?  position :  -1;
-        notifyDataSetChanged();
-//        notifyItemChanged(position);
     }
 
     @Override
@@ -54,16 +52,16 @@ public class VideoAdapter extends MyBaseAdapter<VideoBean,VideoAdapter.MyViewHol
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         holder.btStart.setTag(position);
-        if(playPostion == position){
-            holder.btStart.setVisibility(View.INVISIBLE);
-            holder.imgView.setVisibility(View.GONE);
-//            holder.mvv.play(list.get(position).getVideoPath() , position);
-        }
-        else{
+        Log.e("xhc" , " bind "+position );
+//        if(playPostion == position){
+//            holder.btStart.setVisibility(View.GONE);
+//            holder.imgView.setVisibility(View.GONE);
+//        }
+//        else{
             holder.btStart.setVisibility(View.VISIBLE);
             holder.imgView.setVisibility(View.VISIBLE);
             Glide.with(context).load("http://b.hiphotos.baidu.com/image/pic/item/03087bf40ad162d93b3a196f1fdfa9ec8b13cde9.jpg").into(holder.imgView);
-        }
+//        }
     }
 
 

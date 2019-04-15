@@ -11,29 +11,33 @@
         android:layout_height="match_parent"
         android:layout_below="@id/title" />
 
-
     <FrameLayout
         android:id="@+id/fl_contain"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:layout_below="@id/title">
-
-
+        android:layout_below="@id/title"
+        android:padding="1dp"
+        android:visibility="invisible">
 
         <FrameLayout
             android:id="@+id/video_contain"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-        <TextView
-            android:id="@+id/tv_hint"
-            android:textColor="#ffffff"
-            android:background="#33333333"
-            android:padding="10dp"
-            android:visibility="gone"
-            android:text="加载中..."
+            android:layout_height="match_parent" />
+
+
+        <ImageView
+            android:id="@+id/img"
+            android:scaleType="centerCrop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ProgressBar
+            android:id="@+id/loading"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:indeterminateBehavior="repeat" />
+
     </FrameLayout>
 
     <module.video.jnc.myffmpeg.widget.TitleBar
@@ -41,14 +45,5 @@
         style="@style/title_bar"
         app:show_back="false"
         app:title_text="播放列表" />
-    <!--<module.video.jnc.myffmpeg.widget.media.IjkVideoView-->
-    <!--android:id="@+id/video_view"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent" />-->
-
-    <!--<SurfaceView-->
-    <!--android:id="@+id/surface_view"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent" />-->
 
 </RelativeLayout>

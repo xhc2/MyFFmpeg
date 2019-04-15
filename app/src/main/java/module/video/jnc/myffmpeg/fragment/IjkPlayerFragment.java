@@ -16,7 +16,11 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,11 +53,11 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
     private LinearLayoutManager linearLayoutManager;
     private FrameLayout contain;
     private FrameLayout videoViewContain;
-    private TextView tvHint ;
+    private ProgressBar loadingPro;
+    private ImageView img ;
     private int currentPosition = 0;
     private boolean autoPlay = true;
     public IjkPlayerFragment() {
-
     }
 
     @Nullable
@@ -67,7 +71,8 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
         super.onViewCreated(view, savedInstanceState);
         contain =  view.findViewById(R.id.fl_contain) ;
         videoViewContain = view.findViewById(R.id.video_contain);
-        tvHint = view.findViewById(R.id.tv_hint);
+        loadingPro = view.findViewById(R.id.loading);
+        img = view.findViewById(R.id.img);
         recyclerView = view.findViewById(R.id.recycler_view);
         initVideoView();
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
@@ -80,27 +85,33 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 //只播放第一个item
-
-
-
             }
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+                linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+//                if(currentPosition  != lastPosition && (lastPosition >= linearLayoutManager.findFirstVisibleItemPosition()
+//                        && lastPosition <= linearLayoutManager.findLastVisibleItemPosition())){
+//                    View view = linearLayoutManager.findViewByPosition(lastPosition);
+//                    if(view != null){
+//                        view.findViewById(R.id.bt_start).setVisibility(View.VISIBLE);
+//                        view.findViewById(R.id.img_view).setVisibility(View.VISIBLE);
+//                    }
+//                }
                 if(currentPosition >= 0 && currentPosition < adapter.getItemCount()){
-                    linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                     /**
                      * 1.正在播放的视频已经滑出去，a.自动播放下一条,autoPlay = true b.播放器停止autoPlay = false
                      * 2.正在播放的视频还在可视区域 a.继续播放
                      */
-
                     if(currentPosition < linearLayoutManager.findFirstVisibleItemPosition() && autoPlay){
                         //自动播放下一条
+                        lastPosition = currentPosition;
                         currentPosition = linearLayoutManager.findFirstVisibleItemPosition();
                         playVideo(currentPosition , listVB.get(currentPosition));
                     }
                     else if(currentPosition > linearLayoutManager.findLastVisibleItemPosition() && autoPlay){
+                        lastPosition = currentPosition;
                         currentPosition = linearLayoutManager.findLastVisibleItemPosition();
                         playVideo(currentPosition , listVB.get(currentPosition));
                     }
@@ -114,7 +125,6 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
                                 mv.playRelease();
                             }
                         }.start();
-
                         return ;
                     }
                     contain.setTranslationY(linearLayoutManager.findViewByPosition(currentPosition).getY());
@@ -125,15 +135,22 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
 
     private void addFile() {
         VideoBean vb = new VideoBean();
-        vb.setVideoPath("rtmp://58.200.131.2:1935/livetv/hunantv");
+        vb.setVideoPath("sdcard/FFmpeg/video_src/v1080.mp4");
+
         VideoBean vb2 = new VideoBean();
         vb2.setVideoPath("sdcard/FFmpeg/video_src/test.mp4");
+
         VideoBean vb3 = new VideoBean();
-        vb3.setVideoPath("rtmp://media3.sinovision.net:1935/live/livestream");
+        vb3.setVideoPath("sdcard/FFmpeg/video_src/time.mp4");
+
         VideoBean vb4 = new VideoBean();
         vb4.setVideoPath("sdcard/FFmpeg/video_src/input.mp4");
+
         VideoBean vb5 = new VideoBean();
-        vb5.setVideoPath("http://ips.ifeng.com/video19.ifeng.com/video09/2019/04/05/p14578618-102-008-095505.mp4?vid=ffbe0b09-3e47-45f1-ba87-feca5da77997&uid=1536051367692_j0o9i7856&from=v_Free&pver=vHTML5Player_v2.0.0&sver=&se=%E8%87%AA%E5%AA%92%E4%BD%93&cat=165-10134&ptype=165&platform=pc&sourceType=h5&dt=1554428963000&gid=QpIIgWoKNEZC&sign=d1b82d3940da0f3dc8508c32c118869c&tm=1554949359175");
+        vb5.setVideoPath("rtmp://58.200.131.2:1935/livetv/hunantv");
+
+        VideoBean vb6 = new VideoBean();
+        vb6.setVideoPath("rtmp://media3.sinovision.net:1935/live/livestream");
         listVB.add(vb);
         listVB.add(vb);
         listVB.add(vb);
@@ -146,6 +163,7 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
         listVB.add(vb3);
         listVB.add(vb4);
         listVB.add(vb5);
+        listVB.add(vb6);
     }
 
     private MyVideoView mv;
@@ -156,13 +174,21 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
         videoViewContain.addView(mv,params);
     }
 
+    private int lastPosition = -1;
     private void playVideo(final int position, VideoBean videoBean) {
-//        tvHint.setVisibility(View.VISIBLE);
+
+
+//        adapter.notifyPlayState(position , true);
+        contain.setVisibility(View.VISIBLE);
+        loadingPro.setVisibility(View.VISIBLE);
+        img.setVisibility(View.VISIBLE);
+        Glide.with(getContext()).load("http://b.hiphotos.baidu.com/image/pic/item/03087bf40ad162d93b3a196f1fdfa9ec8b13cde9.jpg").into(img);
         mv.play(videoBean.getVideoPath() ,"tag" , new MyVideoView.StartSuccessInterface(){
             @Override
             public void startSuccess() {
                 Log.e("xhc" , " start success ");
-//                tvHint.setVisibility(View.GONE);
+                loadingPro.setVisibility(View.GONE);
+                img.setVisibility(View.GONE);
             }
         });
     }
@@ -170,6 +196,7 @@ public class IjkPlayerFragment extends Fragment implements MyBaseAdapter.OnRecyl
 
     @Override
     public void onItemClick(View v, VideoBean videoBean, int position) {
+        lastPosition = currentPosition;
         currentPosition = position;
         linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         if(currentPosition >= linearLayoutManager.findFirstVisibleItemPosition()
