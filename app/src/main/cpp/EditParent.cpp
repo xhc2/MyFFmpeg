@@ -362,19 +362,6 @@ int EditParent::writeTrail(AVFormatContext *afc_output) {
     return av_write_trailer(afc_output);
 }
 
-//int EditParent::getVideoWidth(AVCodecParameters *coder){
-//    if(coder != NULL){
-//        return coder->width;
-//    }
-//    return 0;
-//}
-//int EditParent::getVideoHeight(AVCodecParameters *coder){
-//    if(coder != NULL){
-//        return coder->height;
-//    }
-//    return 0;
-//}
-
 EditParent::~EditParent() {
 
 }

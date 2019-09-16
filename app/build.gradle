@@ -11,20 +11,14 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-//        ndk {
-//            abiFilters "armeabi", "x86"
-//        }
+        ndk {
+            abiFilters "armeabi-v7a"
+        }
 
         externalNativeBuild {
             cmake {
                 cppFlags "-frtti -fexceptions"
                 abiFilters "armeabi-v7a"
-//                abiFilters "armeabi", "x86"
-            }
-        }
-        sourceSets {
-            main {
-                jniLibs.srcDirs = ['src/main/jniLibs']
             }
         }
     }
