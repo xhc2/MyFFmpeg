@@ -55,7 +55,7 @@ public class CameraStreamActivity extends Activity implements Camera.PreviewCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_stream);
         etUrl = findViewById(R.id.et_url);
-        etUrl.setText("rtmp://192.168.15.237:1935/live/live");
+        etUrl.setText("rtmp://192.168.0.4:1935/myapp");
         preview = (FrameLayout) findViewById(R.id.camera_preview);
         tv = (TextView) findViewById(R.id.bt_record);
 //        initView();
