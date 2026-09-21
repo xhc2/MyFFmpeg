@@ -1,3 +1,5 @@
+
+
 # MyFFmpeg
 1.ffmpeg学习
 以练习为主
@@ -10,7 +12,7 @@
 视频源数据在sdcard/FFmpeg/video_src
 音频源文件在sdcard/FFmpeg/music_src
 测试文件：
-[测试文件连接，视频音频文件，解压后直接复制到sdcard目录下就行](https://pan.baidu.com/s/13jwi6G6uzY0m259UxA53FQ)
+[测试文件链接，视频音频文件，解压后直接复制到sdcard目录下就行](https://pan.baidu.com/s/13jwi6G6uzY0m259UxA53FQ)
 
 提取码: jw4s 
 
